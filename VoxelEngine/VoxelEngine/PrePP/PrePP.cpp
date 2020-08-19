@@ -257,7 +257,7 @@ instance += offset;                                         \n";
 
       //search for GuiIfy function
       size_t location = 0;
-      while ((location = fileContents.find("void GuiIfy", location)) != std::string::npos)
+      while ((location = fileContents.find("void GuiIfy", location)) != std::string::npos && fileContents[location - 1] != '/')
       {
         location = fileContents.find_first_of("(", location) + 1;
         std::string type = fileContents.substr(location, fileContents.find_first_of("*", location) - location);
@@ -276,9 +276,9 @@ instance += offset;                                         \n";
     }
 
   }
-  output +=
-"else \n\
-  throw(\"this type is not yet compatible with GUI, please add it to properties\"); \n\n}";
+  if(output.size() != 669) //magic number for number of characters when else if is not needed as there is nothing that can be guiified
+    output += "else \n  throw(\"this type is not yet compatible with GUI, please add it to properties\"); \n\n";
+  output += "}";
   
   ofs;
   ofs.open("../VoxelEngine/Source/GuiIfy.cpp");

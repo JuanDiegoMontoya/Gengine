@@ -1,9 +1,8 @@
 /*HEADER_GOES_HERE*/
 
 /* //// INCLUDES //// */
-#include "../../Headers/ComponentS/Component.h"
+#include "../../Headers/Components/Component.h"
 #include "../../Headers/Engine.h"
-#include "../../Headers/Containers/Object.h"
 #include "../../Headers/Containers/Object.h"
 //#include "Graphics.h"
 
