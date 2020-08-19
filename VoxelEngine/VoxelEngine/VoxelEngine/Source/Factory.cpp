@@ -32,6 +32,7 @@
 #include <fstream>
 
 std::map<std::string, std::vector<PropertyID>> Factory::ComponentPropertyMap;
+std::map<std::string, std::vector<PropertyID>> Factory::EventPropertyMap;
 std::map<std::string, std::vector<PropertyID>> Factory::SystemPropertyMap;
 std::vector<PropertyID> Factory::SpaceProperties;
 std::vector<PropertyID> Factory::EngineProperties;

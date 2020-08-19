@@ -298,64 +298,64 @@ typedef Property<enoom> Enoom;
 
 typedef Int Saveable_ID;
 
-////GuiIfy shit
-//void GuiIfy(String* instance, std::string name)
-//{
-//  constexpr int bufferSize = 128;
-//  static char buffer[bufferSize] = { 0 };
-//  std::string& value = (*(String*)(instance)).value;
-//  strcpy_s(buffer, bufferSize, value.c_str());
-//  ImGui::InputText((std::stringstream() << name << "##" << instance).str().c_str(), buffer, bufferSize);
-//  value = buffer;
-//
-//}
-//
-//void GuiIfy(Int* instance, std::string name)
-//{
-//  ImGui::InputInt((std::stringstream() << name + "##" << instance).str().c_str(), &(*(Int*)(instance)).value);
-//}
-//
-//void GuiIfy(Float* instance, std::string name)
-//{
-//  ImGui::InputFloat((std::stringstream() << name + "##" << instance).str().c_str(), &(*(Float*)(instance)).value);
-//}
-//
-//void GuiIfy(Bool* instance, std::string name)
-//{
-//  ImGui::Checkbox((std::stringstream() << name + "##" << instance).str().c_str(), &(*(Bool*)(instance)).value);
-//}
-//
-//void GuiIfy(Vec2* instance, std::string name)
-//{
-//  ImGui::InputFloat2((std::stringstream() << name + "##" << instance).str().c_str(), &((*(Vec2*)(instance)).value[0]));
-//}
-//
-//void GuiIfy(Vec3* instance, std::string name)
-//{
-//  ImGui::InputFloat3((std::stringstream() << name + "##" << instance).str().c_str(), &((*(Vec3*)(instance)).value[0]));
-//}
-//
-//void GuiIfy(Vec4* instance, std::string name)
-//{
-//  ImGui::InputFloat4((std::stringstream() << name + "##" << instance).str().c_str(), &((*(Vec4*)(instance)).value[0]));
-//}
-//
-//void GuiIfy(Enoom* instance, std::string name)
-//{
-//  Enoom& enoom = (*(Enoom*)(instance));
-//  std::string enoomName = (*(enoom.value.names))[enoom.value.value];
-//  const char* selectableName = enoomName.c_str();
-//  if (ImGui::BeginCombo((std::stringstream() << name << "##" << instance).str().c_str(), selectableName))
-//  {
-//    int index = 0;
-//    for (auto& i : *enoom.value.names)
-//    {
-//      if (ImGui::Selectable(i.c_str())) { enoom.value.value = index; }
-//      ++index;
-//    }
-//    ImGui::EndCombo();
-//  }
-//}
+//GuiIfy shit
+inline void GuiIfy(String* instance, std::string name)
+{
+  constexpr int bufferSize = 128;
+  static char buffer[bufferSize] = { 0 };
+  std::string& value = (*(String*)(instance)).value;
+  strcpy_s(buffer, bufferSize, value.c_str());
+  ImGui::InputText((std::stringstream() << name << "##" << instance).str().c_str(), buffer, bufferSize);
+  value = buffer;
+
+}
+
+inline void GuiIfy(Int* instance, std::string name)
+{
+  ImGui::InputInt((std::stringstream() << name + "##" << instance).str().c_str(), &(*(Int*)(instance)).value);
+}
+
+inline void GuiIfy(Float* instance, std::string name)
+{
+  ImGui::InputFloat((std::stringstream() << name + "##" << instance).str().c_str(), &(*(Float*)(instance)).value);
+}
+
+inline void GuiIfy(Bool* instance, std::string name)
+{
+  ImGui::Checkbox((std::stringstream() << name + "##" << instance).str().c_str(), &(*(Bool*)(instance)).value);
+}
+
+inline void GuiIfy(Vec2* instance, std::string name)
+{
+  ImGui::InputFloat2((std::stringstream() << name + "##" << instance).str().c_str(), &((*(Vec2*)(instance)).value[0]));
+}
+
+inline void GuiIfy(Vec3* instance, std::string name)
+{
+  ImGui::InputFloat3((std::stringstream() << name + "##" << instance).str().c_str(), &((*(Vec3*)(instance)).value[0]));
+}
+
+inline void GuiIfy(Vec4* instance, std::string name)
+{
+  ImGui::InputFloat4((std::stringstream() << name + "##" << instance).str().c_str(), &((*(Vec4*)(instance)).value[0]));
+}
+
+inline void GuiIfy(Enoom* instance, std::string name)
+{
+  Enoom& enoom = (*(Enoom*)(instance));
+  std::string enoomName = (*(enoom.value.names))[enoom.value.value];
+  const char* selectableName = enoomName.c_str();
+  if (ImGui::BeginCombo((std::stringstream() << name << "##" << instance).str().c_str(), selectableName))
+  {
+    int index = 0;
+    for (auto& i : *enoom.value.names)
+    {
+      if (ImGui::Selectable(i.c_str())) { enoom.value.value = index; }
+      ++index;
+    }
+    ImGui::EndCombo();
+  }
+}
 
 
 #endif // !Properites_Guard
