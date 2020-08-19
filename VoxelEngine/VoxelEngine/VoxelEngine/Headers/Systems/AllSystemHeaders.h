@@ -1,7 +1,6 @@
-#ifndef AllSystemHeaders_Guard
-#define AllSystemHeaders_Guard
-
+#ifndef SYSTEM_COUNT
 #define SYSTEM_COUNT 2
+#endif
 
 #ifdef FACTORY_RUNNING
 
@@ -21,5 +20,3 @@ Factory::SystemPropertyMap["StubSystem"] = std::vector<PropertyID>({
 }
 
 #endif // !FACTORY_RUNNING
-
-#endif // !AllSystemHeaders_Guard

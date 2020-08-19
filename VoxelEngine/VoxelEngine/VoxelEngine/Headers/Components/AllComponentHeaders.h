@@ -1,7 +1,6 @@
-#ifndef AllComponentHeaders_Guard
-#define AllComponentHeaders_Guard
-
+#ifndef COMPONENT_COUNT
 #define COMPONENT_COUNT 1
+#endif
 
 #ifdef FACTORY_RUNNING
 
@@ -15,9 +14,7 @@ Factory::ComponentPropertyMap["StubComponent"] = std::vector<PropertyID>({
   });
 }
 
-inline std::unique_ptr<Component> Component0() { return std::make_unique<StubComponent>(StubComponent(); }
+inline std::unique_ptr<Component> Component0() { return std::make_unique<StubComponent>(StubComponent()); }
 
 
 #endif // !FACTORY_RUNNING
-
-#endif // !AllComponentHeaders_Guard

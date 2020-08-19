@@ -1,10 +1,8 @@
 /*HEADER_GOES_HERE*/
 //This is the all knowing factory
-#define FACTORY_RUNNING
-#include "../Headers/Systems/AllSystemHeaders.h"
-#include "../Headers/Events/AllEventHeaders.h"
-#include "../Headers/Components/AllComponentHeaders.h"
-#undef FACTORY_RUNNING
+#include "../Headers/Systems/System.h"
+#include "../Headers/Events/Event.h"
+#include "../Headers/Components/Component.h"
 #include "../Headers/Containers/EventManger.h"
 
 #include "../Headers/Factory.h"
@@ -62,7 +60,7 @@ const std::shared_ptr<Memory> Factory::ReadFile(std::string fileName)
     auto mem = std::shared_ptr<Memory>(new Memory());
     mem->size = (uint32_t)fileContents.length();
     mem->data = new uint8_t[mem->size];
-    memcpy_s(mem->data, mem->size, fileContents.data, mem->size);
+    memcpy_s(mem->data, mem->size, fileContents.data(), mem->size);
     ifs.close();
     return mem;
   }
@@ -96,6 +94,10 @@ void Factory::WriteFile(std::string fileName, const uint8_t* data, uint32_t size
   //bx::close(writer);
 }
 
+#define FACTORY_RUNNING
+#include "../Headers/Systems/AllSystemHeaders.h"
+#include "../Headers/Events/AllEventHeaders.h"
+#include "../Headers/Components/AllComponentHeaders.h"
 //Creates one of every component and event for duplication later.
 void Factory::Register()
 {
@@ -111,6 +113,7 @@ void Factory::Register()
   }
   //Register all components
   std::vector<std::unique_ptr<Component>(*)()> component_table = { BOOST_PP_REPEAT(COMPONENT_COUNT, MAKE_COMPONENT_FUNCT, ~) };
+#undef FACTORY_RUNNING
   for (int i = 0; i < component_table.size(); ++i)
   {
     auto pCreatedComponent = component_table[i]();

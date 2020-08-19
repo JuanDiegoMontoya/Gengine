@@ -2,10 +2,11 @@
 #ifndef StubEvent_Guard
 #define StubEvent_Guard
 
+#include "Event.h"
+
 #include <iostream>
 #include <boost/preprocessor/cat.hpp>
 
-#include "Event.h"
 const unsigned cStubEvent = 0;
 
 #define pStubEvent std::unique_ptr<StubEvent>;
@@ -40,14 +41,13 @@ public:
     ));
   }
 
-private:
   StubEvent(
     /*int eventData_, */ float timer_ = HANDLE_INSTANTLY            //again you can change default delay to whatever you want
   ) : Event(cStubEvent, timer_) //, eventData(eventData_)
   { }
 
 
-
+private:
 
   friend void RegisterEvents();
 };

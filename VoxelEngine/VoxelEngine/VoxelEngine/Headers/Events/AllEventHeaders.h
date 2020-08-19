@@ -1,7 +1,6 @@
-#ifndef AllEventHeaders_Guard
-#define AllEventHeaders_Guard
-
+#ifndef EVENT_COUNT
 #define EVENT_COUNT 1
+#endif
 
 #ifdef FACTORY_RUNNING
 
@@ -15,9 +14,7 @@ Factory::EventPropertyMap["StubEvent"] = std::vector<PropertyID>({
   });
 }
 
-inline std::unique_ptr<Event> Event0() { return std::make_unique<StubEvent>(StubEvent(); }
+inline std::unique_ptr<Event> Event0() { return std::make_unique<StubEvent>(StubEvent()); }
 
 
 #endif // !FACTORY_RUNNING
-
-#endif // !AllEventHeaders_Guard

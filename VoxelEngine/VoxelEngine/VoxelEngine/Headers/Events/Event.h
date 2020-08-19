@@ -1,7 +1,7 @@
 /*HEADER_GOES_HERE*/
 #ifndef Event_Guard
 #define Event_Guard
-#pragma warning( disable : 4100 )
+//#pragma warning( disable : 4100 )
 
 #include "AllEventHeaders.h"
 #include "../FactoryID.h"

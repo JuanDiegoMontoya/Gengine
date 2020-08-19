@@ -77,9 +77,8 @@ int main()
 
   }
   output = std::string("\
-#ifndef AllSystemHeaders_Guard\n#define AllSystemHeaders_Guard\n\n\
-#define SYSTEM_COUNT ") + std::to_string(counter) + "\n\n" + 
-"#ifdef FACTORY_RUNNING\n\n#include \"../Headers/Factory.h\"\n" + headers + "\n\nvoid RegisterSystems()\n{\n" + output + "}\n\n#endif // !FACTORY_RUNNING\n\n#endif // !AllSystemHeaders_Guard";
+#ifndef SYSTEM_COUNT\n#define SYSTEM_COUNT ") + std::to_string(counter) + "\n#endif\n\n" +
+"#ifdef FACTORY_RUNNING\n\n#include \"../Headers/Factory.h\"\n" + headers + "\n\nvoid RegisterSystems()\n{\n" + output + "}\n\n#endif // !FACTORY_RUNNING";
 
   std::ofstream ofs;
   ofs.open("../VoxelEngine/Headers/Systems/AllSystemHeaders.h");
@@ -105,7 +104,7 @@ int main()
 
     headers += std::string("#include \"") + file + ".h\"\n";
     output += std::string("Factory::ComponentPropertyMap[\"") + file + "\"] = std::vector<PropertyID>({\n  ";
-    registerFunctions += std::string("inline std::unique_ptr<Component> Component") + std::to_string(counter) + "() { return std::make_unique<" + file + ">(" + file + "(); }\n";
+    registerFunctions += std::string("inline std::unique_ptr<Component> Component") + std::to_string(counter) + "() { return std::make_unique<" + file + ">(" + file + "()); }\n";
     ++counter;
 
     std::ifstream f(filepath);
@@ -140,10 +139,9 @@ int main()
 
   }
   output = std::string("\
-#ifndef AllComponentHeaders_Guard\n#define AllComponentHeaders_Guard\n\n\
-#define COMPONENT_COUNT ") + std::to_string(counter) + "\n\n" +
+#ifndef COMPONENT_COUNT\n#define COMPONENT_COUNT ") + std::to_string(counter) + "\n#endif\n\n" +
 "#ifdef FACTORY_RUNNING\n\n#include \"../Headers/Factory.h\"\n" + headers + "\n\nvoid RegisterComponents()\n{\n" + output + "}\n\n" + 
-registerFunctions + "\n\n#endif // !FACTORY_RUNNING\n\n#endif // !AllComponentHeaders_Guard";
+registerFunctions + "\n\n#endif // !FACTORY_RUNNING";
 
   ofs;
   ofs.open("../VoxelEngine/Headers/Components/AllComponentHeaders.h");
@@ -169,7 +167,7 @@ registerFunctions + "\n\n#endif // !FACTORY_RUNNING\n\n#endif // !AllComponentHe
 
     headers += std::string("#include \"") + file + ".h\"\n";
     output += std::string("Factory::EventPropertyMap[\"") + file + "\"] = std::vector<PropertyID>({\n  ";
-    registerFunctions += std::string("inline std::unique_ptr<Event> Event") + std::to_string(counter) + "() { return std::make_unique<" + file + ">(" + file + "(); }\n";
+    registerFunctions += std::string("inline std::unique_ptr<Event> Event") + std::to_string(counter) + "() { return std::make_unique<" + file + ">(" + file + "()); }\n";
     ++counter;
 
     std::ifstream f(filepath);
@@ -204,10 +202,9 @@ registerFunctions + "\n\n#endif // !FACTORY_RUNNING\n\n#endif // !AllComponentHe
 
   }
   output = std::string("\
-#ifndef AllEventHeaders_Guard\n#define AllEventHeaders_Guard\n\n\
-#define EVENT_COUNT ") + std::to_string(counter) + "\n\n" +
+#ifndef EVENT_COUNT\n#define EVENT_COUNT ") + std::to_string(counter) + "\n#endif\n\n" +
 "#ifdef FACTORY_RUNNING\n\n#include \"../Headers/Factory.h\"\n" + headers + "\n\nvoid RegisterEvents()\n{\n" + output + "}\n\n" +
-registerFunctions + "\n\n#endif // !FACTORY_RUNNING\n\n#endif // !AllEventHeaders_Guard";
+registerFunctions + "\n\n#endif // !FACTORY_RUNNING";
 
   ofs;
   ofs.open("../VoxelEngine/Headers/Events/AllEventHeaders.h");
