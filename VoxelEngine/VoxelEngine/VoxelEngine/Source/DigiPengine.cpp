@@ -7,10 +7,10 @@
 #include "../Headers/Engine.h"
 #include "../Headers/Factory.h"
 
-#include "common.h"
-#include "bgfx_utils.h"
-
-entry::AppI* application = nullptr;
+//#include "common.h"
+//#include "bgfx_utils.h"
+//
+//entry::AppI* application = nullptr;
 
 //namespace
 //{

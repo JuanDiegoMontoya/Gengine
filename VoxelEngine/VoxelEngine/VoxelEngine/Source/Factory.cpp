@@ -23,14 +23,15 @@
 #include <iostream>
 #endif
 
-#include <bgfx_utils.h>
-#include <bx/file.h>
-#include <entry/entry.h>
+//#include <bgfx_utils.h>
+//#include <bx/file.h>
+//#include <entry/entry.h>
 
 #include <vector>
 #include <functional>
 #include <memory>
 #include <sstream>
+#include <fstream>
 
 std::map<std::string, std::vector<PropertyID>> Factory::ComponentPropertyMap;
 std::map<std::string, std::vector<PropertyID>> Factory::SystemPropertyMap;
@@ -49,27 +50,50 @@ std::unique_ptr<Space> Factory::emptySpace = std::unique_ptr<Space>(new Space("e
 
 const std::shared_ptr<Memory> Factory::ReadFile(std::string fileName)
 {
-  bx::FileReaderI* reader = entry::getFileReader();
-  if (bx::open(reader, "test.bin"))
+  std::ifstream ifs;
+  ifs.open(fileName);
+  if (ifs.is_open())
   {
+    std::string fileContents;
+    std::ostringstream oss;
+    oss << ifs.rdbuf();
+    fileContents = oss.str();
+
     auto mem = std::shared_ptr<Memory>(new Memory());
-    mem->size = (uint32_t)bx::getSize(reader);
+    mem->size = (uint32_t)fileContents.length();
     mem->data = new uint8_t[mem->size];
-    bx::read(reader, mem->data, mem->size);
-    bx::close(reader);
+    memcpy_s(mem->data, mem->size, fileContents.data, mem->size);
+    ifs.close();
     return mem;
   }
   else
     throw(std::string("could not load file ") + fileName);
+
+  //bx::FileReaderI* reader = entry::getFileReader();
+  //if (bx::open(reader, "test.bin"))
+  //{
+  //  auto mem = std::shared_ptr<Memory>(new Memory());
+  //  mem->size = (uint32_t)bx::getSize(reader);
+  //  mem->data = new uint8_t[mem->size];
+  //  bx::read(reader, mem->data, mem->size);
+  //  bx::close(reader);
+  //  return mem;
+  //}
+  //else
+  //  throw(std::string("could not load file ") + fileName);
 }
 void Factory::WriteFile(std::string fileName, const uint8_t* data, uint32_t size)
 {
-  bx::FileWriterI* writer = entry::getFileWriter();
-  if (bx::open(writer, "test.bin"))
-  {
-    bx::write(writer, (const void*)(data), size);
-  }
-  bx::close(writer);
+  std::ofstream ofs;
+  ofs.open(fileName);
+  ofs.write((const char*)(data), size);
+  ofs.close();
+  //bx::FileWriterI* writer = entry::getFileWriter();
+  //if (bx::open(writer, "test.bin"))
+  //{
+  //  bx::write(writer, (const void*)(data), size);
+  //}
+  //bx::close(writer);
 }
 
 //Creates one of every component and event for duplication later.

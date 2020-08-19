@@ -38,6 +38,7 @@ class Factory
 {
 public:
   static std::map<std::string, std::vector<PropertyID>> ComponentPropertyMap;
+  static std::map<std::string, std::vector<PropertyID>> EventPropertyMap;
   static std::map<std::string, std::vector<PropertyID>> SystemPropertyMap;
   static std::vector<PropertyID> SpaceProperties;
   static std::vector<PropertyID> EngineProperties;
@@ -69,6 +70,11 @@ public:
         if (std::get<1>(Factory::ComponentPropertyMap[ownerName][i]) == propID)
           return *reinterpret_cast<VAR*>(reinterpret_cast<char*>(OwnerPointer) + std::get<2>(Factory::ComponentPropertyMap[ownerName][i]));
 
+    if constexpr (OwnerPointer->factoryID == FactoryID::cEvent)
+      for (int i = 0; i < Factory::EventPropertyMap[ownerName].size(); ++i)
+        if (std::get<1>(Factory::EventPropertyMap[ownerName][i]) == propID)
+          return *reinterpret_cast<VAR*>(reinterpret_cast<char*>(OwnerPointer) + std::get<2>(Factory::EventPropertyMap[ownerName][i]));
+
     if constexpr (OwnerPointer->factoryID == FactoryID::cSystem)
       for (int i = 0; i < Factory::SystemPropertyMap[ownerName].size(); ++i)
         if (std::get<1>(Factory::SystemPropertyMap[ownerName][i]) == propID)
@@ -99,6 +105,11 @@ public:
       for (int i = 0; i < Factory::ComponentPropertyMap[ownerName].size(); ++i)
         if (std::get<0>(Factory::ComponentPropertyMap[ownerName][i]) == propName)
           return *reinterpret_cast<VAR*>(reinterpret_cast<char*>(OwnerPointer) + std::get<2>(Factory::ComponentPropertyMap[ownerName][i]));
+
+    if constexpr (OwnerPointer->factoryID == FactoryID::cEvent)
+      for (int i = 0; i < Factory::EventPropertyMap[ownerName].size(); ++i)
+        if (std::get<0>(Factory::EventPropertyMap[ownerName][i]) == propName)
+          return *reinterpret_cast<VAR*>(reinterpret_cast<char*>(OwnerPointer) + std::get<2>(Factory::EventPropertyMap[ownerName][i]));
 
     if constexpr (OwnerPointer->factoryID == FactoryID::cSystem)
       for (int i = 0; i < Factory::SystemPropertyMap[ownerName].size(); ++i)
@@ -134,6 +145,11 @@ public:
       for (int i = 0; i < Factory::ComponentPropertyMap[ownerName].size(); ++i)
         if (std::get<0>(Factory::ComponentPropertyMap[ownerName][i]) == propName)
           return Factory::ComponentPropertyMap[ownerName][i];
+
+    if constexpr (OwnerPointer->factoryID == FactoryID::cEvent)
+      for (int i = 0; i < Factory::EventPropertyMap[ownerName].size(); ++i)
+        if (std::get<0>(Factory::EventPropertyMap[ownerName][i]) == propName)
+          return Factory::EventPropertyMap[ownerName][i];
 
     if constexpr (OwnerPointer->factoryID == FactoryID::cSystem)
       for (int i = 0; i < Factory::SystemPropertyMap[ownerName].size(); ++i)

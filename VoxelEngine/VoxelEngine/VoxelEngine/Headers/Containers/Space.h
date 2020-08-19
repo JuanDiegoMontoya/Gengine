@@ -9,6 +9,9 @@
 #include "EventManger.h"
 #include "../FactoryID.h"
 
+typedef class Engine Engine;
+typedef class Object Object;
+
 
 
 class Space
