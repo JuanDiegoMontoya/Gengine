@@ -14,7 +14,7 @@ Factory::EventPropertyMap["StubEvent"] = std::vector<PropertyID>({
   });
 }
 
-inline std::unique_ptr<Event> Event0() { return std::make_unique<StubEvent>(StubEvent()); }
+inline std::unique_ptr<Event> Event0() { return std::move(StubEvent::RegisterStubEvent()); }
 
 
 #endif // !FACTORY_RUNNING

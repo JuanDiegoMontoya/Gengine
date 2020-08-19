@@ -1,22 +1,33 @@
-/*HEADER_GOES_HERE*/
-#ifndef FactoryID_Guard
-#define FactoryID_Guard
+                                           #ifndef FactoryID_Guard                                          
+#define FactoryID_Guard                                          
+                                                                 
+#include <memory>                                                
+                                                                 
+#include "PreProcessorMagic.h"                                 
+#include "Containers/Properties.h"                             
+                                                                 
+                                                                 
+enum class FactoryID                                             
+  {                                                              
+    cEngine,                                                     
+    cSystem,                                                     
+    cSpace,                                                      
+    cObject,                                                     
+    cComponent,                                                  
+    cEvent,                                                      
+    cCount                                                       
+  };                                                             
+                                                                 
+                                                                 
+//SystemIDs
+const ID cFrameRateController = 0;
+const ID cStubSystem = 1;
 
-#include <memory>
+//ComponentIDs
+const ID cStubComponent = 0;
 
-#include "PreProcessorMagic.h"
-#include "Containers/Properties.h"
+//EventIDs
+const ID cStubEvent = 0;
 
-
-enum class FactoryID 
-{
-  cEngine,
-  cSystem,
-  cSpace,
-  cObject,
-  cComponent,
-  cEvent,
-  cCount
-};
-
-#endif // !FactoryID_Guard
+#endif // !FactoryID_Guard                                       
+  

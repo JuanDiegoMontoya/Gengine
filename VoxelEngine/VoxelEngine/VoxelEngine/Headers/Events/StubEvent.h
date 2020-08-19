@@ -7,8 +7,6 @@
 #include <iostream>
 #include <boost/preprocessor/cat.hpp>
 
-const unsigned cStubEvent = 0;
-
 #define pStubEvent std::unique_ptr<StubEvent>;
 
 class StubEvent : public Event    //Event containing frame data
@@ -41,13 +39,13 @@ public:
     ));
   }
 
+
+private:
+
   StubEvent(
     /*int eventData_, */ float timer_ = HANDLE_INSTANTLY            //again you can change default delay to whatever you want
   ) : Event(cStubEvent, timer_) //, eventData(eventData_)
   { }
-
-
-private:
 
   friend void RegisterEvents();
 };

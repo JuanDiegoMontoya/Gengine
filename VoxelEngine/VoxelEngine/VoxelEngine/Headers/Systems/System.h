@@ -15,17 +15,6 @@ class System
 public:
   static const FactoryID factoryID = FactoryID::cSystem;
 
-  enum SystemIDs
-  {
-    cCount,
-    cFrameRateController,
-    cGraphics,
-    cApp,
-    cAudio,
-    cInputManager,
-    cStubSystem
-  };
-
   virtual std::string GetName() = 0;
 
   virtual void Init() = 0;

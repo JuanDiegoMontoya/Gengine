@@ -14,7 +14,7 @@ Factory::ComponentPropertyMap["StubComponent"] = std::vector<PropertyID>({
   });
 }
 
-inline std::unique_ptr<Component> Component0() { return std::make_unique<StubComponent>(StubComponent()); }
+inline std::unique_ptr<Component> Component0() { return std::move(StubComponent::RegisterStubComponent()); }
 
 
 #endif // !FACTORY_RUNNING

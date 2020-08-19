@@ -26,11 +26,15 @@ int main()
   int counter = 0;
   std::string output = "";
   std::string headers = "";
+  std::string componentFileIDs = "";
+  std::string eventFileIDs = "";
+  std::string systemFileIDs = "";
     //Each System
   //include the header file
   //Find and store every property
     //Each System
       //Create a Register Function for Systems
+  systemFileIDs += "//SystemIDs\n";
 
   for (auto& p : fs::directory_iterator("../VoxelEngine/Headers/Systems"))
   {
@@ -41,9 +45,10 @@ int main()
     if (file == std::string("System") || file == std::string("AllSystemHeaders")) continue;
     std::cout << file.c_str() << '\n';
 
-    ++counter;
     headers += std::string("#include \"") + file + ".h\"\n";
     output += std::string("Factory::SystemPropertyMap[\"") + file + "\"] = std::vector<PropertyID>({\n  ";
+    systemFileIDs += std::string("const ID c") + file + " = " + std::to_string(counter) + ";\n";
+    ++counter;
 
     std::ifstream f(filepath);
     std::string fileContents;
@@ -92,6 +97,7 @@ int main()
   headers = "";
   counter = 0;
   std::string registerFunctions = "";
+  componentFileIDs += "//ComponentIDs\n";
 
   for (auto& p : fs::directory_iterator("../VoxelEngine/Headers/Components"))
   {
@@ -104,7 +110,8 @@ int main()
 
     headers += std::string("#include \"") + file + ".h\"\n";
     output += std::string("Factory::ComponentPropertyMap[\"") + file + "\"] = std::vector<PropertyID>({\n  ";
-    registerFunctions += std::string("inline std::unique_ptr<Component> Component") + std::to_string(counter) + "() { return std::make_unique<" + file + ">(" + file + "()); }\n";
+    registerFunctions += std::string("inline std::unique_ptr<Component> Component") + std::to_string(counter) + "() { return std::move(" + file +  "::Register" + file + "()); }\n";
+    componentFileIDs += std::string("const ID c") + file + " = " + std::to_string(counter) + ";\n";
     ++counter;
 
     std::ifstream f(filepath);
@@ -156,6 +163,8 @@ registerFunctions + "\n\n#endif // !FACTORY_RUNNING";
   registerFunctions = "";
   counter = 0;
 
+  eventFileIDs += "//EventIDs\n";
+
   for (auto& p : fs::directory_iterator("../VoxelEngine/Headers/Events"))
   {
     std::wstring filepath(p.path());
@@ -167,7 +176,8 @@ registerFunctions + "\n\n#endif // !FACTORY_RUNNING";
 
     headers += std::string("#include \"") + file + ".h\"\n";
     output += std::string("Factory::EventPropertyMap[\"") + file + "\"] = std::vector<PropertyID>({\n  ";
-    registerFunctions += std::string("inline std::unique_ptr<Event> Event") + std::to_string(counter) + "() { return std::make_unique<" + file + ">(" + file + "()); }\n";
+    registerFunctions += std::string("inline std::unique_ptr<Event> Event") + std::to_string(counter) + "() { return std::move(" + file + "::Register" + file + "()); }\n";
+    eventFileIDs += std::string("const ID c") + file + " = " + std::to_string(counter) + ";\n";
     ++counter;
 
     std::ifstream f(filepath);
@@ -280,8 +290,41 @@ instance += offset;                                         \n";
     output += "else \n  throw(\"this type is not yet compatible with GUI, please add it to properties\"); \n\n";
   output += "}";
   
-  ofs;
   ofs.open("../VoxelEngine/Source/GuiIfy.cpp");
+  ofs << output;
+  ofs.close();
+
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  output = std::string("                                           \
+#ifndef FactoryID_Guard                                          \n\
+#define FactoryID_Guard                                          \n\
+                                                                 \n\
+#include <memory>                                                \n\
+                                                                 \n\
+#include \"PreProcessorMagic.h\"                                 \n\
+#include \"Containers/Properties.h\"                             \n\
+                                                                 \n\
+                                                                 \n\
+enum class FactoryID                                             \n\
+  {                                                              \n\
+    cEngine,                                                     \n\
+    cSystem,                                                     \n\
+    cSpace,                                                      \n\
+    cObject,                                                     \n\
+    cComponent,                                                  \n\
+    cEvent,                                                      \n\
+    cCount                                                       \n\
+  };                                                             \n\
+                                                                 \n\
+                                                                 \n") + 
+systemFileIDs + "\n" + componentFileIDs + "\n" + eventFileIDs + "\n\
+#endif // !FactoryID_Guard                                       \n\
+  ";
+
+  ofs.open("../VoxelEngine/Headers/FactoryID.h");
   ofs << output;
   ofs.close();
 
@@ -290,3 +333,35 @@ instance += offset;                                         \n";
 }
 
 //C:\Users\colto\Desktop\VoxelEngine\VoxelEngine\x64\Release\PrePP.exe
+
+
+
+
+
+
+
+
+
+
+///*HEADER_GOES_HERE*/
+//#ifndef FactoryID_Guard
+//#define FactoryID_Guard
+//
+//#include <memory>
+//
+//#include "PreProcessorMagic.h"
+//#include "Containers/Properties.h"
+//
+//
+//enum class FactoryID
+//{
+//  cEngine,
+//  cSystem,
+//  cSpace,
+//  cObject,
+//  cComponent,
+//  cEvent,
+//  cCount
+//};
+//
+//#endif // !FactoryID_Guard

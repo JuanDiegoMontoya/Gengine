@@ -9,6 +9,8 @@ class StubSystem : public System
 {
 public:
 
+  static const ID systemType = cStubSystem;
+
   static StubSystem* pStubSystem;
 
   static StubSystem* const GetStubSystem() { SINGLETON(StubSystem, pStubSystem); }

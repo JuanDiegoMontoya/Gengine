@@ -22,14 +22,6 @@ StubComponent::StubComponent(
   //Int componentData_
 ) : Component(componentType) //, componentData(componentData_)
 {
-  static bool registered = false;
-  if (!registered)
-  {
-    Factory::ComponentPropertyMap["StubComponent"] = std::vector<PropertyID>({
-      //PROPERTY_ID(Int, componentData)
-      });
-    registered = true;
-  }
 }
 
 StubComponent::~StubComponent()
