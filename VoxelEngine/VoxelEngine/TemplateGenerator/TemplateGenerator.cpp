@@ -86,7 +86,7 @@ int main(int argc, char* argv[])
           }
         }
         std::cout << "GG you generated your new " << name << " class, and have proven you can follow the simpleist of instructions\nJust be sure to add it to the Visual Studio Solution under the proper filter and you'll be good to go.\n";
-        system("..\\x64\\Release\\PrePP.exe");
+        system("..\\x64\\Release\\PrePP.exe > nul 2>&1");
         return 0;
       }
     }
