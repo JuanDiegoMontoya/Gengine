@@ -43,7 +43,7 @@ int main()
     std::string file = ws2s(filepath.substr(startOfName, filepath.length() - startOfName - 2));
 
     if (file == std::string("System") || file == std::string("AllSystemHeaders")) continue;
-    std::cout << file.c_str() << '\n';
+    //std::cout << file.c_str() << '\n';
 
     headers += std::string("#include \"") + file + ".h\"\n";
     output += std::string("Factory::SystemPropertyMap[\"") + file + "\"] = std::vector<PropertyID>({\n  ";
@@ -107,7 +107,7 @@ int main()
     std::string file = ws2s(filepath.substr(startOfName, filepath.length() - startOfName - 2));
 
     if (file == std::string("Component") || file == std::string("AllComponentHeaders")) continue;
-    std::cout << file.c_str() << '\n';
+    //std::cout << file.c_str() << '\n';
 
     headers += std::string("#include \"") + file + ".h\"\n";
     output += std::string("Factory::ComponentPropertyMap[\"") + file + "\"] = std::vector<PropertyID>({\n  ";
@@ -173,7 +173,7 @@ registerFunctions + "\n\n#endif // !FACTORY_RUNNING";
     std::string file = ws2s(filepath.substr(startOfName, filepath.length() - startOfName - 2));
 
     if (file == std::string("Event") || file == std::string("AllEventHeaders")) continue;
-    std::cout << file.c_str() << '\n';
+    //std::cout << file.c_str() << '\n';
 
     headers += std::string("#include \"") + file + ".h\"\n";
     output += std::string("Factory::EventPropertyMap[\"") + file + "\"] = std::vector<PropertyID>({\n  ";

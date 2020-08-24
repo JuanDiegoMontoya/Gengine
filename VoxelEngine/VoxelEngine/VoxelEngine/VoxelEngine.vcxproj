@@ -28,6 +28,7 @@
     <ClInclude Include="Headers\Components\AllComponentHeaders.h" />
     <ClInclude Include="Headers\Components\Component.h" />
     <ClInclude Include="Headers\Components\StubComponent.h" />
+    <ClInclude Include="Headers\Components\TestingComponent.h" />
     <ClInclude Include="Headers\Containers\BidirectionalMap.h" />
     <ClInclude Include="Headers\Containers\CircularBuffer.h" />
     <ClInclude Include="Headers\Containers\EventManger.h" />
@@ -36,8 +37,10 @@
     <ClInclude Include="Headers\Containers\Space.h" />
     <ClInclude Include="Headers\Engine.h" />
     <ClInclude Include="Headers\Events\AllEventHeaders.h" />
+    <ClInclude Include="Headers\Events\DrawEvent.h" />
     <ClInclude Include="Headers\Events\Event.h" />
     <ClInclude Include="Headers\Events\StubEvent.h" />
+    <ClInclude Include="Headers\Events\UpdateEvent.h" />
     <ClInclude Include="Headers\Factory.h" />
     <ClInclude Include="Headers\FactoryID.h" />
     <ClInclude Include="Headers\JunkDrawer.h" />
@@ -54,6 +57,7 @@
     <ClCompile Include="3rdParty\imgui\imgui_widgets.cpp" />
     <ClCompile Include="Source\Components\Component.cpp" />
     <ClCompile Include="Source\Components\StubComponent.cpp" />
+    <ClCompile Include="Source\Components\TestingComponent.cpp" />
     <ClCompile Include="Source\Containers\EventManger.cpp" />
     <ClCompile Include="Source\Containers\Object.cpp" />
     <ClCompile Include="Source\Containers\Space.cpp" />

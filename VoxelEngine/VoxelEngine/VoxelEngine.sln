@@ -7,6 +7,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VoxelEngine", "VoxelEngine\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PrePP", "PrePP\PrePP.vcxproj", "{B26881B9-95A9-42B6-8E0E-69D93837250C}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TemplateGenerator", "TemplateGenerator\TemplateGenerator.vcxproj", "{B1CAD71C-B046-4BBE-8606-4779744A2777}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -31,6 +33,14 @@ Global
 		{B26881B9-95A9-42B6-8E0E-69D93837250C}.Release|x64.Build.0 = Release|x64
 		{B26881B9-95A9-42B6-8E0E-69D93837250C}.Release|x86.ActiveCfg = Release|Win32
 		{B26881B9-95A9-42B6-8E0E-69D93837250C}.Release|x86.Build.0 = Release|Win32
+		{B1CAD71C-B046-4BBE-8606-4779744A2777}.Debug|x64.ActiveCfg = Debug|x64
+		{B1CAD71C-B046-4BBE-8606-4779744A2777}.Debug|x64.Build.0 = Debug|x64
+		{B1CAD71C-B046-4BBE-8606-4779744A2777}.Debug|x86.ActiveCfg = Debug|Win32
+		{B1CAD71C-B046-4BBE-8606-4779744A2777}.Debug|x86.Build.0 = Debug|Win32
+		{B1CAD71C-B046-4BBE-8606-4779744A2777}.Release|x64.ActiveCfg = Release|x64
+		{B1CAD71C-B046-4BBE-8606-4779744A2777}.Release|x64.Build.0 = Release|x64
+		{B1CAD71C-B046-4BBE-8606-4779744A2777}.Release|x86.ActiveCfg = Release|Win32
+		{B1CAD71C-B046-4BBE-8606-4779744A2777}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

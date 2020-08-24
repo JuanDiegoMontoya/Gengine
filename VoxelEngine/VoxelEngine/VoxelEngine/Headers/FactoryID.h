@@ -25,9 +25,12 @@ const ID cStubSystem = 1;
 
 //ComponentIDs
 const ID cStubComponent = 0;
+const ID cTestingComponent = 1;
 
 //EventIDs
-const ID cStubEvent = 0;
+const ID cDrawEvent = 0;
+const ID cStubEvent = 1;
+const ID cUpdateEvent = 2;
 
 #endif // !FactoryID_Guard                                       
   
