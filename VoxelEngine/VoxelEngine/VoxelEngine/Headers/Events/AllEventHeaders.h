@@ -17,6 +17,8 @@ Factory::EventPropertyMap["DrawEvent"] = std::vector<PropertyID>({
 Factory::EventPropertyMap["StubEvent"] = std::vector<PropertyID>({
   });
 Factory::EventPropertyMap["UpdateEvent"] = std::vector<PropertyID>({
+  PropertyID("dt", UpdateEvent::dt_id, offsetof(UpdateEvent, dt), sizeof(Float)),
+  PropertyID("elapsedTime", UpdateEvent::elapsedTime_id, offsetof(UpdateEvent, elapsedTime), sizeof(Float)),
   });
 }
 

@@ -60,7 +60,7 @@ int main()
 
       //search for GuiIfy function
       size_t location = 0;
-      while ((location = fileContents.find("PROPERTY", location)) != std::string::npos)
+      while ((location = fileContents.find(" PROPERTY", location)) != std::string::npos)
       {
         location = fileContents.find_first_of("(", location) + 1;
         std::string type = fileContents.substr(location, fileContents.find_first_of(",", location) - location);
@@ -191,7 +191,7 @@ registerFunctions + "\n\n#endif // !FACTORY_RUNNING";
 
       //search for GuiIfy function
       size_t location = 0;
-      while ((location = fileContents.find("PROPERTY", location)) != std::string::npos)
+      while ((location = fileContents.find(" PROPERTY", location)) != std::string::npos)
       {
         location = fileContents.find_first_of("(", location) + 1;
         std::string type = fileContents.substr(location, fileContents.find_first_of(",", location) - location);

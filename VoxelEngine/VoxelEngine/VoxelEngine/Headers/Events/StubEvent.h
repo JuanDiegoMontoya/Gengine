@@ -20,12 +20,12 @@ public:
   /////////////////////////////////////////////////////////////////////////////////////////////////////
 
   //Implimentation cost is minimum 5-6 lines of code for every member variable; 
-  //declaration, generation arg, constructor forwarding, registration(only needed if no default constructor), constructor arg, and constructor init
+  //declaration, generation arg, constructor forwarding, registration(only needs adjustment if no default constructor), constructor arg, and constructor init
 
 
-  //int eventData;
+  //PROPERTY(Int, eventData, 0);
   static std::unique_ptr<StubEvent> GenerateStubEvent(
-    /*int eventData_ = 59999, */float timer_ = HANDLE_INSTANTLY  //you can change default to a delay (zero is next frame), or remove the user ability to change delay. "= 5999" is optional default
+    /*Int eventData_ = 59999, */float timer_ = HANDLE_INSTANTLY  //you can change default to a delay (zero is next frame), or remove the user ability to change delay. "= 5999" is optional default
   )
   {
     return std::unique_ptr<StubEvent>(new StubEvent(
@@ -43,7 +43,7 @@ public:
 private:
 
   StubEvent(
-    /*int eventData_, */ float timer_ = HANDLE_INSTANTLY            //again you can change default delay to whatever you want
+    /*Int eventData_, */ float timer_ = HANDLE_INSTANTLY            //again you can change default delay to whatever you want
   ) : Event(cStubEvent, timer_) //, eventData(eventData_)
   { }
 

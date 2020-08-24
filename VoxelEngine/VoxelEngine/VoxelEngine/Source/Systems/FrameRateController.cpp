@@ -9,11 +9,6 @@ std::chrono::nanoseconds FrameRateController::error = std::chrono::nanoseconds(1
 
 FrameRateController::FrameRateController()
 {
-  //Register with factory:
-  Factory::SystemPropertyMap["FrameRateController"] = std::vector<PropertyID>({
-    PROPERTY_ID(Int, fps),
-    PROPERTY_ID(Bool, locked)
-    });
 }
 
 FrameRateController::~FrameRateController()

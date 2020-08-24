@@ -6,10 +6,6 @@ StubSystem* StubSystem::pStubSystem = nullptr;
 
 StubSystem::StubSystem()
 {
-  //Register with factory:
-  Factory::SystemPropertyMap["StubSystem"] = std::vector<PropertyID>({
-
-    });
 }
 
 StubSystem::~StubSystem()
