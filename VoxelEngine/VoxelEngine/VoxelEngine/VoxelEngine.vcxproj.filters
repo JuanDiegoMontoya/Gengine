@@ -40,6 +40,12 @@
     <Filter Include="3rd Party\imgui">
       <UniqueIdentifier>{99270562-dc87-413e-881b-aa8e23fffbc1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Systems\Graphics">
+      <UniqueIdentifier>{6f14154f-db0d-4c59-b041-019196131bda}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Systems\Graphics">
+      <UniqueIdentifier>{2e415f1a-794f-46cb-aa00-d1961b2c2662}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Headers\Containers\BidirectionalMap.h">
@@ -132,6 +138,12 @@
     <ClInclude Include="Headers\Components\TestingComponent.h">
       <Filter>Header Files\Components</Filter>
     </ClInclude>
+    <ClInclude Include="Headers\Systems\GraphicsSystem.h">
+      <Filter>Header Files\Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="Headers\Systems\Graphics\Context.h">
+      <Filter>Header Files\Systems\Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Engine.cpp">
@@ -181,6 +193,12 @@
     </ClCompile>
     <ClCompile Include="Source\Components\TestingComponent.cpp">
       <Filter>Source Files\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Systems\GraphicsSystem.cpp">
+      <Filter>Source Files\Systems</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Systems\Graphics\Context.cpp">
+      <Filter>Source Files\Systems\Graphics</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

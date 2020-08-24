@@ -61,10 +61,11 @@
 //Old main for reference:
 int main()
 {
+	Engine::GetEngine()->Init();
 	while (!Engine::GetEngine()->quitEngine)
 	{
 		Engine::GetEngine()->Update();
 	}
-
+	Engine::GetEngine()->End();
 }
 

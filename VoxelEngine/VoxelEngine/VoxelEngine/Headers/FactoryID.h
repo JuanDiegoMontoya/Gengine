@@ -1,4 +1,4 @@
-                                           #ifndef FactoryID_Guard                                          
+#ifndef FactoryID_Guard                                          
 #define FactoryID_Guard                                          
                                                                  
 #include <memory>                                                
@@ -21,7 +21,8 @@ enum class FactoryID
                                                                  
 //SystemIDs
 const ID cFrameRateController = 0;
-const ID cStubSystem = 1;
+const ID cGraphicsSystem = 1;
+const ID cStubSystem = 2;
 
 //ComponentIDs
 const ID cStubComponent = 0;
