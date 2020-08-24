@@ -83,6 +83,7 @@ int main()
   }
   output = std::string("\
 #ifndef SYSTEM_COUNT\n#define SYSTEM_COUNT ") + std::to_string(counter) + "\n#endif\n\n" +
+"#ifdef ENGINE_RUNNING\n" + headers + "#endif // !ENGINE_RUNNING\n\n" + 
 "#ifdef FACTORY_RUNNING\n\n#include \"../Headers/Factory.h\"\n" + headers + "\n\nvoid RegisterSystems()\n{\n" + output + "}\n\n#endif // !FACTORY_RUNNING";
 
   std::ofstream ofs;

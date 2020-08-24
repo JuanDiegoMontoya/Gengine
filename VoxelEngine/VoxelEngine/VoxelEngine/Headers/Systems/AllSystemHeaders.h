@@ -2,6 +2,11 @@
 #define SYSTEM_COUNT 2
 #endif
 
+#ifdef ENGINE_RUNNING
+#include "FrameRateController.h"
+#include "StubSystem.h"
+#endif // !ENGINE_RUNNING
+
 #ifdef FACTORY_RUNNING
 
 #include "../Headers/Factory.h"

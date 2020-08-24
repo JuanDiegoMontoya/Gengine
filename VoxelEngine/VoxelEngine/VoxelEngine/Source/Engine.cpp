@@ -13,11 +13,9 @@
 //#include "../Headers/Events/PreRenderEvent.h"
 
 //systems
-//#include "../Headers/Systems/Audio.h"
-#include "../Headers/Systems/FrameRateController.h"
-//#include "../Headers/Systems/Graphics.h"
-//#include "../Headers/Systems/InputManager.h"
-//#include "../Headers/Systems/Trace.h"
+#define ENGINE_RUNNING
+#include "../Headers/Systems/AllSystemHeaders.h"
+#undef ENGINE_RUNNING
 
 #include <iostream>
 

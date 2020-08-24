@@ -57,7 +57,7 @@
     <ClCompile Include="Source\Containers\EventManger.cpp" />
     <ClCompile Include="Source\Containers\Object.cpp" />
     <ClCompile Include="Source\Containers\Space.cpp" />
-    <ClCompile Include="Source\DigiPengine.cpp" />
+    <ClCompile Include="Source\Entry.cpp" />
     <ClCompile Include="Source\Engine.cpp" />
     <ClCompile Include="Source\Factory.cpp" />
     <ClCompile Include="Source\GuiIfy.cpp" />
