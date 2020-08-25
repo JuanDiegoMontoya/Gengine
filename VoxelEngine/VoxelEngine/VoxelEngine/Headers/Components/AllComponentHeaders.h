@@ -14,6 +14,7 @@ void RegisterComponents()
 Factory::ComponentPropertyMap["StubComponent"] = std::vector<PropertyID>({
   });
 Factory::ComponentPropertyMap["TestingComponent"] = std::vector<PropertyID>({
+  PropertyID("componentData", TestingComponent::componentData_id, offsetof(TestingComponent, componentData), sizeof(Int)),
   });
 }
 

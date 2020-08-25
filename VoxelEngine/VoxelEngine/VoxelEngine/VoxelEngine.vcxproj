@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -37,18 +37,23 @@
     <ClInclude Include="Headers\Containers\Space.h" />
     <ClInclude Include="Headers\Engine.h" />
     <ClInclude Include="Headers\Events\AllEventHeaders.h" />
+    <ClInclude Include="Headers\Events\DestroyEvent.h" />
     <ClInclude Include="Headers\Events\DrawEvent.h" />
     <ClInclude Include="Headers\Events\Event.h" />
+    <ClInclude Include="Headers\Events\InitEvent.h" />
     <ClInclude Include="Headers\Events\StubEvent.h" />
+    <ClInclude Include="Headers\Events\TraceEvent.h" />
     <ClInclude Include="Headers\Events\UpdateEvent.h" />
     <ClInclude Include="Headers\Factory.h" />
     <ClInclude Include="Headers\FactoryID.h" />
     <ClInclude Include="Headers\JunkDrawer.h" />
     <ClInclude Include="Headers\PreProcessorMagic.h" />
+    <ClInclude Include="Headers\Sandbox.h" />
     <ClInclude Include="Headers\Systems\AllSystemHeaders.h" />
     <ClInclude Include="Headers\Systems\FrameRateController.h" />
     <ClInclude Include="Headers\Systems\StubSystem.h" />
     <ClInclude Include="Headers\Systems\System.h" />
+    <ClInclude Include="Headers\Systems\TraceSystem.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="3rdParty\imgui\imgui.cpp" />
@@ -67,6 +72,7 @@
     <ClCompile Include="Source\GuiIfy.cpp" />
     <ClCompile Include="Source\Systems\FrameRateController.cpp" />
     <ClCompile Include="Source\Systems\StubSystem.cpp" />
+    <ClCompile Include="Source\Systems\TraceSystem.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

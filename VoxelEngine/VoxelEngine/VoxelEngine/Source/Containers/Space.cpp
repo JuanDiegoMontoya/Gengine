@@ -4,8 +4,19 @@
 #include "../../Headers/Factory.h"
 #include "../../Headers/Engine.h"
 
+#include "../../Headers/Events/UpdateEvent.h"
+#include "../../Headers/Events/DrawEvent.h"
+#include "../../Headers/Events/DestroyEvent.h"
+#include "../../Headers/Events/InitEvent.h"
+
 #include <algorithm>
 #include <iostream>
+
+  //Hacky bad for now stuff
+
+#include "../../Headers/Components/TestingComponent.h"
+
+  //done with bad stuff
 
 std::unique_ptr<Space> Space::CreateInitialSpace()
 {
@@ -13,6 +24,9 @@ std::unique_ptr<Space> Space::CreateInitialSpace()
   std::unique_ptr<Space> newSpace = (*Factory::emptySpace).Clone();
 
   newSpace->name = std::string("TestingSpace");
+
+  Object* newObject = Factory::CloneObject(&*newSpace);
+  newObject->AttachComponent<TestingComponent>(CLONE_COMPONENT(TestingComponent));
 
   return newSpace;
 
@@ -65,13 +79,13 @@ Space::~Space()
 
 void Space::Init()
 {
-  //Engine::GetEngine()->RegisterListener(this, &Space::Update);
-  //RegisterListener(this, &Space::DestroyEventsListen);
+  Engine::GetEngine()->RegisterListener(this, &Space::Update);
+  RegisterListener(this, &Space::DestroyEventsListen);
 
-  //std::unique_ptr<InitEvent> initEvent = InitEvent::GenerateInitEvent();
+  std::unique_ptr<InitEvent> initEvent = InitEvent::GenerateInitEvent();
 
-  //for (auto& i : objects)
-  //  i->Init(&*initEvent);
+  for (auto& i : objects)
+    i->Init(&*initEvent);
 
   hasInitialized = true;
 }
@@ -94,30 +108,30 @@ std::unique_ptr<Space> Space::Clone()
   return std::unique_ptr<Space>(result);
 }
 
-//void Space::Update(UpdateEvent* updateEvent)
-//{
-//  eventManager->AttachEvent(updateEvent->Clone());
-//
-//  //Dispatch the events
-//  eventManager->Update(updateEvent->dt);
-//}
+void Space::Update(UpdateEvent* updateEvent)
+{
+  eventManager->AttachEvent(updateEvent->Clone());
 
-//void Space::Draw(DrawEvent* drawEvent)
-//{
-//  if (isVisable)
-//    eventManager->AttachEvent(drawEvent->Clone());
-//}
+  //Dispatch the events
+  eventManager->Update(updateEvent->dt);
+}
 
-//void Space::DestroyEventsListen(DestroyEvent* destroyEvent)
-//{
-//  if (destroyEvent->what == DestroyEvent::cSpace)
-//    RemoveObject(std::any_cast<Object*>(destroyEvent->toDestroy));
-//}
+void Space::Draw(DrawEvent* drawEvent)
+{
+  if (isVisable)
+    eventManager->AttachEvent(drawEvent->Clone());
+}
+
+void Space::DestroyEventsListen(DestroyEvent* destroyEvent)
+{
+  if (destroyEvent->what == DestroyEvent::cSpace)
+    RemoveObject(std::any_cast<Object*>(destroyEvent->toDestroy));
+}
 
 void Space::End()
 {
-  //Engine::GetEngine()->UnregisterListener(this, &Space::Update);
-  //UnregisterListener(this, &Space::DestroyEventsListen);
+  Engine::GetEngine()->UnregisterListener(this, &Space::Update);
+  UnregisterListener(this, &Space::DestroyEventsListen);
 
   for (auto& i : objects)
     i->End();

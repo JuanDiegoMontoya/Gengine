@@ -13,9 +13,9 @@
 #include <string>
 #include <memory>
 
-//typedef class InitEvent InitEvent;
-//typedef class UpdateEvent UpdateEvent;
-//typedef class Space Space;
+typedef class InitEvent InitEvent;
+typedef class UpdateEvent UpdateEvent;
+typedef class Space Space;
 
 
 
@@ -30,12 +30,12 @@ public:
 
   Object& operator=(const Object& rhs);
 
-  //void Init(InitEvent* initEvent);
+  void Init(InitEvent* initEvent);
   void End();
 
   Object* Clone(Space* space);
 
-  //void UpdateEventsListen(UpdateEvent* updateEvent);
+  void UpdateEventsListen(UpdateEvent* updateEvent);
 
   std::string GetName() const { return name; }
   void SetName(std::string name_) { name = name_; }
