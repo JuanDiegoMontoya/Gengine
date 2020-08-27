@@ -7,39 +7,29 @@
 #include <Engine.h>
 #include <Systems/Graphics/Context.h>
 
+#include <Systems/Graphics/GraphicsIncludes.h>
+
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
 GraphicsSystem* GraphicsSystem::pGraphicsSystem = nullptr;
 
-void drawQuad()
+void DrawCube()
 {
-	static unsigned int quadVAO = 0;
-	static unsigned int quadVBO;
-	if (quadVAO == 0)
+	static VAO* blockHoverVao = nullptr;
+	static VBO* blockHoverVbo = nullptr;
+	if (blockHoverVao == nullptr)
 	{
-		float quadVertices[] =
-		{
-			// positions        // texture Coords
-			-1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
-			-1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
-			 1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
-			 1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
-		};
-		// setup plane VAO
-		glGenVertexArrays(1, &quadVAO);
-		glGenBuffers(1, &quadVBO);
-		glBindVertexArray(quadVAO);
-		glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-		glEnableVertexAttribArray(0);
-		glEnableVertexAttribArray(1);
+		blockHoverVao = new VAO();
+		blockHoverVbo = new VBO(Vertices::cube_norm_tex, sizeof(Vertices::cube_norm_tex));
+		VBOlayout layout;
+		layout.Push<float>(3);
+		layout.Push<float>(3);
+		layout.Push<float>(2);
+		blockHoverVao->AddBuffer(*blockHoverVbo, layout);
 	}
-	glBindVertexArray(quadVAO);
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-	glBindVertexArray(0);
+	blockHoverVao->Bind();
+	glDrawArrays(GL_TRIANGLES, 0, 36);
 }
 
 GraphicsSystem::GraphicsSystem()
@@ -64,6 +54,9 @@ void GraphicsSystem::Init()
  window = init_glfw_context();
  glfwMakeContextCurrent(window);
  glfwSwapInterval(1);
+
+
+ Shader::shaders["flat_color"] = new Shader("flat_color.vs", "flat_color.fs");
 }
 
 void GraphicsSystem::End()
@@ -80,7 +73,22 @@ void GraphicsSystem::UpdateEventsListen(UpdateEvent* updateEvent)
 
 void GraphicsSystem::RenderEventsListen(UpdateEvent* updateEvent)
 {
-	glClearColor(cos(updateEvent->elapsedTime), sin(updateEvent->elapsedTime), 1.0f, 1.0f);
+	auto dt = updateEvent->elapsedTime;
+	glClearColor(cos(dt), sin(dt), 1.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	Shader* shader = Shader::shaders["flat_color"];
+	shader->Use();
+
+	glm::mat4 proj = glm::perspective(glm::radians(90.0f), 1920.f / 1080.f, 0.1f, 100.0f);
+	glm::mat4 view = glm::lookAt(glm::vec3(0, 0, 0), glm::vec3(0, 0, 1), glm::vec3(0, 1, 0));
+	glm::mat4 model = glm::translate(glm::mat4(1), glm::vec3(2 * cos(dt), 0, 2 * sin(dt)));
+
+	shader->setMat4("u_proj", proj);
+	shader->setMat4("u_view", view);
+	shader->setMat4("u_model", model);
+	shader->setVec4("u_color", glm::vec4(1, 1, 1, 1));
+	DrawCube();
+
   glfwSwapBuffers(window);
 }

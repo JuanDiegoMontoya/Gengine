@@ -201,6 +201,9 @@
     <ClInclude Include="Headers\Systems\Graphics\GraphicsIncludes.h">
       <Filter>Header Files\Systems\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="Headers\Systems\Graphics\vbo_layout.h">
+      <Filter>Header Files\Systems\Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Engine.cpp">

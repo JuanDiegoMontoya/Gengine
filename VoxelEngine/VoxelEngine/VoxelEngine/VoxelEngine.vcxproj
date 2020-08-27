@@ -65,6 +65,7 @@
     <ClInclude Include="Headers\Systems\Graphics\shader.h" />
     <ClInclude Include="Headers\Systems\Graphics\vao.h" />
     <ClInclude Include="Headers\Systems\Graphics\vbo.h" />
+    <ClInclude Include="Headers\Systems\Graphics\vbo_layout.h" />
     <ClInclude Include="Headers\Systems\Graphics\Vertices.h" />
     <ClInclude Include="Headers\Systems\StubSystem.h" />
     <ClInclude Include="Headers\Systems\System.h" />
@@ -96,7 +97,10 @@
     <ClCompile Include="Source\Systems\Graphics\math_utils.cpp" />
     <ClCompile Include="Source\Systems\Graphics\misc_utils.cpp" />
     <ClCompile Include="Source\Systems\Graphics\param_bo.cpp" />
-    <ClCompile Include="Source\Systems\Graphics\shader.cpp" />
+    <ClCompile Include="Source\Systems\Graphics\shader.cpp">
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
     <ClCompile Include="Source\Systems\Graphics\vao.cpp" />
     <ClCompile Include="Source\Systems\Graphics\vbo.cpp" />
     <ClCompile Include="Source\Systems\StubSystem.cpp" />

@@ -28,5 +28,5 @@ private:
 
   friend void RegisterSystems();
 
-  struct GLFWwindow* window;
+  struct GLFWwindow* window = nullptr;
 };
