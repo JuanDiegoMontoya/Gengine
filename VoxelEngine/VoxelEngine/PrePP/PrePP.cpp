@@ -86,10 +86,25 @@ int main()
 "#ifdef ENGINE_RUNNING\n" + headers + "#endif // !ENGINE_RUNNING\n\n" + 
 "#ifdef FACTORY_RUNNING\n\n#include \"../Headers/Factory.h\"\n" + headers + "\n\nvoid RegisterSystems()\n{\n" + output + "}\n\n#endif // !FACTORY_RUNNING";
 
-  std::ofstream ofs;
-  ofs.open("../VoxelEngine/Headers/Systems/AllSystemHeaders.h");
-  ofs << output;
-  ofs.close();
+  std::ifstream ifs;
+  ifs.open("../VoxelEngine/Headers/Systems/AllSystemHeaders.h");
+  if (ifs.is_open())
+  {
+    std::string fileContents;
+    std::ostringstream oss;
+    oss << ifs.rdbuf();
+    fileContents = oss.str();
+
+    if (fileContents != output)
+    {
+      std::ofstream ofs;
+      ofs.open("../VoxelEngine/Headers/Systems/AllSystemHeaders.h");
+      ofs << output;
+      ofs.close();
+    }
+
+    ifs.close();
+  }
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -151,10 +166,24 @@ int main()
 "#ifdef FACTORY_RUNNING\n\n#include \"../Headers/Factory.h\"\n" + headers + "\n\nvoid RegisterComponents()\n{\n" + output + "}\n\n" + 
 registerFunctions + "\n\n#endif // !FACTORY_RUNNING";
 
-  ofs;
-  ofs.open("../VoxelEngine/Headers/Components/AllComponentHeaders.h");
-  ofs << output;
-  ofs.close();
+  ifs;
+  ifs.open("../VoxelEngine/Headers/Components/AllComponentHeaders.h");
+  if (ifs.is_open())
+  {
+    std::string fileContents;
+    std::ostringstream oss;
+    oss << ifs.rdbuf();
+    fileContents = oss.str();
+
+    if (fileContents != output)
+    {
+      std::ofstream ofs;
+      ofs.open("../VoxelEngine/Headers/Components/AllComponentHeaders.h");
+      ofs << output;
+      ofs.close();
+    }
+    ifs.close();
+  }
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -217,10 +246,24 @@ registerFunctions + "\n\n#endif // !FACTORY_RUNNING";
 "#ifdef FACTORY_RUNNING\n\n#include \"../Headers/Factory.h\"\n" + headers + "\n\nvoid RegisterEvents()\n{\n" + output + "}\n\n" +
 registerFunctions + "\n\n#endif // !FACTORY_RUNNING";
 
-  ofs;
-  ofs.open("../VoxelEngine/Headers/Events/AllEventHeaders.h");
-  ofs << output;
-  ofs.close();
+  ifs;
+  ifs.open("../VoxelEngine/Headers/Events/AllEventHeaders.h");
+  if (ifs.is_open())
+  {
+    std::string fileContents;
+    std::ostringstream oss;
+    oss << ifs.rdbuf();
+    fileContents = oss.str();
+
+    if (fileContents != output)
+    {
+      std::ofstream ofs;
+      ofs.open("../VoxelEngine/Headers/Events/AllEventHeaders.h");
+      ofs << output;
+      ofs.close();
+    }
+    ifs.close();
+  }
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -290,10 +333,25 @@ instance += offset;                                         \n";
   if(output.size() != 669) //magic number for number of characters when else if is not needed as there is nothing that can be guiified
     output += "else \n  throw(\"this type is not yet compatible with GUI, please add it to properties\"); \n\n";
   output += "}";
-  
-  ofs.open("../VoxelEngine/Source/GuiIfy.cpp");
-  ofs << output;
-  ofs.close();
+
+  ifs;
+  ifs.open("../VoxelEngine/Headers/Source/GuiIfy.h");
+  if (ifs.is_open())
+  {
+    std::string fileContents;
+    std::ostringstream oss;
+    oss << ifs.rdbuf();
+    fileContents = oss.str();
+
+    if (fileContents != output)
+    {
+      std::ofstream ofs;
+      ofs.open("../VoxelEngine/Source/GuiIfy.cpp");
+      ofs << output;
+      ofs.close();
+    }
+    ifs.close();
+  }
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -325,9 +383,24 @@ systemFileIDs + "\n" + componentFileIDs + "\n" + eventFileIDs + "\n\
 #endif // !FactoryID_Guard                                       \n\
   ";
 
-  ofs.open("../VoxelEngine/Headers/FactoryID.h");
-  ofs << output;
-  ofs.close();
+  ifs;
+  ifs.open("../VoxelEngine/Headers/FactoryID.h");
+  if (ifs.is_open())
+  {
+    std::string fileContents;
+    std::ostringstream oss;
+    oss << ifs.rdbuf();
+    fileContents = oss.str();
+
+    if (fileContents != output)
+    {
+      std::ofstream ofs;
+      ofs.open("../VoxelEngine/Headers/FactoryID.h");
+      ofs << output;
+      ofs.close();
+    }
+    ifs.close();
+  }
 
   //std::this_thread::sleep_for(1s);
   return 0;
