@@ -6,7 +6,7 @@
 #include "../Headers/Factory.h"
 
 //events
-//#include "../Headers/Events/UpdateEvent.h"
+#include "../Headers/Events/UpdateEvent.h"
 //#include "../Headers/Events/DrawEvent.h"
 //#include "../Headers/Events/InitEvent.h"
 //#include "../Headers/Events/RenderEvent.h"
@@ -31,7 +31,7 @@ Engine::Engine()
   //systems.push_back(Graphics::GetGraphics());
   //systems.push_back(InputManager::GetInputManager());
   //systems.push_back(Audio::GetAudio());
-  //systems.push_back(Trace::GetTrace());
+  systems.push_back(TraceSystem::GetTraceSystem());
   systems.push_back(FrameRateController::GetFrameRateController());
   systems.push_back(GraphicsSystem::GetGraphicsSystem());
 }
@@ -63,7 +63,7 @@ void Engine::Update()
   elapsedTime += dt;
 
   //Push an update event.
-  //eventManager->AttachEvent(std::move(UpdateEvent::GenerateUpdateEvent(dt, elapsedTime, HANDLE_INSTANTLY)));
+  eventManager->AttachEvent(std::move(UpdateEvent::GenerateUpdateEvent(dt, elapsedTime, HANDLE_INSTANTLY)));
 
   //Push a draw event....
 

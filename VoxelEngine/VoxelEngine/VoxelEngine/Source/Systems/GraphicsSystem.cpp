@@ -80,6 +80,7 @@ void GraphicsSystem::UpdateEventsListen(UpdateEvent* updateEvent)
 
 void GraphicsSystem::RenderEventsListen(UpdateEvent* updateEvent)
 {
-	printf("poop");
+	glClearColor(cos(updateEvent->elapsedTime), sin(updateEvent->elapsedTime), 1.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glfwSwapBuffers(window);
 }

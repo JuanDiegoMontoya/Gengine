@@ -12,6 +12,11 @@
 typedef class Engine Engine;
 typedef class Object Object;
 
+typedef class UpdateEvent UpdateEvent;
+typedef class DrawEvent DrawEvent;
+typedef class DestroyEvent DestroyEvent;
+
+
 
 
 class Space
@@ -28,9 +33,9 @@ public:
   void End();
   std::unique_ptr<Space> Clone();
 
-  //void Update(UpdateEvent* updateEvent);
-  //void Draw(DrawEvent* drawEvent);
-  //void DestroyEventsListen(DestroyEvent* destroyEvent);
+  void Update(UpdateEvent* updateEvent);
+  void Draw(DrawEvent* drawEvent);
+  void DestroyEventsListen(DestroyEvent* destroyEvent);
 
     //TODO: make this a friend function of the object class
   //Object* AttachObject(std::unique_ptr<Object> ObjectToAdd, bool initOnAttach = true);

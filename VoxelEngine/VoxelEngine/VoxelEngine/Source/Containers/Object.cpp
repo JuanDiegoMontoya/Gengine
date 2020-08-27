@@ -5,6 +5,10 @@
 #include "../../Headers/Factory.h"
 #include "../../Headers/Containers/Object.h"
 
+
+#include "../../Headers/Events/InitEvent.h"
+#include "../../Headers/Events/UpdateEvent.h"
+
 Object::Object(const std::string& emptyName_) : name(emptyName_), space(nullptr)
 {
   static bool registered = false;
@@ -39,20 +43,20 @@ void Object::DetatchComponent(ID type)
   }
 }
 
-//Object& Object::operator=(const Object& rhs)
-//{
-//  //Remove all old components
-//  for (auto& i : components)
-//    if (i != nullptr)
-//      DetatchComponent(i->GetType());
-//
-//  //Add all new components
-//  for (auto& i : rhs.components)
-//    if (i != nullptr)
-//      AttachComponent(i->Clone());
-//
-//  return *this;
-//}
+Object& Object::operator=(const Object& rhs)
+{
+  //Remove all old components
+  for (auto& i : components)
+    if (i != nullptr)
+      DetatchComponent(i->type);
+
+  //Add all new components
+  for (auto& i : rhs.components)
+    if (i != nullptr)
+      AttachComponent(i->Clone());
+
+  return *this;
+}
 
 Component* Object::FindComponent(ID componentType)
 {
@@ -69,13 +73,13 @@ Component* Object::AttachComponent(std::unique_ptr<Component> componentToAttach)
   return &*(components[componentToAttach->type] = std::move(componentToAttach));
 }
 
-//void Object::Init(InitEvent* initEvent)
-//{
-//  //space->RegisterListener(this, &Object::UpdateEventsListen);
-//  for (int i = 0; i < components.size(); ++i)
-//    if (components[i] != nullptr)
-//      components[i]->Init();
-//}
+void Object::Init(InitEvent* initEvent)
+{
+  space->RegisterListener(this, &Object::UpdateEventsListen);
+  for (int i = 0; i < components.size(); ++i)
+    if (components[i] != nullptr)
+      components[i]->Init();
+}
 
 void CloneHelper(Object* object, Space* space)
 {
@@ -115,22 +119,22 @@ void Object::End()
 {
   if (space != nullptr)
   {
-    //space->UnregisterListener(this, &Object::UpdateEventsListen);
+    space->UnregisterListener(this, &Object::UpdateEventsListen);
   }
   for (auto& i : components)
     if (i != nullptr)
       i->End();
 }
 
-//void Object::UpdateEventsListen(UpdateEvent* updateEvent)
-//{
-//  //If the space isn't paused, and the individual object isn't paused..
-//  //if (!space->paused && !paused)
-//  //  eventManager->AttachEvent(updateEvent->Clone());
-//
-//  //eventManager->Update(updateEvent->dt);
-//
-//}
+void Object::UpdateEventsListen(UpdateEvent* updateEvent)
+{
+  //If the space isn't paused, and the individual object isn't paused..
+  if (!space->paused && !paused)
+    eventManager->AttachEvent(updateEvent->Clone());
+
+  eventManager->Update(updateEvent->dt);
+
+}
 
 
 void Object::ParentTo(Object* parent_)

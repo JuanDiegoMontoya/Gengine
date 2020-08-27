@@ -1,11 +1,12 @@
 #ifndef SYSTEM_COUNT
-#define SYSTEM_COUNT 3
+#define SYSTEM_COUNT 4
 #endif
 
 #ifdef ENGINE_RUNNING
 #include "FrameRateController.h"
 #include "GraphicsSystem.h"
 #include "StubSystem.h"
+#include "TraceSystem.h"
 #endif // !ENGINE_RUNNING
 
 #ifdef FACTORY_RUNNING
@@ -14,6 +15,7 @@
 #include "FrameRateController.h"
 #include "GraphicsSystem.h"
 #include "StubSystem.h"
+#include "TraceSystem.h"
 
 
 void RegisterSystems()
@@ -25,6 +27,8 @@ Factory::SystemPropertyMap["FrameRateController"] = std::vector<PropertyID>({
 Factory::SystemPropertyMap["GraphicsSystem"] = std::vector<PropertyID>({
   });
 Factory::SystemPropertyMap["StubSystem"] = std::vector<PropertyID>({
+  });
+Factory::SystemPropertyMap["TraceSystem"] = std::vector<PropertyID>({
   });
 }
 

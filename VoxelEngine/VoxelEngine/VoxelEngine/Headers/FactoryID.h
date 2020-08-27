@@ -23,16 +23,20 @@ enum class FactoryID
 const ID cFrameRateController = 0;
 const ID cGraphicsSystem = 1;
 const ID cStubSystem = 2;
+const ID cTraceSystem = 3;
 
 //ComponentIDs
 const ID cStubComponent = 0;
 const ID cTestingComponent = 1;
 
 //EventIDs
-const ID cDrawEvent = 0;
-const ID cRenderEvent = 1;
-const ID cStubEvent = 2;
-const ID cUpdateEvent = 3;
+const ID cDestroyEvent = 0;
+const ID cDrawEvent = 1;
+const ID cInitEvent = 2;
+const ID cRenderEvent = 3;
+const ID cStubEvent = 4;
+const ID cTraceEvent = 5;
+const ID cUpdateEvent = 6;
 
 #endif // !FactoryID_Guard                                       
   

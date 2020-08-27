@@ -1,11 +1,11 @@
-#include <iostream>
-#include <vector>
-#include <functional>
-
-#include "../Headers/Systems/System.h"
-#include "../Headers/Systems/System.h"
-#include "../Headers/Engine.h"
-#include "../Headers/Factory.h"
+//#include <iostream>
+//#include <vector>
+//#include <functional>
+//
+//#include "../Headers/Systems/System.h"
+//#include "../Headers/Systems/System.h"
+//#include "../Headers/Engine.h"
+//#include "../Headers/Factory.h"
 
 //#include "common.h"
 //#include "bgfx_utils.h"
@@ -58,14 +58,22 @@
 //	, ""
 //	);
 
-//Old main for reference:
+#include "../Headers/Engine.h"
+#include "../Headers/Factory.h"
+#include "../Headers/Sandbox.h"
 int main()
 {
-	Engine::GetEngine()->Init();
+#ifndef SANDBOX
+  Factory::Register();
+  Engine::GetEngine()->Init();
 	while (!Engine::GetEngine()->quitEngine)
 	{
 		Engine::GetEngine()->Update();
 	}
-	Engine::GetEngine()->End();
-}
+  Engine::GetEngine()->End();
 
+#else
+  Sandbox();
+#endif
+
+}
