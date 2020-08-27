@@ -34,7 +34,7 @@ public:
   void UnregisterListener(T* object_, void(T::* callbackFunction_)(E*)) { eventManager->UnregisterListener(object_, callbackFunction_); }
 
   template <typename T>
-  void AttachEvent(std::unique_ptr<T> eventToAttach) { eventManager->AttachEvent(eventToAttach); }
+  void AttachEvent(std::unique_ptr<T> eventToAttach) { eventManager->AttachEvent(std::move(eventToAttach)); }
 
   template <typename T>
   void AttachEventRef(std::unique_ptr<T>& eventToAttach) { eventManager->AttachEventRef(eventToAttach); }

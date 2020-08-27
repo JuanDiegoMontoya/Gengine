@@ -2,7 +2,8 @@
 
 #include "System.h"
 #include "../FactoryID.h"
-#include <Events/UpdateEvent.h>
+
+class UpdateEvent;
 
 class GraphicsSystem : public System
 {

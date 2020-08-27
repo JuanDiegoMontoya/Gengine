@@ -1,8 +1,7 @@
-#include "../../stdafx.h"
+#include <Systems/Graphics/GraphicsIncludes.h>
 
 #include <cmath>
 #include <random>
-#include "utilities.h"
 
 namespace Utils
 {

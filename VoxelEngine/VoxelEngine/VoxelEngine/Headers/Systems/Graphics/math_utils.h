@@ -1,7 +1,5 @@
 #pragma once
 
-//#include "../../stdafx.h"
-
 namespace Utils
 {
 	float lerp(float a, float b, float t);
@@ -43,13 +41,13 @@ namespace Utils
 	template<typename T>
 	T max3(T first, T second, T third)
 	{
-		return std::max(first, std::max(second, third));
+		return glm::max(first, glm::max(second, third));
 	}
 
 	template<typename T>
 	T min3(T first, T second, T third)
 	{
-		return std::min(first, std::min(second, third));
+		return glm::min(first, glm::min(second, third));
 	}
 
 	inline glm::ivec3 stretch(int index, int w, int h)

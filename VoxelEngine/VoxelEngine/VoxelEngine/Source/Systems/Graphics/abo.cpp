@@ -1,5 +1,4 @@
-#include "../../stdafx.h"
-#include "abo.h"
+#include <Systems/Graphics/GraphicsIncludes.h>
 
 ABO::ABO(GLuint num) : numCounters_(num)
 {

@@ -2,6 +2,7 @@
 #include <sstream>
 #include <fstream>
 #include <iostream>
+#include <string.h>
 
 int Shader::shader_count_ = 0;
 std::unordered_map<std::string, Shader*> Shader::shaders = std::unordered_map<std::string, Shader*>();
@@ -175,7 +176,7 @@ void Shader::initUniforms()
 
 		glGetActiveUniform(programID, i, max_length, &written, &size, &type, pname);
 		GLchar* pname1 = new GLchar[max_length];
-		std::strcpy(pname1, pname);
+		strcpy_s(pname1, strnlen_s(pname, max_length), pname);
 		if (size > 1)
 			pname1[written - 3] = '\0';
 		GLint loc = glGetUniformLocation(programID, pname1);

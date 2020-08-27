@@ -1,5 +1,4 @@
-#include "../../stdafx.h"
-#include "dib.h"
+#include <Systems/Graphics/GraphicsIncludes.h>
 
 DIB::DIB(void* data, GLsizei size, GLenum drawmode)
 {

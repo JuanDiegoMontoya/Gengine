@@ -1,5 +1,5 @@
 #pragma once
-#include "utilities.h"
+#include <ostream>
 
 namespace Utils
 {

@@ -1,6 +1,7 @@
 /*HEADER_GOES_HERE*/
 #include "../../Headers/Systems/GraphicsSystem.h"
 #include "../../Headers/Factory.h"
+#include <Events/UpdateEvent.h>
 #include <Events/DrawEvent.h>
 #include <Events/RenderEvent.h>
 #include <Engine.h>
@@ -79,6 +80,6 @@ void GraphicsSystem::UpdateEventsListen(UpdateEvent* updateEvent)
 
 void GraphicsSystem::RenderEventsListen(UpdateEvent* updateEvent)
 {
-
+	printf("poop");
   glfwSwapBuffers(window);
 }

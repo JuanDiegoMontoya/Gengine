@@ -1,7 +1,4 @@
-#include "../../stdafx.h"
-
-#include "vao.h"
-//#include "Renderer.h"
+#include <Systems/Graphics/GraphicsIncludes.h>
 
 VAO::VAO()
 {

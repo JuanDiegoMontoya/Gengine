@@ -1,5 +1,4 @@
-#include "../../stdafx.h"
-#include "utilities.h"
+#include <Systems/Graphics/GraphicsIncludes.h>
 
 namespace Utils
 {

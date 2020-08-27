@@ -1,6 +1,4 @@
-#include "../../stdafx.h"
-
-#include "vbo.h"
+#include <Systems/Graphics/GraphicsIncludes.h>
 
 VBO::VBO(const void * data, unsigned int size, GLenum drawmode)
 {
