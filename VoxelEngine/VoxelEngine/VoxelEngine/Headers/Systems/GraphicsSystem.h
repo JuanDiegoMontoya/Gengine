@@ -20,10 +20,12 @@ public:
   std::string GetName();
 
   void UpdateEventsListen(UpdateEvent* updateEvent);
-  void Update();
+  void RenderEventsListen(UpdateEvent* updateEvent);
 
 private:
   GraphicsSystem();
 
   friend void RegisterSystems();
+
+  struct GLFWwindow* window;
 };

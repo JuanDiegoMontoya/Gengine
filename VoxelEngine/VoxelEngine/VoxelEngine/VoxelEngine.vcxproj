@@ -36,9 +36,11 @@
     <ClInclude Include="Headers\Containers\Properties.h" />
     <ClInclude Include="Headers\Containers\Space.h" />
     <ClInclude Include="Headers\Engine.h" />
+    <ClInclude Include="Headers\engine_assert.h" />
     <ClInclude Include="Headers\Events\AllEventHeaders.h" />
     <ClInclude Include="Headers\Events\DrawEvent.h" />
     <ClInclude Include="Headers\Events\Event.h" />
+    <ClInclude Include="Headers\Events\RenderEvent.h" />
     <ClInclude Include="Headers\Events\StubEvent.h" />
     <ClInclude Include="Headers\Events\UpdateEvent.h" />
     <ClInclude Include="Headers\Factory.h" />
@@ -48,9 +50,21 @@
     <ClInclude Include="Headers\Systems\AllSystemHeaders.h" />
     <ClInclude Include="Headers\Systems\FrameRateController.h" />
     <ClInclude Include="Headers\Systems\GraphicsSystem.h" />
+    <ClInclude Include="Headers\Systems\Graphics\abo.h" />
     <ClInclude Include="Headers\Systems\Graphics\Context.h" />
+    <ClInclude Include="Headers\Systems\Graphics\dib.h" />
+    <ClInclude Include="Headers\Systems\Graphics\GraphicsIncludes.h" />
+    <ClInclude Include="Headers\Systems\Graphics\ibo.h" />
+    <ClInclude Include="Headers\Systems\Graphics\math_utils.h" />
+    <ClInclude Include="Headers\Systems\Graphics\misc_utils.h" />
+    <ClInclude Include="Headers\Systems\Graphics\param_bo.h" />
+    <ClInclude Include="Headers\Systems\Graphics\shader.h" />
+    <ClInclude Include="Headers\Systems\Graphics\vao.h" />
+    <ClInclude Include="Headers\Systems\Graphics\vbo.h" />
+    <ClInclude Include="Headers\Systems\Graphics\Vertices.h" />
     <ClInclude Include="Headers\Systems\StubSystem.h" />
     <ClInclude Include="Headers\Systems\System.h" />
+    <ClInclude Include="Source\Systems\Graphics\vbo_layout.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="3rdParty\imgui\imgui.cpp" />
@@ -63,13 +77,23 @@
     <ClCompile Include="Source\Containers\EventManger.cpp" />
     <ClCompile Include="Source\Containers\Object.cpp" />
     <ClCompile Include="Source\Containers\Space.cpp" />
+    <ClCompile Include="Source\engine_assert.cpp" />
     <ClCompile Include="Source\Entry.cpp" />
     <ClCompile Include="Source\Engine.cpp" />
     <ClCompile Include="Source\Factory.cpp" />
     <ClCompile Include="Source\GuiIfy.cpp" />
     <ClCompile Include="Source\Systems\FrameRateController.cpp" />
     <ClCompile Include="Source\Systems\GraphicsSystem.cpp" />
+    <ClCompile Include="Source\Systems\Graphics\abo.cpp" />
     <ClCompile Include="Source\Systems\Graphics\Context.cpp" />
+    <ClCompile Include="Source\Systems\Graphics\dib.cpp" />
+    <ClCompile Include="Source\Systems\Graphics\ibo.cpp" />
+    <ClCompile Include="Source\Systems\Graphics\math_utils.cpp" />
+    <ClCompile Include="Source\Systems\Graphics\misc_utils.cpp" />
+    <ClCompile Include="Source\Systems\Graphics\param_bo.cpp" />
+    <ClCompile Include="Source\Systems\Graphics\shader.cpp" />
+    <ClCompile Include="Source\Systems\Graphics\vao.cpp" />
+    <ClCompile Include="Source\Systems\Graphics\vbo.cpp" />
     <ClCompile Include="Source\Systems\StubSystem.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

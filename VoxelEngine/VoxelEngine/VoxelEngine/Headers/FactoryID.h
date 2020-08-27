@@ -1,4 +1,4 @@
-#ifndef FactoryID_Guard                                          
+                                           #ifndef FactoryID_Guard                                          
 #define FactoryID_Guard                                          
                                                                  
 #include <memory>                                                
@@ -30,8 +30,9 @@ const ID cTestingComponent = 1;
 
 //EventIDs
 const ID cDrawEvent = 0;
-const ID cStubEvent = 1;
-const ID cUpdateEvent = 2;
+const ID cRenderEvent = 1;
+const ID cStubEvent = 2;
+const ID cUpdateEvent = 3;
 
 #endif // !FactoryID_Guard                                       
   
