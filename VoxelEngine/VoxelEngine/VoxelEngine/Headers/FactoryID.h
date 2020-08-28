@@ -22,8 +22,9 @@ enum class FactoryID
 //SystemIDs
 const ID cFrameRateController = 0;
 const ID cGraphicsSystem = 1;
-const ID cStubSystem = 2;
-const ID cTraceSystem = 3;
+const ID cInputSystem = 2;
+const ID cStubSystem = 3;
+const ID cTraceSystem = 4;
 
 //ComponentIDs
 const ID cStubComponent = 0;

@@ -4,7 +4,46 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 
-#pragma optimize("", off)
+// TODO: horrible
+#include <Systems/InputSystem.h>
+
+static void error_cb(int error, char const* description)
+{
+	std::cerr << "GLFW error: " << description << std::endl;
+}
+
+// glfw: whenever the window size changed (by OS or user resize) this callback function executes
+static void framebuffer_size_callback([[maybe_unused]] GLFWwindow* window, int width, int height)
+{
+	glViewport(0, 0, width, height);
+}
+
+// window was minimized
+static void iconify_callback([[maybe_unused]] GLFWwindow* window, int mode)
+{
+}
+
+void cursor_enter_callback([[maybe_unused]] GLFWwindow* window, int entered)
+{
+	if (entered)
+	{
+		// The cursor entered the client area of the window
+	}
+	else
+	{
+		// The cursor left the client area of the window
+	}
+}
+
+void set_glfw_callbacks(GLFWwindow* window)
+{
+	Input::init_glfw_input_cbs(window);
+
+	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+	glfwSetWindowIconifyCallback(window, iconify_callback);
+	glfwSetCursorEnterCallback(window, cursor_enter_callback);
+}
+
 GLFWwindow* init_glfw_context()
 {
 	if (!glfwInit())
@@ -48,7 +87,7 @@ GLFWwindow* init_glfw_context()
 
 	glfwSetWindowPos(window, 0, 25);
 	glfwMakeContextCurrent(window);
-	//set_glfw_callbacks(window);
+	set_glfw_callbacks(window);
 
 	glewExperimental = GL_FALSE;
 	if (glewInit() != GLEW_OK)
@@ -57,7 +96,7 @@ GLFWwindow* init_glfw_context()
 		return nullptr;
 	}
 
-	//glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
 	glViewport(0, 0, window_width, window_height - 63);
 

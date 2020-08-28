@@ -158,7 +158,7 @@ private:
 	};
 
 	static int shader_count_;
-	static constexpr const char* shader_dir_ = "./resources/Shaders/";
+	static constexpr const char* shader_dir_ = "./Resources/Shaders/";
 	std::string loadShader(const char* path);
 	GLint compileShader(shadertype type, const GLchar* src);
 	void initUniforms();

@@ -8,6 +8,7 @@
 #include <Systems/Graphics/Context.h>
 
 #include <Systems/Graphics/GraphicsIncludes.h>
+#include <ImGuiIncludes.h>
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -16,19 +17,19 @@ GraphicsSystem* GraphicsSystem::pGraphicsSystem = nullptr;
 
 void DrawCube()
 {
-	static VAO* blockHoverVao = nullptr;
-	static VBO* blockHoverVbo = nullptr;
-	if (blockHoverVao == nullptr)
+	static VAO* vao = nullptr;
+	static VBO* vbo = nullptr;
+	if (vao == nullptr)
 	{
-		blockHoverVao = new VAO();
-		blockHoverVbo = new VBO(Vertices::cube_norm_tex, sizeof(Vertices::cube_norm_tex));
+		vao = new VAO();
+		vbo = new VBO(Vertices::cube_norm_tex, sizeof(Vertices::cube_norm_tex));
 		VBOlayout layout;
 		layout.Push<float>(3);
 		layout.Push<float>(3);
 		layout.Push<float>(2);
-		blockHoverVao->AddBuffer(*blockHoverVbo, layout);
+		vao->AddBuffer(*vbo, layout);
 	}
-	blockHoverVao->Bind();
+	vao->Bind();
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 }
 
@@ -57,16 +58,30 @@ void GraphicsSystem::Init()
 
 
  Shader::shaders["flat_color"] = new Shader("flat_color.vs", "flat_color.fs");
+
+ // Initialize Dear ImGui
+ ImGui::CreateContext();
+ ImGui_ImplGlfw_InitForOpenGL(window, true);
+ ImGui_ImplOpenGL3_Init();
+ ImGui::StyleColorsDark();
 }
 
 void GraphicsSystem::End()
 {
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui::DestroyContext();
+
   Engine::GetEngine()->UnregisterListener(this, &GraphicsSystem::UpdateEventsListen);
   Engine::GetEngine()->UnregisterListener(this, &GraphicsSystem::RenderEventsListen);
 }
 
 void GraphicsSystem::UpdateEventsListen(UpdateEvent* updateEvent)
 {
+	// Begin ImGui frame
+	ImGui_ImplOpenGL3_NewFrame();
+	ImGui_ImplGlfw_NewFrame();
+	ImGui::NewFrame();
+
   Engine::GetEngine()->AttachEvent(DrawEvent::GenerateDrawEvent(HANDLE_NEXT_FRAME));
   Engine::GetEngine()->AttachEvent(RenderEvent::GenerateRenderEvent(HANDLE_NEXT_FRAME));
 }
@@ -89,6 +104,15 @@ void GraphicsSystem::RenderEventsListen(UpdateEvent* updateEvent)
 	shader->setMat4("u_model", model);
 	shader->setVec4("u_color", glm::vec4(1, 1, 1, 1));
 	DrawCube();
+
+	ImGui::Begin("Cum");
+	ImGui::Text("dofasodf");
+	ImGui::End();
+
+	// End ImGui frame
+	ImGui::Render();
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+	ImGui::EndFrame();
 
   glfwSwapBuffers(window);
 }

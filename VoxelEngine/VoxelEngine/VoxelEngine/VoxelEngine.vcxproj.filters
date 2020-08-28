@@ -108,24 +108,6 @@
     <ClInclude Include="Headers\Systems\AllSystemHeaders.h">
       <Filter>Header Files\Systems</Filter>
     </ClInclude>
-    <ClInclude Include="3rdParty\imgui\imconfig.h">
-      <Filter>3rd Party\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="3rdParty\imgui\imgui.h">
-      <Filter>3rd Party\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="3rdParty\imgui\imgui_internal.h">
-      <Filter>3rd Party\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="3rdParty\imgui\imstb_rectpack.h">
-      <Filter>3rd Party\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="3rdParty\imgui\imstb_textedit.h">
-      <Filter>3rd Party\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="3rdParty\imgui\imstb_truetype.h">
-      <Filter>3rd Party\imgui</Filter>
-    </ClInclude>
     <ClInclude Include="Headers\PreProcessorMagic.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -204,6 +186,36 @@
     <ClInclude Include="Headers\Systems\Graphics\vbo_layout.h">
       <Filter>Header Files\Systems\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="3rdParty\imgui\imconfig.h">
+      <Filter>3rd Party\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\imgui\imgui.h">
+      <Filter>3rd Party\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\imgui\imgui_impl_glfw.h">
+      <Filter>3rd Party\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\imgui\imgui_impl_opengl3.h">
+      <Filter>3rd Party\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\imgui\imgui_internal.h">
+      <Filter>3rd Party\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\imgui\imstb_rectpack.h">
+      <Filter>3rd Party\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\imgui\imstb_textedit.h">
+      <Filter>3rd Party\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\imgui\imstb_truetype.h">
+      <Filter>3rd Party\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Headers\ImGuiIncludes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Headers\Systems\InputSystem.h">
+      <Filter>Header Files\Systems</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Engine.cpp">
@@ -235,18 +247,6 @@
     </ClCompile>
     <ClCompile Include="Source\GuiIfy.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="3rdParty\imgui\imgui.cpp">
-      <Filter>3rd Party\imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="3rdParty\imgui\imgui_demo.cpp">
-      <Filter>3rd Party\imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="3rdParty\imgui\imgui_draw.cpp">
-      <Filter>3rd Party\imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="3rdParty\imgui\imgui_widgets.cpp">
-      <Filter>3rd Party\imgui</Filter>
     </ClCompile>
     <ClCompile Include="Source\Entry.cpp">
       <Filter>Source Files</Filter>
@@ -292,6 +292,24 @@
     </ClCompile>
     <ClCompile Include="Source\engine_assert.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\imgui\imgui.cpp">
+      <Filter>3rd Party\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\imgui\imgui_draw.cpp">
+      <Filter>3rd Party\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\imgui\imgui_impl_glfw.cpp">
+      <Filter>3rd Party\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\imgui\imgui_impl_opengl3.cpp">
+      <Filter>3rd Party\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\imgui\imgui_widgets.cpp">
+      <Filter>3rd Party\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Systems\InputSystem.cpp">
+      <Filter>Source Files\Systems</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -34,6 +34,7 @@ Engine::Engine()
   systems.push_back(TraceSystem::GetTraceSystem());
   systems.push_back(FrameRateController::GetFrameRateController());
   systems.push_back(GraphicsSystem::GetGraphicsSystem());
+  systems.push_back(InputSystem::GetInputSystem());
 }
 
 Engine::~Engine()
