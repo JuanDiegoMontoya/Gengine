@@ -1,5 +1,5 @@
 #ifndef EVENT_COUNT
-#define EVENT_COUNT 7
+#define EVENT_COUNT 8
 #endif
 
 #ifdef FACTORY_RUNNING
@@ -10,6 +10,7 @@
 #include "InitEvent.h"
 #include "RenderEvent.h"
 #include "StubEvent.h"
+#include "TestingEvent.h"
 #include "TraceEvent.h"
 #include "UpdateEvent.h"
 
@@ -26,6 +27,8 @@ Factory::EventPropertyMap["RenderEvent"] = std::vector<PropertyID>({
   });
 Factory::EventPropertyMap["StubEvent"] = std::vector<PropertyID>({
   });
+Factory::EventPropertyMap["TestingEvent"] = std::vector<PropertyID>({
+  });
 Factory::EventPropertyMap["TraceEvent"] = std::vector<PropertyID>({
   });
 Factory::EventPropertyMap["UpdateEvent"] = std::vector<PropertyID>({
@@ -39,8 +42,9 @@ inline std::unique_ptr<Event> Event1() { return std::move(DrawEvent::RegisterDra
 inline std::unique_ptr<Event> Event2() { return std::move(InitEvent::RegisterInitEvent()); }
 inline std::unique_ptr<Event> Event3() { return std::move(RenderEvent::RegisterRenderEvent()); }
 inline std::unique_ptr<Event> Event4() { return std::move(StubEvent::RegisterStubEvent()); }
-inline std::unique_ptr<Event> Event5() { return std::move(TraceEvent::RegisterTraceEvent()); }
-inline std::unique_ptr<Event> Event6() { return std::move(UpdateEvent::RegisterUpdateEvent()); }
+inline std::unique_ptr<Event> Event5() { return std::move(TestingEvent::RegisterTestingEvent()); }
+inline std::unique_ptr<Event> Event6() { return std::move(TraceEvent::RegisterTraceEvent()); }
+inline std::unique_ptr<Event> Event7() { return std::move(UpdateEvent::RegisterUpdateEvent()); }
 
 
 #endif // !FACTORY_RUNNING

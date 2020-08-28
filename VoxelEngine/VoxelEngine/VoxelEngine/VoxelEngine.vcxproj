@@ -46,6 +46,7 @@
     <ClInclude Include="Headers\Events\RenderEvent.h" />
     <ClInclude Include="Headers\Events\InitEvent.h" />
     <ClInclude Include="Headers\Events\StubEvent.h" />
+    <ClInclude Include="Headers\Events\TestingEvent.h" />
     <ClInclude Include="Headers\Events\TraceEvent.h" />
     <ClInclude Include="Headers\Events\UpdateEvent.h" />
     <ClInclude Include="Headers\Factory.h" />

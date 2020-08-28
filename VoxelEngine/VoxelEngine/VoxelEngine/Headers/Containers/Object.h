@@ -80,7 +80,7 @@ public:
   void PerfromOnAllChildrenAndSelf(std::function<void(Object*)> f);
   void PerfromOnAllChildren(std::function<void(Object*)> f);
 
-  template <typename T> void AttachEvent(std::unique_ptr<T> eventToAttach) { eventManager->AttachEvent(eventToAttach); }
+  template <typename T> void AttachEvent(std::unique_ptr<T> eventToAttach) { eventManager->AttachEvent(std::move(eventToAttach)); }
   template <typename T> void AttachEventRef(std::unique_ptr<T>& eventToAttach) { eventManager->AttachEventRef(eventToAttach); }
   //Registers an object with a listener to the event manager.
   template <typename T, typename E> void RegisterListener(T* object_, void(T::* callbackFunction_)(E*)) { eventManager->RegisterListener(object_, callbackFunction_); }

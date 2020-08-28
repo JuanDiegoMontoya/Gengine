@@ -7,6 +7,7 @@
 
 typedef class UpdateEvent UpdateEvent;
 typedef class DrawEvent DrawEvent;
+typedef class TestingEvent TestingEvent;
 
 
 class TestingComponent : public Component
@@ -28,6 +29,7 @@ public:
 
   void UpdateEventsListen(UpdateEvent* updateEvent);
   void DrawEventsListen(DrawEvent* drawEvent);
+  void TestingEventsListen(TestingEvent* testingEvent);
 
   static std::unique_ptr<TestingComponent> RegisterTestingComponent();
 
