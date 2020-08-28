@@ -33,8 +33,9 @@ const ID cDestroyEvent = 0;
 const ID cDrawEvent = 1;
 const ID cInitEvent = 2;
 const ID cStubEvent = 3;
-const ID cTraceEvent = 4;
-const ID cUpdateEvent = 5;
+const ID cTestingEvent = 4;
+const ID cTraceEvent = 5;
+const ID cUpdateEvent = 6;
 
 #endif // !FactoryID_Guard                                       
   

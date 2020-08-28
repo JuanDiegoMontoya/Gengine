@@ -97,11 +97,14 @@ void Factory::WriteFile(std::string fileName, const uint8_t* data, uint32_t size
 
 #define FACTORY_RUNNING
 #include "../Headers/Systems/AllSystemHeaders.h"
-#include "../Headers/Events/AllEventHeaders.h"
 #include "../Headers/Components/AllComponentHeaders.h"
+#include "../Headers/Events/AllEventHeaders.h"
 //Creates one of every component and event for duplication later.
 void Factory::Register()
 {
+  RegisterSystems();
+  RegisterComponents();
+  RegisterEvents();
   std::vector<std::unique_ptr<Event>(*)()> event_table = { BOOST_PP_REPEAT(EVENT_COUNT, MAKE_EVENT_FUNCT, ~) };
   for (int i = 0; i < event_table.size(); ++i)
   {
