@@ -105,7 +105,7 @@ void GraphicsSystem::RenderEventsListen(UpdateEvent* updateEvent)
 	shader->setVec4("u_color", glm::vec4(1, 1, 1, 1));
 	DrawCube();
 
-	ImGui::Begin("Cum");
+	ImGui::Begin("Test");
 	ImGui::Text("dofasodf");
 	ImGui::End();
 

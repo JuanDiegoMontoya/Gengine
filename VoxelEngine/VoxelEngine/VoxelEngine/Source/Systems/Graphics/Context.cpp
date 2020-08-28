@@ -48,7 +48,7 @@ GLFWwindow* init_glfw_context()
 {
 	if (!glfwInit())
 		return nullptr;
-	//glfwSetErrorCallback(error_cb);
+	glfwSetErrorCallback(error_cb);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);

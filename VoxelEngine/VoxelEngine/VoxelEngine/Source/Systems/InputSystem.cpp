@@ -5,6 +5,8 @@
 #include <Events/UpdateEvent.h>
 #include <Engine.h>
 
+#define DEBUG_INPUT 0
+
 InputSystem* InputSystem::pInputSystem = nullptr;
 
 #pragma optimize("", off)
@@ -82,8 +84,9 @@ namespace Input
 				keyboard.released[key] = true;
 				keyboard.down[key] = false;
 				break;
-			case GLFW_PRESS: // fall-through intentional
+			case GLFW_PRESS:
 				keyboard.pressed[key] = true;
+				[[fallthrough]];
 			case GLFW_REPEAT:
 				keyboard.down[key] = true;
 				break;
@@ -93,7 +96,9 @@ namespace Input
 			}
 		}
 
+#if DEBUG_INPUT
 		cout << "Key pressed: " << (key) << " Action: " << (action) << endl;
+#endif
 	}
 
 	static bool firstMouse = true;
@@ -116,7 +121,10 @@ namespace Input
 		mouse.screenOffset.y = mouse.prevScreenPos.y - ypos;
 		mouse.prevScreenPos = glm::vec2(xpos, ypos);
 		mouse.screenOffset *= mouse.sensitivity;
+
+#if DEBUG_INPUT
 		cout << "Mouse pos: " << "(" << xpos << ", " << ypos << ")" << endl;
+#endif
 	}
 
 	static void mouse_scroll_cb([[maybe_unused]] GLFWwindow* window, double xoffset, double yoffset)
@@ -124,7 +132,9 @@ namespace Input
 		mouse.scrollOffset.x = (float)xoffset;
 		mouse.scrollOffset.y = (float)yoffset;
 
+#if DEBUG_INPUT
 		cout << "Mouse scroll: " << "(" << xoffset << ", " << yoffset << ")" << endl;
+#endif
 	}
 
 	static void mouse_button_cb(GLFWwindow* window, int button, int action, int mods)
@@ -137,8 +147,9 @@ namespace Input
 			mouse.released[button] = true;
 			mouse.down[button] = false;
 			break;
-		case GLFW_PRESS: // fall-through intentional
+		case GLFW_PRESS:
 			mouse.pressed[button] = true;
+			[[fallthrough]];
 		case GLFW_REPEAT:
 			mouse.down[button] = true;
 			break;
@@ -147,7 +158,9 @@ namespace Input
 			break;
 		}
 
+#if DEBUG_INPUT
 		cout << "Mouse clicked: " << (button) << " Action: " << (action) << endl;
+#endif
 	}
 
 	// sets GLFW input callbacks
