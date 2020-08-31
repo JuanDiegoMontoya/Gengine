@@ -38,6 +38,8 @@ int main()
 
   for (auto& p : fs::directory_iterator("../VoxelEngine/Headers/Systems"))
   {
+    if (p.is_directory()) continue;
+
     std::wstring filepath(p.path());
     size_t startOfName = filepath.find_last_of('\\') + 1;
     std::string file = ws2s(filepath.substr(startOfName, filepath.length() - startOfName - 2));
@@ -117,6 +119,8 @@ int main()
 
   for (auto& p : fs::directory_iterator("../VoxelEngine/Headers/Components"))
   {
+    if (p.is_directory()) continue;
+
     std::wstring filepath(p.path());
     size_t startOfName = filepath.find_last_of('\\') + 1;
     std::string file = ws2s(filepath.substr(startOfName, filepath.length() - startOfName - 2));
@@ -197,6 +201,8 @@ registerFunctions + "\n\n#endif // !FACTORY_RUNNING";
 
   for (auto& p : fs::directory_iterator("../VoxelEngine/Headers/Events"))
   {
+    if (p.is_directory()) continue;
+
     std::wstring filepath(p.path());
     size_t startOfName = filepath.find_last_of('\\') + 1;
     std::string file = ws2s(filepath.substr(startOfName, filepath.length() - startOfName - 2));
