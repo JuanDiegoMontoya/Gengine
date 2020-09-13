@@ -4,6 +4,7 @@
 #include <ImGuiIncludes.h>
 #include <Events/UpdateEvent.h>
 #include <Engine.h>
+#include <functional>
 
 #define DEBUG_INPUT 0
 
@@ -37,158 +38,146 @@ void InputSystem::End()
 
 void InputSystem::UpdateEventsListen(UpdateEvent* updateEvent)
 {
-	Input::update();
+	for (unsigned i = 0; i < BUTTON_COUNT; ++i)
+	{
+		if (keyStates[i] == KeyState::pressed) keyStates[i]	= KeyState::up;
+		if (keyStates[i] == KeyState::released) keyStates[i] = KeyState::down;
+		//if (keyIsDown && keyStates[i] == KeyState::pressed)
+		//	keyStates[i] = KeyState::down;
+		//else if (keyIsDown && keyStates[i] != KeyState::down)
+		//	keyStates[i] = KeyState::pressed;
+		//else if (!keyIsDown && keyStates[i] == KeyState::released)
+		//	keyStates[i] = KeyState::up;
+		//else if (!keyIsDown && keyStates[i] != KeyState::up)
+		//	keyStates[i] = KeyState::released;
+	}
+	scrollOffset = glm::vec2(0);
+	screenOffset = glm::vec2(0);
+	glfwPollEvents();
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-using namespace std;
-
-namespace Input
+InputSystem::KeyState InputSystem::GetKeyState(Key key)
 {
-	static mouse_input mouse;
-	static kb_input keyboard;
+	return keyStates[static_cast<unsigned>(key)];
+}
+bool InputSystem::IsKeyDown(Key key)
+{
+	return keyStates[static_cast<unsigned>(key)] == KeyState::down
+		|| keyStates[static_cast<unsigned>(key)] == KeyState::pressed;
+}
+bool InputSystem::IsKeyUp(Key key)
+{
+	return keyStates[static_cast<unsigned>(key)] == KeyState::up
+		|| keyStates[static_cast<unsigned>(key)] == KeyState::released;
+}
+bool InputSystem::IsKeyPressed(Key key)
+{
+	return keyStates[static_cast<unsigned>(key)] == KeyState::pressed;
+}
+bool InputSystem::IsKeyReleased(Key key)
+{
+	return keyStates[static_cast<unsigned>(key)] == KeyState::released;
+}
 
-	const mouse_input& Mouse()
+void InputSystem::keypress_cb([[maybe_unused]] GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+	if (key != GLFW_KEY_UNKNOWN)
 	{
-		return mouse;
-	}
-
-	const kb_input& Keyboard()
-	{
-		return keyboard;
-	}
-
-	static void keypress_cb([[maybe_unused]] GLFWwindow* window, int key, int scancode, int action, int mods)
-	{
-		if (key != GLFW_KEY_UNKNOWN)
-		{
-			switch (action)
-			{
-			case GLFW_RELEASE:
-				keyboard.released[key] = true;
-				keyboard.down[key] = false;
-				break;
-			case GLFW_PRESS:
-				keyboard.pressed[key] = true;
-				[[fallthrough]];
-			case GLFW_REPEAT:
-				keyboard.down[key] = true;
-				break;
-			default:
-				ASSERT_MSG(0, "Invalid keycode.");
-				break;
-			}
-		}
-
-#if DEBUG_INPUT
-		cout << "Key pressed: " << (key) << " Action: " << (action) << endl;
-#endif
-	}
-
-	static bool firstMouse = true;
-	static void mouse_pos_cb([[maybe_unused]] GLFWwindow* window, double xpos, double ypos)
-	{
-		if (firstMouse)
-		{
-			mouse.screenOffset.x = xpos;
-			mouse.screenOffset.y = ypos;
-			firstMouse = false;
-		}
-
-		mouse.screenPos.x = (float)xpos;
-		mouse.screenPos.y = (float)ypos;
-
-		mouse.worldPos.x = (float)xpos;
-		mouse.worldPos.y = (float)ypos;
-
-		mouse.screenOffset.x = xpos - mouse.prevScreenPos.x;
-		mouse.screenOffset.y = mouse.prevScreenPos.y - ypos;
-		mouse.prevScreenPos = glm::vec2(xpos, ypos);
-		mouse.screenOffset *= mouse.sensitivity;
-
-#if DEBUG_INPUT
-		cout << "Mouse pos: " << "(" << xpos << ", " << ypos << ")" << endl;
-#endif
-	}
-
-	static void mouse_scroll_cb([[maybe_unused]] GLFWwindow* window, double xoffset, double yoffset)
-	{
-		mouse.scrollOffset.x = (float)xoffset;
-		mouse.scrollOffset.y = (float)yoffset;
-
-#if DEBUG_INPUT
-		cout << "Mouse scroll: " << "(" << xoffset << ", " << yoffset << ")" << endl;
-#endif
-	}
-
-	static void mouse_button_cb(GLFWwindow* window, int button, int action, int mods)
-	{
-		ImGui_ImplGlfw_MouseButtonCallback(window, button, action, mods);
-
 		switch (action)
 		{
 		case GLFW_RELEASE:
-			mouse.released[button] = true;
-			mouse.down[button] = false;
+			keyStates[key] = KeyState::released;
 			break;
 		case GLFW_PRESS:
-			mouse.pressed[button] = true;
-			[[fallthrough]];
+			keyStates[key] = KeyState::pressed;
+			break;
 		case GLFW_REPEAT:
-			mouse.down[button] = true;
+			keyStates[key] = KeyState::down;
 			break;
 		default:
 			ASSERT_MSG(0, "Invalid keycode.");
 			break;
 		}
+	}
 
 #if DEBUG_INPUT
-		cout << "Mouse clicked: " << (button) << " Action: " << (action) << endl;
+	cout << "Key pressed: " << (key) << " Action: " << (action) << endl;
 #endif
-	}
+}
 
-	// sets GLFW input callbacks
-	void init_glfw_input_cbs(GLFWwindow* window)
+void InputSystem::mouse_pos_cb([[maybe_unused]] GLFWwindow* window, double xpos, double ypos)
+{
+	static bool firstMouse = true;
+	if (firstMouse)
 	{
-		glfwSetKeyCallback(window, keypress_cb);
-		glfwSetMouseButtonCallback(window, mouse_button_cb);
-		glfwSetScrollCallback(window, mouse_scroll_cb);
-		glfwSetCursorPosCallback(window, mouse_pos_cb);
+		screenOffset.x = xpos;
+		screenOffset.y = ypos;
+		firstMouse = false;
 	}
 
-	// clears temporary input (presses and releases) and polls for new events
-	void update()
+	screenPos.x = (float)xpos;
+	screenPos.y = (float)ypos;
+
+	worldPos.x = (float)xpos;
+	worldPos.y = (float)ypos;
+
+	screenOffset.x = xpos - prevScreenPos.x;
+	screenOffset.y = prevScreenPos.y - ypos;
+	prevScreenPos = glm::vec2(xpos, ypos);
+	screenOffset *= sensitivity;
+
+#if DEBUG_INPUT
+	cout << "Mouse pos: " << "(" << xpos << ", " << ypos << ")" << endl;
+#endif
+}
+
+void InputSystem::mouse_scroll_cb([[maybe_unused]] GLFWwindow* window, double xoffset, double yoffset)
+{
+	scrollOffset.x = (float)xoffset;
+	scrollOffset.y = (float)yoffset;
+
+#if DEBUG_INPUT
+	cout << "Mouse scroll: " << "(" << xoffset << ", " << yoffset << ")" << endl;
+#endif
+}
+
+void InputSystem::mouse_button_cb(GLFWwindow* window, int button, int action, int mods)
+{
+	ImGui_ImplGlfw_MouseButtonCallback(window, button, action, mods);
+
+	button += MOUSE_OFFSET; //set to start of mouse buttons in array
+	switch (action)
 	{
-		for (int i = 0; i < GLFW_KEY_LAST; i++)
-		{
-			keyboard.pressed[i] = false;
-			keyboard.released[i] = false;
-		}
-
-		for (int i = 0; i < GLFW_MOUSE_BUTTON_LAST; i++)
-		{
-			mouse.pressed[i] = false;
-			mouse.released[i] = false;
-		}
-
-		mouse.scrollOffset = glm::vec2(0);
-		mouse.screenOffset = glm::vec2(0);
-		glfwPollEvents();
+	case GLFW_RELEASE:
+		keyStates[button] = KeyState::released;
+		break;
+	case GLFW_PRESS:
+		keyStates[button] = KeyState::pressed;
+		break;
+	case GLFW_REPEAT:
+		keyStates[button] = KeyState::down;
+		break;
+	default:
+		ASSERT_MSG(0, "Invalid keycode.");
+		break;
 	}
+}
+// sets GLFW input callbacks
+void InputSystem::init_glfw_input_cbs(GLFWwindow* window)
+{
+	using namespace std::placeholders;
+	keypress_cb_bound			= std::bind(&InputSystem::keypress_cb,			this, _1, _2, _3, _4, _5);
+	mouse_pos_cb_bound		= std::bind(&InputSystem::mouse_pos_cb,		this, _1, _2, _3);
+	mouse_scroll_cb_bound = std::bind(&InputSystem::mouse_scroll_cb, this, _1, _2, _3);
+	mouse_button_cb_bound = std::bind(&InputSystem::mouse_button_cb, this, _1, _2, _3, _4);
+	
+	keypress_cb_ptr			= keypress_cb_bound.target<void(GLFWwindow*, int, int, int, int)>();
+	mouse_pos_cb_ptr		= mouse_pos_cb_bound.target<void(GLFWwindow*, double, double)>();
+	mouse_scroll_cb_ptr = mouse_scroll_cb_bound.target<void(GLFWwindow*, double, double)>();
+	mouse_button_cb_ptr = mouse_button_cb_bound.target<void(GLFWwindow*, int, int, int)>();
+
+	glfwSetKeyCallback(window, keypress_cb_ptr);
+	glfwSetCursorPosCallback(window, mouse_scroll_cb_ptr);
+	glfwSetScrollCallback(window, mouse_scroll_cb_ptr);
+	glfwSetMouseButtonCallback(window, mouse_button_cb_ptr);
 }
