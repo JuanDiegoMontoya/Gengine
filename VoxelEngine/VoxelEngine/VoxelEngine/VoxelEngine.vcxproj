@@ -76,6 +76,46 @@
     <ClInclude Include="Headers\Systems\System.h" />
     <ClInclude Include="Source\Systems\Graphics\vbo_layout.h" />
     <ClInclude Include="Headers\Systems\TraceSystem.h" />
+    <ClInclude Include="Voxels\biome.h" />
+    <ClInclude Include="Voxels\block.h" />
+    <ClInclude Include="Voxels\Chunks\BlockStorage.h" />
+    <ClInclude Include="Voxels\Chunks\Chunk.h" />
+    <ClInclude Include="Voxels\Chunks\ChunkHelpers.h" />
+    <ClInclude Include="Voxels\Chunks\ChunkMesh.h" />
+    <ClInclude Include="Voxels\Chunks\ChunkStorage.h" />
+    <ClInclude Include="Voxels\light.h" />
+    <ClInclude Include="Voxels\pick.h" />
+    <ClInclude Include="Voxels\prefab.h" />
+    <ClInclude Include="Voxels\Refactor\Client.h" />
+    <ClInclude Include="Voxels\Refactor\Editor.h" />
+    <ClInclude Include="Voxels\Refactor\generation.h" />
+    <ClInclude Include="Voxels\Refactor\hud.h" />
+    <ClInclude Include="Voxels\Refactor\Interface.h" />
+    <ClInclude Include="Voxels\Refactor\NetPlayerState.h" />
+    <ClInclude Include="Voxels\Refactor\player.h" />
+    <ClInclude Include="Voxels\Refactor\settings.h" />
+    <ClInclude Include="Voxels\Refactor\stdafx.h" />
+    <ClInclude Include="Voxels\Refactor\sun.h" />
+    <ClInclude Include="Voxels\Rendering\ChunkRenderer.h" />
+    <ClInclude Include="Voxels\Rendering\directional_light.h" />
+    <ClInclude Include="Voxels\Rendering\NuRenderer.h" />
+    <ClInclude Include="Voxels\Rendering\Renderer.h" />
+    <ClInclude Include="Voxels\Rendering\RenderOrder.h" />
+    <ClInclude Include="Voxels\Rendering\TextureArray.h" />
+    <ClInclude Include="Voxels\Utilities\BitArray.h" />
+    <ClInclude Include="Voxels\Utilities\BufferAllocator.h" />
+    <ClInclude Include="Voxels\Utilities\collision_check.h" />
+    <ClInclude Include="Voxels\Utilities\collision_shapes.h" />
+    <ClInclude Include="Voxels\Utilities\FixedQueue.h" />
+    <ClInclude Include="Voxels\Utilities\ImGuiBonus.h" />
+    <ClInclude Include="Voxels\Utilities\Palette.h" />
+    <ClInclude Include="Voxels\Utilities\serialize.h" />
+    <ClInclude Include="Voxels\Utilities\utilities.h" />
+    <ClInclude Include="Voxels\WorldGen\WorldGen2.h" />
+    <ClInclude Include="Voxels\World\chunk_manager.h" />
+    <ClInclude Include="Voxels\World\chunk_manager_base.h" />
+    <ClInclude Include="Voxels\World\parallel_chunks.h" />
+    <ClInclude Include="Voxels\World\World.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="3rdParty\imgui\imgui.cpp" />
@@ -115,6 +155,41 @@
     <ClCompile Include="Source\Systems\InputSystem.cpp" />
     <ClCompile Include="Source\Systems\StubSystem.cpp" />
     <ClCompile Include="Source\Systems\TraceSystem.cpp" />
+    <ClCompile Include="Voxels\biome.cpp" />
+    <ClCompile Include="Voxels\block.cpp" />
+    <ClCompile Include="Voxels\Chunks\Chunk.cpp" />
+    <ClCompile Include="Voxels\Chunks\ChunkMesh.cpp" />
+    <ClCompile Include="Voxels\light.cpp" />
+    <ClCompile Include="Voxels\pick.cpp" />
+    <ClCompile Include="Voxels\prefab.cpp" />
+    <ClCompile Include="Voxels\Refactor\Client.cpp" />
+    <ClCompile Include="Voxels\Refactor\Editor.cpp" />
+    <ClCompile Include="Voxels\Refactor\generation.cpp" />
+    <ClCompile Include="Voxels\Refactor\hud.cpp" />
+    <ClCompile Include="Voxels\Refactor\Interface.cpp" />
+    <ClCompile Include="Voxels\Refactor\main.cpp" />
+    <ClCompile Include="Voxels\Refactor\NetPlayerState.cpp" />
+    <ClCompile Include="Voxels\Refactor\player.cpp" />
+    <ClCompile Include="Voxels\Refactor\settings.cpp" />
+    <ClCompile Include="Voxels\Refactor\sun.cpp" />
+    <ClCompile Include="Voxels\Rendering\ChunkRenderer.cpp" />
+    <ClCompile Include="Voxels\Rendering\directional_light.cpp" />
+    <ClCompile Include="Voxels\Rendering\NuRenderer.cpp" />
+    <ClCompile Include="Voxels\Rendering\Renderer.cpp" />
+    <ClCompile Include="Voxels\Rendering\TextureArray.cpp" />
+    <ClCompile Include="Voxels\Utilities\collision_check.cpp" />
+    <ClCompile Include="Voxels\Utilities\ImGuiBonus.cpp" />
+    <ClCompile Include="Voxels\WorldGen\WorldGen2.cpp" />
+    <ClCompile Include="Voxels\World\chunk_manager.cpp" />
+    <ClCompile Include="Voxels\World\chunk_manager_base.cpp" />
+    <ClCompile Include="Voxels\World\parallel_chunks.cpp" />
+    <ClCompile Include="Voxels\World\World.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Voxels\Chunks\BlockStorage.inl" />
+    <None Include="Voxels\Chunks\ChunkHelpers.inl" />
+    <None Include="Voxels\Utilities\BufferAllocator.inl" />
+    <None Include="Voxels\Utilities\Palette.inl" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
@@ -195,7 +270,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(ProjectDir)3rdParty;$(ProjectDir)Headers;$(ProjectDir)3rdParty\glew-2.1.0\include;$(ProjectDir)3rdParty\glfw-3.3-win64\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)3rdParty;$(ProjectDir)Headers;$(ProjectDir)3rdParty\glew-2.1.0\include;$(ProjectDir)3rdParty\glfw-3.3-win64\include;$(ProjectDir)Voxels;$(IncludePath)</IncludePath>
     <PreBuildEventUseInBuild>true</PreBuildEventUseInBuild>
     <CustomBuildBeforeTargets>
     </CustomBuildBeforeTargets>

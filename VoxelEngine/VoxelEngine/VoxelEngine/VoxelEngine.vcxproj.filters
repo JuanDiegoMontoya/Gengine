@@ -46,6 +46,27 @@
     <Filter Include="Header Files\Systems\Graphics">
       <UniqueIdentifier>{2e415f1a-794f-46cb-aa00-d1961b2c2662}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Voxel Engine">
+      <UniqueIdentifier>{dc663184-9198-480c-b860-fe5e6cb9fc67}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Voxel Engine\Chunks">
+      <UniqueIdentifier>{43c32564-9adb-43dd-adf2-3a9f16609b64}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Voxel Engine\Refactor">
+      <UniqueIdentifier>{941b5f14-5b5d-4b0c-8826-b8e2eafb78fd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Voxel Engine\Rendering">
+      <UniqueIdentifier>{5083ba25-2eab-487a-9f5f-af3d554af47a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Voxel Engine\Utilities">
+      <UniqueIdentifier>{a6660f86-4ee0-4e38-ba32-81b7b89a1524}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Voxel Engine\World">
+      <UniqueIdentifier>{b356d275-2c01-4537-aac8-9d8a629a0cb7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Voxel Engine\WorldGen">
+      <UniqueIdentifier>{facc1ed4-29ad-4e15-95d8-e9af860b332b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Headers\Containers\BidirectionalMap.h">
@@ -213,11 +234,131 @@
     <ClInclude Include="3rdParty\imgui\imstb_truetype.h">
       <Filter>3rd Party\imgui</Filter>
     </ClInclude>
+    <ClInclude Include="Headers\Systems\InputSystem.h">
+      <Filter>Header Files\Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\Refactor\Editor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\prefab.h">
+      <Filter>Voxel Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\pick.h">
+      <Filter>Voxel Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\light.h">
+      <Filter>Voxel Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\block.h">
+      <Filter>Voxel Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\biome.h">
+      <Filter>Voxel Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\Chunks\BlockStorage.h">
+      <Filter>Voxel Engine\Chunks</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\Chunks\Chunk.h">
+      <Filter>Voxel Engine\Chunks</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\Chunks\ChunkHelpers.h">
+      <Filter>Voxel Engine\Chunks</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\Chunks\ChunkMesh.h">
+      <Filter>Voxel Engine\Chunks</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\Chunks\ChunkStorage.h">
+      <Filter>Voxel Engine\Chunks</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\Refactor\Client.h">
+      <Filter>Voxel Engine\Refactor</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\Refactor\generation.h">
+      <Filter>Voxel Engine\Refactor</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\Refactor\hud.h">
+      <Filter>Voxel Engine\Refactor</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\Refactor\Interface.h">
+      <Filter>Voxel Engine\Refactor</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\Refactor\NetPlayerState.h">
+      <Filter>Voxel Engine\Refactor</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\Refactor\player.h">
+      <Filter>Voxel Engine\Refactor</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\Refactor\settings.h">
+      <Filter>Voxel Engine\Refactor</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\Refactor\stdafx.h">
+      <Filter>Voxel Engine\Refactor</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\Refactor\sun.h">
+      <Filter>Voxel Engine\Refactor</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\Rendering\ChunkRenderer.h">
+      <Filter>Voxel Engine\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\Rendering\directional_light.h">
+      <Filter>Voxel Engine\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\Rendering\NuRenderer.h">
+      <Filter>Voxel Engine\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\Rendering\Renderer.h">
+      <Filter>Voxel Engine\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\Rendering\RenderOrder.h">
+      <Filter>Voxel Engine\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\Rendering\TextureArray.h">
+      <Filter>Voxel Engine\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\Utilities\BitArray.h">
+      <Filter>Voxel Engine\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\Utilities\BufferAllocator.h">
+      <Filter>Voxel Engine\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\Utilities\collision_check.h">
+      <Filter>Voxel Engine\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\Utilities\collision_shapes.h">
+      <Filter>Voxel Engine\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\Utilities\FixedQueue.h">
+      <Filter>Voxel Engine\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\Utilities\ImGuiBonus.h">
+      <Filter>Voxel Engine\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\Utilities\Palette.h">
+      <Filter>Voxel Engine\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\Utilities\serialize.h">
+      <Filter>Voxel Engine\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\Utilities\utilities.h">
+      <Filter>Voxel Engine\Utilities</Filter>
+    </ClInclude>
     <ClInclude Include="Headers\ImGuiIncludes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Headers\Systems\InputSystem.h">
-      <Filter>Header Files\Systems</Filter>
+    <ClInclude Include="Voxels\World\chunk_manager.h">
+      <Filter>Voxel Engine\World</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\World\chunk_manager_base.h">
+      <Filter>Voxel Engine\World</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\World\parallel_chunks.h">
+      <Filter>Voxel Engine\World</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\World\World.h">
+      <Filter>Voxel Engine\World</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\WorldGen\WorldGen2.h">
+      <Filter>Voxel Engine\WorldGen</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -314,5 +455,106 @@
     <ClCompile Include="Source\Systems\InputSystem.cpp">
       <Filter>Source Files\Systems</Filter>
     </ClCompile>
+    <ClCompile Include="Voxels\pick.cpp">
+      <Filter>Voxel Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="Voxels\prefab.cpp">
+      <Filter>Voxel Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="Voxels\light.cpp">
+      <Filter>Voxel Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="Voxels\block.cpp">
+      <Filter>Voxel Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="Voxels\biome.cpp">
+      <Filter>Voxel Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="Voxels\Chunks\Chunk.cpp">
+      <Filter>Voxel Engine\Chunks</Filter>
+    </ClCompile>
+    <ClCompile Include="Voxels\Chunks\ChunkMesh.cpp">
+      <Filter>Voxel Engine\Chunks</Filter>
+    </ClCompile>
+    <ClCompile Include="Voxels\Refactor\Client.cpp">
+      <Filter>Voxel Engine\Refactor</Filter>
+    </ClCompile>
+    <ClCompile Include="Voxels\Refactor\Editor.cpp">
+      <Filter>Voxel Engine\Refactor</Filter>
+    </ClCompile>
+    <ClCompile Include="Voxels\Refactor\generation.cpp">
+      <Filter>Voxel Engine\Refactor</Filter>
+    </ClCompile>
+    <ClCompile Include="Voxels\Refactor\hud.cpp">
+      <Filter>Voxel Engine\Refactor</Filter>
+    </ClCompile>
+    <ClCompile Include="Voxels\Refactor\Interface.cpp">
+      <Filter>Voxel Engine\Refactor</Filter>
+    </ClCompile>
+    <ClCompile Include="Voxels\Refactor\main.cpp">
+      <Filter>Voxel Engine\Refactor</Filter>
+    </ClCompile>
+    <ClCompile Include="Voxels\Refactor\NetPlayerState.cpp">
+      <Filter>Voxel Engine\Refactor</Filter>
+    </ClCompile>
+    <ClCompile Include="Voxels\Refactor\player.cpp">
+      <Filter>Voxel Engine\Refactor</Filter>
+    </ClCompile>
+    <ClCompile Include="Voxels\Refactor\settings.cpp">
+      <Filter>Voxel Engine\Refactor</Filter>
+    </ClCompile>
+    <ClCompile Include="Voxels\Refactor\sun.cpp">
+      <Filter>Voxel Engine\Refactor</Filter>
+    </ClCompile>
+    <ClCompile Include="Voxels\Rendering\ChunkRenderer.cpp">
+      <Filter>Voxel Engine\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Voxels\Rendering\directional_light.cpp">
+      <Filter>Voxel Engine\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Voxels\Rendering\NuRenderer.cpp">
+      <Filter>Voxel Engine\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Voxels\Rendering\Renderer.cpp">
+      <Filter>Voxel Engine\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Voxels\Rendering\TextureArray.cpp">
+      <Filter>Voxel Engine\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Voxels\Utilities\collision_check.cpp">
+      <Filter>Voxel Engine\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="Voxels\Utilities\ImGuiBonus.cpp">
+      <Filter>Voxel Engine\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="Voxels\World\chunk_manager.cpp">
+      <Filter>Voxel Engine\World</Filter>
+    </ClCompile>
+    <ClCompile Include="Voxels\World\chunk_manager_base.cpp">
+      <Filter>Voxel Engine\World</Filter>
+    </ClCompile>
+    <ClCompile Include="Voxels\World\parallel_chunks.cpp">
+      <Filter>Voxel Engine\World</Filter>
+    </ClCompile>
+    <ClCompile Include="Voxels\World\World.cpp">
+      <Filter>Voxel Engine\World</Filter>
+    </ClCompile>
+    <ClCompile Include="Voxels\WorldGen\WorldGen2.cpp">
+      <Filter>Voxel Engine\WorldGen</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Voxels\Chunks\BlockStorage.inl">
+      <Filter>Voxel Engine\Chunks</Filter>
+    </None>
+    <None Include="Voxels\Chunks\ChunkHelpers.inl">
+      <Filter>Voxel Engine\Chunks</Filter>
+    </None>
+    <None Include="Voxels\Utilities\BufferAllocator.inl">
+      <Filter>Voxel Engine\Utilities</Filter>
+    </None>
+    <None Include="Voxels\Utilities\Palette.inl">
+      <Filter>Voxel Engine\Utilities</Filter>
+    </None>
   </ItemGroup>
 </Project>
