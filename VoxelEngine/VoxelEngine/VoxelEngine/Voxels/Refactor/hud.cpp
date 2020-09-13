@@ -1,12 +1,11 @@
 #include "stdafx.h"
-#include "hud.h"
-#include "input.h"
-#include "camera.h"
-#include "pipeline.h"
-#include "shader.h"
-#include "Renderer.h"
-#include "NuRenderer.h"
-#include "TextureArray.h"
+#include <Refactor/hud.h>
+#include <Systems/InputSystem.h>
+#include <Components/Camera.h>
+#include <Systems/Graphics/shader.h>
+#include <Rendering/Renderer.h>
+#include <Rendering/NuRenderer.h>
+#include <Rendering/TextureArray.h>
 #include "Interface.h"
 
 void HUD::Update()

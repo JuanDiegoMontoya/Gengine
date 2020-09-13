@@ -1,9 +1,8 @@
 #pragma once
-#include "chunk.h"
-#include "block.h"
-#include "camera.h"
-#include <Pipeline.h>
-#include "Renderer.h"
+#include <Chunks/Chunk.h>
+#include <block.h>
+#include <Components/Camera.h>
+#include <Rendering/Renderer.h>
 
 #include <set>
 //#include <unordered_set>

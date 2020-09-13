@@ -1,5 +1,5 @@
 #pragma once
-#include "directional_light.h"
+#include <Rendering/directional_light.h>
 
 class VAO;
 class VBO;

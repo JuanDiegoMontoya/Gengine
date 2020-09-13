@@ -1,9 +1,8 @@
-#include "stdafx.h"
-#include <camera.h>
-#include "pipeline.h"
-#include "Renderer.h"
-#include "settings.h"
-#include "directional_light.h"
+#include <Components/Camera.h>
+#include <Rendering/Renderer.h>
+#include <Refactor/settings.h>
+#include <Rendering/directional_light.h>
+#include <MathIncludes.h>
 
 DirLight::DirLight()
 {

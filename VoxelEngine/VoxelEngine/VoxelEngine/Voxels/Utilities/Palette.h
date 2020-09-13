@@ -1,5 +1,5 @@
 #pragma once
-#include "BitArray.h"
+#include <Utilities/BitArray.h>
 #include <vector>
 #include <cereal/types/vector.hpp>
 

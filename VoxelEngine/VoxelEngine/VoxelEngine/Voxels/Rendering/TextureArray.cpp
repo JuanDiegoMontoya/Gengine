@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "TextureArray.h"
+#include <Rendering/TextureArray.h>
 #include <stb_image.h>
 #include <filesystem>
 

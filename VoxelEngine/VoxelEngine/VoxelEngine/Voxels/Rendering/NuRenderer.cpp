@@ -1,19 +1,20 @@
+#if 0
 #include "stdafx.h"
-#include "NuRenderer.h"
-#include "Renderer.h" // for old rendering functions
-#include "World.h"
+#include <Rendering/NuRenderer.h>
+#include <Rendering/Renderer.h> // for old rendering functions
+//#include "World.h"
 #include <Engine.h>
-#include <shader.h>
-#include <camera.h>
-#include <input.h>
-#include "ChunkStorage.h"
-#include <dib.h>
-#include "ChunkRenderer.h"
-#include "block.h"
-#include "TextureArray.h"
+#include <Systems/Graphics/shader.h>
+#include <Components/Camera.h>
+#include <Systems/InputSystem.h>
+#include <Chunks/ChunkStorage.h>
+#include <Systems/Graphics/dib.h>
+#include <Rendering/ChunkRenderer.h>
+#include <block.h>
+#include <Rendering/TextureArray.h>
 #include <texture.h>
-#include "sun.h"
-#include "RenderOrder.h"
+#include <Refactor/sun.h>
+#include <Rendering/RenderOrder.h>
 
 namespace NuRenderer
 {
@@ -249,3 +250,4 @@ namespace NuRenderer
 
 	}
 }
+#endif

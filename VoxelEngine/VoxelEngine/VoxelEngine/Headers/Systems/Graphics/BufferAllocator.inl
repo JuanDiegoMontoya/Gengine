@@ -1,8 +1,8 @@
 #pragma once
 #include "BufferAllocator.h"
 #include <vbo_layout.h>
-#include <vbo.h>
-#include <vao.h>
+#include <Systems/Graphics/vbo.h>
+#include <Systems/Graphics/vao.h>
 
 
 template<typename UserT>

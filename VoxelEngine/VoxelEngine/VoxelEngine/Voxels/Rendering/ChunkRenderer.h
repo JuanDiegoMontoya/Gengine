@@ -1,6 +1,6 @@
 #pragma once
-#include "BufferAllocator.h"
-#include <Shapes.h>
+#include <Systems/Graphics/BufferAllocator.h>
+#include <Systems/Graphics/Shapes.h>
 
 namespace ChunkRenderer
 {

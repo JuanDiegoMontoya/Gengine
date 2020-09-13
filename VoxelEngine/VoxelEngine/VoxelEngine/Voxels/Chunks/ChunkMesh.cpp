@@ -1,16 +1,16 @@
 #include "stdafx.h"
-#include "ChunkMesh.h"
-#include <vao.h>
-#include <vbo.h>
-#include <dib.h>
+#include <Chunks/ChunkMesh.h>
+#include <Systems/Graphics/vao.h>
+#include <Systems/Graphics/vbo.h>
+#include <Systems/Graphics/dib.h>
 #include <iomanip>
-#include "chunk.h"
-#include "ChunkHelpers.h"
-#include "ChunkStorage.h"
-#include <Vertices.h>
-#include "settings.h"
-#include "BufferAllocator.h"
-#include "ChunkRenderer.h"
+#include <Chunks/Chunk.h>
+#include <Chunks/ChunkHelpers.h>
+#include <Chunks/ChunkStorage.h>
+#include <Systems/Graphics/Vertices.h>
+#include <Refactor/settings.h>
+#include <Systems/Graphics/BufferAllocator.h>
+#include <Rendering/ChunkRenderer.h>
 
 
 ChunkMesh::~ChunkMesh()

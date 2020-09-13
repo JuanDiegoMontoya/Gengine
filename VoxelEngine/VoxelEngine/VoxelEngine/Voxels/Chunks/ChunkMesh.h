@@ -1,10 +1,10 @@
 #pragma once
-#include "block.h"
-//#include "chunk.h"
-#include "NuRenderer.h"
-#include <dib.h>
-#include <vbo.h>
-#include <vao.h>
+#include <block.h>
+//#include <Chunks/Chunk.h>
+#include <Rendering/NuRenderer.h>
+#include <Systems/Graphics/dib.h>
+#include <Systems/Graphics/vbo.h>
+#include <Systems/Graphics/vao.h>
 
 //class VAO;
 //class VBO;

@@ -1,6 +1,5 @@
-#include "stdafx.h"
-#include "block.h"
-#include "biome.h"
+#include <block.h>
+#include <biome.h>
 
 const Biome& BiomeManager::GetBiome(float temp, float humid, TerrainType terrain)
 {

@@ -67,6 +67,9 @@
     <Filter Include="Voxel Engine\WorldGen">
       <UniqueIdentifier>{facc1ed4-29ad-4e15-95d8-e9af860b332b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="3rd Party\FastNoiseSIMD">
+      <UniqueIdentifier>{1973af87-01d3-4bc4-9d86-e5188afc5b26}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Headers\Containers\BidirectionalMap.h">
@@ -273,9 +276,6 @@
     <ClInclude Include="Voxels\Refactor\Client.h">
       <Filter>Voxel Engine\Refactor</Filter>
     </ClInclude>
-    <ClInclude Include="Voxels\Refactor\generation.h">
-      <Filter>Voxel Engine\Refactor</Filter>
-    </ClInclude>
     <ClInclude Include="Voxels\Refactor\hud.h">
       <Filter>Voxel Engine\Refactor</Filter>
     </ClInclude>
@@ -359,6 +359,33 @@
     </ClInclude>
     <ClInclude Include="Voxels\WorldGen\WorldGen2.h">
       <Filter>Voxel Engine\WorldGen</Filter>
+    </ClInclude>
+    <ClInclude Include="Headers\Components\Camera.h">
+      <Filter>Header Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\Rendering\Frustum.h">
+      <Filter>Voxel Engine\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Headers\Components\VoxelWorld.h">
+      <Filter>Header Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Headers\Systems\Graphics\Shapes.h">
+      <Filter>Header Files\Systems\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Headers\MathIncludes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Headers\Systems\Graphics\BufferAllocator.h">
+      <Filter>Header Files\Systems\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\Utilities\Timer.h">
+      <Filter>Voxel Engine\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\FastNoiseSIMD\FastNoiseSIMD.h">
+      <Filter>3rd Party\FastNoiseSIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\FastNoiseSIMD\FastNoiseSIMD_internal.h">
+      <Filter>3rd Party\FastNoiseSIMD</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -461,9 +488,6 @@
     <ClCompile Include="Voxels\prefab.cpp">
       <Filter>Voxel Engine</Filter>
     </ClCompile>
-    <ClCompile Include="Voxels\light.cpp">
-      <Filter>Voxel Engine</Filter>
-    </ClCompile>
     <ClCompile Include="Voxels\block.cpp">
       <Filter>Voxel Engine</Filter>
     </ClCompile>
@@ -480,9 +504,6 @@
       <Filter>Voxel Engine\Refactor</Filter>
     </ClCompile>
     <ClCompile Include="Voxels\Refactor\Editor.cpp">
-      <Filter>Voxel Engine\Refactor</Filter>
-    </ClCompile>
-    <ClCompile Include="Voxels\Refactor\generation.cpp">
       <Filter>Voxel Engine\Refactor</Filter>
     </ClCompile>
     <ClCompile Include="Voxels\Refactor\hud.cpp">
@@ -542,6 +563,36 @@
     <ClCompile Include="Voxels\WorldGen\WorldGen2.cpp">
       <Filter>Voxel Engine\WorldGen</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Components\Camera.cpp">
+      <Filter>Source Files\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="Voxels\Rendering\Frustum.cpp">
+      <Filter>Voxel Engine\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Components\VoxelWorld.cpp">
+      <Filter>Source Files\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\FastNoiseSIMD\FastNoiseSIMD.cpp">
+      <Filter>3rd Party\FastNoiseSIMD</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\FastNoiseSIMD\FastNoiseSIMD_avx2.cpp">
+      <Filter>3rd Party\FastNoiseSIMD</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\FastNoiseSIMD\FastNoiseSIMD_avx512.cpp">
+      <Filter>3rd Party\FastNoiseSIMD</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\FastNoiseSIMD\FastNoiseSIMD_internal.cpp">
+      <Filter>3rd Party\FastNoiseSIMD</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\FastNoiseSIMD\FastNoiseSIMD_sse2.cpp">
+      <Filter>3rd Party\FastNoiseSIMD</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\FastNoiseSIMD\FastNoiseSIMD_sse41.cpp">
+      <Filter>3rd Party\FastNoiseSIMD</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\FastNoiseSIMD\FastNoiseSIMD_neon.cpp">
+      <Filter>3rd Party\FastNoiseSIMD</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Voxels\Chunks\BlockStorage.inl">
@@ -555,6 +606,9 @@
     </None>
     <None Include="Voxels\Utilities\Palette.inl">
       <Filter>Voxel Engine\Utilities</Filter>
+    </None>
+    <None Include="Headers\Systems\Graphics\BufferAllocator.inl">
+      <Filter>Header Files\Systems\Graphics</Filter>
     </None>
   </ItemGroup>
 </Project>

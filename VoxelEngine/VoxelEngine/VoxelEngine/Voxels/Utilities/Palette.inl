@@ -1,5 +1,5 @@
 #pragma once
-#include "Palette.h"
+#include <Utilities/Palette.h>
 #include <shared_mutex>
 
 template<typename T, unsigned _Size>

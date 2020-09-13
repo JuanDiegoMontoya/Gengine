@@ -1,6 +1,18 @@
 #pragma once
-#include "misc_utils.h"
-#include "generation.h"
+#include <Systems/Graphics/misc_utils.h>
+
+enum class TerrainType : unsigned
+{
+	tNone,  // unfilled terrain (replaced with ocean or something)
+	tPlains,
+	tHills,
+	tOcean,
+
+	tCount
+};
+
+// TODO: see if prefab.h needs to be included instead of this
+enum struct PrefabName;
 
 // TODO: add more properties like grass/water color modifier, etc
 //			 sky color,

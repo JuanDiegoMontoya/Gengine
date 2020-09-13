@@ -1,22 +1,22 @@
+#if 0
 #include "stdafx.h"
 #include "Interface.h"
 
-#include <shader.h>
-#include "World.h"
-#include "Renderer.h"
-#include <Pipeline.h>
-#include <camera.h>
-#include <Engine.h>
+#include <Systems/Graphics/shader.h>
+//#include "World.h"
+#include <Rendering/Renderer.h>
+#include <Components/Camera.h>
 #include "pick.h"
-#include "settings.h"
-#include "ImGuiBonus.h"
-#include <input.h>
-#include "ChunkStorage.h"
-#include "ChunkHelpers.h"
-#include "ChunkMesh.h"
-#include "ChunkRenderer.h"
-#include "sun.h"
-#include "RenderOrder.h"
+#include <Refactor/settings.h>
+#include <Utilities/ImGuiBonus.h>
+#include <Systems/InputSystem.h>
+#include <Chunks/ChunkStorage.h>
+#include <Chunks/ChunkHelpers.h>
+
+#include <Chunks/ChunkMesh.h>
+#include <Rendering/ChunkRenderer.h>
+#include <Refactor/sun.h>
+#include <Rendering/RenderOrder.h>
 
 #include <zlib.h>
 
@@ -373,3 +373,4 @@ namespace Interface
 		PERF_BENCHMARK_END;
 	}
 }
+#endif

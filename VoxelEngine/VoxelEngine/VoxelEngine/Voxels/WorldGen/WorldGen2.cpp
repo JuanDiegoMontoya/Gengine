@@ -1,13 +1,10 @@
-#include "stdafx.h"
 #include "WorldGen2.h"
-#include "chunk.h"
-#include "ChunkStorage.h"
-#include "ChunkHelpers.h"
+#include <Chunks/Chunk.h>
+#include <Chunks/ChunkStorage.h>
+#include <Chunks/ChunkHelpers.h>
 #include <execution>
-#include <noise/noise.h>
-#include "noiseutils.h"
-#include "FastNoiseSIMD/FastNoiseSIMD.h"
-#include <Timer.h>
+#include <FastNoiseSIMD/FastNoiseSIMD.h>
+#include <Utilities/Timer.h>
 
 namespace WorldGen2
 {
@@ -53,11 +50,6 @@ namespace WorldGen2
 	void GenerateWorld()
 	{
 		Timer timer;
-		module::Perlin noise;
-		module::Checkerboard checky;
-		noise.SetLacunarity(2.);
-		noise.SetOctaveCount(2);
-		noise.SetFrequency(.04);
 		FastNoiseSIMD* noisey = FastNoiseSIMD::NewFastNoiseSIMD();
 		noisey->SetFractalLacunarity(2.0);
 		noisey->SetFractalOctaves(5);

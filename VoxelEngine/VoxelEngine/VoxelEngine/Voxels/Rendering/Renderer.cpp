@@ -1,21 +1,22 @@
+#if 0
 #include "stdafx.h"
-#include "chunk.h"
-#include "vbo.h"
-#include "vao.h"
+#include <Chunks/Chunk.h>
+#include <Systems/Graphics/vbo.h>
+#include <Systems/Graphics/vao.h>
 #include "ibo.h"
-#include "shader.h"
-#include "directional_light.h"
-#include "camera.h"
+#include <Systems/Graphics/shader.h>
+#include <Rendering/directional_light.h>
+#include <Components/Camera.h>
 #include "pipeline.h"
-#include "settings.h"
-#include "sun.h"
-#include "input.h"
+#include <Refactor/settings.h>
+#include <Refactor/sun.h>
+#include <Systems/InputSystem.h>
 #include "chunk_manager.h"
 
-#include "Renderer.h"
-#include <Vertices.h>
+#include <Rendering/Renderer.h>
+#include <Systems/Graphics/Vertices.h>
 #include <Engine.h>
-#include "World.h"
+//#include "World.h"
 
 #define VISUALIZE_MAPS 0
 
@@ -649,3 +650,4 @@ namespace Renderer
 		return &pipeline;
 	}
 }
+#endif

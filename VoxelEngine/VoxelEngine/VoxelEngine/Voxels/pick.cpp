@@ -1,11 +1,8 @@
-#include "stdafx.h"
 #include <functional>
-#include "block.h"
-#include "chunk.h"
+#include <block.h>
+#include <Chunks/Chunk.h>
 #include "pick.h"
-#include "ChunkStorage.h"
-
-static int ww = 10000;
+#include <Chunks/ChunkStorage.h>
 
 BlockPtr* blocks = nullptr;
 

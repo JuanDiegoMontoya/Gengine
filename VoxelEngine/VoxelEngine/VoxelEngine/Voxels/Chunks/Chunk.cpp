@@ -1,22 +1,22 @@
 #include "stdafx.h"
 
 #include <Pipeline.h>
-#include "Renderer.h"
-#include <camera.h>
-#include <Frustum.h>
+#include <Rendering/Renderer.h>
+#include <Components/Camera.h>
+#include <Rendering/Frustum.h>
 
-#include "vbo.h"
-#include "vao.h"
+#include <Systems/Graphics/vbo.h>
+#include <Systems/Graphics/vao.h>
 #include "ibo.h"
-#include "chunk.h"
-#include "block.h"
-#include "shader.h"
-#include <Vertices.h>
+#include <Chunks/Chunk.h>
+#include <block.h>
+#include <Systems/Graphics/shader.h>
+#include <Systems/Graphics/Vertices.h>
 #include <sstream>
-#include "settings.h"
-#include "misc_utils.h"
-#include "ChunkStorage.h"
-#include "ChunkMesh.h"
+#include <Refactor/settings.h>
+#include <Systems/Graphics/misc_utils.h>
+#include <Chunks/ChunkStorage.h>
+#include <Chunks/ChunkMesh.h>
 
 
 Chunk::Chunk(const Chunk& other) : mesh(this)

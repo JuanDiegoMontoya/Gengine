@@ -19,6 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="3rdParty\FastNoiseSIMD\FastNoiseSIMD.h" />
+    <ClInclude Include="3rdParty\FastNoiseSIMD\FastNoiseSIMD_internal.h" />
     <ClInclude Include="3rdParty\imgui\imconfig.h" />
     <ClInclude Include="3rdParty\imgui\imgui.h" />
     <ClInclude Include="3rdParty\imgui\imgui_impl_glfw.h" />
@@ -28,9 +30,11 @@
     <ClInclude Include="3rdParty\imgui\imstb_textedit.h" />
     <ClInclude Include="3rdParty\imgui\imstb_truetype.h" />
     <ClInclude Include="Headers\Components\AllComponentHeaders.h" />
+    <ClInclude Include="Headers\Components\Camera.h" />
     <ClInclude Include="Headers\Components\Component.h" />
     <ClInclude Include="Headers\Components\StubComponent.h" />
     <ClInclude Include="Headers\Components\TestingComponent.h" />
+    <ClInclude Include="Headers\Components\VoxelWorld.h" />
     <ClInclude Include="Headers\Containers\BidirectionalMap.h" />
     <ClInclude Include="Headers\Containers\CircularBuffer.h" />
     <ClInclude Include="Headers\Containers\EventManger.h" />
@@ -53,12 +57,14 @@
     <ClInclude Include="Headers\FactoryID.h" />
     <ClInclude Include="Headers\ImGuiIncludes.h" />
     <ClInclude Include="Headers\JunkDrawer.h" />
+    <ClInclude Include="Headers\MathIncludes.h" />
     <ClInclude Include="Headers\PreProcessorMagic.h" />
     <ClInclude Include="Headers\Sandbox.h" />
     <ClInclude Include="Headers\Systems\AllSystemHeaders.h" />
     <ClInclude Include="Headers\Systems\FrameRateController.h" />
     <ClInclude Include="Headers\Systems\GraphicsSystem.h" />
     <ClInclude Include="Headers\Systems\Graphics\abo.h" />
+    <ClInclude Include="Headers\Systems\Graphics\BufferAllocator.h" />
     <ClInclude Include="Headers\Systems\Graphics\Context.h" />
     <ClInclude Include="Headers\Systems\Graphics\dib.h" />
     <ClInclude Include="Headers\Systems\Graphics\GraphicsIncludes.h" />
@@ -67,6 +73,7 @@
     <ClInclude Include="Headers\Systems\Graphics\misc_utils.h" />
     <ClInclude Include="Headers\Systems\Graphics\param_bo.h" />
     <ClInclude Include="Headers\Systems\Graphics\shader.h" />
+    <ClInclude Include="Headers\Systems\Graphics\Shapes.h" />
     <ClInclude Include="Headers\Systems\Graphics\vao.h" />
     <ClInclude Include="Headers\Systems\Graphics\vbo.h" />
     <ClInclude Include="Headers\Systems\Graphics\vbo_layout.h" />
@@ -88,7 +95,6 @@
     <ClInclude Include="Voxels\prefab.h" />
     <ClInclude Include="Voxels\Refactor\Client.h" />
     <ClInclude Include="Voxels\Refactor\Editor.h" />
-    <ClInclude Include="Voxels\Refactor\generation.h" />
     <ClInclude Include="Voxels\Refactor\hud.h" />
     <ClInclude Include="Voxels\Refactor\Interface.h" />
     <ClInclude Include="Voxels\Refactor\NetPlayerState.h" />
@@ -98,6 +104,7 @@
     <ClInclude Include="Voxels\Refactor\sun.h" />
     <ClInclude Include="Voxels\Rendering\ChunkRenderer.h" />
     <ClInclude Include="Voxels\Rendering\directional_light.h" />
+    <ClInclude Include="Voxels\Rendering\Frustum.h" />
     <ClInclude Include="Voxels\Rendering\NuRenderer.h" />
     <ClInclude Include="Voxels\Rendering\Renderer.h" />
     <ClInclude Include="Voxels\Rendering\RenderOrder.h" />
@@ -110,6 +117,7 @@
     <ClInclude Include="Voxels\Utilities\ImGuiBonus.h" />
     <ClInclude Include="Voxels\Utilities\Palette.h" />
     <ClInclude Include="Voxels\Utilities\serialize.h" />
+    <ClInclude Include="Voxels\Utilities\Timer.h" />
     <ClInclude Include="Voxels\Utilities\utilities.h" />
     <ClInclude Include="Voxels\WorldGen\WorldGen2.h" />
     <ClInclude Include="Voxels\World\chunk_manager.h" />
@@ -118,6 +126,13 @@
     <ClInclude Include="Voxels\World\World.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="3rdParty\FastNoiseSIMD\FastNoiseSIMD.cpp" />
+    <ClCompile Include="3rdParty\FastNoiseSIMD\FastNoiseSIMD_avx2.cpp" />
+    <ClCompile Include="3rdParty\FastNoiseSIMD\FastNoiseSIMD_avx512.cpp" />
+    <ClCompile Include="3rdParty\FastNoiseSIMD\FastNoiseSIMD_internal.cpp" />
+    <ClCompile Include="3rdParty\FastNoiseSIMD\FastNoiseSIMD_neon.cpp" />
+    <ClCompile Include="3rdParty\FastNoiseSIMD\FastNoiseSIMD_sse2.cpp" />
+    <ClCompile Include="3rdParty\FastNoiseSIMD\FastNoiseSIMD_sse41.cpp" />
     <ClCompile Include="3rdParty\imgui\imgui.cpp" />
     <ClCompile Include="3rdParty\imgui\imgui_draw.cpp" />
     <ClCompile Include="3rdParty\imgui\imgui_impl_glfw.cpp" />
@@ -126,9 +141,11 @@
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <ClCompile Include="3rdParty\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="Source\Components\Camera.cpp" />
     <ClCompile Include="Source\Components\Component.cpp" />
     <ClCompile Include="Source\Components\StubComponent.cpp" />
     <ClCompile Include="Source\Components\TestingComponent.cpp" />
+    <ClCompile Include="Source\Components\VoxelWorld.cpp" />
     <ClCompile Include="Source\Containers\EventManger.cpp" />
     <ClCompile Include="Source\Containers\Object.cpp" />
     <ClCompile Include="Source\Containers\Space.cpp" />
@@ -159,12 +176,10 @@
     <ClCompile Include="Voxels\block.cpp" />
     <ClCompile Include="Voxels\Chunks\Chunk.cpp" />
     <ClCompile Include="Voxels\Chunks\ChunkMesh.cpp" />
-    <ClCompile Include="Voxels\light.cpp" />
     <ClCompile Include="Voxels\pick.cpp" />
     <ClCompile Include="Voxels\prefab.cpp" />
     <ClCompile Include="Voxels\Refactor\Client.cpp" />
     <ClCompile Include="Voxels\Refactor\Editor.cpp" />
-    <ClCompile Include="Voxels\Refactor\generation.cpp" />
     <ClCompile Include="Voxels\Refactor\hud.cpp" />
     <ClCompile Include="Voxels\Refactor\Interface.cpp" />
     <ClCompile Include="Voxels\Refactor\main.cpp" />
@@ -174,6 +189,7 @@
     <ClCompile Include="Voxels\Refactor\sun.cpp" />
     <ClCompile Include="Voxels\Rendering\ChunkRenderer.cpp" />
     <ClCompile Include="Voxels\Rendering\directional_light.cpp" />
+    <ClCompile Include="Voxels\Rendering\Frustum.cpp" />
     <ClCompile Include="Voxels\Rendering\NuRenderer.cpp" />
     <ClCompile Include="Voxels\Rendering\Renderer.cpp" />
     <ClCompile Include="Voxels\Rendering\TextureArray.cpp" />
@@ -186,6 +202,7 @@
     <ClCompile Include="Voxels\World\World.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Headers\Systems\Graphics\BufferAllocator.inl" />
     <None Include="Voxels\Chunks\BlockStorage.inl" />
     <None Include="Voxels\Chunks\ChunkHelpers.inl" />
     <None Include="Voxels\Utilities\BufferAllocator.inl" />
@@ -270,7 +287,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(ProjectDir)3rdParty;$(ProjectDir)Headers;$(ProjectDir)3rdParty\glew-2.1.0\include;$(ProjectDir)3rdParty\glfw-3.3-win64\include;$(ProjectDir)Voxels;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)3rdParty;$(ProjectDir)Headers;$(ProjectDir)3rdParty\glew-2.1.0\include;$(ProjectDir)3rdParty\glfw-3.3-win64\include;$(ProjectDir)Voxels;$(ProjectDir)3rdParty\cereal-1.2.2\include;$(ProjectDir)3rdParty\zlib-1.2.11;$(IncludePath)</IncludePath>
     <PreBuildEventUseInBuild>true</PreBuildEventUseInBuild>
     <CustomBuildBeforeTargets>
     </CustomBuildBeforeTargets>
@@ -381,6 +398,7 @@ copy "$(ProjectDir)3rdParty\glfw-3.3-win64\lib-vc2019\glfw3.dll" "$(TargetDir)gl
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

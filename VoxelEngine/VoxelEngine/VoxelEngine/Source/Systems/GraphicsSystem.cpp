@@ -15,6 +15,7 @@
 
 GraphicsSystem* GraphicsSystem::pGraphicsSystem = nullptr;
 
+#include <functional>
 void DrawCube()
 {
 	static VAO* vao = nullptr;

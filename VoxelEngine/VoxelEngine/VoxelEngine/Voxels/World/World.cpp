@@ -1,38 +1,37 @@
+#if 0
 #include "stdafx.h"
-//#include "block.h"
-#include "camera.h"
-#include "World.h"
+//#include <block.h>
+#include <Components/Camera.h>
+//#include "World.h"
 #include "pipeline.h"
 #include "mesh.h"
 #include "texture.h"
-#include "frustum.h"
-#include "transform.h"
-#include "mesh_comp.h"
+#include <Rendering/Frustum.h>
 #include "render_data.h"
-#include "chunk.h"
-#include "sun.h"
+#include <Chunks/Chunk.h>
+#include <Refactor/sun.h>
 #include <chrono>
 #include <execution>
 #include "ctpl_stl.h"
-#include "input.h"
+#include <Systems/InputSystem.h>
 #include "pick.h"
-#include "settings.h"
+#include <Refactor/settings.h>
 #include <functional>
 #include "editor.h"
 
 #include <set>
 #include <memory>
 #include "collision_shapes.h"
-#include "ImGuiBonus.h"
+#include <Utilities/ImGuiBonus.h>
 #include <Engine.h>
 #include <Pipeline.h>
-#include "Renderer.h"
+#include <Rendering/Renderer.h>
 #include "Interface.h"
-#include "ChunkStorage.h"
+#include <Chunks/ChunkStorage.h>
 #include "WorldGen2.h"
-#include "ChunkRenderer.h"
+#include <Rendering/ChunkRenderer.h>
 #include "prefab.h"
-#include "RenderOrder.h"
+#include <Rendering/RenderOrder.h>
 
 using namespace std::chrono;
 
@@ -350,3 +349,4 @@ void World::checkBlockPick()
 		));
 	}
 }
+#endif

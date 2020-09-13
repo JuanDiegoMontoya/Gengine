@@ -1,8 +1,8 @@
 #pragma once
 #include "chunk_manager.h"
 #include "GameObject.h"
-//#include "sun.h"
-#include "hud.h"
+//#include <Refactor/sun.h>
+#include <Refactor/hud.h>
 
 #include "Client.h"
 

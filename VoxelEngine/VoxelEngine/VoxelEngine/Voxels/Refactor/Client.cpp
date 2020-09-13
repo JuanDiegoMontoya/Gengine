@@ -2,11 +2,11 @@
 #include "Client.h"
 #include <NetDefines.h>
 
-#include "Renderer.h"
+#include <Rendering/Renderer.h>
 #include <Pipeline.h>
-#include <camera.h>
+#include <Components/Camera.h>
 #include <Packet.h>
-#include <input.h>
+#include <Systems/InputSystem.h>
 #include <Timer.h>
 
 #include <enet/enet.h>
@@ -16,10 +16,10 @@
 #include <thread>
 #include <sstream>
 
-#include "Renderer.h"
-#include "NuRenderer.h"
-#include <shader.h>
-#include <camera.h>
+#include <Rendering/Renderer.h>
+#include <Rendering/NuRenderer.h>
+#include <Systems/Graphics/shader.h>
+#include <Components/Camera.h>
 #include <Pipeline.h>
 #include <Engine.h>
 

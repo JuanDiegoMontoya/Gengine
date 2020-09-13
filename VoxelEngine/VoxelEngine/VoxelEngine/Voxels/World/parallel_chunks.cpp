@@ -1,8 +1,8 @@
-#include "stdafx.h"
+//#include "stdafx.h"
 #include "chunk_manager.h"
 #include <algorithm>
 #include <execution>
-#include "ChunkStorage.h"
+#include <Chunks/ChunkStorage.h>
 
 // TODO: add a way to notify these threads to terminate when the program
 // does to prevent crash on exit

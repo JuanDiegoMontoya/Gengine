@@ -1,21 +1,16 @@
-#include "stdafx.h"
-#include "ChunkRenderer.h"
-#include <dib.h>
-#include <vao.h>
-#include <vbo.h>
-#include "BufferAllocator.h"
-#include "chunk.h"
-#include <camera.h>
-#include <Frustum.h>
-#include <Pipeline.h>
-#include "Renderer.h"
+#include <Systems/Graphics/GraphicsIncludes.h>
+#include <Rendering/ChunkRenderer.h>
+#include <Systems/Graphics/BufferAllocator.h>
+#include <Chunks/Chunk.h>
+#include <Components/Camera.h>
+#include <Rendering/Frustum.h>
+#include <Rendering/Renderer.h>
 #include <execution>
-#include "ctpl_stl.h"
-#include <shader.h>
-#include <abo.h>
-#include <param_bo.h>
-#include "ChunkStorage.h"
-#include <Vertices.h>
+#include <Systems/Graphics/shader.h>
+#include <Systems/Graphics/param_bo.h>
+#include <Chunks/ChunkStorage.h>
+#include <Systems/Graphics/Vertices.h>
+#include <memory>
 
 namespace ChunkRenderer
 {
@@ -110,7 +105,7 @@ namespace ChunkRenderer
 
 	void GenerateDrawCommandsGPU()
 	{
-		PERF_BENCHMARK_START;
+		//PERF_BENCHMARK_START;
 #ifdef TRACY_ENABLE
 		TracyGpuZone("Gen draw commands norm");
 #endif
@@ -175,13 +170,13 @@ namespace ChunkRenderer
 		drawCountGPU->Unbind();
 		activeAllocs = allocator->ActiveAllocs();
 
-		PERF_BENCHMARK_END;
+		//PERF_BENCHMARK_END;
 	}
 
 
 	void GenerateDrawCommandsSplatGPU()
 	{
-		PERF_BENCHMARK_START;
+		//PERF_BENCHMARK_START;
 #ifdef TRACY_ENABLE
 		TracyGpuZone("Gen draw commands splat");
 #endif
@@ -238,7 +233,7 @@ namespace ChunkRenderer
 
 		drawCountGPUSplat->Unbind();
 
-		PERF_BENCHMARK_END;
+		//PERF_BENCHMARK_END;
 	}
 
 
