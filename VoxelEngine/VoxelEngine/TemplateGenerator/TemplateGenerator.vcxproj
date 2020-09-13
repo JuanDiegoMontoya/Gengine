@@ -23,7 +23,7 @@
     <ProjectGuid>{B1CAD71C-B046-4BBE-8606-4779744A2777}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>TemplateGenerator</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.18362.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
