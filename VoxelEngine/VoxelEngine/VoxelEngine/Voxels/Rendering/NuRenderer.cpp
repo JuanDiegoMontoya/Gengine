@@ -4,11 +4,11 @@
 #include <Rendering/Renderer.h> // for old rendering functions
 //#include "World.h"
 #include <Engine.h>
-#include <Systems/Graphics/shader.h>
+#include <Graphics/shader.h>
 #include <Components/Camera.h>
 #include <Systems/InputSystem.h>
 #include <Chunks/ChunkStorage.h>
-#include <Systems/Graphics/dib.h>
+#include <Graphics/dib.h>
 #include <Rendering/ChunkRenderer.h>
 #include <block.h>
 #include <Rendering/TextureArray.h>

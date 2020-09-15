@@ -1,20 +1,18 @@
-#include "stdafx.h"
-
 #include <Pipeline.h>
 #include <Rendering/Renderer.h>
 #include <Components/Camera.h>
 #include <Rendering/Frustum.h>
 
-#include <Systems/Graphics/vbo.h>
-#include <Systems/Graphics/vao.h>
+#include <Graphics/vbo.h>
+#include <Graphics/vao.h>
 #include "ibo.h"
 #include <Chunks/Chunk.h>
 #include <block.h>
-#include <Systems/Graphics/shader.h>
-#include <Systems/Graphics/Vertices.h>
+#include <Graphics/shader.h>
+#include <Graphics/Vertices.h>
 #include <sstream>
 #include <Refactor/settings.h>
-#include <Systems/Graphics/misc_utils.h>
+#include <Graphics/misc_utils.h>
 #include <Chunks/ChunkStorage.h>
 #include <Chunks/ChunkMesh.h>
 

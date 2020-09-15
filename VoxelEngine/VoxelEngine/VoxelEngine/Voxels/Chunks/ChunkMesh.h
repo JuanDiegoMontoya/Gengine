@@ -2,9 +2,9 @@
 #include <block.h>
 //#include <Chunks/Chunk.h>
 #include <Rendering/NuRenderer.h>
-#include <Systems/Graphics/dib.h>
-#include <Systems/Graphics/vbo.h>
-#include <Systems/Graphics/vao.h>
+#include <Graphics/dib.h>
+#include <Graphics/vbo.h>
+#include <Graphics/vao.h>
 
 //class VAO;
 //class VBO;

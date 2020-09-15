@@ -2,7 +2,7 @@
 
 #include "System.h"
 #include "../FactoryID.h"
-#include <Systems/Graphics/GraphicsIncludes.h>
+#include <Graphics/GraphicsIncludes.h>
 
 class UpdateEvent;
 

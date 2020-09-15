@@ -1,7 +1,7 @@
 #pragma once
 
-#include <Systems/Graphics/vbo.h>
-#include <Systems/Graphics/vbo_layout.h>
+#include <Graphics/vbo.h>
+#include <Graphics/vbo_layout.h>
 
 class VAO
 {

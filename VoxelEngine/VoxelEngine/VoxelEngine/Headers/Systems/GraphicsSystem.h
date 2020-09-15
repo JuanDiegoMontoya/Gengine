@@ -28,5 +28,6 @@ private:
 
   friend void RegisterSystems();
 
+  // RenderContext state; // <- stores ref to camera, possibly other global graphical state (debug?)
   struct GLFWwindow* window = nullptr;
 };

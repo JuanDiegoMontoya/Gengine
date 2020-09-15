@@ -40,12 +40,6 @@
     <Filter Include="3rd Party\imgui">
       <UniqueIdentifier>{99270562-dc87-413e-881b-aa8e23fffbc1}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Systems\Graphics">
-      <UniqueIdentifier>{6f14154f-db0d-4c59-b041-019196131bda}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Systems\Graphics">
-      <UniqueIdentifier>{2e415f1a-794f-46cb-aa00-d1961b2c2662}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Voxel Engine">
       <UniqueIdentifier>{dc663184-9198-480c-b860-fe5e6cb9fc67}</UniqueIdentifier>
     </Filter>
@@ -69,6 +63,9 @@
     </Filter>
     <Filter Include="3rd Party\FastNoiseSIMD">
       <UniqueIdentifier>{1973af87-01d3-4bc4-9d86-e5188afc5b26}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphics">
+      <UniqueIdentifier>{f59e9c6c-31b3-4410-901e-cdf5fcc755ed}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -165,53 +162,11 @@
     <ClInclude Include="Headers\Systems\GraphicsSystem.h">
       <Filter>Header Files\Systems</Filter>
     </ClInclude>
-    <ClInclude Include="Headers\Systems\Graphics\Context.h">
-      <Filter>Header Files\Systems\Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="Headers\Events\RenderEvent.h">
       <Filter>Header Files\Events</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Systems\Graphics\vbo_layout.h">
-      <Filter>Source Files\Systems\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Headers\Systems\Graphics\abo.h">
-      <Filter>Header Files\Systems\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Headers\Systems\Graphics\dib.h">
-      <Filter>Header Files\Systems\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Headers\Systems\Graphics\ibo.h">
-      <Filter>Header Files\Systems\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Headers\Systems\Graphics\param_bo.h">
-      <Filter>Header Files\Systems\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Headers\Systems\Graphics\shader.h">
-      <Filter>Header Files\Systems\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Headers\Systems\Graphics\vao.h">
-      <Filter>Header Files\Systems\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Headers\Systems\Graphics\vbo.h">
-      <Filter>Header Files\Systems\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Headers\Systems\Graphics\Vertices.h">
-      <Filter>Header Files\Systems\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Headers\Systems\Graphics\math_utils.h">
-      <Filter>Header Files\Systems\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Headers\Systems\Graphics\misc_utils.h">
-      <Filter>Header Files\Systems\Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="Headers\engine_assert.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Headers\Systems\Graphics\GraphicsIncludes.h">
-      <Filter>Header Files\Systems\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Headers\Systems\Graphics\vbo_layout.h">
-      <Filter>Header Files\Systems\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="3rdParty\imgui\imconfig.h">
       <Filter>3rd Party\imgui</Filter>
@@ -339,9 +294,6 @@
     <ClInclude Include="Voxels\Utilities\serialize.h">
       <Filter>Voxel Engine\Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="Voxels\Utilities\utilities.h">
-      <Filter>Voxel Engine\Utilities</Filter>
-    </ClInclude>
     <ClInclude Include="Headers\ImGuiIncludes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -369,14 +321,8 @@
     <ClInclude Include="Headers\Components\VoxelWorld.h">
       <Filter>Header Files\Components</Filter>
     </ClInclude>
-    <ClInclude Include="Headers\Systems\Graphics\Shapes.h">
-      <Filter>Header Files\Systems\Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="Headers\MathIncludes.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Headers\Systems\Graphics\BufferAllocator.h">
-      <Filter>Header Files\Systems\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Voxels\Utilities\Timer.h">
       <Filter>Voxel Engine\Utilities</Filter>
@@ -386,6 +332,54 @@
     </ClInclude>
     <ClInclude Include="3rdParty\FastNoiseSIMD\FastNoiseSIMD_internal.h">
       <Filter>3rd Party\FastNoiseSIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\abo.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\BufferAllocator.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\Context.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\dib.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\GraphicsIncludes.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\ibo.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\math_utils.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\misc_utils.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\param_bo.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\shader.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\Shapes.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\utilities.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\vao.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\vbo.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\vbo_layout.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\Vertices.h">
+      <Filter>Graphics</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -430,36 +424,6 @@
     </ClCompile>
     <ClCompile Include="Source\Systems\GraphicsSystem.cpp">
       <Filter>Source Files\Systems</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Systems\Graphics\Context.cpp">
-      <Filter>Source Files\Systems\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Systems\Graphics\abo.cpp">
-      <Filter>Source Files\Systems\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Systems\Graphics\dib.cpp">
-      <Filter>Source Files\Systems\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Systems\Graphics\ibo.cpp">
-      <Filter>Source Files\Systems\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Systems\Graphics\param_bo.cpp">
-      <Filter>Source Files\Systems\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Systems\Graphics\shader.cpp">
-      <Filter>Source Files\Systems\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Systems\Graphics\vao.cpp">
-      <Filter>Source Files\Systems\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Systems\Graphics\vbo.cpp">
-      <Filter>Source Files\Systems\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Systems\Graphics\math_utils.cpp">
-      <Filter>Source Files\Systems\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Systems\Graphics\misc_utils.cpp">
-      <Filter>Source Files\Systems\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Source\engine_assert.cpp">
       <Filter>Source Files</Filter>
@@ -593,6 +557,36 @@
     <ClCompile Include="3rdParty\FastNoiseSIMD\FastNoiseSIMD_neon.cpp">
       <Filter>3rd Party\FastNoiseSIMD</Filter>
     </ClCompile>
+    <ClCompile Include="Graphics\abo.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\Context.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\dib.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\ibo.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\math_utils.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\misc_utils.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\param_bo.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\shader.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\vao.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\vbo.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Voxels\Chunks\BlockStorage.inl">
@@ -607,8 +601,8 @@
     <None Include="Voxels\Utilities\Palette.inl">
       <Filter>Voxel Engine\Utilities</Filter>
     </None>
-    <None Include="Headers\Systems\Graphics\BufferAllocator.inl">
-      <Filter>Header Files\Systems\Graphics</Filter>
+    <None Include="Graphics\BufferAllocator.inl">
+      <Filter>Graphics</Filter>
     </None>
   </ItemGroup>
 </Project>

@@ -5,7 +5,7 @@
 #include <Utilities/utilities.h>
 #include <Chunks/ChunkHelpers.h>
 #include <Chunks/ChunkStorage.h>
-#include <Systems/Graphics/GraphicsIncludes.h>
+#include <Graphics/GraphicsIncludes.h>
 #include <Utilities/Timer.h>
 
 #include <algorithm>

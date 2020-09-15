@@ -1,4 +1,4 @@
-#include <Systems/Graphics/GraphicsIncludes.h>
+#include <Graphics/GraphicsIncludes.h>
 
 IBO::IBO(const GLuint* data, unsigned int count) : count_(count)
 {

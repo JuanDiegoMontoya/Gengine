@@ -2,7 +2,7 @@
 #include <block.h>
 #include <light.h>
 #include <mutex>
-#include <Systems/Graphics/Shapes.h>
+#include <Graphics/Shapes.h>
 #include <concurrent_vector.h>
 #include <Chunks/ChunkHelpers.h>
 #include <Chunks/BlockStorage.h>

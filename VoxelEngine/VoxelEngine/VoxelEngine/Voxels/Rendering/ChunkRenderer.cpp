@@ -1,15 +1,15 @@
-#include <Systems/Graphics/GraphicsIncludes.h>
+#include <Graphics/GraphicsIncludes.h>
 #include <Rendering/ChunkRenderer.h>
-#include <Systems/Graphics/BufferAllocator.h>
+#include <Graphics/BufferAllocator.h>
 #include <Chunks/Chunk.h>
 #include <Components/Camera.h>
 #include <Rendering/Frustum.h>
 #include <Rendering/Renderer.h>
 #include <execution>
-#include <Systems/Graphics/shader.h>
-#include <Systems/Graphics/param_bo.h>
+#include <Graphics/shader.h>
+#include <Graphics/param_bo.h>
 #include <Chunks/ChunkStorage.h>
-#include <Systems/Graphics/Vertices.h>
+#include <Graphics/Vertices.h>
 #include <memory>
 
 namespace ChunkRenderer
@@ -349,7 +349,7 @@ namespace ChunkRenderer
 		// copy # of chunks being drawn (parameter buffer) to instance count (DIB)
 		dibCull->Bind();
 		vaoCull->Bind();
-		GLint offset = offsetof(DrawArraysIndirectCommand, instanceCount);
+		constexpr GLint offset = offsetof(DrawArraysIndirectCommand, instanceCount);
 		glCopyNamedBufferSubData(drawCountGPU->GetID(), dibCull->GetID(), 0, offset, sizeof(GLuint));
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 		glMultiDrawArraysIndirect(GL_TRIANGLES, (void*)0, 1, 0);

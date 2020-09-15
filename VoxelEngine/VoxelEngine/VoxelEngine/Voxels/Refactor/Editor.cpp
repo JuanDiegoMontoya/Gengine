@@ -6,7 +6,7 @@
 #include <Components/Camera.h>
 #include "pick.h"
 #include "Editor.h"
-#include <Systems/Graphics/shader.h>
+#include <Graphics/shader.h>
 #include "prefab.h"
 
 #include <fstream>

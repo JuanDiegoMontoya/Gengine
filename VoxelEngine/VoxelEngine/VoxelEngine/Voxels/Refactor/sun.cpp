@@ -1,13 +1,13 @@
 #include "stdafx.h"
 #include <Rendering/Frustum.h>
 #include <Refactor/sun.h>
-#include <Systems/Graphics/vao.h>
-#include <Systems/Graphics/vbo.h>
+#include <Graphics/vao.h>
+#include <Graphics/vbo.h>
 #include <Components/Camera.h>
-#include <Systems/Graphics/shader.h>
+#include <Graphics/shader.h>
 #include <Refactor/settings.h>
 #include <limits>
-#include <Systems/Graphics/Vertices.h>
+#include <Graphics/Vertices.h>
 #include <Rendering/Renderer.h>
 
 Sun::Sun()

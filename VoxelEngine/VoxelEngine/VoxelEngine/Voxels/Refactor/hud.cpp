@@ -2,7 +2,7 @@
 #include <Refactor/hud.h>
 #include <Systems/InputSystem.h>
 #include <Components/Camera.h>
-#include <Systems/Graphics/shader.h>
+#include <Graphics/shader.h>
 #include <Rendering/Renderer.h>
 #include <Rendering/NuRenderer.h>
 #include <Rendering/TextureArray.h>

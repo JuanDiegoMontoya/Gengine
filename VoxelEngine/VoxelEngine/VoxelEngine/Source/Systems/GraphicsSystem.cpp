@@ -5,9 +5,9 @@
 #include <Events/DrawEvent.h>
 #include <Events/RenderEvent.h>
 #include <Engine.h>
-#include <Systems/Graphics/Context.h>
+#include <Graphics/Context.h>
 
-#include <Systems/Graphics/GraphicsIncludes.h>
+#include <Graphics/GraphicsIncludes.h>
 #include <ImGuiIncludes.h>
 
 #include <GL/glew.h>

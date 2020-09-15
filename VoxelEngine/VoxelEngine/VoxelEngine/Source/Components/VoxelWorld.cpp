@@ -6,7 +6,7 @@
 
 //#include "../../Headers/Events/UpdateEvent.h"
 //#include "../../Headers/Events/DrawEvent.h"
-
+#include <Systems/GraphicsSystem.h>
 std::string VoxelWorld::GetName() { return "VoxelWorld"; }
 
 std::unique_ptr<VoxelWorld> VoxelWorld::RegisterVoxelWorld() 

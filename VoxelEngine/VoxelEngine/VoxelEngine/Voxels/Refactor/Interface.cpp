@@ -2,7 +2,7 @@
 #include "stdafx.h"
 #include "Interface.h"
 
-#include <Systems/Graphics/shader.h>
+#include <Graphics/shader.h>
 //#include "World.h"
 #include <Rendering/Renderer.h>
 #include <Components/Camera.h>

@@ -2,7 +2,7 @@
 #include <Utilities/serialize.h>
 #include <light.h>
 #include <vector>
-#include <Systems/Graphics/GraphicsIncludes.h>
+#include <Graphics/GraphicsIncludes.h>
 
 enum class Visibility
 {

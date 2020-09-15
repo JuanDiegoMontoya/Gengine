@@ -1,15 +1,14 @@
-#include "stdafx.h"
 #include <Chunks/ChunkMesh.h>
-#include <Systems/Graphics/vao.h>
-#include <Systems/Graphics/vbo.h>
-#include <Systems/Graphics/dib.h>
+#include <Graphics/vao.h>
+#include <Graphics/vbo.h>
+#include <Graphics/dib.h>
 #include <iomanip>
 #include <Chunks/Chunk.h>
 #include <Chunks/ChunkHelpers.h>
 #include <Chunks/ChunkStorage.h>
-#include <Systems/Graphics/Vertices.h>
+#include <Graphics/Vertices.h>
 #include <Refactor/settings.h>
-#include <Systems/Graphics/BufferAllocator.h>
+#include <Graphics/BufferAllocator.h>
 #include <Rendering/ChunkRenderer.h>
 
 

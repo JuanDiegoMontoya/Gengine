@@ -16,7 +16,7 @@
 //	std::cout << bb << std::endl;
 //}
 
-//#include <Systems/Graphics/BufferAllocator.h>
+//#include <Graphics/BufferAllocator.h>
 //void TestAllocator()
 //{
 //	ChunkVBOAllocator allocator(25001, 8);
@@ -34,6 +34,7 @@
 //	allocator.Allocate((Chunk*)1, 0, 50);
 //}
 
+#if 0
 int main()
 {
 	EngineConfig cfg;
@@ -52,3 +53,4 @@ int main()
 
 	return 0;
 }
+#endif

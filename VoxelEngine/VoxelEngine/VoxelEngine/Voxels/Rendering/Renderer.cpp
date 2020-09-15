@@ -1,10 +1,10 @@
 #if 0
 #include "stdafx.h"
 #include <Chunks/Chunk.h>
-#include <Systems/Graphics/vbo.h>
-#include <Systems/Graphics/vao.h>
+#include <Graphics/vbo.h>
+#include <Graphics/vao.h>
 #include "ibo.h"
-#include <Systems/Graphics/shader.h>
+#include <Graphics/shader.h>
 #include <Rendering/directional_light.h>
 #include <Components/Camera.h>
 #include "pipeline.h"
@@ -14,7 +14,7 @@
 #include "chunk_manager.h"
 
 #include <Rendering/Renderer.h>
-#include <Systems/Graphics/Vertices.h>
+#include <Graphics/Vertices.h>
 #include <Engine.h>
 //#include "World.h"
 

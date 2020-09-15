@@ -18,7 +18,7 @@
 
 #include <Rendering/Renderer.h>
 #include <Rendering/NuRenderer.h>
-#include <Systems/Graphics/shader.h>
+#include <Graphics/shader.h>
 #include <Components/Camera.h>
 #include <Pipeline.h>
 #include <Engine.h>

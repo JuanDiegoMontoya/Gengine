@@ -1,4 +1,4 @@
-#include <Systems/Graphics/Context.h>
+#include <Graphics/Context.h>
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
