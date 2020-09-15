@@ -1,6 +1,5 @@
 #pragma once
 #include "BufferAllocator.h"
-#include <vbo_layout.h>
 #include <Graphics/vbo.h>
 #include <Graphics/vao.h>
 
@@ -14,6 +13,7 @@ BufferAllocator<UserT>::BufferAllocator<UserT>(GLuint size, GLuint alignment)
 	size += (align_ - (size % align_)) % align_;
 
 	// allocate uninitialized memory in VRAM
+	// TODO: use immutable buffer storage for this (unless dynamic resizing is a thing)
 	glCreateBuffers(1, &gpuHandle);
 	glNamedBufferData(gpuHandle, size, NULL, GL_STATIC_DRAW);
 

@@ -11,3 +11,4 @@
 #include <Graphics/vbo.h>
 #include <Graphics/param_bo.h>
 #include <Graphics/Vertices.h>
+#include <Graphics/UBO.h>
