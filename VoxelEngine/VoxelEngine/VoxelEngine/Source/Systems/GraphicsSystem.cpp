@@ -9,6 +9,7 @@
 
 #include <Graphics/GraphicsIncludes.h>
 #include <ImGuiIncludes.h>
+#include <Graphics/GlobalRendererInfo.h>
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -85,6 +86,9 @@ void GraphicsSystem::UpdateEventsListen(UpdateEvent* updateEvent)
 
   Engine::GetEngine()->AttachEvent(DrawEvent::GenerateDrawEvent(HANDLE_NEXT_FRAME));
   Engine::GetEngine()->AttachEvent(RenderEvent::GenerateRenderEvent(HANDLE_NEXT_FRAME));
+
+	// TOOD: iterate all cameras, set active camera here
+	info->activeCamera = nullptr;
 }
 
 void GraphicsSystem::RenderEventsListen(UpdateEvent* updateEvent)

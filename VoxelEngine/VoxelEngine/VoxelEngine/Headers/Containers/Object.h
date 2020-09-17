@@ -12,6 +12,8 @@
 #include "../FactoryID.h"
 #include <string>
 #include <memory>
+#include <entt.hpp>
+
 
 typedef class InitEvent InitEvent;
 typedef class UpdateEvent UpdateEvent;
@@ -77,8 +79,8 @@ public:
   void RemoveChild(Object* child_);
   void RemoveAllChildren();
 
-  void PerfromOnAllChildrenAndSelf(std::function<void(Object*)> f);
-  void PerfromOnAllChildren(std::function<void(Object*)> f);
+  void PerformOnAllChildrenAndSelf(std::function<void(Object*)> f);
+  void PerformOnAllChildren(std::function<void(Object*)> f);
 
   template <typename T> void AttachEvent(std::unique_ptr<T> eventToAttach) { eventManager->AttachEvent(std::move(eventToAttach)); }
   template <typename T> void AttachEventRef(std::unique_ptr<T>& eventToAttach) { eventManager->AttachEventRef(eventToAttach); }

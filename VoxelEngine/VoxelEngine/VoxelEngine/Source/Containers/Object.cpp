@@ -198,17 +198,17 @@ void Object::RemoveAllChildren()
   children.clear();
 }
 
-void Object::PerfromOnAllChildrenAndSelf(std::function<void(Object*)> f)
+void Object::PerformOnAllChildrenAndSelf(std::function<void(Object*)> f)
 {
   f(this);
-  PerfromOnAllChildren(f);
+  PerformOnAllChildren(f);
 }
 
-void Object::PerfromOnAllChildren(std::function<void(Object*)> f)
+void Object::PerformOnAllChildren(std::function<void(Object*)> f)
 {
   for (auto child : children)
   {
     f(child);
-    child->PerfromOnAllChildren(f);
+    child->PerformOnAllChildren(f);
   }
 }

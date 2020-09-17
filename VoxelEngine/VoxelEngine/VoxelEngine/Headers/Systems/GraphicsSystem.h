@@ -4,6 +4,8 @@
 #include "../FactoryID.h"
 
 class UpdateEvent;
+class GlobalRendererInfo;
+struct GLFWwindow;
 
 class GraphicsSystem : public System
 {
@@ -29,5 +31,6 @@ private:
   friend void RegisterSystems();
 
   // RenderContext state; // <- stores ref to camera, possibly other global graphical state (debug?)
-  struct GLFWwindow* window = nullptr;
+  GLFWwindow* window = nullptr;
+  GlobalRendererInfo* info;
 };

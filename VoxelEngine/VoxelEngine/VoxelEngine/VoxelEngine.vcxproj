@@ -33,6 +33,7 @@
     <ClInclude Include="Graphics\BufferAllocator.h" />
     <ClInclude Include="Graphics\Context.h" />
     <ClInclude Include="Graphics\dib.h" />
+    <ClInclude Include="Graphics\GlobalRendererInfo.h" />
     <ClInclude Include="Graphics\GraphicsIncludes.h" />
     <ClInclude Include="Graphics\ibo.h" />
     <ClInclude Include="Graphics\math_utils.h" />
@@ -40,6 +41,7 @@
     <ClInclude Include="Graphics\param_bo.h" />
     <ClInclude Include="Graphics\shader.h" />
     <ClInclude Include="Graphics\Shapes.h" />
+    <ClInclude Include="Graphics\UBO.h" />
     <ClInclude Include="Graphics\utilities.h" />
     <ClInclude Include="Graphics\vao.h" />
     <ClInclude Include="Graphics\vbo.h" />
@@ -49,10 +51,12 @@
     <ClInclude Include="Headers\Components\Camera.h" />
     <ClInclude Include="Headers\Components\Component.h" />
     <ClInclude Include="Headers\Components\StubComponent.h" />
+    <ClInclude Include="Headers\Components\Tag.h" />
     <ClInclude Include="Headers\Components\TestingComponent.h" />
     <ClInclude Include="Headers\Components\VoxelWorld.h" />
     <ClInclude Include="Headers\Containers\BidirectionalMap.h" />
     <ClInclude Include="Headers\Containers\CircularBuffer.h" />
+    <ClInclude Include="Headers\Containers\Entity.h" />
     <ClInclude Include="Headers\Containers\EventManger.h" />
     <ClInclude Include="Headers\Containers\Object.h" />
     <ClInclude Include="Headers\Containers\Properties.h" />
@@ -143,11 +147,13 @@
     <ClCompile Include="Graphics\abo.cpp" />
     <ClCompile Include="Graphics\Context.cpp" />
     <ClCompile Include="Graphics\dib.cpp" />
+    <ClCompile Include="Graphics\GlobalRendererInfo.cpp" />
     <ClCompile Include="Graphics\ibo.cpp" />
     <ClCompile Include="Graphics\math_utils.cpp" />
     <ClCompile Include="Graphics\misc_utils.cpp" />
     <ClCompile Include="Graphics\param_bo.cpp" />
     <ClCompile Include="Graphics\shader.cpp" />
+    <ClCompile Include="Graphics\UBO.cpp" />
     <ClCompile Include="Graphics\vao.cpp" />
     <ClCompile Include="Graphics\vbo.cpp" />
     <ClCompile Include="Source\Components\Camera.cpp" />
@@ -155,6 +161,7 @@
     <ClCompile Include="Source\Components\StubComponent.cpp" />
     <ClCompile Include="Source\Components\TestingComponent.cpp" />
     <ClCompile Include="Source\Components\VoxelWorld.cpp" />
+    <ClCompile Include="Source\Containers\Entity.cpp" />
     <ClCompile Include="Source\Containers\EventManger.cpp" />
     <ClCompile Include="Source\Containers\Object.cpp" />
     <ClCompile Include="Source\Containers\Space.cpp" />
@@ -266,7 +273,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(ProjectDir)3rdParty;$(ProjectDir)Headers;$(ProjectDir)3rdParty\glew-2.1.0\include;$(ProjectDir);$(ProjectDir)3rdParty\glfw-3.3-win64\include;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)3rdParty;$(ProjectDir)Headers;$(ProjectDir)3rdParty\glew-2.1.0\include;$(ProjectDir);$(ProjectDir)3rdParty\entt\include;$(ProjectDir)3rdParty\glfw-3.3-win64\include;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
     <PreBuildEventUseInBuild>true</PreBuildEventUseInBuild>
     <CustomBuildBeforeTargets>
     </CustomBuildBeforeTargets>
@@ -283,7 +290,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(ProjectDir)3rdParty;$(ProjectDir)Headers;$(ProjectDir)3rdParty\glew-2.1.0\include;$(ProjectDir);$(ProjectDir)3rdParty\glfw-3.3-win64\include;$(ProjectDir)Voxels;$(ProjectDir)3rdParty\cereal-1.2.2\include;$(ProjectDir)3rdParty\zlib-1.2.11;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)3rdParty;$(ProjectDir)Headers;$(ProjectDir)3rdParty\glew-2.1.0\include;$(ProjectDir);$(ProjectDir)3rdParty\entt\include;$(ProjectDir)3rdParty\glfw-3.3-win64\include;$(ProjectDir)Voxels;$(ProjectDir)3rdParty\cereal-1.2.2\include;$(ProjectDir)3rdParty\zlib-1.2.11;$(IncludePath)</IncludePath>
     <PreBuildEventUseInBuild>true</PreBuildEventUseInBuild>
     <CustomBuildBeforeTargets>
     </CustomBuildBeforeTargets>

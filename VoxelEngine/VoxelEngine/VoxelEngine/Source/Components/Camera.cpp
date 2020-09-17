@@ -14,7 +14,8 @@ std::string Camera::GetName() { return "Camera"; }
 std::unique_ptr<Camera> Camera::RegisterCamera() 
 {
   auto component = std::unique_ptr<Camera>(new Camera(
-    //5999                                            /***Only needed if you don't provide a default constructor***/
+    //5999
+		/***Only needed if you don't provide a default constructor***/
   ));
 
   return std::move(component);

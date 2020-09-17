@@ -6,7 +6,7 @@ public:
 	UBO(const void* data, GLuint size);
 	~UBO();
 
-	void Bind(GLuint location) const;
+	void Bind(GLuint index) const;
 	void Unbind() const;
 
 	GLuint GetID() { return rendererID_; }

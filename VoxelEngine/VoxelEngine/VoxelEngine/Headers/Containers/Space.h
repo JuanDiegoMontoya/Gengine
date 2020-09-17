@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <entt.hpp>
 
 #include "EventManger.h"
 #include "../FactoryID.h"
@@ -59,13 +60,15 @@ public:
   //Unregisters an object with a listener from the event manager.
   template <typename T, typename E>  void UnregisterListener(T* object_, void(T::* callbackFunction_)(E*)) { eventManager->UnregisterListener(object_, callbackFunction_); }
 
-    //Toggle to affect update events being dispatched.
+   //Toggle to affect update events being dispatched.
   PROPERTY(Bool, paused, false);
   PROPERTY(Bool, isVisable, true);
 
   std::vector<std::unique_ptr<Object>>& GetObjects();
 
   bool HasInitialized();
+
+  class Entity CreateEntity(std::string name = "");
 
 private:
 
@@ -74,6 +77,9 @@ private:
   std::unique_ptr<EventManager> eventManager = std::unique_ptr<EventManager>(new EventManager());
 
   std::vector<std::unique_ptr<Object>> objects;
+
+  // new registry stuff
+  entt::registry registry;
 
   PROPERTY(String, name, std::string("empty"));
   PROPERTY(Float, zLayer, 0.f);
