@@ -29,6 +29,7 @@ const ID cTraceSystem = 4;
 //ComponentIDs
 const ID cStubComponent = 0;
 const ID cTestingComponent = 1;
+const ID cTransform = 2;
 
 //EventIDs
 const ID cDestroyEvent = 0;

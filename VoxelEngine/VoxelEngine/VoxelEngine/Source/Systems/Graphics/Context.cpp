@@ -37,7 +37,7 @@ void cursor_enter_callback([[maybe_unused]] GLFWwindow* window, int entered)
 
 void set_glfw_callbacks(GLFWwindow* window)
 {
-	Input::init_glfw_input_cbs(window);
+	InputSystem::GetInputSystem()->init_glfw_input_cbs(window);
 
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 	glfwSetWindowIconifyCallback(window, iconify_callback);
