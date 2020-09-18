@@ -299,6 +299,8 @@ typedef Property<enoom> Enoom;
 typedef Int Saveable_ID;
 
 //GuiIfy shit
+
+//WHILE INSTANCE IS A TYPE*, ASSUME IT IS A VOID* AS THAT IS WHAT IT WILL BY CONVERTED TO BY PREPP.
 inline void GuiIfy(String* instance, std::string name)
 {
   constexpr int bufferSize = 128;
@@ -310,36 +312,43 @@ inline void GuiIfy(String* instance, std::string name)
 
 }
 
+//!!!!!!!!!!!!!!!!!!!! WHILE INSTANCE IS A TYPE*, ASSUME IT IS A VOID* AS THAT IS WHAT IT WILL BY CONVERTED TO BY PREPP. !!!!!!!!!!!!!!!!!!!!
 inline void GuiIfy(Int* instance, std::string name)
 {
   ImGui::InputInt((std::stringstream() << name + "##" << instance).str().c_str(), &(*(Int*)(instance)).value);
 }
 
+//!!!!!!!!!!!!!!!!!!!! WHILE INSTANCE IS A TYPE*, ASSUME IT IS A VOID* AS THAT IS WHAT IT WILL BY CONVERTED TO BY PREPP. !!!!!!!!!!!!!!!!!!!!
 inline void GuiIfy(Float* instance, std::string name)
 {
   ImGui::InputFloat((std::stringstream() << name + "##" << instance).str().c_str(), &(*(Float*)(instance)).value);
 }
 
+//!!!!!!!!!!!!!!!!!!!! WHILE INSTANCE IS A TYPE*, ASSUME IT IS A VOID* AS THAT IS WHAT IT WILL BY CONVERTED TO BY PREPP. !!!!!!!!!!!!!!!!!!!!
 inline void GuiIfy(Bool* instance, std::string name)
 {
   ImGui::Checkbox((std::stringstream() << name + "##" << instance).str().c_str(), &(*(Bool*)(instance)).value);
 }
 
+//!!!!!!!!!!!!!!!!!!!! WHILE INSTANCE IS A TYPE*, ASSUME IT IS A VOID* AS THAT IS WHAT IT WILL BY CONVERTED TO BY PREPP. !!!!!!!!!!!!!!!!!!!!
 inline void GuiIfy(Vec2* instance, std::string name)
 {
   ImGui::InputFloat2((std::stringstream() << name + "##" << instance).str().c_str(), &((*(Vec2*)(instance)).value[0]));
 }
 
+//!!!!!!!!!!!!!!!!!!!! WHILE INSTANCE IS A TYPE*, ASSUME IT IS A VOID* AS THAT IS WHAT IT WILL BY CONVERTED TO BY PREPP. !!!!!!!!!!!!!!!!!!!!
 inline void GuiIfy(Vec3* instance, std::string name)
 {
   ImGui::InputFloat3((std::stringstream() << name + "##" << instance).str().c_str(), &((*(Vec3*)(instance)).value[0]));
 }
 
+//!!!!!!!!!!!!!!!!!!!! WHILE INSTANCE IS A TYPE*, ASSUME IT IS A VOID* AS THAT IS WHAT IT WILL BY CONVERTED TO BY PREPP. !!!!!!!!!!!!!!!!!!!!
 inline void GuiIfy(Vec4* instance, std::string name)
 {
   ImGui::InputFloat4((std::stringstream() << name + "##" << instance).str().c_str(), &((*(Vec4*)(instance)).value[0]));
 }
 
+//!!!!!!!!!!!!!!!!!!!! WHILE INSTANCE IS A TYPE*, ASSUME IT IS A VOID* AS THAT IS WHAT IT WILL BY CONVERTED TO BY PREPP. !!!!!!!!!!!!!!!!!!!!
 inline void GuiIfy(Enoom* instance, std::string name)
 {
   Enoom& enoom = (*(Enoom*)(instance));
