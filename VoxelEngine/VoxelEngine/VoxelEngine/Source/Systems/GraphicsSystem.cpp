@@ -10,6 +10,8 @@
 #include <Graphics/GraphicsIncludes.h>
 #include <ImGuiIncludes.h>
 #include <Graphics/GlobalRendererInfo.h>
+#include <Components/Camera.h>
+#include <Graphics/shader.h>
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -87,8 +89,30 @@ void GraphicsSystem::UpdateEventsListen(UpdateEvent* updateEvent)
   Engine::GetEngine()->AttachEvent(DrawEvent::GenerateDrawEvent(HANDLE_NEXT_FRAME));
   Engine::GetEngine()->AttachEvent(RenderEvent::GenerateRenderEvent(HANDLE_NEXT_FRAME));
 
-	// TOOD: iterate all cameras, set active camera here
-	info->activeCamera = nullptr;
+	/*
+	// this is how I want the simple renderer to be like
+	for (auto space : spaces)
+	{
+		for (auto camera : space->registry)
+		{
+			if (camera.Active())
+				info->SetActiveCamera(camera);
+		}
+
+		for (auto [transform, model,...] : space->registry)
+		{
+			this->renderDatShit(transform, model, ...);
+		}
+
+		// VoxelWorld class will be a system rather than a component
+		for (auto [voxelWorld] : space->registry)
+		{
+			voxelWorld.Draw();
+		}
+	}
+	*/
+	// TODO: iterate all cameras (in the space to render), set active camera here
+
 }
 
 void GraphicsSystem::RenderEventsListen(UpdateEvent* updateEvent)

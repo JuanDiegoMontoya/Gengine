@@ -2,7 +2,6 @@
 #include <Chunks/Chunk.h>
 #include <block.h>
 #include <Components/Camera.h>
-#include <Rendering/Renderer.h>
 
 #include <set>
 //#include <unordered_set>
@@ -16,24 +15,6 @@
 typedef struct Chunk* ChunkPtr;
 //class ChunkLoadManager;
 
-namespace Utils
-{
-	struct ChunkPtrKeyEq
-	{
-		bool operator()(const ChunkPtr& first, const ChunkPtr& second) const
-		{
-			//ASSERT(first != second);
-			if (first == second)
-				return false;
-			glm::vec3 wposA = glm::vec3(first->GetPos() * Chunk::CHUNK_SIZE);
-			glm::vec3 wposB = glm::vec3(second->GetPos() * Chunk::CHUNK_SIZE);
-			glm::vec3 cam = Renderer::GetPipeline()->GetCamera(0)->GetPos();
-			return
-				glm::distance(wposA, cam) <
-				glm::distance(wposB, cam);
-		}
-	};
-}
 
 
 // Interfaces with the Chunk class to

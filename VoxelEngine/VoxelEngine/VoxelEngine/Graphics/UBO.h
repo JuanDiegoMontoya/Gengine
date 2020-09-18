@@ -10,6 +10,8 @@ public:
 	void Unbind() const;
 
 	GLuint GetID() { return rendererID_; }
+
+	static constexpr int ReservedSlot = 0;
 private:
 	GLuint rendererID_;
 };

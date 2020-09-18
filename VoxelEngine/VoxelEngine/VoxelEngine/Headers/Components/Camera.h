@@ -50,6 +50,7 @@ public:
   {
     proj_ = glm::perspective(glm::radians(fovDeg), 1920.f / 1080.f, near_, far_);
   }
+
 private:
 
   friend void RegisterComponents();
@@ -63,13 +64,16 @@ private:
   glm::vec3 up = glm::vec3(0, 1.f, 0);
   glm::vec3 front = glm::vec3(0, 0, -1.f);
 
+
   float speed_ = 3.5f;
 
+  // view matrix info
   float pitch_ = 16;
   float yaw_ = 255;
   float roll_ = 0;
-  float fovDeg_ = 80.f;
 
+  // projection matrix info
+  float fovDeg_ = 80.f;
   float near_ = .1f;
   float far_ = 300.f;
 };

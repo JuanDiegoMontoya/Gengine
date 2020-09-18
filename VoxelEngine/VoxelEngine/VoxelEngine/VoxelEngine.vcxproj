@@ -97,11 +97,9 @@
     <ClInclude Include="Voxels\light.h" />
     <ClInclude Include="Voxels\pick.h" />
     <ClInclude Include="Voxels\prefab.h" />
-    <ClInclude Include="Voxels\Refactor\Client.h" />
     <ClInclude Include="Voxels\Refactor\Editor.h" />
     <ClInclude Include="Voxels\Refactor\hud.h" />
     <ClInclude Include="Voxels\Refactor\Interface.h" />
-    <ClInclude Include="Voxels\Refactor\NetPlayerState.h" />
     <ClInclude Include="Voxels\Refactor\player.h" />
     <ClInclude Include="Voxels\Refactor\settings.h" />
     <ClInclude Include="Voxels\Refactor\stdafx.h" />
@@ -124,7 +122,6 @@
     <ClInclude Include="Voxels\Utilities\Timer.h" />
     <ClInclude Include="Voxels\WorldGen\WorldGen2.h" />
     <ClInclude Include="Voxels\World\chunk_manager.h" />
-    <ClInclude Include="Voxels\World\chunk_manager_base.h" />
     <ClInclude Include="Voxels\World\parallel_chunks.h" />
     <ClInclude Include="Voxels\World\World.h" />
   </ItemGroup>
@@ -181,12 +178,10 @@
     <ClCompile Include="Voxels\Chunks\ChunkMesh.cpp" />
     <ClCompile Include="Voxels\pick.cpp" />
     <ClCompile Include="Voxels\prefab.cpp" />
-    <ClCompile Include="Voxels\Refactor\Client.cpp" />
     <ClCompile Include="Voxels\Refactor\Editor.cpp" />
     <ClCompile Include="Voxels\Refactor\hud.cpp" />
     <ClCompile Include="Voxels\Refactor\Interface.cpp" />
     <ClCompile Include="Voxels\Refactor\main.cpp" />
-    <ClCompile Include="Voxels\Refactor\NetPlayerState.cpp" />
     <ClCompile Include="Voxels\Refactor\player.cpp" />
     <ClCompile Include="Voxels\Refactor\settings.cpp" />
     <ClCompile Include="Voxels\Refactor\sun.cpp" />
@@ -200,7 +195,6 @@
     <ClCompile Include="Voxels\Utilities\ImGuiBonus.cpp" />
     <ClCompile Include="Voxels\WorldGen\WorldGen2.cpp" />
     <ClCompile Include="Voxels\World\chunk_manager.cpp" />
-    <ClCompile Include="Voxels\World\chunk_manager_base.cpp" />
     <ClCompile Include="Voxels\World\parallel_chunks.cpp" />
     <ClCompile Include="Voxels\World\World.cpp" />
   </ItemGroup>

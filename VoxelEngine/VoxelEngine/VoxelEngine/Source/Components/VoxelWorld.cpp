@@ -7,6 +7,9 @@
 //#include "../../Headers/Events/UpdateEvent.h"
 //#include "../../Headers/Events/DrawEvent.h"
 #include <Systems/GraphicsSystem.h>
+#include <Refactor/hud.h>
+#include <World/chunk_manager.h>
+
 std::string VoxelWorld::GetName() { return "VoxelWorld"; }
 
 std::unique_ptr<VoxelWorld> VoxelWorld::RegisterVoxelWorld() 
@@ -48,7 +51,7 @@ std::unique_ptr<Component> VoxelWorld::Clone() const
   auto result = new VoxelWorld();
     //copy over values here
   //result->componentData = componentData;
-
+  assert(false); // do not copy this shit
   return std::unique_ptr<Component>(result);
 }
 

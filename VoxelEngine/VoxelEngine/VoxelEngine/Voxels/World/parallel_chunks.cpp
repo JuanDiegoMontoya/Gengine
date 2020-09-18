@@ -3,9 +3,29 @@
 #include <algorithm>
 #include <execution>
 #include <Chunks/ChunkStorage.h>
+#include <Systems/GraphicsSystem.h>>
 
 // TODO: add a way to notify these threads to terminate when the program
 // does to prevent crash on exit
+
+namespace Utils
+{
+	struct ChunkPtrKeyEq
+	{
+		bool operator()(const ChunkPtr& first, const ChunkPtr& second) const
+		{
+			//ASSERT(first != second);
+			if (first == second)
+				return false;
+			glm::vec3 wposA = glm::vec3(first->GetPos() * Chunk::CHUNK_SIZE);
+			glm::vec3 wposB = glm::vec3(second->GetPos() * Chunk::CHUNK_SIZE);
+			glm::vec3 cam = GetCurrentCamera()->GetPos();
+			return
+				glm::distance(wposA, cam) <
+				glm::distance(wposB, cam);
+		}
+	};
+}
 
 // perpetual thread task to generate blocks in new chunks
 void ChunkManager::chunk_generator_thread_task()

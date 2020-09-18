@@ -5,20 +5,17 @@
 #include "../Containers/Properties.h"
 #include "Component.h"
 
-//typedef class UpdateEvent UpdateEvent;
-//typedef class DrawEvent DrawEvent;
-
+class UpdateEvent;
+class DrawEvent;
+class ChunkManager;
+class HUD;
 
 class VoxelWorld : public Component
 {
 public:
   static const ID componentType = cVoxelWorld;
 
-  //PROPERTY(Int, componentData, 5999);
-
-  VoxelWorld(
-    //Int componentData_ = 5999                                             /*** "= 5999" Only needed if you want a default constructor***/
-  );
+  VoxelWorld();
   ~VoxelWorld();
   void Init();
   void End();
@@ -27,13 +24,17 @@ public:
   std::string GetName();
 
   //void UpdateEventsListen(UpdateEvent* updateEvent);
-  //void DrawEventsListen(DrawEvent* drawEvent);
+  void DrawEventsListen(DrawEvent* drawEvent);
 
   static std::unique_ptr<VoxelWorld> RegisterVoxelWorld();
 
 private:
 
   friend void RegisterComponents();
+
+  // TODO: HUD is TEMPORARY
+  std::unique_ptr<ChunkManager> chunkManager_;
+  std::unique_ptr<HUD> hud_;
 };
 
 #endif // !VoxelWorld_Guard

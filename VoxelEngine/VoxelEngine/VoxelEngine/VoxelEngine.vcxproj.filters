@@ -228,16 +228,10 @@
     <ClInclude Include="Voxels\Chunks\ChunkStorage.h">
       <Filter>Voxel Engine\Chunks</Filter>
     </ClInclude>
-    <ClInclude Include="Voxels\Refactor\Client.h">
-      <Filter>Voxel Engine\Refactor</Filter>
-    </ClInclude>
     <ClInclude Include="Voxels\Refactor\hud.h">
       <Filter>Voxel Engine\Refactor</Filter>
     </ClInclude>
     <ClInclude Include="Voxels\Refactor\Interface.h">
-      <Filter>Voxel Engine\Refactor</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\Refactor\NetPlayerState.h">
       <Filter>Voxel Engine\Refactor</Filter>
     </ClInclude>
     <ClInclude Include="Voxels\Refactor\player.h">
@@ -298,9 +292,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Voxels\World\chunk_manager.h">
-      <Filter>Voxel Engine\World</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\World\chunk_manager_base.h">
       <Filter>Voxel Engine\World</Filter>
     </ClInclude>
     <ClInclude Include="Voxels\World\parallel_chunks.h">
@@ -476,9 +467,6 @@
     <ClCompile Include="Voxels\Chunks\ChunkMesh.cpp">
       <Filter>Voxel Engine\Chunks</Filter>
     </ClCompile>
-    <ClCompile Include="Voxels\Refactor\Client.cpp">
-      <Filter>Voxel Engine\Refactor</Filter>
-    </ClCompile>
     <ClCompile Include="Voxels\Refactor\Editor.cpp">
       <Filter>Voxel Engine\Refactor</Filter>
     </ClCompile>
@@ -489,9 +477,6 @@
       <Filter>Voxel Engine\Refactor</Filter>
     </ClCompile>
     <ClCompile Include="Voxels\Refactor\main.cpp">
-      <Filter>Voxel Engine\Refactor</Filter>
-    </ClCompile>
-    <ClCompile Include="Voxels\Refactor\NetPlayerState.cpp">
       <Filter>Voxel Engine\Refactor</Filter>
     </ClCompile>
     <ClCompile Include="Voxels\Refactor\player.cpp">
@@ -525,9 +510,6 @@
       <Filter>Voxel Engine\Utilities</Filter>
     </ClCompile>
     <ClCompile Include="Voxels\World\chunk_manager.cpp">
-      <Filter>Voxel Engine\World</Filter>
-    </ClCompile>
-    <ClCompile Include="Voxels\World\chunk_manager_base.cpp">
       <Filter>Voxel Engine\World</Filter>
     </ClCompile>
     <ClCompile Include="Voxels\World\parallel_chunks.cpp">
