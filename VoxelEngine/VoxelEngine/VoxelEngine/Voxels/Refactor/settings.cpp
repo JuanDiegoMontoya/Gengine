@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include <Systems/InputSystem.h>
 
 #include <filesystem>

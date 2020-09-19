@@ -11,6 +11,7 @@
 #include <Chunks/ChunkStorage.h>
 #include <Graphics/Vertices.h>
 #include <memory>
+#include <Systems/GraphicsSystem.h>
 
 namespace ChunkRenderer
 {
@@ -110,7 +111,7 @@ namespace ChunkRenderer
 		TracyGpuZone("Gen draw commands norm");
 #endif
 
-		Camera* cam = Renderer::GetPipeline()->GetCamera(0);
+		Camera* cam = GetCurrentCamera();
 		// make buffer sized as if every allocation was non-null
 		ShaderPtr sdr = Shader::shaders["compact_batch"];
 		sdr->Use();
@@ -181,7 +182,7 @@ namespace ChunkRenderer
 		TracyGpuZone("Gen draw commands splat");
 #endif
 
-		Camera* cam = Renderer::GetPipeline()->GetCamera(0);
+		Camera* cam = GetCurrentCamera();
 		// make buffer sized as if every allocation was non-null
 		ShaderPtr sdr = Shader::shaders["compact_batch"];
 		sdr->Use();
@@ -334,7 +335,7 @@ namespace ChunkRenderer
 		ShaderPtr sr = Shader::shaders["chunk_render_cull"];
 		sr->Use();
 
-		Camera* cam = Renderer::GetPipeline()->GetCamera(0);
+		Camera* cam = GetCurrentCamera();
 		const glm::mat4 viewProj = cam->GetProj() * cam->GetView();
 		sr->setMat4("u_viewProj", viewProj);
 		sr->setUInt("u_chunk_size", Chunk::CHUNK_SIZE);

@@ -1,5 +1,6 @@
 #pragma once
 #include <memory>
+#include <Graphics/GraphicsIncludes.h>
 
 class UBO;
 class Camera;

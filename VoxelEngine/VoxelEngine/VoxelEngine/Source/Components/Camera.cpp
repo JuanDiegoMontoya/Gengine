@@ -96,3 +96,8 @@ void Camera::UpdateViewMat()
   view_ = glm::lookAt(worldpos_, worldpos_ + front, up);
   frustum_->Transform(proj_, view_);
 }
+
+void Camera::GenProjection(float fovDeg)
+{
+	proj_ = glm::perspective(glm::radians(fovDeg), 1920.f / 1080.f, near_, far_);
+}

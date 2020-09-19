@@ -1,4 +1,4 @@
-#include "../../stdafx.h"
+#include <Graphics/GraphicsIncludes.h>
 #include <Rendering/Frustum.h>
 
 void Frustum::Transform(const glm::mat4& proj, const glm::mat4& view)

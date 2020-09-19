@@ -1,5 +1,5 @@
 #pragma once
-#include "Shapes.h"
+#include <Graphics/Shapes.h>
 
 class Frustum
 {

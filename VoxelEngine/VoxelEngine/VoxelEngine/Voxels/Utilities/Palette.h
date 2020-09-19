@@ -2,6 +2,7 @@
 #include <Utilities/BitArray.h>
 #include <vector>
 #include <cereal/types/vector.hpp>
+#include <shared_mutex>
 
 // fixed-size array optimized for space
 template<typename T, unsigned _Size>

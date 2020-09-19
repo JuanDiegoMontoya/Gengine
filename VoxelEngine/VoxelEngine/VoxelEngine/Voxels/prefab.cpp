@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "prefab.h"
 #include <filesystem>
 

@@ -240,9 +240,6 @@
     <ClInclude Include="Voxels\Refactor\settings.h">
       <Filter>Voxel Engine\Refactor</Filter>
     </ClInclude>
-    <ClInclude Include="Voxels\Refactor\stdafx.h">
-      <Filter>Voxel Engine\Refactor</Filter>
-    </ClInclude>
     <ClInclude Include="Voxels\Refactor\sun.h">
       <Filter>Voxel Engine\Refactor</Filter>
     </ClInclude>
@@ -383,6 +380,9 @@
     </ClInclude>
     <ClInclude Include="Headers\Components\Tag.h">
       <Filter>Header Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\Rendering\texture.h">
+      <Filter>Voxel Engine\Rendering</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -589,6 +589,9 @@
     </ClCompile>
     <ClCompile Include="Source\Containers\Entity.cpp">
       <Filter>Source Files\Containers</Filter>
+    </ClCompile>
+    <ClCompile Include="Voxels\Rendering\texture.cpp">
+      <Filter>Voxel Engine\Rendering</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -1,6 +1,7 @@
 #pragma once
 #include <Containers/Space.h>
 #include <entt.hpp>
+#include <engine_assert.h>
 
 // "lightweight object"
 class Entity
@@ -22,7 +23,7 @@ public:
 	T& GetComponent()
 	{
 		ASSERT_MSG(HasComponent<T>(), "Entity missing component!");
-		return m_Scene->m_Registry.get<T>(entityHandle_);
+		return space_->registry.get<T>(entityHandle_);
 	}
 
 	template<typename T>

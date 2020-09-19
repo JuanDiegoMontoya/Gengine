@@ -1,4 +1,5 @@
 #pragma once
+#include <MathIncludes.h>
 
 struct AABB;
 struct AABB16;

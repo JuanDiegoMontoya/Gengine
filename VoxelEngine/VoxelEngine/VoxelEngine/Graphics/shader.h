@@ -1,15 +1,19 @@
 #pragma once
-//#include "stdafx.h"
-#include <Utilities/utilities.h>
-#include <string>
+#include "utilities.h"
 #include <unordered_map>
+#include <optional>
 #include <engine_assert.h>
+
+#include <Graphics/GraphicsIncludes.h>
+#include <shaderc/shaderc.hpp>
 
 // encapsulates shaders by storing uniforms and its GPU memory location
 // also stores the program's name and both shader paths for recompiling
 typedef class Shader
 {
 public:
+	using glShaderType = GLint;
+
 	GLuint programID;		// the program's address in GPU memory
 	const int shaderID;	// index into shader array
 	std::string name;		// probably actual index into shader array
@@ -22,12 +26,19 @@ public:
 	std::string fsPath;	// fragment shader path
 	std::string csPath;	// compute shader path
 
-	// standard vertex + fragment program constructor
-	Shader(const char* vertexPath, const char* fragmentPath,
-		const char* tessCtrlPath = "<null>",
-		const char* tessEvalPath = "<null>",
-		const char* geometryPath = "<null>");
-	Shader(const char* computePath);
+	// standard constructor
+	Shader(
+		std::optional<std::string> vertexPath,
+		std::optional<std::string> fragmentPath,
+		std::optional<std::string> tessCtrlPath = std::nullopt,
+		std::optional<std::string> tessEvalPath = std::nullopt,
+		std::optional<std::string> geometryPath = std::nullopt);
+
+	// compute shader constructor
+	Shader(int, std::string computePath);
+
+	// universal SPIR-V constructor (takes a list of paths and shader types)
+	Shader(std::vector<std::pair<std::string, glShaderType>> shaders);
 
 	// default constructor (currently no uses)
 	Shader() : shaderID(shader_count_)
@@ -154,13 +165,26 @@ private:
 		TY_TESS_EVAL = GL_TESS_EVALUATION_SHADER,
 		TY_GEOMETRY = GL_GEOMETRY_SHADER,
 		TY_FRAGMENT = GL_FRAGMENT_SHADER,
-		TY_COMPUTE = GL_COMPUTE_SHADER
+		TY_COMPUTE = GL_COMPUTE_SHADER,
 	};
 
 	static int shader_count_;
-	static constexpr const char* shader_dir_ = "./Resources/Shaders/";
-	std::string loadShader(const char* path);
-	GLint compileShader(shadertype type, const GLchar* src);
+
+	friend class IncludeHandler;
+
+	// shader dir includes source and headers alike
+	static constexpr const char* shader_dir_ = "./resources/Shaders/";
+	static std::string loadFile(std::string path);
+
+	GLint compileShader(shadertype type, const std::vector<std::string>& src);
 	void initUniforms();
-	void checkLinkStatus(std::vector<std::string> files);
+	void checkLinkStatus(std::vector<std::string_view> files);
+
+	// returns compiled SPIR-V
+	std::vector<uint32_t>
+		spvPreprocessAndCompile(
+			shaderc::Compiler& compiler,
+			const shaderc::CompileOptions options,
+			std::string path,
+			shaderc_shader_kind a);
 }Shader, *ShaderPtr;

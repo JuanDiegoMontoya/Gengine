@@ -102,7 +102,6 @@
     <ClInclude Include="Voxels\Refactor\Interface.h" />
     <ClInclude Include="Voxels\Refactor\player.h" />
     <ClInclude Include="Voxels\Refactor\settings.h" />
-    <ClInclude Include="Voxels\Refactor\stdafx.h" />
     <ClInclude Include="Voxels\Refactor\sun.h" />
     <ClInclude Include="Voxels\Rendering\ChunkRenderer.h" />
     <ClInclude Include="Voxels\Rendering\directional_light.h" />
@@ -110,6 +109,7 @@
     <ClInclude Include="Voxels\Rendering\NuRenderer.h" />
     <ClInclude Include="Voxels\Rendering\Renderer.h" />
     <ClInclude Include="Voxels\Rendering\RenderOrder.h" />
+    <ClInclude Include="Voxels\Rendering\texture.h" />
     <ClInclude Include="Voxels\Rendering\TextureArray.h" />
     <ClInclude Include="Voxels\Utilities\BitArray.h" />
     <ClInclude Include="Voxels\Utilities\BufferAllocator.h" />
@@ -190,6 +190,7 @@
     <ClCompile Include="Voxels\Rendering\Frustum.cpp" />
     <ClCompile Include="Voxels\Rendering\NuRenderer.cpp" />
     <ClCompile Include="Voxels\Rendering\Renderer.cpp" />
+    <ClCompile Include="Voxels\Rendering\texture.cpp" />
     <ClCompile Include="Voxels\Rendering\TextureArray.cpp" />
     <ClCompile Include="Voxels\Utilities\collision_check.cpp" />
     <ClCompile Include="Voxels\Utilities\ImGuiBonus.cpp" />
@@ -267,7 +268,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(ProjectDir)3rdParty;$(ProjectDir)Headers;$(ProjectDir)3rdParty\glew-2.1.0\include;$(ProjectDir);$(ProjectDir)3rdParty\entt\include;$(ProjectDir)3rdParty\glfw-3.3-win64\include;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)3rdParty;$(ProjectDir)3rdParty\shaderc\include;$(ProjectDir)Headers;$(ProjectDir)3rdParty\glew-2.1.0\include;$(ProjectDir);$(ProjectDir)3rdParty\entt\include;$(ProjectDir)3rdParty\stb;$(ProjectDir)3rdParty\glfw-3.3-win64\include;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
     <PreBuildEventUseInBuild>true</PreBuildEventUseInBuild>
     <CustomBuildBeforeTargets>
     </CustomBuildBeforeTargets>
@@ -284,7 +285,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(ProjectDir)3rdParty;$(ProjectDir)Headers;$(ProjectDir)3rdParty\glew-2.1.0\include;$(ProjectDir);$(ProjectDir)3rdParty\entt\include;$(ProjectDir)3rdParty\glfw-3.3-win64\include;$(ProjectDir)Voxels;$(ProjectDir)3rdParty\cereal-1.2.2\include;$(ProjectDir)3rdParty\zlib-1.2.11;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)3rdParty;$(ProjectDir)3rdParty\shaderc\include;$(ProjectDir)Headers;$(ProjectDir)3rdParty\glew-2.1.0\include;$(ProjectDir);$(ProjectDir)3rdParty\entt\include;$(ProjectDir)3rdParty\stb;$(ProjectDir)3rdParty\glfw-3.3-win64\include;$(ProjectDir)Voxels;$(ProjectDir)3rdParty\cereal-1.2.2\include;$(ProjectDir)3rdParty\zlib-1.2.11;$(IncludePath)</IncludePath>
     <PreBuildEventUseInBuild>true</PreBuildEventUseInBuild>
     <CustomBuildBeforeTargets>
     </CustomBuildBeforeTargets>

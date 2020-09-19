@@ -46,10 +46,7 @@ public:
 
   void SetPos(const glm::vec3& v) { worldpos_ = v; UpdateViewMat(); }
   void SetFar(float f) { far_ = f; GenProjection(); }
-  void GenProjection(float fovDeg = 80.f)
-  {
-    proj_ = glm::perspective(glm::radians(fovDeg), 1920.f / 1080.f, near_, far_);
-  }
+  void GenProjection(float fovDeg = 80.f);
 
 private:
 

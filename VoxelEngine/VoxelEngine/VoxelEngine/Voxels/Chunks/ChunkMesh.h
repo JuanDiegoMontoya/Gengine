@@ -5,6 +5,7 @@
 #include <Graphics/dib.h>
 #include <Graphics/vbo.h>
 #include <Graphics/vao.h>
+#include <shared_mutex>
 
 //class VAO;
 //class VBO;

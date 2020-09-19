@@ -1,77 +1,131 @@
-#include <Graphics/GraphicsIncludes.h>
+#include "shader.h"
 #include <sstream>
 #include <fstream>
 #include <iostream>
-#include <string.h>
+
+
+static const int LOG_BUF_LEN = 512;
 
 int Shader::shader_count_ = 0;
 std::unordered_map<std::string, Shader*> Shader::shaders = std::unordered_map<std::string, Shader*>();
 
+class IncludeHandler : public shaderc::CompileOptions::IncluderInterface
+{
+public:
+	virtual shaderc_include_result* GetInclude(
+		const char* requested_source,
+		shaderc_include_type type,
+		const char* requesting_source,
+		size_t include_depth)
+	{
+		auto* data = new shaderc_include_result;
+		
+		content = new std::string(Shader::loadFile(requested_source));
+		source_name = new std::string(requested_source);
+
+		data->content = content->c_str();
+		data->source_name = source_name->c_str();
+		data->content_length = content->size();
+		data->source_name_length = source_name->size();
+		data->user_data = nullptr;
+
+		return data;
+	}
+
+	virtual void ReleaseInclude(shaderc_include_result* data)
+	{
+		// hopefully this isn't dumb
+		delete content;
+		delete source_name;
+		delete data;
+	}
+
+private:
+	std::string* content;
+	std::string* source_name;
+};
+
+
 // the provided path does not need to include the shader directory
-Shader::Shader(const char* vertexPath,
-               const char* fragmentPath,
-               const char* tessCtrlPath,
-               const char* tessEvalPath,
-               const char* geometryPath) 
+Shader::Shader(
+	std::optional<std::string> vertexPath,
+	std::optional<std::string> fragmentPath,
+	std::optional<std::string> tessCtrlPath,
+	std::optional<std::string> tessEvalPath,
+	std::optional<std::string> geometryPath)
 	: shaderID(shader_count_++)
 {
-	vsPath = vertexPath;
-	fsPath = fragmentPath;
-	tcsPath = tessCtrlPath;
-	tesPath = tessEvalPath;
-	gsPath = geometryPath;
-	const std::string vertSrc = loadShader(vertexPath).c_str();
-	const std::string fragSrc = loadShader(fragmentPath).c_str();
+	if (!vertexPath || !fragmentPath)
+	{
+		//LOG("insufficient shader parameters");
+		return;
+	}
+
+	vsPath = vertexPath.value();
+	fsPath = fragmentPath.value();
+	if (tessCtrlPath)
+		tcsPath = tessCtrlPath.value();
+	if (tessEvalPath)
+		tesPath = tessEvalPath.value();
+	if (geometryPath)
+		gsPath = geometryPath.value();
+
+	// vert/frag required
+	const std::string vertRawSrc = loadFile(vertexPath.value());
+	const std::string fragRawSrc = loadFile(fragmentPath.value());
 
 	// compile individual shaders
 	programID = glCreateProgram();
-	GLint vShader = compileShader(TY_VERTEX, vertSrc.c_str());
-	GLint fShader = compileShader(TY_FRAGMENT, fragSrc.c_str());
+	GLint vShader = compileShader(TY_VERTEX, { vertRawSrc });
+	GLint fShader = compileShader(TY_FRAGMENT, { fragRawSrc });
 	GLint tcShader = 0;
 	GLint teShader = 0;
 	GLint gShader  = 0;
 
-	if (strcmp(tessCtrlPath, "<null>"))
-	{
-		tcShader = compileShader(TY_TESS_CONTROL, loadShader(tessCtrlPath).c_str());
-		glAttachShader(programID, tcShader);
-	}
-	if (strcmp(tessEvalPath, "<null>"))
-	{
-		teShader = compileShader(TY_TESS_EVAL, loadShader(tessEvalPath).c_str());
-		glAttachShader(programID, teShader);
-	}
-	if (strcmp(geometryPath, "<null>"))
-	{
-		gShader = compileShader(TY_GEOMETRY, loadShader(geometryPath).c_str());
-		glAttachShader(programID, gShader);
-	}
+	//if (tessCtrlPath != "<null>")
+	//{
+	//	auto tscRawSrc = loadFile(tessCtrlPath);
+	//	auto [tscSrc, tscMap] = preprocessShaderSource(tscRawSrc, tessCtrlPath);
+	//	tcShader = compileShader(TY_TESS_CONTROL, );
+	//	glAttachShader(programID, tcShader);
+	//}
+	//if (tessEvalPath != "<null>")
+	//{
+	//	teShader = compileShader(TY_TESS_EVAL, loadFile(tessEvalPath).c_str());
+	//	glAttachShader(programID, teShader);
+	//}
+	//if (geometryPath != "<null>")
+	//{
+	//	gShader = compileShader(TY_GEOMETRY, loadFile(geometryPath).c_str());
+	//	glAttachShader(programID, gShader);
+	//}
 
 	// vertex and fragment shaders are required (technically not frag but we want it to be here)
 	glAttachShader(programID, vShader);
 	glAttachShader(programID, fShader);
 	glLinkProgram(programID);
 
-	checkLinkStatus({ vertexPath, fragmentPath });
+	checkLinkStatus({ *vertexPath, *fragmentPath });
 
 	glDeleteShader(vShader);
 	glDeleteShader(fShader);
-	if (strcmp(tessCtrlPath, "<null>"))
+	if (tessCtrlPath != "<null>")
 		glDeleteShader(tcShader);
-	if (strcmp(tessEvalPath, "<null>"))
+	if (tessEvalPath != "<null>")
 		glDeleteShader(teShader);
-	if (strcmp(geometryPath, "<null>"))
+	if (geometryPath != "<null>")
 		glDeleteShader(gShader);
 
 	initUniforms();
 }
 
-Shader::Shader(const char* computePath) : shaderID(shader_count_++)
+
+Shader::Shader(int, std::string computePath) : shaderID(shader_count_++)
 {
 	csPath = computePath;
-	const std::string compSrc = loadShader(computePath).c_str();
 	programID = glCreateProgram();
-	GLint cShader = compileShader(TY_COMPUTE, compSrc.c_str());
+	const std::string compRawSrc = loadFile(computePath);
+	GLint cShader = compileShader(TY_COMPUTE, { compRawSrc });
 	glAttachShader(programID, cShader);
 	glLinkProgram(programID);
 	checkLinkStatus({ computePath });
@@ -80,10 +134,128 @@ Shader::Shader(const char* computePath) : shaderID(shader_count_++)
 	initUniforms();
 }
 
-// loads a shader source into a string
-std::string Shader::loadShader(const char* path)
+
+Shader::Shader(std::vector<std::pair<std::string, GLint>> shaders) : shaderID(shader_count_++)
 {
-	std::string shaderpath = std::string(shader_dir_) + path;
+#if DE_BUG
+	std::unordered_map<int, int> types;
+	for (const auto& [u, type] : shaders)
+	{
+		ASSERT_MSG(++types[type] == 1,
+			"FATAL: Multiple shaders of one type is illegal!");
+	}
+
+	if (types[TY_COMPUTE] == 0)
+	{
+		ASSERT_MSG(types[TY_VERTEX] +
+			types[TY_FRAGMENT] +
+			types[TY_TESS_CONTROL] +
+			types[TY_TESS_EVAL] +
+			types[TY_GEOMETRY] == shaders.size(),
+			"FATAL: Invalid shader types specified!");
+	}
+	else
+	{
+		ASSERT_MSG(shaders.size() == 1,
+			"FATAL: Multiple compute shaders or compute shader mix with other types!");
+	}
+#endif
+
+	const std::unordered_map<glShaderType, shaderc_shader_kind> gl2shadercTypes =
+	{
+		{ GL_VERTEX_SHADER, shaderc_vertex_shader },
+		{ GL_FRAGMENT_SHADER, shaderc_fragment_shader },
+		{ GL_TESS_CONTROL_SHADER, shaderc_tess_control_shader },
+		{ GL_TESS_EVALUATION_SHADER, shaderc_tess_evaluation_shader },
+		{ GL_GEOMETRY_SHADER, shaderc_geometry_shader },
+		{ GL_COMPUTE_SHADER, shaderc_compute_shader }
+	};
+
+	shaderc::Compiler compiler;
+	ASSERT(compiler.IsValid());
+
+	shaderc::CompileOptions options;
+	options.SetSourceLanguage(shaderc_source_language_glsl);
+	options.SetTargetEnvironment(shaderc_target_env_opengl, 450);
+	options.SetIncluder(std::make_unique<IncludeHandler>());
+	options.SetAutoMapLocations(true);
+	options.SetAutoBindUniforms(true);
+	//auto vertRes = spvPreprocessAndCompile(compiler, options, vertexPath.value(), shaderc_vertex_shader);
+	//auto fragRes = spvPreprocessAndCompile(compiler, options, fragmentPath.value(), shaderc_fragment_shader);
+	//if (!vertRes || !fragRes)
+	//	return;
+
+	std::vector<GLuint> shaderIDs;
+
+	for (auto& [shaderPath, shaderType] : shaders)
+	{
+		// preprocess shader
+		auto compileResult = spvPreprocessAndCompile(compiler, options, shaderPath, gl2shadercTypes.at(shaderType));
+
+		// cleanup existing shaders
+		if (compileResult.size() == 0)
+		{
+			for (auto ID : shaderIDs)
+				glDeleteShader(ID);
+			break;
+		}
+
+		// "compile" (upload binary) shader
+		GLuint shaderID = glCreateShader(shaderType);
+		shaderIDs.push_back(shaderID);
+		glShaderBinary(1, &shaderID, GL_SHADER_BINARY_FORMAT_SPIR_V, compileResult.data(), compileResult.size() * sizeof(uint32_t));
+		glSpecializeShader(shaderID, "main", 0, 0, 0);
+
+		// check if shader compilation succeeded
+		GLint compileStatus = 0;
+		glGetShaderiv(shaderID, GL_COMPILE_STATUS, &compileStatus);
+		if (compileStatus == GL_FALSE)
+		{
+			GLint maxlen = 0;
+			GLchar infoLog[LOG_BUF_LEN];
+			glGetShaderiv(shaderID, GL_INFO_LOG_LENGTH, &maxlen);
+			glGetShaderInfoLog(shaderID, LOG_BUF_LEN, NULL, infoLog);
+
+			printf("File: %s\n", shaderPath.c_str());
+			printf("Error binary-ing shader of type %d\n%s\n", shaderType, infoLog);
+		}
+	}
+
+	programID = glCreateProgram();
+
+	for (auto ID : shaderIDs)
+		glAttachShader(programID, ID);
+
+	glLinkProgram(programID);
+
+	GLint success;
+	GLchar infoLog[512];
+	glGetProgramiv(programID, GL_LINK_STATUS, &success);
+	if (!success)
+	{
+		glGetProgramInfoLog(programID, 512, NULL, infoLog);
+		printf("Failed to link shader program.\nFiles:\n");
+		for (auto [path, type] : shaders)
+			std::printf("%s\n", path.c_str());
+		std::cout << "Failed to link shader program\n" << infoLog << std::endl;
+	}
+
+	std::vector<std::string_view> strs;
+	for (const auto& [shaderPath, shaderType] : shaders)
+		strs.push_back(shaderPath);
+	checkLinkStatus(strs);
+
+	initUniforms();
+
+	for (auto shaderID : shaderIDs)
+		glDetachShader(programID, shaderID);
+}
+
+
+// loads a shader source into a string (string_view doesn't support concatenation)
+std::string Shader::loadFile(std::string path)
+{
+	std::string shaderpath = shader_dir_ + path;
 	std::string content;
 	try
 	{
@@ -93,14 +265,15 @@ std::string Shader::loadShader(const char* path)
 	}
 	catch (std::ifstream::failure e)
 	{
-		std::cout << "Error reading shader: " << path << '\n';
+		std::cout << "Error reading shader file: " << path << '\n';
 		std::cout << "Message: " << e.what() << std::endl;
 	}
-	return std::string(content);
+	return content;
 }
 
+
 // compiles a shader source and returns its ID
-GLint Shader::compileShader(shadertype type, const GLchar* src)
+GLint Shader::compileShader(shadertype type, const std::vector<std::string>& src)
 {
 	GLuint shader = 0;
 	GLchar infoLog[512];
@@ -134,17 +307,22 @@ GLint Shader::compileShader(shadertype type, const GLchar* src)
 		path = csPath;
 		break;
 	default:
-		path = nullptr;
 		break;
 	}
 
-	glShaderSource(shader, 1, &src, NULL);
+	const GLchar** strings = new const GLchar*[src.size()];
+	for (int i = 0; i < src.size(); i++)
+		strings[i] = src[i].data();
+
+	glShaderSource(shader, src.size(), strings, NULL);
 	glCompileShader(shader);
 
 	glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
 	if (!success)
 	{
 		glGetShaderInfoLog(shader, 512, NULL, infoLog);
+		// TODO: parse info log to determine files in which errors ocurred
+
 		std::cout << "File: " << path << std::endl;
 		std::cout << "Error compiling shader of type " << type << '\n' << infoLog << std::endl;
 	}
@@ -156,6 +334,7 @@ GLint Shader::compileShader(shadertype type, const GLchar* src)
 	return shader;
 }
 
+
 // TODO: https://github.com/fendevel/Guide-to-Modern-OpenGL-Functions#ideal-way-of-retrieving-all-uniform-names
 void Shader::initUniforms()
 {
@@ -164,7 +343,6 @@ void Shader::initUniforms()
 	GLint num_uniforms;
 
 	glGetProgramiv(programID, GL_ACTIVE_UNIFORM_MAX_LENGTH, &max_length);
-	//GLchar* pname = (GLchar*)alloca(max_length * sizeof(GLchar));
 	GLchar* pname = new GLchar[max_length];
 	glGetProgramiv(programID, GL_ACTIVE_UNIFORMS, &num_uniforms);
 
@@ -176,20 +354,19 @@ void Shader::initUniforms()
 
 		glGetActiveUniform(programID, i, max_length, &written, &size, &type, pname);
 		GLchar* pname1 = new GLchar[max_length];
-		strcpy(pname1, pname);
+		std::strcpy(pname1, pname);
 		if (size > 1)
 			pname1[written - 3] = '\0';
 		GLint loc = glGetUniformLocation(programID, pname1);
-		Uniforms.insert(std::pair<GLchar*, GLint>(pname1, loc));
-		//delete pname1;
+		Uniforms.insert({ pname1, loc });
+		delete[] pname1;
 	}
 
-	// unfortunately we must have this in the same scope as where it's constructed
-	// alloca prevents the use of delete, but its implementation is compiler dependent
 	delete[] pname;
 }
 
-void Shader::checkLinkStatus(std::vector<std::string> files)
+
+void Shader::checkLinkStatus(std::vector<std::string_view> files)
 {
 	// link program
 	GLint success;
@@ -209,4 +386,59 @@ void Shader::checkLinkStatus(std::vector<std::string> files)
 	{
 		// link successful
 	}
+}
+
+
+
+std::vector<uint32_t>
+	Shader::spvPreprocessAndCompile(
+		shaderc::Compiler& compiler,
+		const shaderc::CompileOptions options,
+		std::string path,
+		shaderc_shader_kind shaderType)
+{
+	// vert/frag required
+	const std::string rawSrc = loadFile(path);
+
+	auto PreprocessResult = compiler.PreprocessGlsl(
+		rawSrc, shaderType, path.c_str(), options);
+	if (auto numErr = PreprocessResult.GetNumErrors(); numErr > 0)
+	{
+		PreprocessResult.GetCompilationStatus();
+		printf("%llu errors preprocessing %s!\n", numErr, path.c_str());
+		printf("%s", PreprocessResult.GetErrorMessage().c_str());
+		return {};
+	}
+
+	//printf("Preprocessed:\n%s\n", PreprocessResult.begin());
+
+	auto CompileResult = compiler.CompileGlslToSpv(
+		PreprocessResult.begin(), shaderType, path.c_str(), options);
+	if (auto numErr = CompileResult.GetNumErrors(); numErr > 0)
+	{
+		printf("%llu errors compiling %s!\n", numErr, path.c_str());
+		printf("%s", CompileResult.GetErrorMessage().c_str());
+		return {};
+	}
+
+	// all this is debug
+	//std::cout << PreprocessResult.GetCompilationStatus() << std::endl;
+	//std::cout << CompileResult.GetCompilationStatus() << std::endl;
+#if 0
+	{
+		auto asmResult = compiler.CompileGlslToSpv(
+			PreprocessResult.begin(), shaderType, path.c_str(), options);
+		ASSERT(asmResult.GetNumErrors() == 0);
+		std::vector<uint32_t> v{ asmResult.begin(), asmResult.end() };
+		std::ofstream outfile("./resources/BinaryOutput/" + path + ".spv", std::ios::out | std::ios::trunc | std::ofstream::binary);
+		for (auto val : v)
+		{
+			outfile.write(reinterpret_cast<const char*>(&val), sizeof(uint32_t));
+			if (outfile.bad())
+				throw std::runtime_error("Failed to write to outfile!");
+		}
+	}
+#endif
+
+	return { CompileResult.begin(), CompileResult.end() };
 }

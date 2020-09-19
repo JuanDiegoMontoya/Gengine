@@ -1,4 +1,5 @@
 #pragma once
+#include <Graphics/GraphicsIncludes.h>
 
 namespace Utils
 {

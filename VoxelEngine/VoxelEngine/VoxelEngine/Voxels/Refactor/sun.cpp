@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include <Rendering/Frustum.h>
 #include <Refactor/sun.h>
 #include <Graphics/vao.h>
@@ -9,6 +8,9 @@
 #include <limits>
 #include <Graphics/Vertices.h>
 #include <Rendering/Renderer.h>
+
+#include <Systems/GraphicsSystem.h>
+#include <Graphics/GraphicsIncludes.h>
 
 Sun::Sun()
 {
@@ -35,10 +37,10 @@ void Sun::Update()
 	}
 
 	if (followCam)
-		pos_ = Renderer::GetPipeline()->GetCamera(0)->GetPos() - dir_ * followDist;
+		pos_ = GetCurrentCamera()->GetPos() - dir_ * followDist;
 	
 	//glm::mat4 lightView = glm::lookAt(pos_, dir_, glm::vec3(0.0, 1.0, 0.0));
-	view_ = glm::lookAt(pos_, glm::normalize(Renderer::GetPipeline()->GetCamera(0)->GetPos()), glm::vec3(0.0, 1.0, 0.0));
+	view_ = glm::lookAt(pos_, glm::normalize(GetCurrentCamera()->GetDir()), glm::vec3(0.0, 1.0, 0.0));
 
 	dirLight_.Update(pos_, dir_);
 }
@@ -55,7 +57,7 @@ void Sun::Render()
 
 	vao_->Bind();
 	vbo_->Bind();
-	auto cam = Renderer::GetPipeline()->GetCamera(0);
+	auto cam = GetCurrentCamera();
 	const glm::mat4& view = cam->GetView();
 	const glm::mat4& proj = cam->GetProj();
 

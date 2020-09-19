@@ -80,6 +80,7 @@ private:
 
   // new registry stuff
   entt::registry registry;
+  friend class Entity;
 
   PROPERTY(String, name, std::string("empty"));
   PROPERTY(Float, zLayer, 0.f);

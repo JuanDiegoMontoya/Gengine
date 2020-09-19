@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include <Refactor/hud.h>
 #include <Systems/InputSystem.h>
 #include <Components/Camera.h>
@@ -7,6 +6,7 @@
 #include <Rendering/NuRenderer.h>
 #include <Rendering/TextureArray.h>
 #include "Interface.h"
+#include <Systems/GraphicsSystem.h>
 
 void HUD::Update()
 {
@@ -21,7 +21,7 @@ void HUD::Update()
 		//printf("%d\n", selected_);
 	}
 	//reinterpret_cast<unsigned char&>(selected_) += ofs;
-	Camera* cam = Renderer::GetPipeline()->GetCamera(0);
+	Camera* cam = GetCurrentCamera();
 	//printf("%f\n", Input::Mouse().scrollOffset.y);
 
 	// render the selected object on the screen

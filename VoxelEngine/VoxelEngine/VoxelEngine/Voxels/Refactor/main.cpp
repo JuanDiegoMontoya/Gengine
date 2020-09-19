@@ -1,3 +1,4 @@
+#if 0
 #include "stdafx.h"
 #include <Engine.h>
 #include "Interface.h"
@@ -34,7 +35,6 @@
 //	allocator.Allocate((Chunk*)1, 0, 50);
 //}
 
-#if 0
 int main()
 {
 	EngineConfig cfg;

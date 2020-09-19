@@ -1,3 +1,4 @@
+#if 0
 #include <block.h>
 #include <biome.h>
 
@@ -115,3 +116,4 @@ void BiomeManager::initCustomBiomes()
 	return;
 	// iterate over files in a special directory and add them as biomes
 }
+#endif

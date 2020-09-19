@@ -1,3 +1,4 @@
+#if 0
 #include <Components/Camera.h>
 #include <Rendering/Renderer.h>
 #include <Refactor/settings.h>
@@ -180,3 +181,4 @@ void DirLight::calcPersProjs()
 		shadowOrthoProjMtxs_[i] = glm::perspective(glm::radians(80.f), 1920.f / 1080.f, cascadeEnds_[i], cascadeEnds_[i + 1]) * Renderer::GetPipeline()->GetCamera(0)->GetView();
 	}
 }
+#endif

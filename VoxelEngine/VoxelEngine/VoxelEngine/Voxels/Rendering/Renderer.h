@@ -1,5 +1,6 @@
 #pragma once
 #include <functional>
+#include <Graphics/GraphicsIncludes.h>
 
 class VAO;
 class IBO;
