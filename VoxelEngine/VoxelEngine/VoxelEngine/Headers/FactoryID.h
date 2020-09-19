@@ -25,6 +25,7 @@ const ID cGraphicsSystem = 1;
 const ID cInputSystem = 2;
 const ID cStubSystem = 3;
 const ID cTraceSystem = 4;
+const ID cVoxelWorld = 5;
 
 //ComponentIDs
 const ID cCamera = 0;

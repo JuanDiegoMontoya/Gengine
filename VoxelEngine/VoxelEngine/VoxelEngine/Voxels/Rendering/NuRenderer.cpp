@@ -1,5 +1,3 @@
-#if 0
-#include "stdafx.h"
 #include <Rendering/NuRenderer.h>
 #include <Rendering/Renderer.h> // for old rendering functions
 //#include "World.h"
@@ -12,9 +10,12 @@
 #include <Rendering/ChunkRenderer.h>
 #include <block.h>
 #include <Rendering/TextureArray.h>
-#include <texture.h>
+#include <Rendering/texture.h>
 #include <Refactor/sun.h>
 #include <Rendering/RenderOrder.h>
+
+#include <Systems/GraphicsSystem.h>
+#include <Components/VoxelWorld.h>
 
 namespace NuRenderer
 {
@@ -45,10 +46,10 @@ namespace NuRenderer
 		blueNoise64 = std::make_unique<Texture>("BlueNoise/256_256/LDR_LLL1_0.png");
 
 		CompileShaders();
-		Engine::PushRenderCallback(DrawAll, RenderOrder::RenderDrawAll);
-		Engine::PushRenderCallback(ChunkRenderer::Update, RenderOrder::RenderChunkRenderUpdate);
-		Engine::PushRenderCallback(Clear, RenderOrder::RenderClear);
-		Engine::PushRenderCallback(Renderer::drawSky, RenderOrder::RenderSky);
+		//Engine::PushRenderCallback(DrawAll, RenderOrder::RenderDrawAll);
+		//Engine::PushRenderCallback(ChunkRenderer::Update, RenderOrder::RenderChunkRenderUpdate);
+		//Engine::PushRenderCallback(Clear, RenderOrder::RenderClear);
+		//Engine::PushRenderCallback(Renderer::drawSky, RenderOrder::RenderSky);
 	}
 
 
@@ -85,7 +86,7 @@ namespace NuRenderer
 	void Clear()
 	{
 		drawCalls = 0;
-		auto cc = World::bgColor_;
+		auto cc = glm::vec3(.529f, .808f, .922f);
 		glClearColor(cc.r, cc.g, cc.b, 1.f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	}
@@ -93,7 +94,7 @@ namespace NuRenderer
 
 	void DrawAll()
 	{
-		PERF_BENCHMARK_START;
+		//PERF_BENCHMARK_START;
 
 		if (settings.gammaCorrection)
 			glEnable(GL_FRAMEBUFFER_SRGB); // gamma correction
@@ -117,7 +118,7 @@ namespace NuRenderer
 
 		glDisable(GL_FRAMEBUFFER_SRGB);
 
-		PERF_BENCHMARK_END;
+		//PERF_BENCHMARK_END;
 	}
 
 
@@ -130,22 +131,18 @@ namespace NuRenderer
 		ShaderPtr currShader = Shader::shaders["chunk_optimized"];
 		currShader->Use();
 
-		Camera* cam = Renderer::GetPipeline()->GetCamera(0);
+		Camera* cam = GetCurrentCamera();
 		float angle = glm::max(glm::dot(-glm::normalize(Renderer::activeSun_->GetDir()), glm::vec3(0, 1, 0)), 0.f);
 		currShader->setFloat("sunAngle", angle);
 		//printf("Angle: %f\n", angle);
 		// currShader->setInt("textureAtlas", ...);
 
-		float loadD = World::chunkManager_.GetLoadDistance();
-		float loadL = World::chunkManager_.GetUnloadLeniency();
 		// undo gamma correction for sky color
 		static glm::vec3 skyColor(
 			glm::pow(.529f, 2.2f),
 			glm::pow(.808f, 2.2f),
 			glm::pow(.922f, 2.2f));
 		currShader->setVec3("viewPos", cam->GetPos());
-		//currShader->setFloat("fogStart", loadD - loadD / 2.f);
-		//currShader->setFloat("fogEnd", loadD - Chunk::CHUNK_SIZE * 1.44f); // cuberoot(3)
 		currShader->setFloat("fogStart", settings.fogStart);
 		currShader->setFloat("fogEnd", settings.fogEnd);
 		currShader->setVec3("fogColor", skyColor);
@@ -194,7 +191,7 @@ namespace NuRenderer
 	void splatChunks()
 	{
 		glEnable(GL_PROGRAM_POINT_SIZE);
-		Camera* cam = Renderer::GetPipeline()->GetCamera(0);
+		Camera* cam = GetCurrentCamera();
 		const auto& proj = cam->GetProj();
 		const auto& view = cam->GetView();
 		ShaderPtr currShader = Shader::shaders["chunk_splat"];
@@ -250,4 +247,3 @@ namespace NuRenderer
 
 	}
 }
-#endif

@@ -1,5 +1,5 @@
 #ifndef SYSTEM_COUNT
-#define SYSTEM_COUNT 5
+#define SYSTEM_COUNT 6
 #endif
 
 #ifdef ENGINE_RUNNING
@@ -8,6 +8,7 @@
 #include "InputSystem.h"
 #include "StubSystem.h"
 #include "TraceSystem.h"
+#include "VoxelWorld.h"
 #endif // !ENGINE_RUNNING
 
 #ifdef FACTORY_RUNNING
@@ -18,6 +19,7 @@
 #include "InputSystem.h"
 #include "StubSystem.h"
 #include "TraceSystem.h"
+#include "VoxelWorld.h"
 
 
 void RegisterSystems()
@@ -33,6 +35,8 @@ Factory::SystemPropertyMap["InputSystem"] = std::vector<PropertyID>({
 Factory::SystemPropertyMap["StubSystem"] = std::vector<PropertyID>({
   });
 Factory::SystemPropertyMap["TraceSystem"] = std::vector<PropertyID>({
+  });
+Factory::SystemPropertyMap["VoxelWorld"] = std::vector<PropertyID>({
   });
 }
 

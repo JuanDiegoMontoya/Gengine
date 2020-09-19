@@ -23,11 +23,17 @@ public:
   std::unique_ptr<Component> Clone() const;
   std::string GetName();
 
-  //void UpdateEventsListen(UpdateEvent* updateEvent);
+  void UpdateEventsListen(UpdateEvent* updateEvent);
   void DrawEventsListen(DrawEvent* drawEvent);
 
   static std::unique_ptr<VoxelWorld> RegisterVoxelWorld();
 
+  struct Settings
+  {
+    bool gammaCorrection = true;
+    float fogStart = 500.f;
+    float fogEnd = 3000.f;
+  }static inline settings;
 private:
 
   friend void RegisterComponents();
