@@ -332,7 +332,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions>/experimental:external /external:I $(ProjectDir)3rdParty %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/experimental:external /external:I 3rdParty /external:W0 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -403,7 +403,7 @@ copy "$(ProjectDir)3rdParty\glfw-3.3-win64\lib-vc2019\glfw3.dll" "$(TargetDir)gl
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions>/experimental:external /external:I $(ProjectDir)3rdParty %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/experimental:external /external:I 3rdParty /external:W0 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

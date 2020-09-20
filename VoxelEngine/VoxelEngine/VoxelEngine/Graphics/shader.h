@@ -7,6 +7,9 @@
 #include <Graphics/GraphicsIncludes.h>
 #include <shaderc/shaderc.hpp>
 
+#pragma warning(push)
+#pragma warning(disable : 4267) // 8->4 byte int conversion
+
 // encapsulates shaders by storing uniforms and its GPU memory location
 // also stores the program's name and both shader paths for recompiling
 typedef class Shader
@@ -188,3 +191,5 @@ private:
 			std::string path,
 			shaderc_shader_kind a);
 }Shader, *ShaderPtr;
+
+#pragma warning(pop)
