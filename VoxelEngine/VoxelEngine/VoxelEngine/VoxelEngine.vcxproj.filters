@@ -246,13 +246,7 @@
     <ClInclude Include="Voxels\Rendering\ChunkRenderer.h">
       <Filter>Voxel Engine\Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="Voxels\Rendering\directional_light.h">
-      <Filter>Voxel Engine\Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="Voxels\Rendering\NuRenderer.h">
-      <Filter>Voxel Engine\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\Rendering\Renderer.h">
       <Filter>Voxel Engine\Rendering</Filter>
     </ClInclude>
     <ClInclude Include="Voxels\Rendering\RenderOrder.h">
@@ -378,11 +372,11 @@
     <ClInclude Include="Headers\Containers\Entity.h">
       <Filter>Header Files\Containers</Filter>
     </ClInclude>
-    <ClInclude Include="Headers\Components\Tag.h">
-      <Filter>Header Files\Components</Filter>
-    </ClInclude>
     <ClInclude Include="Voxels\Rendering\texture.h">
       <Filter>Voxel Engine\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Headers\Debug.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -491,13 +485,7 @@
     <ClCompile Include="Voxels\Rendering\ChunkRenderer.cpp">
       <Filter>Voxel Engine\Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="Voxels\Rendering\directional_light.cpp">
-      <Filter>Voxel Engine\Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="Voxels\Rendering\NuRenderer.cpp">
-      <Filter>Voxel Engine\Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="Voxels\Rendering\Renderer.cpp">
       <Filter>Voxel Engine\Rendering</Filter>
     </ClCompile>
     <ClCompile Include="Voxels\Rendering\TextureArray.cpp">
@@ -592,6 +580,9 @@
     </ClCompile>
     <ClCompile Include="Voxels\Rendering\texture.cpp">
       <Filter>Voxel Engine\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\stbiImpl.cpp">
+      <Filter>Graphics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

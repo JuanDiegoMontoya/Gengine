@@ -14,7 +14,6 @@
 #include <World/chunk_manager.h>
 #include <Rendering/ChunkRenderer.h>
 #include <Systems/InputSystem.h>
-#include <Rendering/Renderer.h>
 
 
 std::string VoxelWorld::GetName() { return "VoxelWorld"; }

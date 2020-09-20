@@ -193,7 +193,6 @@ bool Space::HasInitialized()
 }
 
 
-#include <Components/Tag.h>
 #include <Containers/Entity.h>
 //#include <Components/Transform.h>
 Entity Space::CreateEntity(std::string name)

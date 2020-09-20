@@ -13,6 +13,6 @@ void GlobalRendererInfo::SetCamera(Camera* camera)
 		uboData.viewProj = activeCamera->GetProj() * activeCamera->GetView();
 		uboData.invProj = glm::inverse(activeCamera->GetProj());
 		uboData.invView = glm::inverse(activeCamera->GetView());
-		ubo = std::make_unique<UBO>(uboData, sizeof(UBOData));
+		ubo = std::make_unique<UBO>(&uboData, sizeof(UBOData));
 	}
 }

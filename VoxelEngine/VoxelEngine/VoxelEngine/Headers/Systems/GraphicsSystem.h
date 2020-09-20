@@ -49,5 +49,5 @@ private:
 // idk if this sucks or not, just pretend it's a macro
 inline Camera* GetCurrentCamera()
 {
-  GraphicsSystem::GetGraphicsSystem()->GetActiveCamera();
+  return GraphicsSystem::GetGraphicsSystem()->GetActiveCamera();
 }

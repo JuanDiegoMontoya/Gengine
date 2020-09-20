@@ -43,6 +43,7 @@ public:
   float GetNear() const { return near_; }
   float GetFar() const { return far_; }
   glm::vec3 GetEuler() const { return { pitch_, yaw_, roll_ }; }
+  auto GetFront() const { return front; }
 
   void SetPos(const glm::vec3& v) { worldpos_ = v; UpdateViewMat(); }
   void SetFar(float f) { far_ = f; GenProjection(); }

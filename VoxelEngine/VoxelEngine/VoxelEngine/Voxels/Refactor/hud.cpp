@@ -2,7 +2,6 @@
 #include <Systems/InputSystem.h>
 #include <Components/Camera.h>
 #include <Graphics/shader.h>
-#include <Rendering/Renderer.h>
 #include <Rendering/NuRenderer.h>
 #include <Rendering/TextureArray.h>
 #include "Interface.h"
@@ -41,7 +40,7 @@ void HUD::Update()
 	NuRenderer::GetBlockTextures()->Bind(0);
 	curr->setInt("u_textures", 0);
 	curr->setInt("u_texIdx", int(selected_));
-	Renderer::DrawCube(); // block
+	NuRenderer::DrawCube(); // block
 
 	curr = Shader::shaders["flat_color"];
 	curr->setVec4("u_color", glm::vec4(1));

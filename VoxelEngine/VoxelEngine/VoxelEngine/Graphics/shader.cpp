@@ -354,7 +354,7 @@ void Shader::initUniforms()
 
 		glGetActiveUniform(programID, i, max_length, &written, &size, &type, pname);
 		GLchar* pname1 = new GLchar[max_length];
-		std::strcpy(pname1, pname);
+		std::memcpy(pname1, pname, max_length * sizeof(GLchar));
 		if (size > 1)
 			pname1[written - 3] = '\0';
 		GLint loc = glGetUniformLocation(programID, pname1);

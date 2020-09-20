@@ -4,7 +4,6 @@
 #include <Chunks/Chunk.h>
 #include <Components/Camera.h>
 #include <Rendering/Frustum.h>
-#include <Rendering/Renderer.h>
 #include <execution>
 #include <Graphics/shader.h>
 #include <Graphics/param_bo.h>

@@ -2,11 +2,12 @@
 #include <block.h>
 //#include "World.h"
 #include "chunk_manager.h"
-#include <Utilities/utilities.h>
+#include <Graphics/utilities.h>
 #include <Chunks/ChunkHelpers.h>
 #include <Chunks/ChunkStorage.h>
 #include <Graphics/GraphicsIncludes.h>
 #include <Utilities/Timer.h>
+#include <Systems/GraphicsSystem.h>
 
 #include <algorithm>
 #include <execution>
@@ -277,7 +278,7 @@ void ChunkManager::removeFarChunks()
 			[&](auto& p)->bool
 		{
 			// range is distance from camera to corner of chunk (corner is ok)
-			float dist = glm::distance(glm::vec3(p.first * Chunk::CHUNK_SIZE), Renderer::GetPipeline()->GetCamera(0)->GetPos());
+			float dist = glm::distance(glm::vec3(p.first * Chunk::CHUNK_SIZE), GetCurrentCamera()->GetPos());
 			if (p.second && dist > loadDistance_ + unloadLeniency_)
 			{
 				deleteList.push_back(p.second);
@@ -317,7 +318,7 @@ void ChunkManager::createNearbyChunks()
 		ChunkStorage::GetMapRaw().end(),
 		[&](auto& p)
 	{
-		float dist = glm::distance(glm::vec3(p.first * Chunk::CHUNK_SIZE), Renderer::GetPipeline()->GetCamera(0)->GetPos());
+		float dist = glm::distance(glm::vec3(p.first * Chunk::CHUNK_SIZE), GetCurrentCamera()->GetPos());
 		// generate null chunks within distance
 		if (!p.second && dist <= loadDistance_)
 		{

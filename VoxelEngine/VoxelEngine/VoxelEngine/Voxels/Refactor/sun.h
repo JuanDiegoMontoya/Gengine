@@ -1,5 +1,5 @@
 #pragma once
-#include <Rendering/directional_light.h>
+#include <Graphics/GraphicsIncludes.h>
 
 class VAO;
 class VBO;
@@ -24,7 +24,6 @@ public:
 	inline const glm::vec3& GetDir() const { return dir_; }
 	inline const glm::vec3& GetPos() const { return pos_; }
 	inline const glm::mat4& GetView() { return view_; }
-	inline DirLight& GetDirLight() { return dirLight_; }
 
 	// setters
 	inline void SetPos(const glm::vec3& pos) { pos_ = pos; }
@@ -36,7 +35,6 @@ public:
 	bool followCam = true;
 	float followDist = 250.f;
 private:
-	DirLight dirLight_;
 	glm::vec3 dir_;
 	glm::vec3 pos_; // position relative to camera
 

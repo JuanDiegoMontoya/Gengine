@@ -3,6 +3,12 @@
 #include <entt.hpp>
 #include <engine_assert.h>
 
+// example component
+struct Tag
+{
+	std::string tag;
+};
+
 // "lightweight object"
 class Entity
 {

@@ -2,6 +2,7 @@
 #include "BufferAllocator.h"
 #include <Graphics/vbo.h>
 #include <Graphics/vao.h>
+#include <Debug.h>
 
 
 template<typename UserT>

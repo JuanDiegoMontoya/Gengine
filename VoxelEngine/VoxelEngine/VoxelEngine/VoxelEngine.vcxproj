@@ -51,7 +51,6 @@
     <ClInclude Include="Headers\Components\Camera.h" />
     <ClInclude Include="Headers\Components\Component.h" />
     <ClInclude Include="Headers\Components\StubComponent.h" />
-    <ClInclude Include="Headers\Components\Tag.h" />
     <ClInclude Include="Headers\Components\TestingComponent.h" />
     <ClInclude Include="Headers\Components\VoxelWorld.h" />
     <ClInclude Include="Headers\Containers\BidirectionalMap.h" />
@@ -61,6 +60,7 @@
     <ClInclude Include="Headers\Containers\Object.h" />
     <ClInclude Include="Headers\Containers\Properties.h" />
     <ClInclude Include="Headers\Containers\Space.h" />
+    <ClInclude Include="Headers\Debug.h" />
     <ClInclude Include="Headers\Engine.h" />
     <ClInclude Include="Headers\engine_assert.h" />
     <ClInclude Include="Headers\Events\AllEventHeaders.h" />
@@ -104,10 +104,8 @@
     <ClInclude Include="Voxels\Refactor\settings.h" />
     <ClInclude Include="Voxels\Refactor\sun.h" />
     <ClInclude Include="Voxels\Rendering\ChunkRenderer.h" />
-    <ClInclude Include="Voxels\Rendering\directional_light.h" />
     <ClInclude Include="Voxels\Rendering\Frustum.h" />
     <ClInclude Include="Voxels\Rendering\NuRenderer.h" />
-    <ClInclude Include="Voxels\Rendering\Renderer.h" />
     <ClInclude Include="Voxels\Rendering\RenderOrder.h" />
     <ClInclude Include="Voxels\Rendering\texture.h" />
     <ClInclude Include="Voxels\Rendering\TextureArray.h" />
@@ -144,12 +142,15 @@
     <ClCompile Include="Graphics\abo.cpp" />
     <ClCompile Include="Graphics\Context.cpp" />
     <ClCompile Include="Graphics\dib.cpp" />
-    <ClCompile Include="Graphics\GlobalRendererInfo.cpp" />
+    <ClCompile Include="Graphics\GlobalRendererInfo.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/experimental:external /external:I "$(ProjectDir)3rdParty" %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
     <ClCompile Include="Graphics\ibo.cpp" />
     <ClCompile Include="Graphics\math_utils.cpp" />
     <ClCompile Include="Graphics\misc_utils.cpp" />
     <ClCompile Include="Graphics\param_bo.cpp" />
     <ClCompile Include="Graphics\shader.cpp" />
+    <ClCompile Include="Graphics\stbiImpl.cpp" />
     <ClCompile Include="Graphics\UBO.cpp" />
     <ClCompile Include="Graphics\vao.cpp" />
     <ClCompile Include="Graphics\vbo.cpp" />
@@ -186,10 +187,8 @@
     <ClCompile Include="Voxels\Refactor\settings.cpp" />
     <ClCompile Include="Voxels\Refactor\sun.cpp" />
     <ClCompile Include="Voxels\Rendering\ChunkRenderer.cpp" />
-    <ClCompile Include="Voxels\Rendering\directional_light.cpp" />
     <ClCompile Include="Voxels\Rendering\Frustum.cpp" />
     <ClCompile Include="Voxels\Rendering\NuRenderer.cpp" />
-    <ClCompile Include="Voxels\Rendering\Renderer.cpp" />
     <ClCompile Include="Voxels\Rendering\texture.cpp" />
     <ClCompile Include="Voxels\Rendering\TextureArray.cpp" />
     <ClCompile Include="Voxels\Utilities\collision_check.cpp" />
@@ -273,7 +272,7 @@
     <CustomBuildBeforeTargets>
     </CustomBuildBeforeTargets>
     <CustomBuildAfterTargets>PreBuildEvent</CustomBuildAfterTargets>
-    <LibraryPath>$(ProjectDir)3rdParty\glew-2.1.0\lib\Release\x64;$(ProjectDir)3rdParty\glfw-3.3-win64\lib-vc2019;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(ProjectDir)3rdParty\glew-2.1.0\lib\Release\x64;$(ProjectDir)3rdParty\glfw-3.3-win64\lib-vc2019;$(ProjectDir)3rdParty\shaderc\lib;$(ProjectDir)3rdParty\zlib-1.2.11\zlib123dllx64\static_x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -290,7 +289,7 @@
     <CustomBuildBeforeTargets>
     </CustomBuildBeforeTargets>
     <CustomBuildAfterTargets>PreBuildEvent</CustomBuildAfterTargets>
-    <LibraryPath>$(ProjectDir)3rdParty\glew-2.1.0\lib\Release\x64;$(ProjectDir)3rdParty\glfw-3.3-win64\lib-vc2019;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(ProjectDir)3rdParty\glew-2.1.0\lib\Release\x64;$(ProjectDir)3rdParty\glfw-3.3-win64\lib-vc2019;$(ProjectDir)3rdParty\shaderc\lib;$(ProjectDir)3rdParty\zlib-1.2.11\zlib123dllx64\static_x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -329,11 +328,16 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalOptions>/experimental:external /external:I $(ProjectDir)3rdParty %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>opengl32.lib;glfw3dll.lib;glew32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;glfw3dll.lib;glew32.lib;shaderc_combined.lib;zlibstat.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
       <Command>$(SolutionDir)x64\Release\PrePP.exe</Command>
@@ -390,20 +394,23 @@ copy "$(ProjectDir)3rdParty\glfw-3.3-win64\lib-vc2019\glfw3.dll" "$(TargetDir)gl
       <PrecompiledHeader>
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalOptions>/experimental:external /external:I $(ProjectDir)3rdParty %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>opengl32.lib;glfw3dll.lib;glew32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;glfw3dll.lib;glew32.lib;shaderc_combined.lib;zlibstat.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
       <Command>$(SolutionDir)x64\Release\PrePP.exe</Command>
