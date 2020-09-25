@@ -15,6 +15,9 @@
   //Hacky bad for now stuff
 
 #include "../../Headers/Components/TestingComponent.h"
+#include <Components/VoxelWorld.h>
+#include <Components/Camera.h>
+#include <Systems/GraphicsSystem.h>
 
   //done with bad stuff
 
@@ -27,6 +30,11 @@ std::unique_ptr<Space> Space::CreateInitialSpace()
 
   Object* newObject = Factory::CloneObject(&*newSpace);
   newObject->AttachComponent<TestingComponent>(CLONE_COMPONENT(TestingComponent));
+  newObject->AttachComponent<VoxelWorld>(CLONE_COMPONENT(VoxelWorld));
+
+  auto FUCK = std::make_unique<Camera>();
+  GraphicsSystem::GetGraphicsSystem()->SetActiveCamera(FUCK.get());
+  newObject->AttachComponent<Camera>(std::move(FUCK));
 
   return newSpace;
 

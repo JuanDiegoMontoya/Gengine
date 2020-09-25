@@ -592,9 +592,6 @@
     <None Include="Voxels\Chunks\ChunkHelpers.inl">
       <Filter>Voxel Engine\Chunks</Filter>
     </None>
-    <None Include="Voxels\Utilities\BufferAllocator.inl">
-      <Filter>Voxel Engine\Utilities</Filter>
-    </None>
     <None Include="Voxels\Utilities\Palette.inl">
       <Filter>Voxel Engine\Utilities</Filter>
     </None>

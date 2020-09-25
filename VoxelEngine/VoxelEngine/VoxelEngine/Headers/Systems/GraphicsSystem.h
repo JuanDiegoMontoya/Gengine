@@ -36,6 +36,11 @@ public:
     return info->activeCamera;
   }
 
+  GLFWwindow* GetWindow()
+  {
+    return info->window;
+  }
+
 private:
   GraphicsSystem();
 

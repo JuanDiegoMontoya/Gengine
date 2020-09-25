@@ -6,6 +6,7 @@
 
 #include <Events/UpdateEvent.h>
 #include <Events/DrawEvent.h>
+#include <Events/RenderEvent.h>
 
 #include <Systems/GraphicsSystem.h>
 #include <Refactor/hud.h>
@@ -15,6 +16,7 @@
 #include <Rendering/ChunkRenderer.h>
 #include <Systems/InputSystem.h>
 
+#include <Engine.h>
 
 std::string VoxelWorld::GetName() { return "VoxelWorld"; }
 
@@ -36,7 +38,7 @@ VoxelWorld::~VoxelWorld()
 void VoxelWorld::Init()
 {
   GetSpace()->RegisterListener(this, &VoxelWorld::UpdateEventsListen);
-  GetSpace()->RegisterListener(this, &VoxelWorld::DrawEventsListen);
+  Engine::GetEngine()->RegisterListener(this, &VoxelWorld::DrawEventsListen);
 
   WorldGen2::Init();
   chunkManager_->Init();
@@ -47,6 +49,7 @@ void VoxelWorld::Init()
   WorldGen2::InitBuffers();
 
   NuRenderer::Init();
+  
 }
 
 void VoxelWorld::End()
@@ -61,7 +64,7 @@ void VoxelWorld::End()
 std::unique_ptr<Component> VoxelWorld::Clone() const
 {
   auto result = new VoxelWorld();
-  assert(false); // do not copy this shit
+  //assert(false); // do not copy this shit
   return std::unique_ptr<Component>(result);
 }
 
@@ -78,6 +81,7 @@ void VoxelWorld::UpdateEventsListen(UpdateEvent* updateEvent)
   //  CheckCollision();
   //}
 
+
   chunkManager_->Update();
   //CheckInteraction();
   //sun_->Update();
@@ -92,4 +96,5 @@ void VoxelWorld::UpdateEventsListen(UpdateEvent* updateEvent)
 void VoxelWorld::DrawEventsListen(DrawEvent* drawEvent)
 {
   NuRenderer::DrawAll();
+  glfwSwapBuffers(GraphicsSystem::GetGraphicsSystem()->GetWindow());
 }

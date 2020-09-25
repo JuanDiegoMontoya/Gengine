@@ -25,11 +25,11 @@ Camera::Camera(
   //Int componentData_
 ) : Component(componentType) //, componentData(componentData_)
 {
+	frustum_ = std::make_unique<Frustum>();
 }
 
 Camera::~Camera()
 {
-  delete frustum_;
 }
 
 void Camera::Init()
@@ -86,6 +86,8 @@ void Camera::UpdateEventsListen(UpdateEvent* updateEvent)
 	dir_ = front;
 
 	UpdateViewMat();
+
+	printf("%f, %f, %f\n", front.x, front.y, front.z);
 }
 
 //void Camera::DrawEventsListen(DrawEvent* drawEvent) { }

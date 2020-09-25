@@ -38,7 +38,7 @@ public:
   const glm::mat4& GetProj() const { return proj_; }
   const glm::vec3& GetPos() const { return worldpos_; }
   const glm::vec3& GetDir() const { return dir_; }
-  const Frustum* GetFrustum() const { return frustum_; }
+  const Frustum* GetFrustum() const { return frustum_.get(); }
   float GetFov() const { return fovDeg_; }
   float GetNear() const { return near_; }
   float GetFar() const { return far_; }
@@ -53,7 +53,7 @@ private:
 
   friend void RegisterComponents();
 
-  Frustum* frustum_;
+  std::unique_ptr<Frustum> frustum_;
   glm::vec3 worldpos_ = glm::vec3(150, 50, 100);
   glm::vec3 dir_ = glm::vec3(-.22f, .22f, -.95f);
   glm::mat4 view_ = glm::mat4(1);

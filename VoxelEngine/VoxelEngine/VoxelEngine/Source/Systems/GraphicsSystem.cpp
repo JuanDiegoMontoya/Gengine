@@ -53,21 +53,25 @@ std::string GraphicsSystem::GetName()
 
 void GraphicsSystem::Init()
 {
- Engine::GetEngine()->RegisterListener(this, &GraphicsSystem::UpdateEventsListen);
- Engine::GetEngine()->RegisterListener(this, &GraphicsSystem::RenderEventsListen);
+	Engine::GetEngine()->RegisterListener(this, &GraphicsSystem::UpdateEventsListen);
+	Engine::GetEngine()->RegisterListener(this, &GraphicsSystem::RenderEventsListen);
 
- window = init_glfw_context();
- glfwMakeContextCurrent(window);
- glfwSwapInterval(1);
+	window = init_glfw_context();
+	glfwMakeContextCurrent(window);
+	glfwSwapInterval(1);
 
 
- Shader::shaders["flat_color"] = new Shader("flat_color.vs", "flat_color.fs");
+	Shader::shaders["flat_color"] = new Shader("flat_color.vs", "flat_color.fs");
 
- // Initialize Dear ImGui
- ImGui::CreateContext();
- ImGui_ImplGlfw_InitForOpenGL(window, true);
- ImGui_ImplOpenGL3_Init();
- ImGui::StyleColorsDark();
+	// Initialize Dear ImGui
+	ImGui::CreateContext();
+	ImGui_ImplGlfw_InitForOpenGL(window, true);
+	ImGui_ImplOpenGL3_Init();
+	ImGui::StyleColorsDark();
+
+	info = std::make_unique<GlobalRendererInfo>();
+	info->window = window;
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 }
 
 void GraphicsSystem::End()
@@ -82,9 +86,9 @@ void GraphicsSystem::End()
 void GraphicsSystem::UpdateEventsListen(UpdateEvent* updateEvent)
 {
 	// Begin ImGui frame
-	ImGui_ImplOpenGL3_NewFrame();
-	ImGui_ImplGlfw_NewFrame();
-	ImGui::NewFrame();
+	//ImGui_ImplOpenGL3_NewFrame();
+	//ImGui_ImplGlfw_NewFrame();
+	//ImGui::NewFrame();
 
   Engine::GetEngine()->AttachEvent(DrawEvent::GenerateDrawEvent(HANDLE_NEXT_FRAME));
   Engine::GetEngine()->AttachEvent(RenderEvent::GenerateRenderEvent(HANDLE_NEXT_FRAME));
@@ -117,6 +121,7 @@ void GraphicsSystem::UpdateEventsListen(UpdateEvent* updateEvent)
 
 void GraphicsSystem::RenderEventsListen(UpdateEvent* updateEvent)
 {
+	return;
 	auto dt = updateEvent->elapsedTime;
 	glClearColor(cos(dt), sin(dt), 1.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

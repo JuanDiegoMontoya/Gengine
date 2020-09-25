@@ -188,6 +188,7 @@ namespace NuRenderer
 	void DrawAll()
 	{
 		//PERF_BENCHMARK_START;
+		Clear();
 
 		if (settings.gammaCorrection)
 			glEnable(GL_FRAMEBUFFER_SRGB); // gamma correction
@@ -210,6 +211,7 @@ namespace NuRenderer
 		//Renderer::postProcess();
 
 		glDisable(GL_FRAMEBUFFER_SRGB);
+		ChunkRenderer::Update();
 
 		//PERF_BENCHMARK_END;
 	}
