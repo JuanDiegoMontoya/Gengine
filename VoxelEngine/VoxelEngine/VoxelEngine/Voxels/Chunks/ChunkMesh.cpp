@@ -20,7 +20,6 @@ using namespace std::chrono;
 ChunkMesh::~ChunkMesh()
 {
 	ChunkRenderer::allocator->Free(bufferHandle);
-	ChunkRenderer::allocatorSplat->Free(bufferHandleSplat);
 }
 
 void ChunkMesh::Render()
@@ -40,104 +39,6 @@ void ChunkMesh::Render()
 }
 
 
-void ChunkMesh::RenderSplat()
-{
-	if (svao_)
-	{
-		svao_->Bind();
-		glDrawArrays(GL_POINTS, 0, pointCount_);
-	}
-}
-
-
-//DrawElementsIndirectCommand ChunkMesh::GetDrawCommand(GLuint& baseVert, int index)
-//{
-//	DrawElementsIndirectCommand cmd;
-//	cmd.count = indexCount_;
-//	cmd.instanceCount = 1;
-//	cmd.firstIndex = 0;
-//	cmd.baseVertex = baseVert;
-//	cmd.baseInstance = index;
-//	baseVert += vertexCount_;
-//	return cmd;
-//}
-
-
-void ChunkMesh::BuildBuffers()
-{
-	std::lock_guard lk(mtx);
-
-	vertexCount_ = encodedStuffArr.size();
-	pointCount_ = sPosArr.size();
-
-	// nothing emitted, don't try to make buffers
-	if (pointCount_ == 0)
-		return;
-
-	if (!vao_)
-		vao_ = std::make_unique<VAO>();
-
-	vao_->Bind();
-
-#if 0
-	encodedStuffVbo_ = std::make_unique<VBO>(encodedStuffArr.data(), sizeof(GLfloat) * encodedStuffArr.size());
-	encodedStuffVbo_->Bind();
-	glVertexAttribIPointer(0, 1, GL_UNSIGNED_INT, 0, (void*)0); // encoded stuff
-	glEnableVertexAttribArray(0);
-
-	lightingVbo_ = std::make_unique<VBO>(lightingArr.data(), sizeof(GLfloat) * lightingArr.size());
-	lightingVbo_->Bind();
-	glVertexAttribIPointer(1, 1, GL_UNSIGNED_INT, 0, (void*)0); // encoded lighting
-	glEnableVertexAttribArray(1);
-
-	glm::ivec3 pos = Chunk::CHUNK_SIZE * parent->GetPos();
-	posVbo_ = std::make_unique<VBO>(glm::value_ptr(pos), sizeof(glm::vec3));
-	posVbo_->Bind();
-	glEnableVertexAttribArray(2);
-	glVertexAttribDivisor(2, 1);
-	glVertexAttribIPointer(2, 3, GL_INT, sizeof(GLint), (void*)0);
-#else
-	encodedStuffVbo_ = std::make_unique<VBO>(interleavedArr.data(), sizeof(GLint) * interleavedArr.size());
-	encodedStuffVbo_->Bind();
-	glEnableVertexAttribArray(0);
-	glEnableVertexAttribArray(1);
-	glEnableVertexAttribArray(2);
-	glVertexAttribDivisor(2, 1); // only 1 instance of a chunk should render, so divisor *should* be infinity
-	GLuint offset = 0;
-	glVertexAttribIPointer(2, 3, GL_INT, 0, (void*)offset); // chunk position (one per instance)
-	offset += sizeof(glm::ivec3);
-
-	glVertexAttribIPointer(0, 1, GL_UNSIGNED_INT, 2 * sizeof(GLuint), (void*)offset); // encoded data
-	offset += 1 * sizeof(GLfloat);
-
-	glVertexAttribIPointer(1, 1, GL_UNSIGNED_INT, 2 * sizeof(GLuint), (void*)offset); // lighting
-#endif
-
-	// SPLATTING STUFF
-	if (!svao_)
-		svao_ = std::make_unique<VAO>();
-
-	svao_->Bind();
-	svbo_ = std::make_unique<VBO>(sPosArr.data(), sizeof(GLfloat) * sPosArr.size());
-	svbo_->Bind();
-	glVertexAttribPointer(0, 1, GL_FLOAT, GL_FALSE, sizeof(GLfloat), (void*)0);
-	glEnableVertexAttribArray(0);
-
-	// INDIRECT STUFF
-	DrawArraysIndirectCommand cmd;
-	cmd.count = vertexCount_;
-	cmd.instanceCount = 1;
-	cmd.first = 0;
-	cmd.baseInstance = 0; // must be zero for glDrawElementsIndirect
-	dib_ = std::make_unique<DIB>(&cmd, sizeof(DrawArraysIndirectCommand));
-
-	encodedStuffArr.clear();
-	lightingArr.clear();
-	sPosArr.clear();
-	interleavedArr.clear();
-}
-
-
 void ChunkMesh::BuildBuffers2()
 {
 	std::lock_guard lk(mtx);
@@ -145,37 +46,24 @@ void ChunkMesh::BuildBuffers2()
 	namespace CR = ChunkRenderer;
 
 	vertexCount_ = encodedStuffArr.size();
-	pointCount_ = sPosArr.size();
 
 	CR::allocator->Free(bufferHandle);
-	CR::allocatorSplat->Free(bufferHandleSplat);
 
 	// nothing emitted, don't try to make buffers
 	if (pointCount_ == 0)
 		return;
 	
 	// free oldest allocations until there is enough space to allocate this buffer
-	bufferHandle = 1;
-	do
+	while ((bufferHandle = CR::allocator->Allocate(
+		interleavedArr.data(), 
+		interleavedArr.size() * sizeof(GLint), 
+		this->parent->GetAABB())) == NULL)
 	{
-		if (bufferHandle == NULL)
-			CR::allocator->FreeOldest();
-		bufferHandle = CR::allocator->Allocate(
-			interleavedArr.data(), interleavedArr.size() * sizeof(GLint), this->parent->GetAABB());
-	} while (bufferHandle == NULL);
-
-	bufferHandleSplat = 1;
-	do
-	{
-		if (bufferHandleSplat == NULL)
-			CR::allocator->FreeOldest();
-		bufferHandleSplat = CR::allocatorSplat->Allocate(
-			sPosArr.data(), sPosArr.size() * sizeof(GLint), this->parent->GetAABB());
-	} while (bufferHandleSplat == NULL);
+		CR::allocator->FreeOldest();
+	}
 
 	encodedStuffArr.clear();
 	lightingArr.clear();
-	sPosArr.clear();
 	interleavedArr.clear();
 
 	//printf("%f: Buffered\n", glfwGetTime());
@@ -200,9 +88,6 @@ void ChunkMesh::BuildMesh()
 		interleavedArr.push_back(ap.y);
 		interleavedArr.push_back(ap.z);
 		interleavedArr.push_back(12345); // necessary padding
-		sPosArr.push_back(ap.x);
-		sPosArr.push_back(ap.y);
-		sPosArr.push_back(ap.z);
 		// no padding necessary
 
 		glm::ivec3 pos;
@@ -313,8 +198,7 @@ inline void ChunkMesh::addQuad(const glm::ivec3& lpos, BlockType block, int face
 {
 	if (voxelReady_)
 	{
-		sPosArr.push_back(ChunkHelpers::EncodeSplat(lpos, 
-			glm::vec3(1)));
+		pointCount_++;
 		voxelReady_ = false;
 	}
 

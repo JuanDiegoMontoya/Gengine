@@ -18,12 +18,9 @@ namespace ChunkRenderer
 	namespace
 	{
 		std::unique_ptr<VAO> vao;
-		std::unique_ptr<VAO> vaoSplat;
 		std::unique_ptr<DIB> dib;
-		std::unique_ptr<DIB> dibSplat;
 
 		std::unique_ptr<Param_BO> drawCountGPU;
-		std::unique_ptr<Param_BO> drawCountGPUSplat;
 
 		// size of compute block (not voxel) for the compute shader
 		const int blockSize = 64; // defined in compact_batch.cs
@@ -41,12 +38,10 @@ namespace ChunkRenderer
 	void InitAllocator()
 	{
 		drawCountGPU = std::make_unique<Param_BO>();
-		drawCountGPUSplat = std::make_unique<Param_BO>();
 
 		// allocate big buffer
 		// TODO: vary the allocation size based on some user setting
 		allocator = std::make_unique<BufferAllocator<AABB16>>(100'000'000, 2 * sizeof(GLint));
-		allocatorSplat = std::make_unique<BufferAllocator<AABB16>>(100'000'000, sizeof(GLint));
 		
 		/* :::::::::::BUFFER FORMAT:::::::::::
 		                        CHUNK 1                                    CHUNK 2                   NULL                   CHUNK 3
@@ -74,16 +69,6 @@ namespace ChunkRenderer
 		glVertexAttribIPointer(1, 1, GL_UNSIGNED_INT, 2 * sizeof(GLuint), (void*)offset); // lighting
 		vao->Unbind();
 
-		vaoSplat = std::make_unique<VAO>();
-		vaoSplat->Bind();
-		glBindBuffer(GL_ARRAY_BUFFER, allocatorSplat->GetGPUHandle());
-		glEnableVertexAttribArray(0);
-		glEnableVertexAttribArray(1);
-		glVertexAttribDivisor(1, 1);
-		glVertexAttribIPointer(1, 3, GL_INT, sizeof(GLuint), (void*)0);
-		glVertexAttribIPointer(0, 1, GL_UNSIGNED_INT, sizeof(GLuint), (void*)(3 * sizeof(GLint)));
-		vaoSplat->Unbind();
-
 		// setup vertex buffer for cube that will be used for culling
 		vaoCull = std::make_unique<VAO>();
 		vaoCull->Bind();
@@ -100,6 +85,8 @@ namespace ChunkRenderer
 		cmd.first = 0;
 		cmd.baseInstance = 0;
 		dibCull = std::make_unique<DIB>(&cmd, sizeof(cmd), GL_STATIC_COPY);
+
+		dib = std::make_unique<DIB>(nullptr, 0, GL_STATIC_COPY);
 	}
 
 
@@ -174,69 +161,6 @@ namespace ChunkRenderer
 	}
 
 
-	void GenerateDrawCommandsSplatGPU()
-	{
-		//PERF_BENCHMARK_START;
-#ifdef TRACY_ENABLE
-		TracyGpuZone("Gen draw commands splat");
-#endif
-
-		Camera* cam = GetCurrentCamera();
-		// make buffer sized as if every allocation was non-null
-		ShaderPtr sdr = Shader::shaders["compact_batch"];
-		sdr->Use();
-#if 1
-		sdr->setVec3("u_viewpos", cam->GetPos());
-		Frustum fr = *cam->GetFrustum();
-		for (int i = 0; i < 5; i++) // ignore near plane
-		{
-			std::string uname = "u_viewfrustum.data_[" + std::to_string(i) + "]";
-			sdr->set1FloatArray(uname.c_str(), fr.GetData()[i], 4);
-		}
-		sdr->setFloat("u_cullMinDist", settings.splatMin);
-		sdr->setFloat("u_cullMaxDist", settings.splatMax);
-#endif
-		sdr->setUInt("u_reservedVertices", 3);
-		sdr->setUInt("u_vertexSize", sizeof(GLuint) * 1);
-
-		//drawCounterSplat->Bind(0);
-		//drawCounterSplat->Reset();
-		drawCountGPUSplat->Reset();
-
-		// copy input data to buffer at binding 0
-		GLuint indata;
-		glGenBuffers(1, &indata);
-		glBindBuffer(GL_SHADER_STORAGE_BUFFER, indata);
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, indata);
-		const auto& allocs = allocatorSplat->GetAllocs();
-		glBufferData(GL_SHADER_STORAGE_BUFFER, allocatorSplat->AllocSize() * allocs.size(), allocs.data(), GL_STATIC_COPY);
-
-		// make DIB output SSBO (binding 1) for the shader
-		dibSplat = std::make_unique<DIB>(
-			nullptr,
-			allocatorSplat->ActiveAllocs() * sizeof(DrawArraysIndirectCommand),
-			GL_STATIC_COPY);
-		glBindBuffer(GL_SHADER_STORAGE_BUFFER, dibSplat->GetID());
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, dibSplat->GetID());
-
-		glBindBuffer(GL_SHADER_STORAGE_BUFFER, drawCountGPUSplat->GetID());
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, drawCountGPUSplat->GetID());
-
-		{
-			int numBlocks = (allocs.size() + blockSize - 1) / blockSize;
-			glDispatchCompute(numBlocks, 1, 1);
-			//glMemoryBarrier(GL_ATOMIC_COUNTER_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT);
-		}
-		//renderCountSplat = drawCounterSplat->Get(0); // sync point
-		//ASSERT(renderCountSplat <= allocatorSplat->ActiveAllocs());
-		glDeleteBuffers(1, &indata);
-
-		drawCountGPUSplat->Unbind();
-
-		//PERF_BENCHMARK_END;
-	}
-
-
 	void RenderNorm()
 	{
 #ifdef TRACY_ENABLE
@@ -251,22 +175,6 @@ namespace ChunkRenderer
 		//glMultiDrawArraysIndirect(GL_TRIANGLES, (void*)0, renderCount, 0);
 		drawCountGPU->Bind();
 		glMultiDrawArraysIndirectCount(GL_TRIANGLES, (void*)0, (GLintptr)0, allocator->ActiveAllocs(), 0);
-	}
-
-
-	void RenderSplat()
-	{
-#ifdef TRACY_ENABLE
-		TracyGpuZone("Render chunks splat");
-#endif
-		//if (renderCountSplat == 0)
-		//	return;
-	
-		vaoSplat->Bind();
-		dibSplat->Bind();
-		drawCountGPUSplat->Bind();
-		//glMultiDrawArraysIndirect(GL_POINTS, (void*)0, renderCountSplat, 0);
-		glMultiDrawArraysIndirectCount(GL_POINTS, (void*)0, (GLintptr)0, allocatorSplat->ActiveAllocs(), 0);
 	}
 
 

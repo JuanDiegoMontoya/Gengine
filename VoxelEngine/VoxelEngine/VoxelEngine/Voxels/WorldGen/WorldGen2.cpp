@@ -50,14 +50,14 @@ namespace WorldGen2
 	void GenerateWorld()
 	{
 		Timer timer;
-		FastNoiseSIMD* noisey = FastNoiseSIMD::NewFastNoiseSIMD();
+		std::unique_ptr<FastNoiseSIMD> noisey (FastNoiseSIMD::NewFastNoiseSIMD());
 		noisey->SetFractalLacunarity(2.0);
 		noisey->SetFractalOctaves(5);
 		//noisey->SetFrequency(.04);
 		//noisey->SetPerturbType(FastNoiseSIMD::Gradient);
 		//noisey->SetPerturbAmp(0.4);
 		//noisey->SetPerturbFrequency(0.4);
-		
+
 		auto& chunks = ChunkStorage::GetMapRaw();
 		std::for_each(std::execution::par, chunks.begin(), chunks.end(),
 			[&](auto pair)
@@ -117,7 +117,7 @@ namespace WorldGen2
 			}
 		});
 
-		delete noisey;
+		//delete noisey;
 		printf("Generating chunks took %f seconds\n", timer.elapsed());
 	}
 

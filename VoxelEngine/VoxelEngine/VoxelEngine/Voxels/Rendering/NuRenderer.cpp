@@ -259,42 +259,6 @@ namespace NuRenderer
 		drawCalls++;
 	}
 
-
-	void splatChunks()
-	{
-		glEnable(GL_PROGRAM_POINT_SIZE);
-		Camera* cam = GetCurrentCamera();
-		const auto& proj = cam->GetProj();
-		const auto& view = cam->GetView();
-		ShaderPtr currShader = Shader::shaders["chunk_splat"];
-		currShader->Use();
-
-		currShader->setVec3("u_viewpos", cam->GetPos());
-
-		currShader->setMat4("u_viewProj", proj * view);
-		currShader->setMat4("u_invProj", glm::inverse(proj));
-		currShader->setMat4("u_invView", glm::inverse(view));
-
-		float angle = glm::max(glm::dot(-glm::normalize(NuRenderer::activeSun_->GetDir()), glm::vec3(0, 1, 0)), 0.f);
-		currShader->setFloat("sunAngle", angle);
-
-		GLint vp[4];
-		glGetIntegerv(GL_VIEWPORT, vp);
-		currShader->setVec2("u_viewportSize", glm::vec2(vp[2], vp[3]));
-
-
-
-
-
-		//ChunkRenderer::GenerateDrawCommandsSplat();
-		ChunkRenderer::GenerateDrawCommandsSplatGPU();
-		currShader->Use();
-		ChunkRenderer::RenderSplat();
-		drawCalls++;
-		return;
-	}
-
-
 	void drawChunksWater()
 	{
 

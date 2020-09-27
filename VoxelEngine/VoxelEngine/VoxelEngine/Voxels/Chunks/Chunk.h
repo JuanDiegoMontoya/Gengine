@@ -128,11 +128,6 @@ public:
 		mesh.Render();
 	}
 
-	void RenderSplat()
-	{
-		mesh.RenderSplat();
-	}
-
 	ChunkMesh& GetMesh()
 	{
 		return mesh;

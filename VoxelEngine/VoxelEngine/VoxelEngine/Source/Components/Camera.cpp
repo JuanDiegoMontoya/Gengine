@@ -88,7 +88,7 @@ void Camera::UpdateEventsListen(UpdateEvent* updateEvent)
 	UpdateViewMat();
 
 	//printf("%f, %f, %f\n", front.x, front.y, front.z);
-	printf("%f, %f, %f\n", worldpos_.x, worldpos_.y, worldpos_.z);
+	//printf("%f, %f, %f\n", worldpos_.x, worldpos_.y, worldpos_.z);
 }
 
 //void Camera::DrawEventsListen(DrawEvent* drawEvent) { }
