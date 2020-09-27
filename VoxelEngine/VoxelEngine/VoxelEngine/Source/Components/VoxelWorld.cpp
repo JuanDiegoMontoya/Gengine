@@ -85,7 +85,6 @@ void VoxelWorld::UpdateEventsListen(UpdateEvent* updateEvent)
   chunkManager_->Update();
   //CheckInteraction();
   //sun_->Update();
-
   //Renderer::DrawAll();
   //Editor::Update();
   //hud_.Update();

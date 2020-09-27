@@ -78,7 +78,6 @@ void GraphicsSystem::End()
 {
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui::DestroyContext();
-
   Engine::GetEngine()->UnregisterListener(this, &GraphicsSystem::UpdateEventsListen);
   Engine::GetEngine()->UnregisterListener(this, &GraphicsSystem::RenderEventsListen);
 }

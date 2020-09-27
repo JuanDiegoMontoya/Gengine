@@ -23,9 +23,6 @@ out vec4 fragColor;
 
 float map(float val, float r1s, float r1e, float r2s, float r2e)
 {
-  vec3 test;
-  if (test.length() == 3)
-    test[0] = 1;
   return (val - r1s) / (r1e - r1s) * (r2e - r2s) + r2s;
 }
 

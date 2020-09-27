@@ -33,6 +33,7 @@ std::unique_ptr<Space> Space::CreateInitialSpace()
   newObject->AttachComponent<VoxelWorld>(CLONE_COMPONENT(VoxelWorld));
 
   auto FUCK = std::make_unique<Camera>();
+  FUCK->GenProjection(80.0f);
   GraphicsSystem::GetGraphicsSystem()->SetActiveCamera(FUCK.get());
   newObject->AttachComponent<Camera>(std::move(FUCK));
 

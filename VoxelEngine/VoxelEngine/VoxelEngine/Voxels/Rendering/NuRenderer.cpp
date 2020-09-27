@@ -101,6 +101,7 @@ namespace NuRenderer
 		glEnable(GL_CULL_FACE);
 		glCullFace(GL_BACK);
 		glFrontFace(GL_CCW);
+		glfwSwapInterval(0);
 
 		std::vector<std::string> texs;
 		for (const auto& prop : Block::PropertiesTable)
