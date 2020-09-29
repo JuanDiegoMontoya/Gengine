@@ -61,7 +61,7 @@ void GraphicsSystem::Init()
 	glfwSwapInterval(1);
 
 
-	Shader::shaders["flat_color"] = new Shader("flat_color.vs", "flat_color.fs");
+	Shader::shaders["flat_color"].emplace(Shader("flat_color.vs", "flat_color.fs"));
 
 	// Initialize Dear ImGui
 	ImGui::CreateContext();
@@ -125,7 +125,7 @@ void GraphicsSystem::RenderEventsListen(UpdateEvent* updateEvent)
 	glClearColor(cos(dt), sin(dt), 1.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	Shader* shader = Shader::shaders["flat_color"];
+	auto& shader = Shader::shaders["flat_color"];
 	shader->Use();
 
 	glm::mat4 proj = glm::perspective(glm::radians(90.0f), 1920.f / 1080.f, 0.1f, 100.0f);

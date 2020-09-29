@@ -3,12 +3,6 @@
 #include <fstream>
 #include <iostream>
 
-
-static const int LOG_BUF_LEN = 512;
-
-int Shader::shader_count_ = 0;
-std::unordered_map<std::string, Shader*> Shader::shaders = std::unordered_map<std::string, Shader*>();
-
 class IncludeHandler : public shaderc::CompileOptions::IncluderInterface
 {
 public:
@@ -53,7 +47,6 @@ Shader::Shader(
 	std::optional<std::string> tessCtrlPath,
 	std::optional<std::string> tessEvalPath,
 	std::optional<std::string> geometryPath)
-	: shaderID(shader_count_++)
 {
 	if (!vertexPath || !fragmentPath)
 	{
@@ -61,23 +54,14 @@ Shader::Shader(
 		return;
 	}
 
-	vsPath = vertexPath.value();
-	fsPath = fragmentPath.value();
-	if (tessCtrlPath)
-		tcsPath = tessCtrlPath.value();
-	if (tessEvalPath)
-		tesPath = tessEvalPath.value();
-	if (geometryPath)
-		gsPath = geometryPath.value();
-
 	// vert/frag required
 	const std::string vertRawSrc = loadFile(vertexPath.value());
 	const std::string fragRawSrc = loadFile(fragmentPath.value());
 
 	// compile individual shaders
 	programID = glCreateProgram();
-	GLint vShader = compileShader(TY_VERTEX, { vertRawSrc });
-	GLint fShader = compileShader(TY_FRAGMENT, { fragRawSrc });
+	GLint vShader = compileShader(GL_VERTEX_SHADER, { vertRawSrc }, vertexPath.value());
+	GLint fShader = compileShader(GL_FRAGMENT_SHADER, { fragRawSrc }, fragmentPath.value());
 	GLint tcShader = 0;
 	GLint teShader = 0;
 	GLint gShader  = 0;
@@ -120,12 +104,11 @@ Shader::Shader(
 }
 
 
-Shader::Shader(int, std::string computePath) : shaderID(shader_count_++)
+Shader::Shader(int, std::string computePath)
 {
-	csPath = computePath;
 	programID = glCreateProgram();
 	const std::string compRawSrc = loadFile(computePath);
-	GLint cShader = compileShader(TY_COMPUTE, { compRawSrc });
+	GLint cShader = compileShader(GL_COMPUTE_SHADER, { compRawSrc }, computePath);
 	glAttachShader(programID, cShader);
 	glLinkProgram(programID);
 	checkLinkStatus({ computePath });
@@ -135,7 +118,7 @@ Shader::Shader(int, std::string computePath) : shaderID(shader_count_++)
 }
 
 
-Shader::Shader(std::vector<std::pair<std::string, GLint>> shaders) : shaderID(shader_count_++)
+Shader::Shader(std::vector<std::pair<std::string, GLint>> shaders)
 {
 #if DE_BUG
 	std::unordered_map<int, int> types;
@@ -211,6 +194,7 @@ Shader::Shader(std::vector<std::pair<std::string, GLint>> shaders) : shaderID(sh
 		glGetShaderiv(shaderID, GL_COMPILE_STATUS, &compileStatus);
 		if (compileStatus == GL_FALSE)
 		{
+			const int LOG_BUF_LEN = 512;
 			GLint maxlen = 0;
 			GLchar infoLog[LOG_BUF_LEN];
 			glGetShaderiv(shaderID, GL_INFO_LOG_LENGTH, &maxlen);
@@ -273,42 +257,13 @@ std::string Shader::loadFile(std::string path)
 
 
 // compiles a shader source and returns its ID
-GLint Shader::compileShader(shadertype type, const std::vector<std::string>& src)
+GLint Shader::compileShader(shaderType type, const std::vector<std::string>& src, std::string_view path)
 {
 	GLuint shader = 0;
 	GLchar infoLog[512];
-	std::string path;
 	GLint success;
-	
-	switch (type)
-	{
-	case Shader::TY_VERTEX:
-		shader = glCreateShader(GL_VERTEX_SHADER);
-		path = vsPath;
-		break;
-	case Shader::TY_TESS_CONTROL:
-		shader = glCreateShader(GL_TESS_CONTROL_SHADER);
-		path = tcsPath;
-		break;
-	case Shader::TY_TESS_EVAL:
-		shader = glCreateShader(GL_TESS_EVALUATION_SHADER);
-		path = vsPath;
-		break;
-	case Shader::TY_GEOMETRY:
-		shader = glCreateShader(GL_GEOMETRY_SHADER);
-		path = vsPath;
-		break;
-	case Shader::TY_FRAGMENT:
-		shader = glCreateShader(GL_FRAGMENT_SHADER);
-		path = fsPath;
-		break;
-	case Shader::TY_COMPUTE:
-		shader = glCreateShader(GL_COMPUTE_SHADER);
-		path = csPath;
-		break;
-	default:
-		break;
-	}
+
+	shader = glCreateShader(type);
 
 	const GLchar** strings = new const GLchar*[src.size()];
 	for (int i = 0; i < src.size(); i++)
@@ -358,7 +313,7 @@ void Shader::initUniforms()
 		if (size > 1)
 			pname1[written - 3] = '\0';
 		GLint loc = glGetUniformLocation(programID, pname1);
-		Uniforms.insert({ pname1, loc });
+		Uniforms.emplace(pname1, loc);
 		delete[] pname1;
 	}
 

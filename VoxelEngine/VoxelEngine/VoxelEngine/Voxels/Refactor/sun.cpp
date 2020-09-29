@@ -58,7 +58,7 @@ void Sun::Render()
 	const glm::mat4& view = cam->GetView();
 	const glm::mat4& proj = cam->GetProj();
 
-	ShaderPtr currShader = Shader::shaders["sun"];
+	auto& currShader = Shader::shaders["sun"];
 	currShader->Use();
 	currShader->setMat4("VP", proj * view);
 	currShader->setVec3("CameraRight", view[0][0], view[1][0], view[2][0]);

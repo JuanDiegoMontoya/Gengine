@@ -12,6 +12,7 @@
 #include <memory>
 #include <Systems/GraphicsSystem.h>
 
+
 namespace ChunkRenderer
 {
 	// Variables
@@ -89,7 +90,7 @@ namespace ChunkRenderer
 		dib = std::make_unique<DIB>(nullptr, 0, GL_STATIC_COPY);
 	}
 
-
+	
 	void GenerateDrawCommandsGPU()
 	{
 		//PERF_BENCHMARK_START;
@@ -99,7 +100,7 @@ namespace ChunkRenderer
 
 		Camera* cam = GetCurrentCamera();
 		// make buffer sized as if every allocation was non-null
-		ShaderPtr sdr = Shader::shaders["compact_batch"];
+		auto& sdr = Shader::shaders["compact_batch"];
 		sdr->Use();
 #if 1
 		sdr->setVec3("u_viewpos", cam->GetPos());
@@ -107,7 +108,7 @@ namespace ChunkRenderer
 		for (int i = 0; i < 5; i++) // ignore near plane
 		{
 			std::string uname = "u_viewfrustum.data_[" + std::to_string(i) + "]";
-			sdr->set1FloatArray(uname.c_str(), fr.GetData()[i], 4);
+			sdr->set1FloatArray(entt::hashed_string(uname.c_str()), fr.GetData()[i], 4);
 		}
 		sdr->setFloat("u_cullMinDist", settings.normalMin);
 		sdr->setFloat("u_cullMaxDist", settings.normalMax);
@@ -182,7 +183,7 @@ namespace ChunkRenderer
 	{
 		glDisable(GL_DEPTH_TEST);
 
-		ShaderPtr sdr = Shader::shaders["buffer_vis"];
+		auto& sdr = Shader::shaders["buffer_vis"];
 		sdr->Use();
 		glm::mat4 model(1);
 		model = glm::scale(model, { 1, 1, 1 });
@@ -239,7 +240,7 @@ namespace ChunkRenderer
 		}
 		glDisable(GL_CULL_FACE);
 
-		ShaderPtr sr = Shader::shaders["chunk_render_cull"];
+		auto& sr = Shader::shaders["chunk_render_cull"];
 		sr->Use();
 
 		Camera* cam = GetCurrentCamera();
