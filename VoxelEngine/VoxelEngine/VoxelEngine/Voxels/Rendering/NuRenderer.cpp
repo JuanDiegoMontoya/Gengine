@@ -249,7 +249,7 @@ namespace NuRenderer
 		blueNoise64->Bind(1);
 		currShader->setInt("blueNoise", 1);
 
-
+		
 
 		currShader->Use();
 		//ChunkRenderer::RenderNorm();

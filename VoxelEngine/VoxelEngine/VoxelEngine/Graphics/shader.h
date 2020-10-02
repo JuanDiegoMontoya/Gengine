@@ -53,7 +53,7 @@ public:
 	}
 
 	// move constructor
-	Shader(Shader&& other) : Uniforms(std::move(other.Uniforms)), programID(other.programID)
+	Shader(Shader&& other) noexcept : Uniforms(std::move(other.Uniforms)), programID(other.programID)
 	{
 		other.programID = 0;
 	}
