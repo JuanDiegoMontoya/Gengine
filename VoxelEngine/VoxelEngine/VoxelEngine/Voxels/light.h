@@ -1,5 +1,5 @@
 #pragma once
-#include "math_utils.h"
+#include <Graphics/math_utils.h>
 
 // describes the lighting level at a point in space, NOT the properties of a light emitter
 typedef class Light

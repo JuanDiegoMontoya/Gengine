@@ -5,18 +5,17 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <entt.hpp>
 
 #include "EventManger.h"
 #include "../FactoryID.h"
 
-typedef class Engine Engine;
-typedef class Object Object;
-
-typedef class UpdateEvent UpdateEvent;
-typedef class DrawEvent DrawEvent;
-typedef class DestroyEvent DestroyEvent;
-
-
+class Engine;
+class Object;
+class UpdateEvent;
+class DrawEvent;
+class DestroyEvent;
+class Entity;
 
 
 class Space
@@ -45,9 +44,6 @@ public:
   bool ContainsObject(Object* Object);
   const std::string& GetName() const { return name; }
   void SetName(std::string name_) { name = name_; }
-  const std::vector<std::unique_ptr<Object>>& GetEntities() { return objects; }
-  void RemoveObject(std::string ObjectName);
-  void RemoveObject(Object* Object);
   float GetZLayer() { return zLayer; }
 
   void SetZLayer(float zLayer_) { zLayer = zLayer_; }
@@ -59,13 +55,19 @@ public:
   //Unregisters an object with a listener from the event manager.
   template <typename T, typename E>  void UnregisterListener(T* object_, void(T::* callbackFunction_)(E*)) { eventManager->UnregisterListener(object_, callbackFunction_); }
 
-    //Toggle to affect update events being dispatched.
+   //Toggle to affect update events being dispatched.
   PROPERTY(Bool, paused, false);
   PROPERTY(Bool, isVisable, true);
 
   std::vector<std::unique_ptr<Object>>& GetObjects();
 
   bool HasInitialized();
+
+  Entity CreateEntity(std::string_view name = "");
+  void RemoveEntity(std::string_view name);
+  void RemoveEntity(Entity entity);
+  Entity GetEntity(Entity entity);
+
 
 private:
 
@@ -74,6 +76,10 @@ private:
   std::unique_ptr<EventManager> eventManager = std::unique_ptr<EventManager>(new EventManager());
 
   std::vector<std::unique_ptr<Object>> objects;
+
+  // new registry stuff
+  entt::registry registry;
+  friend class Entity;
 
   PROPERTY(String, name, std::string("empty"));
   PROPERTY(Float, zLayer, 0.f);

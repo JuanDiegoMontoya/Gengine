@@ -15,6 +15,9 @@
   //Hacky bad for now stuff
 
 #include "../../Headers/Components/TestingComponent.h"
+#include <Components/VoxelWorld.h>
+#include <Components/Camera.h>
+#include <Systems/GraphicsSystem.h>
 
   //done with bad stuff
 
@@ -27,6 +30,12 @@ std::unique_ptr<Space> Space::CreateInitialSpace()
 
   Object* newObject = Factory::CloneObject(&*newSpace);
   newObject->AttachComponent<TestingComponent>(CLONE_COMPONENT(TestingComponent));
+  newObject->AttachComponent<VoxelWorld>(CLONE_COMPONENT(VoxelWorld));
+
+  auto FUCK = std::make_unique<Camera>();
+  FUCK->GenProjection(80.0f);
+  GraphicsSystem::GetGraphicsSystem()->SetActiveCamera(FUCK.get());
+  newObject->AttachComponent<Camera>(std::move(FUCK));
 
   return newSpace;
 
@@ -124,8 +133,9 @@ void Space::Draw(DrawEvent* drawEvent)
 
 void Space::DestroyEventsListen(DestroyEvent* destroyEvent)
 {
-  if (destroyEvent->what == DestroyEvent::cSpace)
-    RemoveObject(std::any_cast<Object*>(destroyEvent->toDestroy));
+  ASSERT(0);
+  //if (destroyEvent->what == DestroyEvent::cSpace)
+  //  RemoveObject(std::any_cast<Object*>(destroyEvent->toDestroy));
 }
 
 void Space::End()
@@ -158,30 +168,6 @@ bool Space::ContainsObject(Object* object)
     return true;
 }
 
-void Space::RemoveObject(std::string objectName)
-{
-  for (auto i = objects.begin(); i < objects.end(); i++)
-    if ((*i)->GetName() == objectName)
-    {
-      //Remove it
-      objects.erase(i);
-      break;
-    }
-}
-
-void Space::RemoveObject(Object* object)
-{
-  //Find where it's at with binary search
-  auto position = std::find(objects.begin(), objects.end(), std::unique_ptr<Object>(object));
-  //If the value was found..
-  if (position != objects.end())
-  {
-    //Remove it
-    objects.erase(position);
-  }
-
-}
-
 std::vector<std::unique_ptr<Object>>& Space::GetObjects()
 {
   return objects;
@@ -190,4 +176,29 @@ std::vector<std::unique_ptr<Object>>& Space::GetObjects()
 bool Space::HasInitialized()
 {
   return hasInitialized;
+}
+
+
+#include <Containers/Entity.h>
+//#include <Components/Transform.h>
+Entity Space::CreateEntity(std::string_view name)
+{
+  Entity entity(registry.create(), this);
+  auto& tag = entity.AddComponent<Tag>();
+  tag.tag = name.empty() ? "Entity" : name;
+  return entity;
+}
+
+void Space::RemoveEntity(std::string_view ObjectName)
+{
+}
+
+void Space::RemoveEntity(Entity entity)
+{
+}
+
+Entity Space::GetEntity(Entity entity)
+{
+  //entt::entity fdojsia;
+  //return registry.get;
 }

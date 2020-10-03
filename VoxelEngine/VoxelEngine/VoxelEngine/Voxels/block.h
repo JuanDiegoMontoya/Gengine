@@ -1,6 +1,8 @@
 #pragma once
-#include "serialize.h"
-#include "light.h"
+#include <Utilities/serialize.h>
+#include <light.h>
+#include <vector>
+#include <Graphics/GraphicsIncludes.h>
 
 enum class Visibility
 {

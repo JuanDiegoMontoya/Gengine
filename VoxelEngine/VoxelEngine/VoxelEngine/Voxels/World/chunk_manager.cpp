@@ -1,18 +1,17 @@
-#include "stdafx.h"
-#include "chunk.h"
-#include "block.h"
-#include "World.h"
+#include <Chunks/Chunk.h>
+#include <block.h>
+//#include "World.h"
 #include "chunk_manager.h"
-#include "pipeline.h"
-#include "utilities.h"
-#include "ChunkHelpers.h"
-#include "ChunkStorage.h"
+#include <Graphics/utilities.h>
+#include <Chunks/ChunkHelpers.h>
+#include <Chunks/ChunkStorage.h>
+#include <Graphics/GraphicsIncludes.h>
+#include <Utilities/Timer.h>
+#include <Systems/GraphicsSystem.h>
 
 #include <algorithm>
 #include <execution>
 #include <mutex>
-
-#undef near
 
 
 ChunkManager::ChunkManager()
@@ -60,7 +59,7 @@ void ChunkManager::Init()
 
 void ChunkManager::Update()
 {
-	PERF_BENCHMARK_START;
+	//PERF_BENCHMARK_START;
 
 	// TODO: update a random selection of the chunks per frame
 
@@ -87,7 +86,7 @@ void ChunkManager::Update()
 		UpdateChunk(chunk);
 	delayed_update_queue_.clear();
 
-	PERF_BENCHMARK_END;
+	//PERF_BENCHMARK_END;
 }
 
 
@@ -144,7 +143,7 @@ void ChunkManager::UpdateBlock(const glm::ivec3& wpos, Block bl, bool indirect)
 	UpdateChunk(chunk);
 
 	// check if adjacent to opaque blocks in nearby chunks, then update those chunks if it is
-	constexpr glm::ivec3 dirs[] =
+	const glm::ivec3 dirs[] =
 	{
 		{-1, 0, 0 },
 		{ 1, 0, 0 },
@@ -279,7 +278,7 @@ void ChunkManager::removeFarChunks()
 			[&](auto& p)->bool
 		{
 			// range is distance from camera to corner of chunk (corner is ok)
-			float dist = glm::distance(glm::vec3(p.first * Chunk::CHUNK_SIZE), Renderer::GetPipeline()->GetCamera(0)->GetPos());
+			float dist = glm::distance(glm::vec3(p.first * Chunk::CHUNK_SIZE), GetCurrentCamera()->GetPos());
 			if (p.second && dist > loadDistance_ + unloadLeniency_)
 			{
 				deleteList.push_back(p.second);
@@ -319,7 +318,7 @@ void ChunkManager::createNearbyChunks()
 		ChunkStorage::GetMapRaw().end(),
 		[&](auto& p)
 	{
-		float dist = glm::distance(glm::vec3(p.first * Chunk::CHUNK_SIZE), Renderer::GetPipeline()->GetCamera(0)->GetPos());
+		float dist = glm::distance(glm::vec3(p.first * Chunk::CHUNK_SIZE), GetCurrentCamera()->GetPos());
 		// generate null chunks within distance
 		if (!p.second && dist <= loadDistance_)
 		{
@@ -360,7 +359,7 @@ void ChunkManager::lightPropagateAdd(glm::ivec3 wpos, Light nLight, bool skipsel
 		glm::ivec3 lightp = lightQueue.front(); // light position
 		lightQueue.pop();
 		Light lightLevel = ChunkStorage::AtWorldC(lightp).GetLight(); // node that will be giving light to others
-		constexpr glm::ivec3 dirs[] =
+		const glm::ivec3 dirs[] =
 		{
 			{ 1, 0, 0 },
 			{-1, 0, 0 },
@@ -437,7 +436,7 @@ void ChunkManager::lightPropagateRemove(glm::ivec3 wpos, bool noqueue)
 		auto lightv = lite.Get(); // current light value
 		lightRemovalQueue.pop();
 
-		constexpr glm::ivec3 dirs[] =
+		const glm::ivec3 dirs[] =
 		{
 			{ 1, 0, 0 },
 			{-1, 0, 0 },
@@ -514,7 +513,7 @@ bool ChunkManager::checkDirectSunlight(glm::ivec3 wpos)
 	Block block = chunk->BlockAt(p.block_pos);
 
 	// find the highest valid chunk
-	constexpr glm::ivec3 up(0, 1, 0);
+	const glm::ivec3 up(0, 1, 0);
 	glm::ivec3 cpos = p.chunk_pos + up;
 	ChunkPtr next = chunk;
 	while (next)
@@ -583,7 +582,7 @@ void ChunkManager::sunlightPropagateOnce(const glm::ivec3& wpos)
 {
 	// do something
 	enum { left, right, up, down, front, back }; // +Z = front
-	constexpr glm::ivec3 dirs[] =
+	const glm::ivec3 dirs[] =
 	{
 		{ 1, 0, 0 },
 		{-1, 0, 0 },

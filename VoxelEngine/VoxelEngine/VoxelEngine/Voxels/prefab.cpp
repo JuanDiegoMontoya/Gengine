@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "prefab.h"
 #include <filesystem>
 
@@ -8,7 +7,6 @@
 #include <cereal/archives/binary.hpp>
 
 std::map<PrefabName, Prefab> PrefabManager::prefabs_;
-
 void PrefabManager::InitPrefabs()
 {
 	// add basic tree prefab to list

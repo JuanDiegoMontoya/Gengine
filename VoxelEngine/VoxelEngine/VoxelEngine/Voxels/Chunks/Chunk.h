@@ -1,15 +1,13 @@
 #pragma once
-#include "block.h"
-#include "light.h"
+#include <block.h>
+#include <light.h>
 #include <mutex>
-#include <Shapes.h>
-#include "misc_utils.h"
+#include <Graphics/Shapes.h>
 #include <concurrent_vector.h>
-
-#include "ChunkHelpers.h"
-#include "BlockStorage.h"
-#include "ChunkMesh.h"
-
+#include <Chunks/ChunkHelpers.h>
+#include <Chunks/BlockStorage.h>
+#include <Chunks/ChunkMesh.h>
+#include <engine_assert.h>
 #include <cereal/archives/binary.hpp>
 
 // TODO: make these constexpr functions!
@@ -128,11 +126,6 @@ public:
 	void Render()
 	{
 		mesh.Render();
-	}
-
-	void RenderSplat()
-	{
-		mesh.RenderSplat();
 	}
 
 	ChunkMesh& GetMesh()

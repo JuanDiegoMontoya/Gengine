@@ -1,6 +1,4 @@
-#include "stdafx.h"
-#include "pipeline.h"
-#include "block.h"
+#include <block.h>
 
 const std::vector<BlockProperties> Block::PropertiesTable =
 {

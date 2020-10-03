@@ -1,6 +1,6 @@
 #pragma once
-#include "block.h"
-#include "camera.h"
+#include <block.h>
+#include <Components/Camera.h>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/component_wise.hpp>
 #undef GLM_ENABLE_EXPERIMENTAL

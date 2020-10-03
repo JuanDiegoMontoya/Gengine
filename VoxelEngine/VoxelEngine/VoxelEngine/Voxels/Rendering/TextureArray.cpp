@@ -1,7 +1,8 @@
-#include "stdafx.h"
-#include "TextureArray.h"
+#include <Graphics/GraphicsIncludes.h>
+#include <Rendering/TextureArray.h>
 #include <stb_image.h>
 #include <filesystem>
+#include <iostream>
 
 #pragma optimize("", off)
 TextureArray::TextureArray(const std::vector<std::string>& textures)

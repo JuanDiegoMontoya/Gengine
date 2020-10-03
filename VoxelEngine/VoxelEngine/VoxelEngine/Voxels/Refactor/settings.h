@@ -1,7 +1,5 @@
 #pragma once
 
-#include "stdafx.h"
-
 // TODO: refactor this
 namespace Settings
 {

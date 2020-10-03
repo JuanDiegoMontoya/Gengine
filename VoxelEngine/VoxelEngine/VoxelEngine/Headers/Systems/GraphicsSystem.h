@@ -2,8 +2,11 @@
 
 #include "System.h"
 #include "../FactoryID.h"
+#include <Graphics/GlobalRendererInfo.h>
 
 class UpdateEvent;
+struct GLFWwindow;
+class Camera;
 
 class GraphicsSystem : public System
 {
@@ -23,10 +26,33 @@ public:
   void UpdateEventsListen(UpdateEvent* updateEvent);
   void RenderEventsListen(UpdateEvent* updateEvent);
 
+  void SetActiveCamera(Camera* camera)
+  {
+    info->SetCamera(camera);
+  }
+
+  Camera* GetActiveCamera()
+  {
+    return info->activeCamera;
+  }
+
+  GLFWwindow* GetWindow()
+  {
+    return info->window;
+  }
+
 private:
   GraphicsSystem();
 
   friend void RegisterSystems();
 
-  struct GLFWwindow* window = nullptr;
+  // RenderContext state; // <- stores ref to camera, possibly other global graphical state (debug?)
+  GLFWwindow* window = nullptr;
+  std::unique_ptr<GlobalRendererInfo> info;
 };
+
+// idk if this sucks or not, just pretend it's a macro
+inline Camera* GetCurrentCamera()
+{
+  return GraphicsSystem::GetGraphicsSystem()->GetActiveCamera();
+}

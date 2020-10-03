@@ -1,6 +1,6 @@
-#include "stdafx.h"
-#include "block.h"
-#include "biome.h"
+#if 0
+#include <block.h>
+#include <biome.h>
 
 const Biome& BiomeManager::GetBiome(float temp, float humid, TerrainType terrain)
 {
@@ -116,3 +116,4 @@ void BiomeManager::initCustomBiomes()
 	return;
 	// iterate over files in a special directory and add them as biomes
 }
+#endif

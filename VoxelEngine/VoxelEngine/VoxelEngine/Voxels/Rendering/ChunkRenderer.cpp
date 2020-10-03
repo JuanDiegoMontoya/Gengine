@@ -1,21 +1,17 @@
-#include "stdafx.h"
-#include "ChunkRenderer.h"
-#include <dib.h>
-#include <vao.h>
-#include <vbo.h>
-#include "BufferAllocator.h"
-#include "chunk.h"
-#include <camera.h>
-#include <Frustum.h>
-#include <Pipeline.h>
-#include "Renderer.h"
+#include <Graphics/GraphicsIncludes.h>
+#include <Rendering/ChunkRenderer.h>
+#include <Graphics/BufferAllocator.h>
+#include <Chunks/Chunk.h>
+#include <Components/Camera.h>
+#include <Rendering/Frustum.h>
 #include <execution>
-#include "ctpl_stl.h"
-#include <shader.h>
-#include <abo.h>
-#include <param_bo.h>
-#include "ChunkStorage.h"
-#include <Vertices.h>
+#include <Graphics/shader.h>
+#include <Graphics/param_bo.h>
+#include <Chunks/ChunkStorage.h>
+#include <Graphics/Vertices.h>
+#include <memory>
+#include <Systems/GraphicsSystem.h>
+
 
 namespace ChunkRenderer
 {
@@ -23,12 +19,9 @@ namespace ChunkRenderer
 	namespace
 	{
 		std::unique_ptr<VAO> vao;
-		std::unique_ptr<VAO> vaoSplat;
 		std::unique_ptr<DIB> dib;
-		std::unique_ptr<DIB> dibSplat;
 
 		std::unique_ptr<Param_BO> drawCountGPU;
-		std::unique_ptr<Param_BO> drawCountGPUSplat;
 
 		// size of compute block (not voxel) for the compute shader
 		const int blockSize = 64; // defined in compact_batch.cs
@@ -46,12 +39,10 @@ namespace ChunkRenderer
 	void InitAllocator()
 	{
 		drawCountGPU = std::make_unique<Param_BO>();
-		drawCountGPUSplat = std::make_unique<Param_BO>();
 
 		// allocate big buffer
 		// TODO: vary the allocation size based on some user setting
 		allocator = std::make_unique<BufferAllocator<AABB16>>(100'000'000, 2 * sizeof(GLint));
-		allocatorSplat = std::make_unique<BufferAllocator<AABB16>>(100'000'000, sizeof(GLint));
 		
 		/* :::::::::::BUFFER FORMAT:::::::::::
 		                        CHUNK 1                                    CHUNK 2                   NULL                   CHUNK 3
@@ -79,16 +70,6 @@ namespace ChunkRenderer
 		glVertexAttribIPointer(1, 1, GL_UNSIGNED_INT, 2 * sizeof(GLuint), (void*)offset); // lighting
 		vao->Unbind();
 
-		vaoSplat = std::make_unique<VAO>();
-		vaoSplat->Bind();
-		glBindBuffer(GL_ARRAY_BUFFER, allocatorSplat->GetGPUHandle());
-		glEnableVertexAttribArray(0);
-		glEnableVertexAttribArray(1);
-		glVertexAttribDivisor(1, 1);
-		glVertexAttribIPointer(1, 3, GL_INT, sizeof(GLuint), (void*)0);
-		glVertexAttribIPointer(0, 1, GL_UNSIGNED_INT, sizeof(GLuint), (void*)(3 * sizeof(GLint)));
-		vaoSplat->Unbind();
-
 		// setup vertex buffer for cube that will be used for culling
 		vaoCull = std::make_unique<VAO>();
 		vaoCull->Bind();
@@ -105,19 +86,21 @@ namespace ChunkRenderer
 		cmd.first = 0;
 		cmd.baseInstance = 0;
 		dibCull = std::make_unique<DIB>(&cmd, sizeof(cmd), GL_STATIC_COPY);
+
+		dib = std::make_unique<DIB>(nullptr, 0, GL_STATIC_COPY);
 	}
 
-
+	
 	void GenerateDrawCommandsGPU()
 	{
-		PERF_BENCHMARK_START;
+		//PERF_BENCHMARK_START;
 #ifdef TRACY_ENABLE
 		TracyGpuZone("Gen draw commands norm");
 #endif
 
-		Camera* cam = Renderer::GetPipeline()->GetCamera(0);
+		Camera* cam = GetCurrentCamera();
 		// make buffer sized as if every allocation was non-null
-		ShaderPtr sdr = Shader::shaders["compact_batch"];
+		auto& sdr = Shader::shaders["compact_batch"];
 		sdr->Use();
 #if 1
 		sdr->setVec3("u_viewpos", cam->GetPos());
@@ -125,7 +108,7 @@ namespace ChunkRenderer
 		for (int i = 0; i < 5; i++) // ignore near plane
 		{
 			std::string uname = "u_viewfrustum.data_[" + std::to_string(i) + "]";
-			sdr->set1FloatArray(uname.c_str(), fr.GetData()[i], 4);
+			sdr->set1FloatArray(entt::hashed_string(uname.c_str()), fr.GetData()[i], 4);
 		}
 		sdr->setFloat("u_cullMinDist", settings.normalMin);
 		sdr->setFloat("u_cullMaxDist", settings.normalMax);
@@ -175,70 +158,7 @@ namespace ChunkRenderer
 		drawCountGPU->Unbind();
 		activeAllocs = allocator->ActiveAllocs();
 
-		PERF_BENCHMARK_END;
-	}
-
-
-	void GenerateDrawCommandsSplatGPU()
-	{
-		PERF_BENCHMARK_START;
-#ifdef TRACY_ENABLE
-		TracyGpuZone("Gen draw commands splat");
-#endif
-
-		Camera* cam = Renderer::GetPipeline()->GetCamera(0);
-		// make buffer sized as if every allocation was non-null
-		ShaderPtr sdr = Shader::shaders["compact_batch"];
-		sdr->Use();
-#if 1
-		sdr->setVec3("u_viewpos", cam->GetPos());
-		Frustum fr = *cam->GetFrustum();
-		for (int i = 0; i < 5; i++) // ignore near plane
-		{
-			std::string uname = "u_viewfrustum.data_[" + std::to_string(i) + "]";
-			sdr->set1FloatArray(uname.c_str(), fr.GetData()[i], 4);
-		}
-		sdr->setFloat("u_cullMinDist", settings.splatMin);
-		sdr->setFloat("u_cullMaxDist", settings.splatMax);
-#endif
-		sdr->setUInt("u_reservedVertices", 3);
-		sdr->setUInt("u_vertexSize", sizeof(GLuint) * 1);
-
-		//drawCounterSplat->Bind(0);
-		//drawCounterSplat->Reset();
-		drawCountGPUSplat->Reset();
-
-		// copy input data to buffer at binding 0
-		GLuint indata;
-		glGenBuffers(1, &indata);
-		glBindBuffer(GL_SHADER_STORAGE_BUFFER, indata);
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, indata);
-		const auto& allocs = allocatorSplat->GetAllocs();
-		glBufferData(GL_SHADER_STORAGE_BUFFER, allocatorSplat->AllocSize() * allocs.size(), allocs.data(), GL_STATIC_COPY);
-
-		// make DIB output SSBO (binding 1) for the shader
-		dibSplat = std::make_unique<DIB>(
-			nullptr,
-			allocatorSplat->ActiveAllocs() * sizeof(DrawArraysIndirectCommand),
-			GL_STATIC_COPY);
-		glBindBuffer(GL_SHADER_STORAGE_BUFFER, dibSplat->GetID());
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, dibSplat->GetID());
-
-		glBindBuffer(GL_SHADER_STORAGE_BUFFER, drawCountGPUSplat->GetID());
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, drawCountGPUSplat->GetID());
-
-		{
-			int numBlocks = (allocs.size() + blockSize - 1) / blockSize;
-			glDispatchCompute(numBlocks, 1, 1);
-			//glMemoryBarrier(GL_ATOMIC_COUNTER_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT);
-		}
-		//renderCountSplat = drawCounterSplat->Get(0); // sync point
-		//ASSERT(renderCountSplat <= allocatorSplat->ActiveAllocs());
-		glDeleteBuffers(1, &indata);
-
-		drawCountGPUSplat->Unbind();
-
-		PERF_BENCHMARK_END;
+		//PERF_BENCHMARK_END;
 	}
 
 
@@ -259,27 +179,11 @@ namespace ChunkRenderer
 	}
 
 
-	void RenderSplat()
-	{
-#ifdef TRACY_ENABLE
-		TracyGpuZone("Render chunks splat");
-#endif
-		//if (renderCountSplat == 0)
-		//	return;
-	
-		vaoSplat->Bind();
-		dibSplat->Bind();
-		drawCountGPUSplat->Bind();
-		//glMultiDrawArraysIndirect(GL_POINTS, (void*)0, renderCountSplat, 0);
-		glMultiDrawArraysIndirectCount(GL_POINTS, (void*)0, (GLintptr)0, allocatorSplat->ActiveAllocs(), 0);
-	}
-
-
 	void DrawBuffers()
 	{
 		glDisable(GL_DEPTH_TEST);
 
-		ShaderPtr sdr = Shader::shaders["buffer_vis"];
+		auto& sdr = Shader::shaders["buffer_vis"];
 		sdr->Use();
 		glm::mat4 model(1);
 		model = glm::scale(model, { 1, 1, 1 });
@@ -336,10 +240,10 @@ namespace ChunkRenderer
 		}
 		glDisable(GL_CULL_FACE);
 
-		ShaderPtr sr = Shader::shaders["chunk_render_cull"];
+		auto& sr = Shader::shaders["chunk_render_cull"];
 		sr->Use();
 
-		Camera* cam = Renderer::GetPipeline()->GetCamera(0);
+		Camera* cam = GetCurrentCamera();
 		const glm::mat4 viewProj = cam->GetProj() * cam->GetView();
 		sr->setMat4("u_viewProj", viewProj);
 		sr->setUInt("u_chunk_size", Chunk::CHUNK_SIZE);
@@ -354,7 +258,7 @@ namespace ChunkRenderer
 		// copy # of chunks being drawn (parameter buffer) to instance count (DIB)
 		dibCull->Bind();
 		vaoCull->Bind();
-		GLint offset = offsetof(DrawArraysIndirectCommand, instanceCount);
+		constexpr GLint offset = offsetof(DrawArraysIndirectCommand, instanceCount);
 		glCopyNamedBufferSubData(drawCountGPU->GetID(), dibCull->GetID(), 0, offset, sizeof(GLuint));
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 		glMultiDrawArraysIndirect(GL_TRIANGLES, (void*)0, 1, 0);

@@ -1,10 +1,11 @@
 #pragma once
-#include "BitArray.h"
+#include <Utilities/BitArray.h>
 #include <vector>
 #include <cereal/types/vector.hpp>
+#include <shared_mutex>
 
 // fixed-size array optimized for space
-template<typename T, unsigned _Size>
+template<typename T, size_t _Size>
 class Palette
 {
 public:
@@ -13,15 +14,15 @@ public:
 	Palette(const Palette&);
 	Palette& operator=(const Palette&);
 
-	void SetVal(int index, T);
-	T GetVal(int index) const;
+	void SetVal(size_t index, T);
+	T GetVal(size_t index) const;
 
 private:
 	friend class cereal::access;
 
 	struct PaletteEntry
 	{
-		T type;
+		T type{};
 		int refcount = 0;
 
 		template <class Archive>
@@ -37,7 +38,7 @@ private:
 
 	BitArray data_;
 	std::vector<PaletteEntry> palette_;
-	unsigned paletteEntryLength_ = 1;
+	size_t paletteEntryLength_ = 1;
 
 	template <class Archive>
 	void serialize(Archive& ar)
@@ -48,7 +49,7 @@ private:
 
 
 // thread-safe variation of the palette
-template<typename T, unsigned _Size>
+template<typename T, size_t _Size>
 class ConcurrentPalette : public Palette<T, _Size>
 {
 public:
@@ -60,13 +61,13 @@ public:
 		return *this;
 	}
 
-	void SetVal(int index, T val)
+	void SetVal(size_t index, T val)
 	{
 		std::lock_guard w(mtx);
 		Palette<T, _Size>::SetVal(index, val);
 	}
 
-	T GetVal(int index) const
+	T GetVal(size_t index) const
 	{
 		std::shared_lock r(mtx);
 		return Palette<T, _Size>::GetVal(index);

@@ -1,5 +1,4 @@
-#include "stdafx.h"
-#include "input.h"
+#include <Systems/InputSystem.h>
 
 #include <filesystem>
 namespace fs = std::filesystem;

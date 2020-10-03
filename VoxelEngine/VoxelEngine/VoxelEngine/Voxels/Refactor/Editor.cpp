@@ -1,11 +1,12 @@
+#if 0
 #include "stdafx.h"
 #include "chunk_manager.h"
-#include "input.h"
-#include "block.h"
-#include "camera.h"
+#include <Systems/InputSystem.h>
+#include <block.h>
+#include <Components/Camera.h>
 #include "pick.h"
 #include "Editor.h"
-#include "shader.h"
+#include <Graphics/shader.h>
 #include "prefab.h"
 
 #include <fstream>
@@ -15,8 +16,8 @@
 #include <cereal/types/utility.hpp>
 #include <cereal/archives/binary.hpp>
 #include <Pipeline.h>
-#include "Renderer.h"
-#include "ChunkStorage.h"
+#include <Rendering/Renderer.h>
+#include <Chunks/ChunkStorage.h>
 
 namespace Editor
 {
@@ -255,3 +256,4 @@ namespace Editor
     PERF_BENCHMARK_END;
 	}
 }
+#endif

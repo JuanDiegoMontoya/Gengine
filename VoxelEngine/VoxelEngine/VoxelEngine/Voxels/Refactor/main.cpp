@@ -1,13 +1,14 @@
+#if 0
 #include "stdafx.h"
 #include <Engine.h>
 #include "Interface.h"
-#include "World.h"
-#include "Renderer.h"
-#include "NuRenderer.h"
+//#include "World.h"
+#include <Rendering/Renderer.h>
+#include <Rendering/NuRenderer.h>
 
 #include "Client.h"
 
-//#include "BitArray.h"
+//#include <Utilities/BitArray.h>
 //void TestBitArray()
 //{
 //	BitArray coom(50);
@@ -16,7 +17,7 @@
 //	std::cout << bb << std::endl;
 //}
 
-//#include "BufferAllocator.h"
+//#include <Graphics/BufferAllocator.h>
 //void TestAllocator()
 //{
 //	ChunkVBOAllocator allocator(25001, 8);
@@ -52,3 +53,4 @@ int main()
 
 	return 0;
 }
+#endif

@@ -1,5 +1,4 @@
 #pragma once
-//#include "chunk.h"
 
 namespace ChunkHelpers
 {
@@ -23,7 +22,7 @@ namespace ChunkHelpers
 
 	GLuint EncodeSplat(const glm::uvec3& modelPos, const glm::vec3& color);
 
-	inline constexpr glm::ivec3 faces[6] =
+	inline const glm::ivec3 faces[6] =
 	{
 		{ 0, 0, 1 }, // 'far' face    (+z direction)
 		{ 0, 0,-1 }, // 'near' face   (-z direction)

@@ -1,7 +1,7 @@
 #pragma once
-#include "block.h"
-#include "BitArray.h"
-#include "Palette.h"
+#include <block.h>
+#include <Utilities/BitArray.h>
+#include <Utilities/Palette.h>
 #include <array>
 
 // abstract class for array-like block storage

@@ -1,5 +1,5 @@
 #pragma once
-#include "BlockStorage.h"
+#include <Chunks/BlockStorage.h>
 
 template<unsigned _Size>
 inline ArrayBlockStorage<_Size>::ArrayBlockStorage()

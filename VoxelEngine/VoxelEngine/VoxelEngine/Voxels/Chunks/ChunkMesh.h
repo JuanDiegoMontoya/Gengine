@@ -1,10 +1,11 @@
 #pragma once
-#include "block.h"
-//#include "chunk.h"
-#include "NuRenderer.h"
-#include <dib.h>
-#include <vbo.h>
-#include <vao.h>
+#include <block.h>
+//#include <Chunks/Chunk.h>
+#include <Rendering/NuRenderer.h>
+#include <Graphics/dib.h>
+#include <Graphics/vbo.h>
+#include <Graphics/vao.h>
+#include <shared_mutex>
 
 //class VAO;
 //class VBO;
@@ -18,8 +19,6 @@ public:
 	~ChunkMesh();
 
 	void Render();
-	void RenderSplat();
-	void BuildBuffers();
 	void BuildBuffers2();
 	void BuildMesh();
 
@@ -68,12 +67,7 @@ private:
 
 	GLsizei vertexCount_ = 0; // number of block vertices
 	uint64_t bufferHandle = NULL;
-	uint64_t bufferHandleSplat = NULL;
 
-	// SPLATTING STUFF
-	std::unique_ptr<VAO> svao_;
-	std::unique_ptr<VBO> svbo_;
-	std::vector<GLint> sPosArr; // point positions
 	GLsizei pointCount_ = 0;
 	bool voxelReady_ = true; // hack to prevent same voxel from being added multiple times for splatting (I think)
 

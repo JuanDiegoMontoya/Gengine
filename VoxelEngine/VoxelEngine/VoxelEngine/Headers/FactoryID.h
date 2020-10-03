@@ -27,8 +27,10 @@ const ID cStubSystem = 3;
 const ID cTraceSystem = 4;
 
 //ComponentIDs
-const ID cStubComponent = 0;
-const ID cTestingComponent = 1;
+const ID cCamera = 0;
+const ID cStubComponent = 1;
+const ID cTestingComponent = 2;
+const ID cVoxelWorld = 3;
 
 //EventIDs
 const ID cDestroyEvent = 0;
