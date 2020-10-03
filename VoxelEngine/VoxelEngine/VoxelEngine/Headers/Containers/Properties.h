@@ -74,6 +74,10 @@ class Generic : public T
 public:
   Generic() { }
   Generic(const T val) : T(val) { } 
+  Generic(const Generic&) = default;
+  Generic(Generic&&) = default;
+  Generic& operator=(const Generic&) = default;
+  Generic& operator=(Generic&&) = default;
 };
 
 template<ResourceType type>
@@ -83,6 +87,10 @@ public:
   ID value = 0;
   Resource() { }
   Resource(const ID val) : value(val) { }
+  Resource(const Resource&) = default;
+  Resource(Resource&&) = default;
+  Resource& operator=(const Resource&) = default;
+  Resource& operator=(Resource&&) = default;
   operator ID() const { return value; }
 };
 
@@ -91,6 +99,10 @@ class PropertyArray : public std::array<T, N>
 {
 public:
   ID id = unknown;
+  PropertyArray(const PropertyArray&) = default;
+  PropertyArray(PropertyArray&&) = default;
+  PropertyArray& operator=(const PropertyArray&) = default;
+  PropertyArray& operator=(PropertyArray&&) = default;
 };
 
 template <class T, class U, size_t Count>
@@ -110,6 +122,10 @@ public:
   typedef T value_type;
   Property() :value() {}
   Property(T v) :value(v) {}
+  Property(const Property&) = default;
+  Property(Property&&) = default;
+  Property& operator=(const Property&) = default;
+  Property& operator=(Property&&) = default;
   operator T() const { return value; }
 
   //modifiers
@@ -176,6 +192,10 @@ public:
   ID id = unknown;
   Property() : value() {}
   Property(U v) :value(v) {}
+  Property(Property&&) = default;
+  Property(const Property&) = default;
+  Property& operator=(const Property&) = default;
+  Property& operator=(Property&&) = default;
   U get() const { return value; }
   void set(const U& v) { value = v; }
 };
@@ -188,6 +208,10 @@ public:
   ID id = unknown;
   Property() : value() {}
   Property(ID v) :value(v) {}
+  Property(Property&&) = default;
+  Property(const Property&) = default;
+  Property& operator=(const Property&) = default;
+  Property& operator=(Property&&) = default;
   Property(Resource<type> v) : value(v.operator ID()) {}
   ID get() const { return value; }
   void set(const ID& v) { value = v; }
@@ -202,12 +226,17 @@ public:
   Property() :value() {}
   Property(std::string v) :value(v) {}
   Property(const char* v) : value(v) {};
+  Property(const Property&) = default;
+  Property(Property&&) = default;
+  Property& operator=(const Property&) = default;
+  Property& operator=(Property&&) = default;
   Property(char* v) : value(v) {};
   operator std::string() const { return value; }
   //modifiers
-  Property& operator=(std::string v) { value = v; return *this; }
+  Property& operator=(const std::string& v) { value = v; return *this; }
   Property& operator=(const char* v) { value = v; return *this; }
-  Property& operator+=(std::string v) { value += v; return *this; }
+  Property& operator+=(const Property& v) { value += v.value; return *this; }
+  Property& operator+=(const std::string& v) { value += v; return *this; }
   Property& operator+=(const char* v) { value += v; return *this; }
   //friends
   friend Property operator+(Property iw, Property v) { return iw += v; }
@@ -221,7 +250,9 @@ public:
   int value;
   enoom() : value() {}
   enoom(int v, std::vector<std::string>* names_) :value(v), names(names_) {}
-  enoom(const enoom& v) : value(v.value), names(v.names) {}
+  enoom(const enoom&) = default;
+  enoom(enoom&&) = default;
+  enoom& operator=(enoom&&) = default;
   operator int() const { return value; }
 
   std::vector<std::string>* names = nullptr;
@@ -242,7 +273,8 @@ public:
   typedef enoom value_type;
   Property() :value() {}
   Property(enoom v) :value(v) {}
-  Property(const Property& v) : value(v.value) {}
+  Property(const Property&) = default;
+  Property(Property&&) = default;
   operator enoom() const { return value; }
   operator int() const { return value.value; }
 
