@@ -3,11 +3,12 @@
 /* //// INCLUDES //// */
 #include "../../Headers/Components/Component.h"
 #include "../../Headers/Engine.h"
-#include "../../Headers/Containers/Object.h"
+#include "../../Headers/Containers/Entity.h"
 //#include "Graphics.h"
+#include <Containers/Entity.h>
 
 
 Space* Component::GetSpace() const
 {
-  return parent->GetSpace();
+  return parent.space_;
 }

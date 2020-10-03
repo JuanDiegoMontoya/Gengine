@@ -3,6 +3,8 @@
 #include "../../Headers/Factory.h"
 #include <thread>
 
+#pragma optimize("", off)
+
 FrameRateController* FrameRateController::pFrameRateController = nullptr;
 
 std::chrono::nanoseconds FrameRateController::error = std::chrono::nanoseconds(1); // One ten-thousandth of a frame, our acceptable error.

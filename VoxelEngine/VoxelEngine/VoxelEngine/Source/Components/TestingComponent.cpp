@@ -1,6 +1,6 @@
 /*HEADER_GOES_HERE*/
 #include "../../Headers/Components/TestingComponent.h"
-#include "../../Headers/Containers/Object.h"
+#include "../../Headers/Containers/Entity.h"
 #include "../../Headers/Containers/Space.h"
 #include "../../Headers/Factory.h"
 #include "../../Headers/PreProcessorMagic.h"
@@ -37,19 +37,20 @@ TestingComponent::~TestingComponent()
 
 void TestingComponent::Init()
 {
+  ASSERT_MSG(false, "Don't use this pls :)");
   GetSpace()->RegisterListener(this, &TestingComponent::UpdateEventsListen);
   GetSpace()->RegisterListener(this, &TestingComponent::DrawEventsListen);
-  parent->RegisterListener(this, &TestingComponent::TestingEventsListen);
+  //parent->RegisterListener(this, &TestingComponent::TestingEventsListen);
 }
 
 void TestingComponent::End()
 {
   GetSpace()->UnregisterListener(this, &TestingComponent::UpdateEventsListen);
   GetSpace()->UnregisterListener(this, &TestingComponent::DrawEventsListen);
-  if (parent != nullptr)
-  {
-    parent->UnregisterListener(this, &TestingComponent::TestingEventsListen);
-  }
+  //if (parent != nullptr)
+  //{
+  //  parent->UnregisterListener(this, &TestingComponent::TestingEventsListen);
+  //}
 }
 
 std::unique_ptr<Component> TestingComponent::Clone() const
@@ -77,7 +78,7 @@ void TestingComponent::UpdateEventsListen(UpdateEvent* updateEvent)
     {
       auto testingEvent = CLONE_EVENT(TestingEvent);
       testingEvent->timer = i;
-      parent->AttachEvent(std::move(testingEvent));
+      //parent->AttachEvent(std::move(testingEvent));
     }
 
     //File IO 

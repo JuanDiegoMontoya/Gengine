@@ -25,6 +25,10 @@ std::unique_ptr<VoxelWorld> VoxelWorld::RegisterVoxelWorld()
   return std::make_unique<VoxelWorld>();
 }
 
+VoxelWorld::VoxelWorld(VoxelWorld&&) = default;
+
+VoxelWorld& VoxelWorld::operator=(VoxelWorld&&) = default;
+
 VoxelWorld::VoxelWorld()
   : Component(componentType)
 {
@@ -54,7 +58,7 @@ void VoxelWorld::Init()
 
 void VoxelWorld::End()
 {
-  if (parent != nullptr)
+  if (parent != entt::null)
   {
     GetSpace()->UnregisterListener(this, &VoxelWorld::UpdateEventsListen);
     GetSpace()->UnregisterListener(this, &VoxelWorld::DrawEventsListen);

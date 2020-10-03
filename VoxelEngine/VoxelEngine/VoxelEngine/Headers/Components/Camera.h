@@ -3,9 +3,9 @@
 #include <iostream>
 #include "../Containers/Properties.h"
 #include "Component.h"
+#include <Voxels/Rendering/Frustum.h>
 
 typedef class UpdateEvent UpdateEvent;
-class Frustum;
 
 class Camera : public Component
 {
@@ -13,6 +13,18 @@ public:
   static const ID componentType = cCamera;
 
   //PROPERTY(Int, componentData, 5999);
+
+  Camera(Camera&& other) noexcept : Component(std::move(other))
+  {
+    *this = other;
+  }
+
+  Camera& operator=(Camera&& other) noexcept = default;
+  //{
+  //  return *this = other;
+  //}
+
+  Camera& operator=(const Camera&) = default;
 
   Camera(
     //Int componentData_ = 5999                                             /*** "= 5999" Only needed if you want a default constructor***/
@@ -30,15 +42,12 @@ public:
   static std::unique_ptr<Camera> RegisterCamera();
 
 
-
-
-
   void UpdateViewMat();
   const glm::mat4& GetView() const { return view_; }
   const glm::mat4& GetProj() const { return proj_; }
   const glm::vec3& GetPos() const { return worldpos_; }
   const glm::vec3& GetDir() const { return dir_; }
-  const Frustum* GetFrustum() const { return frustum_.get(); }
+  const Frustum& GetFrustum() const { return frustum_; }
   float GetFov() const { return fovDeg_; }
   float GetNear() const { return near_; }
   float GetFar() const { return far_; }
@@ -53,7 +62,7 @@ private:
 
   friend void RegisterComponents();
 
-  std::unique_ptr<Frustum> frustum_;
+  Frustum frustum_;
   glm::vec3 worldpos_ = glm::vec3(150, 50, 100);
   glm::vec3 dir_ = glm::vec3(-.22f, .22f, -.95f);
   glm::mat4 view_ = glm::mat4(1);

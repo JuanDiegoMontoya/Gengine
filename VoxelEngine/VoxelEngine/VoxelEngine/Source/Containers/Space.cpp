@@ -19,6 +19,8 @@
 #include <Components/Camera.h>
 #include <Systems/GraphicsSystem.h>
 
+#include <Containers/Entity.h>
+
   //done with bad stuff
 
 std::unique_ptr<Space> Space::CreateInitialSpace()
@@ -29,13 +31,23 @@ std::unique_ptr<Space> Space::CreateInitialSpace()
   newSpace->name = std::string("TestingSpace");
 
   Object* newObject = Factory::CloneObject(&*newSpace);
-  newObject->AttachComponent<TestingComponent>(CLONE_COMPONENT(TestingComponent));
-  newObject->AttachComponent<VoxelWorld>(CLONE_COMPONENT(VoxelWorld));
+  //newObject->AttachComponent<TestingComponent>(CLONE_COMPONENT(TestingComponent));
+  //newObject->AttachComponent<VoxelWorld>(CLONE_COMPONENT(VoxelWorld));
 
-  auto FUCK = std::make_unique<Camera>();
-  FUCK->GenProjection(80.0f);
-  GraphicsSystem::GetGraphicsSystem()->SetActiveCamera(FUCK.get());
-  newObject->AttachComponent<Camera>(std::move(FUCK));
+  //auto FUCK = std::make_unique<Camera>();
+  //FUCK->GenProjection(80.0f);
+  //GraphicsSystem::GetGraphicsSystem()->SetActiveCamera(FUCK.get());
+  //newObject->AttachComponent<Camera>(std::move(FUCK));
+
+  Entity entity = newSpace->CreateEntity("COCK");
+  auto cam = Camera();
+  cam.Init();
+  cam.GenProjection(80.0f);
+
+  entity.AddComponent<VoxelWorld>();
+  //entity.AddComponent<TestingComponent>(CLONE_COMPONENT(TestingComponent));
+  entity.AddComponent<Camera>(std::move(cam));
+  //GraphicsSystem::GetGraphicsSystem()->SetActiveCamera(&entity.GetComponent<Camera>());
 
   return newSpace;
 
@@ -93,8 +105,8 @@ void Space::Init()
 
   std::unique_ptr<InitEvent> initEvent = InitEvent::GenerateInitEvent();
 
-  for (auto& i : objects)
-    i->Init(&*initEvent);
+  //for (auto& i : objects)
+  //  i->Init(&*initEvent);
 
   hasInitialized = true;
 }
@@ -104,15 +116,15 @@ std::unique_ptr<Space> Space::Clone()
   auto result = new Space(name + std::string("(clone)"));
   result->zLayer = zLayer;
 
-  for (auto& i : objects)
-  {
-    if (i->GetRoot() == &*i)
-    {
-      i->Clone(result);
-    }
-    //result->objects.push_back(std::move(i->Clone()));
-    //auto& addedObject = result->objects.back();
-  }
+  //for (auto& i : objects)
+  //{
+  //  if (i->GetRoot() == &*i)
+  //  {
+  //    i->Clone(result);
+  //  }
+  //  //result->objects.push_back(std::move(i->Clone()));
+  //  //auto& addedObject = result->objects.back();
+  //}
 
   return std::unique_ptr<Space>(result);
 }
@@ -143,44 +155,16 @@ void Space::End()
   Engine::GetEngine()->UnregisterListener(this, &Space::Update);
   UnregisterListener(this, &Space::DestroyEventsListen);
 
-  for (auto& i : objects)
-    i->End();
+  //for (auto& i : objects)
+  //  i->End();
 }
 
-Object* Space::FindObject(std::string objectName)
-{
-  for (auto& i : objects)
-    if (i->GetName() == objectName)
-      return &*i;
-  return nullptr;
-}
-
-bool Space::ContainsObject(Object* object)
-{
-
-  //Find where it's at with binary search
-  auto position = std::find(objects.begin(), objects.end(), std::unique_ptr<Object>(object));
-
-  //Tell if value was found
-  if (position == objects.end())
-    return false;
-  else
-    return true;
-}
-
-std::vector<std::unique_ptr<Object>>& Space::GetObjects()
-{
-  return objects;
-}
 
 bool Space::HasInitialized()
 {
   return hasInitialized;
 }
 
-
-#include <Containers/Entity.h>
-//#include <Components/Transform.h>
 Entity Space::CreateEntity(std::string_view name)
 {
   Entity entity(registry.create(), this);
@@ -189,16 +173,17 @@ Entity Space::CreateEntity(std::string_view name)
   return entity;
 }
 
-void Space::RemoveEntity(std::string_view ObjectName)
+bool Space::RemoveEntity(Entity entity)
 {
+  registry.remove(entity);
 }
 
-void Space::RemoveEntity(Entity entity)
+bool Space::RemoveEntity(std::string_view ObjectName)
 {
+  return false;
 }
 
-Entity Space::GetEntity(Entity entity)
+Entity Space::GetEntity(std::string_view name)
 {
-  //entt::entity fdojsia;
-  //return registry.get;
+  return Entity();
 }

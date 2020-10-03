@@ -15,6 +15,9 @@ class VoxelWorld : public Component
 public:
   static const ID componentType = cVoxelWorld;
 
+  VoxelWorld(VoxelWorld&&);
+  VoxelWorld& operator=(VoxelWorld&&);
+
   VoxelWorld();
   ~VoxelWorld();
   void Init();

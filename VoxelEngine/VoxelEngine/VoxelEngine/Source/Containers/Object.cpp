@@ -9,6 +9,8 @@
 #include "../../Headers/Events/InitEvent.h"
 #include "../../Headers/Events/UpdateEvent.h"
 
+#include <engine_assert.h>
+
 Object::Object(const std::string& emptyName_) : name(emptyName_), space(nullptr)
 {
   static bool registered = false;
@@ -65,12 +67,14 @@ Component* Object::FindComponent(ID componentType)
 
 Component* Object::AttachComponent(std::unique_ptr<Component> componentToAttach)
 {
-  if(componentToAttach->GetParent() != nullptr) throw("Can't add component that's already on another object");
-  DetatchComponent(componentToAttach->type);
-  componentToAttach->parent = this;
-  if (GetSpace()->HasInitialized())
-    componentToAttach->Init();
-  return &*(components[componentToAttach->type] = std::move(componentToAttach));
+  //if(componentToAttach->GetParent() != nullptr) throw("Can't add component that's already on another object");
+  //DetatchComponent(componentToAttach->type);
+  //componentToAttach->parent = this;
+  //if (GetSpace()->HasInitialized())
+  //  componentToAttach->Init();
+  //return &*(components[componentToAttach->type] = std::move(componentToAttach));
+  ASSERT(false);
+  return nullptr;
 }
 
 void Object::Init(InitEvent* initEvent)
@@ -88,31 +92,33 @@ void CloneHelper(Object* object, Space* space)
 
 Object* Object::Clone(Space* space_)
 {
-  if (space_ == nullptr)
-    throw("an object needs a space to be stored in");
-  auto result = std::unique_ptr<Object>(new Object(name + std::string("(copy)")));
-  auto resultPointer = &*result;
-  //copy over values here
-  result->isTemp = isTemp;
-  result->paused = paused;
+  ASSERT_MSG(false, "Objects are no longer supported!");
+  return nullptr;
+  //if (space_ == nullptr)
+  //  throw("an object needs a space to be stored in");
+  //auto result = std::unique_ptr<Object>(new Object(name + std::string("(copy)")));
+  //auto resultPointer = &*result;
+  ////copy over values here
+  //result->isTemp = isTemp;
+  //result->paused = paused;
 
-  for (auto& i : components)
-    if (i != nullptr)
-    {
-      result->components[i->type]->parent = this;
-      &*(components[i->type] = std::move(i->Clone()));
-    }
+  //for (auto& i : components)
+  //  if (i != nullptr)
+  //  {
+  //    result->components[i->type]->parent = this;
+  //    &*(components[i->type] = std::move(i->Clone()));
+  //  }
 
-  space_->GetObjects().push_back(std::move(result));
-  resultPointer->space = space_;
+  ////space_->GetObjects().push_back(std::move(result));
+  //resultPointer->space = space_;
 
-  for (auto i : children)
-  {
-    Object* child = i->Clone(space_);
-    resultPointer->AddChild(child);
-  }
+  //for (auto i : children)
+  //{
+  //  Object* child = i->Clone(space_);
+  //  resultPointer->AddChild(child);
+  //}
 
-  return resultPointer;
+  //return resultPointer;
 }
 
 void Object::End()

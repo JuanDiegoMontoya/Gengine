@@ -22,7 +22,7 @@ public:
 		return glm::vec4(data_[int(plane)][A], data_[int(plane)][B], data_[int(plane)][C], data_[int(plane)][D]);
 	}
 
-	auto GetData() { return data_; }
+	const auto GetData() const { return data_; }
 
 private:
 	void Normalize(Plane plane);

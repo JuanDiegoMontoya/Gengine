@@ -13,19 +13,16 @@ std::string Camera::GetName() { return "Camera"; }
 
 std::unique_ptr<Camera> Camera::RegisterCamera() 
 {
-  auto component = std::unique_ptr<Camera>(new Camera(
-    //5999
-		/***Only needed if you don't provide a default constructor***/
-  ));
+	//return std::make_unique<Camera>();
+	auto component = std::unique_ptr<Camera>(new Camera(
+		//5999                                            /***Only needed if you don't provide a default constructor***/
+	));
 
-  return std::move(component);
+	return std::move(component);
 }
 
-Camera::Camera(
-  //Int componentData_
-) : Component(componentType) //, componentData(componentData_)
+Camera::Camera() : Component(componentType)
 {
-	frustum_ = std::make_unique<Frustum>();
 }
 
 Camera::~Camera()
@@ -40,7 +37,7 @@ void Camera::Init()
 
 void Camera::End()
 {
-  if (parent != nullptr)
+  if (parent != entt::null)
   {
     GetSpace()->UnregisterListener(this, &Camera::UpdateEventsListen);
   //  GetSpace()->UnregisterListener(this, &Camera::DrawEventsListen);
@@ -97,7 +94,7 @@ void Camera::UpdateEventsListen(UpdateEvent* updateEvent)
 void Camera::UpdateViewMat()
 {
   view_ = glm::lookAt(worldpos_, worldpos_ + front, up);
-  frustum_->Transform(proj_, view_);
+  frustum_.Transform(proj_, view_);
 }
 
 void Camera::GenProjection(float fovDeg)

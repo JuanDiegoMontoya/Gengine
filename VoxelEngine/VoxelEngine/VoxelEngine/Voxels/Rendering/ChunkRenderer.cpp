@@ -104,7 +104,7 @@ namespace ChunkRenderer
 		sdr->Use();
 #if 1
 		sdr->setVec3("u_viewpos", cam->GetPos());
-		Frustum fr = *cam->GetFrustum();
+		auto& fr = cam->GetFrustum();
 		for (int i = 0; i < 5; i++) // ignore near plane
 		{
 			std::string uname = "u_viewfrustum.data_[" + std::to_string(i) + "]";

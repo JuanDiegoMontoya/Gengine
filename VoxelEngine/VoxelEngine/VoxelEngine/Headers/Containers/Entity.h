@@ -47,6 +47,7 @@ public:
 
 	operator bool() const { return entityHandle_ != entt::null; }
 	operator uint32_t() const { return static_cast<uint32_t>(entityHandle_); }
+	operator entt::entity() const { return entityHandle_; }
 
 	bool operator==(const Entity& other) const
 	{
@@ -59,6 +60,8 @@ public:
 	}
 
 private:
+	friend class Component;
+
 	entt::entity entityHandle_ = entt::null;
 	Space* space_ = nullptr;
 };

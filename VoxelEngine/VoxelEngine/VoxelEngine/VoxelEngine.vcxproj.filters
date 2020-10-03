@@ -67,6 +67,12 @@
     <Filter Include="Graphics">
       <UniqueIdentifier>{f59e9c6c-31b3-4410-901e-cdf5fcc755ed}</UniqueIdentifier>
     </Filter>
+    <Filter Include="3rd Party\entt">
+      <UniqueIdentifier>{174b608c-6572-477f-b9b4-cbb279600553}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rd Party\entt\src">
+      <UniqueIdentifier>{8ba3ac81-0b7c-4c19-b005-b444a26ac303}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Headers\Containers\BidirectionalMap.h">
@@ -380,6 +386,9 @@
     </ClInclude>
     <ClInclude Include="Headers\Components\Transform.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\entt\src\entt.hpp">
+      <Filter>3rd Party\entt\src</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

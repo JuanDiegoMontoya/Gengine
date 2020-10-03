@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="3rdParty\entt\src\entt.hpp" />
     <ClInclude Include="3rdParty\FastNoiseSIMD\FastNoiseSIMD.h" />
     <ClInclude Include="3rdParty\FastNoiseSIMD\FastNoiseSIMD_internal.h" />
     <ClInclude Include="3rdParty\imgui\imconfig.h" />

@@ -1,6 +1,6 @@
 /*HEADER_GOES_HERE*/
 #include "../../Headers/Components/StubComponent.h"
-#include "../../Headers/Containers/Object.h"
+#include "../../Headers/Containers/Entity.h"
 #include "../../Headers/Containers/Space.h"
 #include "../../Headers/Factory.h"
 
@@ -36,7 +36,7 @@ void StubComponent::Init()
 
 void StubComponent::End()
 {
-  if (parent != nullptr)
+  if (parent != entt::null)
   {
   //  GetSpace()->UnregisterListener(this, &StubComponent::UpdateEventsListen);
   //  GetSpace()->UnregisterListener(this, &StubComponent::DrawEventsListen);
