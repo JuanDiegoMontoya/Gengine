@@ -74,15 +74,10 @@ private:
   void mouse_scroll_cb(GLFWwindow* window, double xoffset, double yoffset);
   void mouse_button_cb(GLFWwindow* window, int button, int action, int mods);
 
-  std::function<void(GLFWwindow*, int, int, int, int)>  keypress_cb_bound;
-  std::function<void(GLFWwindow*, double, double)>      mouse_pos_cb_bound;
-  std::function<void(GLFWwindow*, double, double)>      mouse_scroll_cb_bound;
-  std::function<void(GLFWwindow*, int, int, int)>       mouse_button_cb_bound;
-
-  void(*keypress_cb_ptr)    (GLFWwindow*, int, int, int, int);
-  void(*mouse_pos_cb_ptr)   (GLFWwindow*, double, double);
-  void(*mouse_scroll_cb_ptr)(GLFWwindow*, double, double);
-  void(*mouse_button_cb_ptr)(GLFWwindow*, int, int, int);
+  static void keypress_cb_wrapper(GLFWwindow* window, int key, int scancode, int action, int mods) { InputSystem::GetInputSystem()->keypress_cb(window, key, scancode, action, mods); }
+  static void mouse_pos_cb_wrapper(GLFWwindow* window, double xpos, double ypos) { InputSystem::GetInputSystem()->mouse_pos_cb(window, xpos, ypos); }
+  static void mouse_scroll_cb_wrapper(GLFWwindow* window, double xoffset, double yoffset) { InputSystem::GetInputSystem()->mouse_scroll_cb(window, xoffset, yoffset); }
+  static void mouse_button_cb_wrapper(GLFWwindow* window, int button, int action, int mods) { InputSystem::GetInputSystem()->mouse_button_cb(window, button, action, mods); }
 
   InputSystem::KeyState keyStates[BUTTON_COUNT] = { InputSystem::KeyState(0) };
 };

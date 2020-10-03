@@ -168,19 +168,8 @@ void InputSystem::mouse_button_cb(GLFWwindow* window, int button, int action, in
 // sets GLFW input callbacks
 void InputSystem::init_glfw_input_cbs(GLFWwindow* window)
 {
-  using namespace std::placeholders;
-  keypress_cb_bound     = std::bind(&InputSystem::keypress_cb,     this, _1, _2, _3, _4, _5);
-  mouse_pos_cb_bound    = std::bind(&InputSystem::mouse_pos_cb,    this, _1, _2, _3);
-  mouse_scroll_cb_bound = std::bind(&InputSystem::mouse_scroll_cb, this, _1, _2, _3);
-  mouse_button_cb_bound = std::bind(&InputSystem::mouse_button_cb, this, _1, _2, _3, _4);
-  
-  keypress_cb_ptr     = keypress_cb_bound.target<void(GLFWwindow*, int, int, int, int)>();
-  mouse_pos_cb_ptr    = mouse_pos_cb_bound.target<void(GLFWwindow*, double, double)>();
-  mouse_scroll_cb_ptr = mouse_scroll_cb_bound.target<void(GLFWwindow*, double, double)>();
-  mouse_button_cb_ptr = mouse_button_cb_bound.target<void(GLFWwindow*, int, int, int)>();
-
-  glfwSetKeyCallback(window, keypress_cb_ptr);
-  glfwSetCursorPosCallback(window, mouse_scroll_cb_ptr);
-  glfwSetScrollCallback(window, mouse_scroll_cb_ptr);
-  glfwSetMouseButtonCallback(window, mouse_button_cb_ptr);
+  glfwSetKeyCallback(window, keypress_cb_wrapper);
+  glfwSetCursorPosCallback(window, mouse_scroll_cb_wrapper);
+  glfwSetScrollCallback(window, mouse_scroll_cb_wrapper);
+  glfwSetMouseButtonCallback(window, mouse_button_cb_wrapper);
 }
