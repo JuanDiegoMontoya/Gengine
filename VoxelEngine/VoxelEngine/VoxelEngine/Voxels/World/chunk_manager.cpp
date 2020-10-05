@@ -7,7 +7,7 @@
 #include <Chunks/ChunkStorage.h>
 #include <Graphics/GraphicsIncludes.h>
 #include <Utilities/Timer.h>
-#include <Systems/GraphicsSystem.h>
+#include <Managers/GraphicsManager.h>
 
 #include <algorithm>
 #include <execution>
@@ -395,7 +395,7 @@ void ChunkManager::lightPropagateAdd(glm::ivec3 wpos, Light nLight, bool skipsel
 					continue;
 
 				// TODO: light propagation through transparent materials
-				// get all light components (R, G, B, Sun) and modify ONE of them,
+				// get all light systems (R, G, B, Sun) and modify ONE of them,
 				// then push the position of that light into the queue
 				//glm::u8vec4 val = light.Get();
 				// this line can be optimized to reduce amount of global block getting
@@ -409,7 +409,7 @@ void ChunkManager::lightPropagateAdd(glm::ivec3 wpos, Light nLight, bool skipsel
 				ChunkStorage::SetLight(nlightPos, val);
 				enqueue = true;
 			}
-			if (enqueue) // enqueue if any lighting component changed
+			if (enqueue) // enqueue if any lighting system changed
 				lightQueue.push(nlightPos);
 		}
 	}
@@ -453,7 +453,7 @@ void ChunkManager::lightPropagateRemove(glm::ivec3 wpos, bool noqueue)
 			//BlockPtr b = GetBlockPtr(plight + dir);
 			if (!optB.has_value())
 				continue;
-			for (int ci = 0; ci < 3; ci++) // iterate 3 color components (not sunlight)
+			for (int ci = 0; ci < 3; ci++) // iterate 3 color systems (not sunlight)
 			{
 				// if the removed block emits light, it needs to be re-propagated
 				auto emit = Block::PropertiesTable[optB->GetTypei()].emittance;

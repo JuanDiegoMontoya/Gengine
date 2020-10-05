@@ -1,7 +1,7 @@
 #pragma once
 #include <Chunks/Chunk.h>
 #include <block.h>
-#include <Components/Camera.h>
+#include <Systems/Camera.h>
 
 #include <set>
 //#include <unordered_set>

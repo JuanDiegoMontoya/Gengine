@@ -38,8 +38,8 @@ int main(int argc, char* argv[])
       char stubToGenerate = toupper(type[0]);
       std::string stubFileType;
       if      (stubToGenerate == 'E') stubFileType = "Event";
-      else if (stubToGenerate == 'C') stubFileType = "Component";
       else if (stubToGenerate == 'S') stubFileType = "System";
+      else if (stubToGenerate == 'M') stubFileType = "Manager";
       else valid = false;
 
       if (valid)
@@ -47,10 +47,10 @@ int main(int argc, char* argv[])
         std::ifstream ifs;
         std::ofstream ofs;
 
-        std::string nameHeaderPath = std::string("Headers/") + stubFileType + "s/" + name + ".h";
-        std::string stubHeaderPath = std::string("Headers/") + stubFileType + "s/Stub" + stubFileType + ".h";
-        std::string nameSourcePath = std::string("Source/") + stubFileType + "s/" + name + ".cpp";
-        std::string stubSourcePath = std::string("Source/") + stubFileType + "s/Stub" + stubFileType + ".cpp";
+        std::string nameHeaderPath = std::string("Headers/") + stubFileType + "s/" + name + stubFileType + ".h";
+        std::string stubHeaderPath = std::string("Headers/") + stubFileType + "s/Stub"    + stubFileType + ".h";
+        std::string nameSourcePath = std::string("Source/")  + stubFileType + "s/" + name + stubFileType + ".cpp";
+        std::string stubSourcePath = std::string("Source/")  + stubFileType + "s/Stub"    + stubFileType + ".cpp";
 
         ifs.open(stubHeaderPath);
         std::string fileContents;
@@ -85,15 +85,15 @@ int main(int argc, char* argv[])
             ifs.close();
           }
         }
-        std::cout << "GG you generated your new " << name << " class, and have proven you can follow the simpleist of instructions\nJust be sure to add it to the Visual Studio Solution under the proper filter and you'll be good to go.\n";
+        std::cout << "GG you generated your new " << name << " class, and have proven you can follow the simplest of instructions\nJust be sure to add it to the Visual Studio Solution under the proper filter and you'll be good to go.\n";
         system("..\\x64\\Release\\PrePP.exe > nul 2>&1");
         return 0;
       }
     }
   }
 
-  std::cout << "You dumb fuck, you can't follow the simpleist of instructions.\nJust put:\n\nTemplateGenerator [] []\n\nwhere each one of the box brackets is replaced with:\n"
-    << "E for a new Event\nS for a new System\nC for a new Component\n\nThe other box bracket is replaced with whatever fuckin name you want that makes sense.\nIt just has to be more than 1 character plz.\n"
+  std::cout << "You dumb fuck, you can't follow the simplest of instructions.\nJust put:\n\nTemplateGenerator [] []\n\nwhere each one of the box brackets is replaced with:\n"
+    << "E for a new Event\nM for a new Manager\nS for a new System\n\nThe other box bracket is replaced with whatever fuckin name you want that makes sense.\nIt just has to be more than 1 character plz.\n"
     << "\nHave a good day and don't fuck it up next time.\n";
   return 1;
 }

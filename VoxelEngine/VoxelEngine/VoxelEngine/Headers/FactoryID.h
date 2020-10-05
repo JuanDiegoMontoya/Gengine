@@ -10,6 +10,7 @@
 enum class FactoryID                                             
   {                                                              
     cEngine,                                                     
+    cManager,                                                    
     cSystem,                                                     
     cSpace,                                                      
     cObject,                                                     
@@ -19,17 +20,17 @@ enum class FactoryID
   };                                                             
                                                                  
                                                                  
-//SystemIDs
+//ManagerIDs
 const ID cFrameRateController = 0;
-const ID cGraphicsSystem = 1;
-const ID cInputSystem = 2;
-const ID cStubSystem = 3;
-const ID cTraceSystem = 4;
+const ID cGraphicsManager = 1;
+const ID cInputManager = 2;
+const ID cStubManager = 3;
+const ID cTraceManager = 4;
 
-//ComponentIDs
+//SystemIDs
 const ID cCamera = 0;
-const ID cStubComponent = 1;
-const ID cTestingComponent = 2;
+const ID cStubSystem = 1;
+const ID cTestingSystem = 2;
 const ID cVoxelWorld = 3;
 
 //EventIDs
@@ -41,6 +42,6 @@ const ID cStubEvent = 4;
 const ID cTestingEvent = 5;
 const ID cTraceEvent = 6;
 const ID cUpdateEvent = 7;
-
+  
 #endif // !FactoryID_Guard                                       
   

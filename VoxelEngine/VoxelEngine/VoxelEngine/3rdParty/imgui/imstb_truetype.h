@@ -1848,7 +1848,7 @@ static int stbtt__GetGlyphShapeTT(const stbtt_fontinfo *info, int glyph_index, s
             STBTT_free(comp_verts, info->userdata);
             num_vertices += comp_num_verts;
          }
-         // More components ?
+         // More systems ?
          more = flags & (1<<5);
       }
    } else if (numberOfContours < 0) {

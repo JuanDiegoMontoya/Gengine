@@ -12,9 +12,9 @@
 //#include "../Headers/Events/RenderEvent.h"
 //#include "../Headers/Events/PreRenderEvent.h"
 
-//systems
+//managers
 #define ENGINE_RUNNING
-#include "../Headers/Systems/AllSystemHeaders.h"
+#include "../Headers/Managers/AllManagerHeaders.h"
 #undef ENGINE_RUNNING
 
 #include <iostream>
@@ -28,24 +28,24 @@ Engine::Engine()
     //PROPERTY_ID(Int, engineData)
     });
 
-  //systems.push_back(Graphics::GetGraphics());
-  //systems.push_back(InputManager::GetInputManager());
-  //systems.push_back(Audio::GetAudio());
-  systems.push_back(TraceSystem::GetTraceSystem());
-  systems.push_back(FrameRateController::GetFrameRateController());
-  systems.push_back(GraphicsSystem::GetGraphicsSystem());
-  systems.push_back(InputSystem::GetInputSystem());
+  //managers.push_back(Graphics::GetGraphics());
+  //managers.push_back(InputManager::GetInputManager());
+  //managers.push_back(Audio::GetAudio());
+  managers.push_back(TraceManager::GetTraceManager());
+  managers.push_back(FrameRateController::GetFrameRateController());
+  managers.push_back(GraphicsManager::GetGraphicsManager());
+  managers.push_back(InputManager::GetInputManager());
 }
 
 Engine::~Engine()
 {
-  for (auto& i : systems)
+  for (auto& i : managers)
     delete i;
 }
 
 void Engine::Init()
 {
-  for (auto& i : systems)
+  for (auto& i : managers)
     i->Init();
 
   spaces.push_back(Space::CreateInitialSpace());
@@ -76,7 +76,7 @@ void Engine::End()
 {
   for (auto& i : spaces)
     i->End();
-  for (auto& i : systems)
+  for (auto& i : managers)
     i->End();
 }
 

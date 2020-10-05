@@ -2,8 +2,8 @@
 //#include "World.h"
 #include <Engine.h>
 #include <Graphics/shader.h>
-#include <Components/Camera.h>
-#include <Systems/InputSystem.h>
+#include <Systems/Camera.h>
+#include <Managers/InputManager.h>
 #include <Chunks/ChunkStorage.h>
 #include <Graphics/dib.h>
 #include <Rendering/ChunkRenderer.h>
@@ -13,8 +13,8 @@
 #include <Refactor/sun.h>
 #include <Rendering/RenderOrder.h>
 
-#include <Systems/GraphicsSystem.h>
-#include <Components/VoxelWorld.h>
+#include <Managers/GraphicsManager.h>
+#include <Systems/VoxelWorld.h>
 
 namespace NuRenderer
 {
@@ -48,7 +48,7 @@ namespace NuRenderer
 		switch (source)
 		{
 		case GL_DEBUG_SOURCE_API:             std::cout << "Source: API"; break;
-		case GL_DEBUG_SOURCE_WINDOW_SYSTEM:   std::cout << "Source: Window System"; break;
+		case GL_DEBUG_SOURCE_WINDOW_SYSTEM:   std::cout << "Source: Window Manager"; break;
 		case GL_DEBUG_SOURCE_SHADER_COMPILER: std::cout << "Source: Shader Compiler"; break;
 		case GL_DEBUG_SOURCE_THIRD_PARTY:     std::cout << "Source: Third Party"; break;
 		case GL_DEBUG_SOURCE_APPLICATION:     std::cout << "Source: Application"; break;

@@ -2,7 +2,7 @@
 #include <Rendering/ChunkRenderer.h>
 #include <Graphics/BufferAllocator.h>
 #include <Chunks/Chunk.h>
-#include <Components/Camera.h>
+#include <Systems/Camera.h>
 #include <Rendering/Frustum.h>
 #include <execution>
 #include <Graphics/shader.h>
@@ -10,7 +10,7 @@
 #include <Chunks/ChunkStorage.h>
 #include <Graphics/Vertices.h>
 #include <memory>
-#include <Systems/GraphicsSystem.h>
+#include <Managers/GraphicsManager.h>
 
 
 namespace ChunkRenderer

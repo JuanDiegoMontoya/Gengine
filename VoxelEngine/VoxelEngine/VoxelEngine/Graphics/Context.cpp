@@ -5,7 +5,7 @@
 #include <iostream>
 
 // TODO: horrible
-#include <Systems/InputSystem.h>
+#include <Managers/InputManager.h>
 
 static void error_cb(int error, char const* description)
 {
@@ -37,7 +37,7 @@ void cursor_enter_callback([[maybe_unused]] GLFWwindow* window, int entered)
 
 void set_glfw_callbacks(GLFWwindow* window)
 {
-	InputSystem::GetInputSystem()->init_glfw_input_cbs(window);
+	InputManager::GetInputManager()->init_glfw_input_cbs(window);
 
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 	glfwSetWindowIconifyCallback(window, iconify_callback);

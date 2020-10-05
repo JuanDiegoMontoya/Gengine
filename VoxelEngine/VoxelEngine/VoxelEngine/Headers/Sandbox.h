@@ -90,7 +90,7 @@ void update(entt::registry& registry) {
   auto view = registry.view<position, velocity>();
 
   for (auto entity : view) {
-    // gets only the components that are going to be used ...
+    // gets only the systems that are going to be used ...
 
     auto& vel = view.get<velocity>(entity);
 
@@ -103,7 +103,7 @@ void update(entt::registry& registry) {
 
 void update(std::uint64_t dt, entt::registry& registry) {
   registry.view<position, velocity>().each([dt](auto& pos, auto& vel) {
-    // gets all the components of the view at once ...
+    // gets all the systems of the view at once ...
 
     pos.x += vel.dx * dt;
     pos.y += vel.dy * dt;

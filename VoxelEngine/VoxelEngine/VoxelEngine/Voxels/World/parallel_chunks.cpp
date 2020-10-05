@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <execution>
 #include <Chunks/ChunkStorage.h>
-#include <Systems/GraphicsSystem.h>>
+#include <Managers/GraphicsManager.h>>
 
 // TODO: add a way to notify these threads to terminate when the program
 // does to prevent crash on exit

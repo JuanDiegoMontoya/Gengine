@@ -2,11 +2,11 @@
 #ifndef FrameRateController_DEF
 #define FrameRateController_DEF
 
-#include "System.h"
+#include "Manager.h"
 #include <chrono>
 #include "../FactoryID.h"
 
-class FrameRateController : public System
+class FrameRateController : public Manager
 {
 public:
 
@@ -34,7 +34,7 @@ private:
   std::chrono::high_resolution_clock::time_point startTime;
   std::chrono::high_resolution_clock::time_point frameStartTime;
 
-  friend void RegisterSystems();
+  friend void RegisterManagers();
 };
 
 
