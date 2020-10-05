@@ -1,5 +1,5 @@
 /*HEADER_GOES_HERE*/
-#include "../../Headers/Components/Component.h"
+#include "../../Headers/Systems/System.h"
 #include "../../Headers/Containers/Space.h"
 #include "../../Headers/Engine.h"
 #include "../../Headers/Factory.h"
@@ -26,59 +26,59 @@ Object::Object(const std::string& emptyName_) : name(emptyName_), space(nullptr)
 Object::~Object()
 {
   for (int i = 0; i < COMPONENT_COUNT; i++)
-    if (components[i])
+    if (systems[i])
     {
-      DetatchComponent(components[i]->type);
+      DetatchSystem(systems[i]->type);
     }
   RemoveParent();
   RemoveAllChildren();
 }
 
-void Object::DetatchComponent(ID type)
+void Object::DetatchSystem(ID type)
 {
-  if (components[type] != nullptr)
+  if (systems[type] != nullptr)
   {
-    components[type]->End();
-    components[type] = nullptr;
+    systems[type]->End();
+    systems[type] = nullptr;
   }
 }
 
 Object& Object::operator=(const Object& rhs)
 {
-  //Remove all old components
-  for (auto& i : components)
+  //Remove all old systems
+  for (auto& i : systems)
     if (i != nullptr)
-      DetatchComponent(i->type);
+      DetatchSystem(i->type);
 
-  //Add all new components
-  for (auto& i : rhs.components)
+  //Add all new systems
+  for (auto& i : rhs.systems)
     if (i != nullptr)
-      AttachComponent(i->Clone());
+      AttachSystem(i->Clone());
 
   return *this;
 }
 
-Component* Object::FindComponent(ID componentType)
+System* Object::FindSystem(ID systemType)
 {
-  return &*components[componentType];
+  return &*systems[systemType];
 }
 
-Component* Object::AttachComponent(std::unique_ptr<Component> componentToAttach)
+System* Object::AttachSystem(std::unique_ptr<System> systemToAttach)
 {
-  if(componentToAttach->GetParent() != nullptr) throw("Can't add component that's already on another object");
-  DetatchComponent(componentToAttach->type);
-  componentToAttach->parent = this;
+  if(systemToAttach->GetParent() != nullptr) throw("Can't add system that's already on another object");
+  DetatchSystem(systemToAttach->type);
+  systemToAttach->parent = this;
   if (GetSpace()->HasInitialized())
-    componentToAttach->Init();
-  return &*(components[componentToAttach->type] = std::move(componentToAttach));
+    systemToAttach->Init();
+  return &*(systems[systemToAttach->type] = std::move(systemToAttach));
 }
 
 void Object::Init(InitEvent* initEvent)
 {
   space->RegisterListener(this, &Object::UpdateEventsListen);
-  for (int i = 0; i < components.size(); ++i)
-    if (components[i] != nullptr)
-      components[i]->Init();
+  for (int i = 0; i < systems.size(); ++i)
+    if (systems[i] != nullptr)
+      systems[i]->Init();
 }
 
 void CloneHelper(Object* object, Space* space)
@@ -96,11 +96,11 @@ Object* Object::Clone(Space* space_)
   result->isTemp = isTemp;
   result->paused = paused;
 
-  for (auto& i : components)
+  for (auto& i : systems)
     if (i != nullptr)
     {
-      result->components[i->type]->parent = this;
-      &*(components[i->type] = std::move(i->Clone()));
+      result->systems[i->type]->parent = this;
+      &*(systems[i->type] = std::move(i->Clone()));
     }
 
   space_->GetObjects().push_back(std::move(result));
@@ -121,7 +121,7 @@ void Object::End()
   {
     space->UnregisterListener(this, &Object::UpdateEventsListen);
   }
-  for (auto& i : components)
+  for (auto& i : systems)
     if (i != nullptr)
       i->End();
 }

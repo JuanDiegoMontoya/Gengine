@@ -26,17 +26,17 @@ int main()
   int counter = 0;
   std::string output = "";
   std::string headers = "";
-  std::string componentFileIDs = "";
-  std::string eventFileIDs = "";
   std::string systemFileIDs = "";
-    //Each System
+  std::string eventFileIDs = "";
+  std::string managerFileIDs = "";
+    //Each Manager
   //include the header file
   //Find and store every property
-    //Each System
-      //Create a Register Function for Systems
-  systemFileIDs += "//SystemIDs\n";
+    //Each Manager
+      //Create a Register Function for Managers
+  managerFileIDs += "//ManagerIDs\n";
 
-  for (auto& p : fs::directory_iterator("../VoxelEngine/Headers/Systems"))
+  for (auto& p : fs::directory_iterator("../VoxelEngine/Headers/Managers"))
   {
     if (p.is_directory()) continue;
 
@@ -44,13 +44,14 @@ int main()
     size_t startOfName = filepath.find_last_of('\\') + 1;
     std::string file = ws2s(filepath.substr(startOfName, filepath.length() - startOfName - 2));
 
-    if (file == std::string("System") || file == std::string("AllSystemHeaders")) continue;
+    if (file == std::string("Manager") || file == std::string("AllManagerHeaders")) continue;
     //std::cout << file.c_str() << '\n';
 
     headers += std::string("#include \"") + file + ".h\"\n";
-    output += std::string("Factory::SystemPropertyMap[\"") + file + "\"] = std::vector<PropertyID>({\n  ";
-    systemFileIDs += std::string("const ID c") + file + " = " + std::to_string(counter) + ";\n";
+    output += std::string("Factory::ManagerPropertyMap[\"") + file + "\"] = std::vector<PropertyID>({\n  ";
+    managerFileIDs += std::string("const ID c") + file + " = " + std::to_string(counter) + ";\n";
     ++counter;
+
 
     std::ifstream f(filepath);
     std::string fileContents;
@@ -84,12 +85,12 @@ int main()
 
   }
   output = std::string("\
-#ifndef SYSTEM_COUNT\n#define SYSTEM_COUNT ") + std::to_string(counter) + "\n#endif\n\n" +
+#ifndef MANAGER_COUNT\n#define MANAGER_COUNT ") + std::to_string(counter) + "\n#endif\n\n" +
 "#ifdef ENGINE_RUNNING\n" + headers + "#endif // !ENGINE_RUNNING\n\n" + 
-"#ifdef FACTORY_RUNNING\n\n#include \"../Headers/Factory.h\"\n" + headers + "\n\nvoid RegisterSystems()\n{\n" + output + "}\n\n#endif // !FACTORY_RUNNING";
+"#ifdef FACTORY_RUNNING\n\n#include \"../Headers/Factory.h\"\n" + headers + "\n\nvoid RegisterManagers()\n{\n" + output + "}\n\n#endif // !FACTORY_RUNNING";
 
   std::ifstream ifs;
-  ifs.open("../VoxelEngine/Headers/Systems/AllSystemHeaders.h");
+  ifs.open("../VoxelEngine/Headers/Managers/AllManagerHeaders.h");
   if (ifs.is_open())
   {
     std::string fileContents;
@@ -100,7 +101,7 @@ int main()
     if (fileContents != output)
     {
       std::ofstream ofs;
-      ofs.open("../VoxelEngine/Headers/Systems/AllSystemHeaders.h");
+      ofs.open("../VoxelEngine/Headers/Managers/AllManagerHeaders.h");
       ofs << output;
       ofs.close();
     }
@@ -115,9 +116,9 @@ int main()
   headers = "";
   counter = 0;
   std::string registerFunctions = "";
-  componentFileIDs += "//ComponentIDs\n";
+  systemFileIDs += "//SystemIDs\n";
 
-  for (auto& p : fs::directory_iterator("../VoxelEngine/Headers/Components"))
+  for (auto& p : fs::directory_iterator("../VoxelEngine/Headers/Systems"))
   {
     if (p.is_directory()) continue;
 
@@ -125,13 +126,13 @@ int main()
     size_t startOfName = filepath.find_last_of('\\') + 1;
     std::string file = ws2s(filepath.substr(startOfName, filepath.length() - startOfName - 2));
 
-    if (file == std::string("Component") || file == std::string("AllComponentHeaders")) continue;
+    if (file == std::string("System") || file == std::string("AllSystemHeaders")) continue;
     //std::cout << file.c_str() << '\n';
 
     headers += std::string("#include \"") + file + ".h\"\n";
-    output += std::string("Factory::ComponentPropertyMap[\"") + file + "\"] = std::vector<PropertyID>({\n  ";
-    registerFunctions += std::string("inline std::unique_ptr<Component> Component") + std::to_string(counter) + "() { return std::move(" + file +  "::Register" + file + "()); }\n";
-    componentFileIDs += std::string("const ID c") + file + " = " + std::to_string(counter) + ";\n";
+    output += std::string("Factory::SystemPropertyMap[\"") + file + "\"] = std::vector<PropertyID>({\n  ";
+    registerFunctions += std::string("inline std::unique_ptr<System> System") + std::to_string(counter) + "() { return std::move(" + file +  "::Register" + file + "()); }\n";
+    systemFileIDs += std::string("const ID c") + file + " = " + std::to_string(counter) + ";\n";
     ++counter;
 
     std::ifstream f(filepath);
@@ -167,11 +168,11 @@ int main()
   }
   output = std::string("\
 #ifndef COMPONENT_COUNT\n#define COMPONENT_COUNT ") + std::to_string(counter) + "\n#endif\n\n" +
-"#ifdef FACTORY_RUNNING\n\n#include \"../Headers/Factory.h\"\n" + headers + "\n\nvoid RegisterComponents()\n{\n" + output + "}\n\n" + 
+"#ifdef FACTORY_RUNNING\n\n#include \"../Headers/Factory.h\"\n" + headers + "\n\nvoid RegisterSystems()\n{\n" + output + "}\n\n" + 
 registerFunctions + "\n\n#endif // !FACTORY_RUNNING";
 
   ifs;
-  ifs.open("../VoxelEngine/Headers/Components/AllComponentHeaders.h");
+  ifs.open("../VoxelEngine/Headers/Systems/AllSystemHeaders.h");
   if (ifs.is_open())
   {
     std::string fileContents;
@@ -182,7 +183,7 @@ registerFunctions + "\n\n#endif // !FACTORY_RUNNING";
     if (fileContents != output)
     {
       std::ofstream ofs;
-      ofs.open("../VoxelEngine/Headers/Components/AllComponentHeaders.h");
+      ofs.open("../VoxelEngine/Headers/Systems/AllSystemHeaders.h");
       ofs << output;
       ofs.close();
     }
@@ -376,6 +377,7 @@ instance += offset;                                         \n";
 enum class FactoryID                                             \n\
   {                                                              \n\
     cEngine,                                                     \n\
+    cManager,                                                    \n\
     cSystem,                                                     \n\
     cSpace,                                                      \n\
     cObject,                                                     \n\
@@ -385,7 +387,7 @@ enum class FactoryID                                             \n\
   };                                                             \n\
                                                                  \n\
                                                                  \n") + 
-systemFileIDs + "\n" + componentFileIDs + "\n" + eventFileIDs + "\n\
+managerFileIDs + "\n" + systemFileIDs + "\n" + eventFileIDs + "  \n\
 #endif // !FactoryID_Guard                                       \n\
   ";
 
@@ -436,10 +438,10 @@ systemFileIDs + "\n" + componentFileIDs + "\n" + eventFileIDs + "\n\
 //enum class FactoryID
 //{
 //  cEngine,
-//  cSystem,
+//  cManager,
 //  cSpace,
 //  cObject,
-//  cComponent,
+//  cSystem,
 //  cEvent,
 //  cCount
 //};

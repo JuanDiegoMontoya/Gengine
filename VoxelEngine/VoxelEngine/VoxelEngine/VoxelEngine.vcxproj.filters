@@ -90,15 +90,6 @@
     <ClInclude Include="Headers\Events\StubEvent.h">
       <Filter>Header Files\Events</Filter>
     </ClInclude>
-    <ClInclude Include="Headers\Components\Component.h">
-      <Filter>Header Files\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="Headers\Components\StubComponent.h">
-      <Filter>Header Files\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="Headers\Systems\StubSystem.h">
-      <Filter>Header Files\Systems</Filter>
-    </ClInclude>
     <ClInclude Include="Headers\Engine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -108,26 +99,14 @@
     <ClInclude Include="Headers\FactoryID.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Headers\Systems\System.h">
-      <Filter>Header Files\Systems</Filter>
-    </ClInclude>
     <ClInclude Include="Headers\Events\Event.h">
       <Filter>Header Files\Events</Filter>
-    </ClInclude>
-    <ClInclude Include="Headers\Systems\FrameRateController.h">
-      <Filter>Header Files\Systems</Filter>
-    </ClInclude>
-    <ClInclude Include="Headers\Components\AllComponentHeaders.h">
-      <Filter>Header Files\Components</Filter>
     </ClInclude>
     <ClInclude Include="Headers\Events\AllEventHeaders.h">
       <Filter>Header Files\Events</Filter>
     </ClInclude>
     <ClInclude Include="Headers\JunkDrawer.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Headers\Systems\AllSystemHeaders.h">
-      <Filter>Header Files\Systems</Filter>
     </ClInclude>
     <ClInclude Include="Headers\PreProcessorMagic.h">
       <Filter>Header Files</Filter>
@@ -137,9 +116,6 @@
     </ClInclude>
     <ClInclude Include="Headers\Events\DrawEvent.h">
       <Filter>Header Files\Events</Filter>
-    </ClInclude>
-    <ClInclude Include="Headers\Components\TestingComponent.h">
-      <Filter>Header Files\Components</Filter>
     </ClInclude>
     <ClInclude Include="Headers\Events\InitEvent.h">
       <Filter>Header Files</Filter>
@@ -153,14 +129,8 @@
     <ClInclude Include="Headers\Events\TraceEvent.h">
       <Filter>Header Files\Events</Filter>
     </ClInclude>
-    <ClInclude Include="Headers\Systems\TraceSystem.h">
-      <Filter>Header Files\Systems</Filter>
-    </ClInclude>
     <ClInclude Include="Headers\Events\TestingEvent.h">
       <Filter>Header Files\Events</Filter>
-    </ClInclude>
-    <ClInclude Include="Headers\Systems\GraphicsSystem.h">
-      <Filter>Header Files\Systems</Filter>
     </ClInclude>
     <ClInclude Include="Headers\Events\RenderEvent.h">
       <Filter>Header Files\Events</Filter>
@@ -191,9 +161,6 @@
     </ClInclude>
     <ClInclude Include="3rdParty\imgui\imstb_truetype.h">
       <Filter>3rd Party\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="Headers\Systems\InputSystem.h">
-      <Filter>Header Files\Systems</Filter>
     </ClInclude>
     <ClInclude Include="Voxels\Refactor\Editor.h">
       <Filter>Header Files</Filter>
@@ -294,14 +261,8 @@
     <ClInclude Include="Voxels\WorldGen\WorldGen2.h">
       <Filter>Voxel Engine\WorldGen</Filter>
     </ClInclude>
-    <ClInclude Include="Headers\Components\Camera.h">
-      <Filter>Header Files\Components</Filter>
-    </ClInclude>
     <ClInclude Include="Voxels\Rendering\Frustum.h">
       <Filter>Voxel Engine\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="Headers\Components\VoxelWorld.h">
-      <Filter>Header Files\Components</Filter>
     </ClInclude>
     <ClInclude Include="Headers\MathIncludes.h">
       <Filter>Header Files</Filter>
@@ -381,6 +342,45 @@
     <ClInclude Include="Headers\Components\Transform.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Headers\Systems\Manager.h">
+      <Filter>Header Files\Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="Headers\Managers\AllManagerHeaders.h">
+      <Filter>Header Files\Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="Headers\Managers\GraphicsManager.h">
+      <Filter>Header Files\Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="Headers\Managers\FrameRateController.h">
+      <Filter>Header Files\Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="Headers\Managers\TraceManager.h">
+      <Filter>Header Files\Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="Headers\Managers\InputManager.h">
+      <Filter>Header Files\Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="Headers\Managers\StubManager.h">
+      <Filter>Header Files\Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="Headers\Systems\AllSystemHeaders.h">
+      <Filter>Header Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Headers\Systems\Camera.h">
+      <Filter>Header Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Headers\Systems\VoxelWorld.h">
+      <Filter>Header Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Headers\Systems\System.h">
+      <Filter>Header Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Headers\Systems\TestingSystem.h">
+      <Filter>Header Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Headers\Systems\StubSystem.h">
+      <Filter>Header Files\Components</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Engine.cpp">
@@ -388,12 +388,6 @@
     </ClCompile>
     <ClCompile Include="Source\Factory.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Components\Component.cpp">
-      <Filter>Source Files\Components</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Components\StubComponent.cpp">
-      <Filter>Source Files\Components</Filter>
     </ClCompile>
     <ClCompile Include="Source\Containers\EventManger.cpp">
       <Filter>Source Files\Containers</Filter>
@@ -404,9 +398,6 @@
     <ClCompile Include="Source\Containers\Space.cpp">
       <Filter>Source Files\Containers</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Systems\StubSystem.cpp">
-      <Filter>Source Files\Systems</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Systems\FrameRateController.cpp">
       <Filter>Source Files\Systems</Filter>
     </ClCompile>
@@ -415,15 +406,6 @@
     </ClCompile>
     <ClCompile Include="Source\Entry.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Components\TestingComponent.cpp">
-      <Filter>Source Files\Components</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Systems\TraceSystem.cpp">
-      <Filter>Source Files\Systems</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Systems\GraphicsSystem.cpp">
-      <Filter>Source Files\Systems</Filter>
     </ClCompile>
     <ClCompile Include="Source\engine_assert.cpp">
       <Filter>Source Files</Filter>
@@ -442,9 +424,6 @@
     </ClCompile>
     <ClCompile Include="3rdParty\imgui\imgui_widgets.cpp">
       <Filter>3rd Party\imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Systems\InputSystem.cpp">
-      <Filter>Source Files\Systems</Filter>
     </ClCompile>
     <ClCompile Include="Voxels\pick.cpp">
       <Filter>Voxel Engine</Filter>
@@ -586,6 +565,27 @@
     </ClCompile>
     <ClCompile Include="Graphics\stbiImpl.cpp">
       <Filter>Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Systems\GraphicsManager.cpp">
+      <Filter>Source Files\Systems</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Systems\InputManager.cpp">
+      <Filter>Source Files\Systems</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Systems\StubManager.cpp">
+      <Filter>Source Files\Systems</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Systems\TraceManager.cpp">
+      <Filter>Source Files\Systems</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Components\System.cpp">
+      <Filter>Source Files\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Components\TestingSystem.cpp">
+      <Filter>Source Files\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Components\StubSystem.cpp">
+      <Filter>Source Files\Components</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

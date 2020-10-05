@@ -14,10 +14,10 @@
 
   //Hacky bad for now stuff
 
-#include "../../Headers/Components/TestingComponent.h"
-#include <Components/VoxelWorld.h>
-#include <Components/Camera.h>
-#include <Systems/GraphicsSystem.h>
+#include "../../Headers/Systems/TestingSystem.h"
+#include <Systems/VoxelWorld.h>
+#include <Systems/Camera.h>
+#include <Managers/GraphicsManager.h>
 
   //done with bad stuff
 
@@ -29,13 +29,13 @@ std::unique_ptr<Space> Space::CreateInitialSpace()
   newSpace->name = std::string("TestingSpace");
 
   Object* newObject = Factory::CloneObject(&*newSpace);
-  newObject->AttachComponent<TestingComponent>(CLONE_COMPONENT(TestingComponent));
-  newObject->AttachComponent<VoxelWorld>(CLONE_COMPONENT(VoxelWorld));
+  newObject->AttachSystem<TestingSystem>(CLONE_COMPONENT(TestingSystem));
+  newObject->AttachSystem<VoxelWorld>(CLONE_COMPONENT(VoxelWorld));
 
   auto FUCK = std::make_unique<Camera>();
   FUCK->GenProjection(80.0f);
-  GraphicsSystem::GetGraphicsSystem()->SetActiveCamera(FUCK.get());
-  newObject->AttachComponent<Camera>(std::move(FUCK));
+  GraphicsManager::GetGraphicsManager()->SetActiveCamera(FUCK.get());
+  newObject->AttachSystem<Camera>(std::move(FUCK));
 
   return newSpace;
 
@@ -180,11 +180,11 @@ bool Space::HasInitialized()
 
 
 #include <Containers/Entity.h>
-//#include <Components/Transform.h>
+//#include <Systems/Transform.h>
 Entity Space::CreateEntity(std::string_view name)
 {
   Entity entity(registry.create(), this);
-  auto& tag = entity.AddComponent<Tag>();
+  auto& tag = entity.AddSystem<Tag>();
   tag.tag = name.empty() ? "Entity" : name;
   return entity;
 }

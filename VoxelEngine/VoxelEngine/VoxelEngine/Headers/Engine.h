@@ -2,7 +2,7 @@
 #ifndef Engine_DEF
 #define Engine_DEF
 
-#include "Systems/System.h"
+#include "Managers/Manager.h"
 #include "../Headers/Containers/EventManger.h"
 #include "FactoryID.h"
 #include <list>
@@ -50,7 +50,7 @@ private:
 
   std::unique_ptr<EventManager> eventManager = std::unique_ptr<EventManager>(new EventManager());
   std::deque<std::unique_ptr<Space>> spaces;
-  std::deque<System*> systems;
+  std::deque<Manager*> managers;
   float elapsedTime = 0.0f;
 
 };

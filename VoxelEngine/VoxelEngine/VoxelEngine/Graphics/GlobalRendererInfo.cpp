@@ -1,6 +1,6 @@
 #include <Graphics/GlobalRendererInfo.h>
 #include <Graphics/GraphicsIncludes.h>
-#include <Components/Camera.h>
+#include <Systems/Camera.h>
 #include <Graphics/UBO.h>
 
 void GlobalRendererInfo::SetCamera(Camera* camera)

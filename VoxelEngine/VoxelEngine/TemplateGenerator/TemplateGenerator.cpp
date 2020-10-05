@@ -38,8 +38,8 @@ int main(int argc, char* argv[])
       char stubToGenerate = toupper(type[0]);
       std::string stubFileType;
       if      (stubToGenerate == 'E') stubFileType = "Event";
-      else if (stubToGenerate == 'C') stubFileType = "Component";
-      else if (stubToGenerate == 'S') stubFileType = "System";
+      else if (stubToGenerate == 'C') stubFileType = "System";
+      else if (stubToGenerate == 'S') stubFileType = "Manager";
       else valid = false;
 
       if (valid)
@@ -93,7 +93,7 @@ int main(int argc, char* argv[])
   }
 
   std::cout << "You dumb fuck, you can't follow the simpleist of instructions.\nJust put:\n\nTemplateGenerator [] []\n\nwhere each one of the box brackets is replaced with:\n"
-    << "E for a new Event\nS for a new System\nC for a new Component\n\nThe other box bracket is replaced with whatever fuckin name you want that makes sense.\nIt just has to be more than 1 character plz.\n"
+    << "E for a new Event\nS for a new Manager\nC for a new System\n\nThe other box bracket is replaced with whatever fuckin name you want that makes sense.\nIt just has to be more than 1 character plz.\n"
     << "\nHave a good day and don't fuck it up next time.\n";
   return 1;
 }

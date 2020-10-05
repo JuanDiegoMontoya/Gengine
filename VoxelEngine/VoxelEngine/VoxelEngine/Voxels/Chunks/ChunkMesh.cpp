@@ -263,7 +263,7 @@ inline int ChunkMesh::vertexFaceAO(const glm::vec3& lpos, const glm::vec3& corne
 
 	int occluded = 0;
 
-	// sides are components of the corner minus the normal direction
+	// sides are systems of the corner minus the normal direction
 	vec3 sidesDir = cornerDir * 2.0f - norm;
 	for (int i = 0; i < sidesDir.length(); i++)
 	{

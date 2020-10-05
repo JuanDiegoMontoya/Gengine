@@ -2,13 +2,13 @@
 #include <Refactor/sun.h>
 #include <Graphics/vao.h>
 #include <Graphics/vbo.h>
-#include <Components/Camera.h>
+#include <Systems/Camera.h>
 #include <Graphics/shader.h>
 #include <Refactor/settings.h>
 #include <limits>
 #include <Graphics/Vertices.h>
 
-#include <Systems/GraphicsSystem.h>
+#include <Managers/GraphicsManager.h>
 #include <Graphics/GraphicsIncludes.h>
 
 Sun::Sun()

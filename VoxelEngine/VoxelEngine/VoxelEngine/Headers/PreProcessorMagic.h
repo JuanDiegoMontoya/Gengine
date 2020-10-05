@@ -12,7 +12,7 @@
 #define xstr(s) xxstr(s)
 
 //A level of indirection is also required for concatinating macros
-#define MACRO9(x) ComponentIDs/Component_##x
+#define MACRO9(x) SystemIDs/System_##x
 #define MACRO8(x) MACRO9(x)
 
 #define MACRO11(x) EventIDs/Event_##x
@@ -26,7 +26,7 @@
 #define EVENT_HEADER_FILE xstr(MACRO10(MACRO2(BOOST_PP_COUNTER)))
 
 //Yet another indirection for concatination
-#define MACRO5(s) Component##s
+#define MACRO5(s) System##s
 #define MACRO4(s) MACRO5(s)
 
 //This is a way to create a unique function name that can be called from another file without even knowing it's name directly
@@ -40,7 +40,7 @@
 #define REG_EVENT (MACRO12(BOOST_PP_COUNTER))
 
 //Callback "function" for generating the list of function pointers
-#define MAKE_COMPONENT_FUNCT(z, n, unused) BOOST_PP_COMMA_IF(n) &Component##n
+#define MAKE_COMPONENT_FUNCT(z, n, unused) BOOST_PP_COMMA_IF(n) &System##n
 #define MAKE_EVENT_FUNCT(z, n, unused) BOOST_PP_COMMA_IF(n) &Event##n
 
 //#define str(s) #s

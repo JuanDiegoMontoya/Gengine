@@ -1,9 +1,9 @@
 #if 0
 #include "stdafx.h"
 #include "chunk_manager.h"
-#include <Systems/InputSystem.h>
+#include <Managers/InputManager.h>
 #include <block.h>
-#include <Components/Camera.h>
+#include <Systems/Camera.h>
 #include "pick.h"
 #include "Editor.h"
 #include <Graphics/shader.h>
@@ -133,7 +133,7 @@ namespace Editor
 				}
 				else if (selectedPositions == 1)
 				{
-					// component wise
+					// system wise
 					glm::vec3 min(
 						glm::min(wpositions[0].x, hposition.x),
 						glm::min(wpositions[0].y, hposition.y),
@@ -148,7 +148,7 @@ namespace Editor
 				}
 				else if (selectedPositions == 2)
 				{
-					// component wise
+					// system wise
 					glm::vec3 min(
 						glm::min(wpositions[0].x, glm::min(wpositions[1].x, hposition.x)),
 						glm::min(wpositions[0].y, glm::min(wpositions[1].y, hposition.y)),

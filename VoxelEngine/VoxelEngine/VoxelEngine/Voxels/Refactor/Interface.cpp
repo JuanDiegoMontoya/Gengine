@@ -5,11 +5,11 @@
 #include <Graphics/shader.h>
 //#include "World.h"
 #include <Rendering/Renderer.h>
-#include <Components/Camera.h>
+#include <Systems/Camera.h>
 #include "pick.h"
 #include <Refactor/settings.h>
 #include <Utilities/ImGuiBonus.h>
-#include <Systems/InputSystem.h>
+#include <Managers/InputManager.h>
 #include <Chunks/ChunkStorage.h>
 #include <Chunks/ChunkHelpers.h>
 

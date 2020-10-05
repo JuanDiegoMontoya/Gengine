@@ -1,13 +1,13 @@
 /*HEADER_GOES_HERE*/
 
 /* //// INCLUDES //// */
-#include "../../Headers/Components/Component.h"
+#include "../../Headers/Systems/System.h"
 #include "../../Headers/Engine.h"
 #include "../../Headers/Containers/Object.h"
 //#include "Graphics.h"
 
 
-Space* Component::GetSpace() const
+Space* System::GetSpace() const
 {
   return parent->GetSpace();
 }

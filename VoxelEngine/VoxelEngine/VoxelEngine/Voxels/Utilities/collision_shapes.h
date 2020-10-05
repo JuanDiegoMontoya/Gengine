@@ -1,6 +1,6 @@
 #pragma once
 #include <block.h>
-#include <Components/Camera.h>
+#include <Systems/Camera.h>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/component_wise.hpp>
 #undef GLM_ENABLE_EXPERIMENTAL
@@ -110,7 +110,7 @@ struct SweptAABB
 		float magnitude = glm::length(this->vel) * remainingTime;
 		this->vel = glm::normalize(this->vel);
 
-		// TODO: swap components of normal (how?)
+		// TODO: swap systems of normal (how?)
 		float dotprod = glm::dot(this->vel, normal);
 
 		this->vel = dotprod * normal * magnitude;
@@ -128,7 +128,7 @@ struct SweptAABB
 		this->max += this->vel * collisionTime;
 		float remainingTime = 1.0f - collisionTime;
 
-		// TODO: swap components of normal (how?)
+		// TODO: swap systems of normal (how?)
 		float dotprod = glm::dot(this->vel, normal) * remainingTime;
 		this->vel = dotprod * normal;
 

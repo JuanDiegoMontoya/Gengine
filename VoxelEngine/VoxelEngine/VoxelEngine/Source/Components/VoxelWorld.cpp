@@ -1,5 +1,5 @@
 /*HEADER_GOES_HERE*/
-#include "../../Headers/Components/VoxelWorld.h"
+#include "../../Headers/Systems/VoxelWorld.h"
 #include "../../Headers/Containers/Object.h"
 #include "../../Headers/Containers/Space.h"
 #include "../../Headers/Factory.h"
@@ -8,13 +8,13 @@
 #include <Events/DrawEvent.h>
 #include <Events/RenderEvent.h>
 
-#include <Systems/GraphicsSystem.h>
+#include <Managers/GraphicsManager.h>
 #include <Refactor/hud.h>
 #include <World/chunk_manager.h>
 #include <WorldGen/WorldGen2.h>
 #include <World/chunk_manager.h>
 #include <Rendering/ChunkRenderer.h>
-#include <Systems/InputSystem.h>
+#include <Managers/InputManager.h>
 
 #include <Engine.h>
 
@@ -26,7 +26,7 @@ std::unique_ptr<VoxelWorld> VoxelWorld::RegisterVoxelWorld()
 }
 
 VoxelWorld::VoxelWorld()
-  : Component(componentType)
+  : System(systemType)
 {
   chunkManager_ = std::make_unique<ChunkManager>();
 }
@@ -61,11 +61,11 @@ void VoxelWorld::End()
   }
 }
 
-std::unique_ptr<Component> VoxelWorld::Clone() const
+std::unique_ptr<System> VoxelWorld::Clone() const
 {
   auto result = new VoxelWorld();
   //assert(false); // do not copy this shit
-  return std::unique_ptr<Component>(result);
+  return std::unique_ptr<System>(result);
 }
 
 void VoxelWorld::UpdateEventsListen(UpdateEvent* updateEvent)
@@ -95,5 +95,5 @@ void VoxelWorld::UpdateEventsListen(UpdateEvent* updateEvent)
 void VoxelWorld::DrawEventsListen(DrawEvent* drawEvent)
 {
   NuRenderer::DrawAll();
-  glfwSwapBuffers(GraphicsSystem::GetGraphicsSystem()->GetWindow());
+  glfwSwapBuffers(GraphicsManager::GetGraphicsManager()->GetWindow());
 }

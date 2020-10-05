@@ -1,16 +1,16 @@
 #include <Refactor/hud.h>
-#include <Systems/InputSystem.h>
-#include <Components/Camera.h>
+#include <Managers/InputManager.h>
+#include <Systems/Camera.h>
 #include <Graphics/shader.h>
 #include <Rendering/NuRenderer.h>
 #include <Rendering/TextureArray.h>
 #include "Interface.h"
-#include <Systems/GraphicsSystem.h>
+#include <Managers/GraphicsManager.h>
 
 
 void HUD::Update()
 {
-	int ofs = InputSystem::GetInputSystem()->GetScrollOffset().y;
+	int ofs = InputManager::GetInputManager()->GetScrollOffset().y;
 	int num = int(selected_) + ofs;
 	//if (num >= int(BlockType::bCount) || num < 0)
 	//	ofs = 0;

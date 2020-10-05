@@ -3,7 +3,7 @@
 #include <entt.hpp>
 #include <engine_assert.h>
 
-// example component
+// example system
 struct Tag
 {
 	std::string tag;
@@ -19,29 +19,29 @@ public:
 	Entity(const Entity& other) = default;
 
 	template<typename T, typename... Args>
-	T& AddComponent(Args&&... args)
+	T& AddSystem(Args&&... args)
 	{
-		ASSERT_MSG(!HasComponent<T>(), "Entity already has component!");
+		ASSERT_MSG(!HasSystem<T>(), "Entity already has system!");
 		return space_->registry.emplace<T>(entityHandle_, std::forward<Args>(args)...);
 	}
 
 	template<typename T>
-	T& GetComponent()
+	T& GetSystem()
 	{
-		ASSERT_MSG(HasComponent<T>(), "Entity missing component!");
+		ASSERT_MSG(HasSystem<T>(), "Entity missing system!");
 		return space_->registry.get<T>(entityHandle_);
 	}
 
 	template<typename T>
-	bool HasComponent()
+	bool HasSystem()
 	{
 		return space_->registry.has<T>(entityHandle_);
 	}
 
 	template<typename T>
-	void RemoveComponent()
+	void RemoveSystem()
 	{
-		ASSERT_MSG(HasComponent<T>(), "Entity missing component!");
+		ASSERT_MSG(HasSystem<T>(), "Entity missing system!");
 		space_->registry.remove<T>(entityHandle_);
 	}
 

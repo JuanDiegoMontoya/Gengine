@@ -13,7 +13,7 @@ struct AABB
 };
 
 // vecs are 16-byte aligned for GPU usage
-// the .w component is unused
+// the .w system is unused
 struct AABB16
 {
 	AABB16() = default;

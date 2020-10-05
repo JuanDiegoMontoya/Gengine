@@ -1,29 +1,29 @@
 /*HEADER_GOES_HERE*/
-#include "../../Headers/Components/Camera.h"
+#include "../../Headers/Systems/Camera.h"
 #include "../../Headers/Containers/Object.h"
 #include "../../Headers/Containers/Space.h"
 #include "../../Headers/Factory.h"
 
 #include "../../Headers/Events/UpdateEvent.h"
 //#include "../../Headers/Events/DrawEvent.h"
-#include <Systems/InputSystem.h>
+#include <Managers/InputManager.h>
 #include <Rendering/Frustum.h>
 
 std::string Camera::GetName() { return "Camera"; }
 
 std::unique_ptr<Camera> Camera::RegisterCamera() 
 {
-  auto component = std::unique_ptr<Camera>(new Camera(
+  auto system = std::unique_ptr<Camera>(new Camera(
     //5999
 		/***Only needed if you don't provide a default constructor***/
   ));
 
-  return std::move(component);
+  return std::move(system);
 }
 
 Camera::Camera(
-  //Int componentData_
-) : Component(componentType) //, componentData(componentData_)
+  //Int systemData_
+) : System(systemType) //, systemData(systemData_)
 {
 	frustum_ = std::make_unique<Frustum>();
 }
@@ -47,13 +47,13 @@ void Camera::End()
   }
 }
 
-std::unique_ptr<Component> Camera::Clone() const
+std::unique_ptr<System> Camera::Clone() const
 {
   auto result = new Camera();
     //copy over values here
-  //result->componentData = componentData;
+  //result->systemData = systemData;
 
-  return std::unique_ptr<Component>(result);
+  return std::unique_ptr<System>(result);
 }
 
 void Camera::UpdateEventsListen(UpdateEvent* updateEvent)
@@ -73,8 +73,8 @@ void Camera::UpdateEventsListen(UpdateEvent* updateEvent)
 	if (IsKeyDown(GLFW_KEY_D))
 		worldpos_ += glm::normalize(glm::cross(front, up)) * currSpeed;
 
-	yaw_ += InputSystem::GetInputSystem()->GetScreenOffset().x;
-	pitch_ += InputSystem::GetInputSystem()->GetScreenOffset().y;
+	yaw_ += InputManager::GetInputManager()->GetScreenOffset().x;
+	pitch_ += InputManager::GetInputManager()->GetScreenOffset().y;
 
 	pitch_ = glm::clamp(pitch_, -89.0f, 89.0f);
 

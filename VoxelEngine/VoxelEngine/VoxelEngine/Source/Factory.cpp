@@ -1,8 +1,8 @@
 /*HEADER_GOES_HERE*/
 //This is the all knowing factory
-#include "../Headers/Systems/System.h"
+#include "../Headers/Managers/Manager.h"
 #include "../Headers/Events/Event.h"
-#include "../Headers/Components/Component.h"
+#include "../Headers/Systems/System.h"
 #include "../Headers/Containers/EventManger.h"
 
 #include "../Headers/Factory.h"
@@ -11,7 +11,7 @@
 
 #include "../Headers/Containers/Space.h"
 #include "../Headers/Containers/Object.h"
-#include "../Headers/Systems/System.h"
+#include "../Headers/Managers/Manager.h"
 
 #include "../Headers/PreProcessorMagic.h"
 
@@ -31,18 +31,18 @@
 #include <sstream>
 #include <fstream>
 
-std::map<std::string, std::vector<PropertyID>> Factory::ComponentPropertyMap;
-std::map<std::string, std::vector<PropertyID>> Factory::EventPropertyMap;
 std::map<std::string, std::vector<PropertyID>> Factory::SystemPropertyMap;
+std::map<std::string, std::vector<PropertyID>> Factory::EventPropertyMap;
+std::map<std::string, std::vector<PropertyID>> Factory::ManagerPropertyMap;
 std::vector<PropertyID> Factory::SpaceProperties;
 std::vector<PropertyID> Factory::EngineProperties;
 std::vector<PropertyID> Factory::ObjectProperties;
 
 std::map<std::string, std::unique_ptr<Event>> Factory::EventNameMap;
-std::map<std::string, std::unique_ptr<Component>> Factory::ComponentNameMap;
+std::map<std::string, std::unique_ptr<System>> Factory::SystemNameMap;
 
 std::map<ID, std::unique_ptr<Event>> Factory::EventIDMap;
-std::map<ID, std::unique_ptr<Component>> Factory::ComponentIDMap;
+std::map<ID, std::unique_ptr<System>> Factory::SystemIDMap;
 
 std::unique_ptr<Object> Factory::emptyObject = std::unique_ptr<Object>(new Object("empty"));
 std::unique_ptr<Space> Factory::emptySpace = std::unique_ptr<Space>(new Space("empty"));
@@ -96,14 +96,14 @@ void Factory::WriteFile(std::string fileName, const uint8_t* data, uint32_t size
 }
 
 #define FACTORY_RUNNING
+#include "../Headers/Managers/AllManagerHeaders.h"
 #include "../Headers/Systems/AllSystemHeaders.h"
-#include "../Headers/Components/AllComponentHeaders.h"
 #include "../Headers/Events/AllEventHeaders.h"
-//Creates one of every component and event for duplication later.
+//Creates one of every system and event for duplication later.
 void Factory::Register()
 {
+  RegisterManagers();
   RegisterSystems();
-  RegisterComponents();
   RegisterEvents();
   std::vector<std::unique_ptr<Event>(*)()> event_table = { BOOST_PP_REPEAT(EVENT_COUNT, MAKE_EVENT_FUNCT, ~) };
   for (int i = 0; i < event_table.size(); ++i)
@@ -115,17 +115,17 @@ void Factory::Register()
     EventIDMap[pCreatedEvent->type] = std::move(pCreatedEvent->Clone());
     EventNameMap[pCreatedEvent->GetName()] = std::move(pCreatedEvent);
   }
-  //Register all components
-  std::vector<std::unique_ptr<Component>(*)()> component_table = { BOOST_PP_REPEAT(COMPONENT_COUNT, MAKE_COMPONENT_FUNCT, ~) };
+  //Register all systems
+  std::vector<std::unique_ptr<System>(*)()> system_table = { BOOST_PP_REPEAT(COMPONENT_COUNT, MAKE_COMPONENT_FUNCT, ~) };
 #undef FACTORY_RUNNING
-  for (int i = 0; i < component_table.size(); ++i)
+  for (int i = 0; i < system_table.size(); ++i)
   {
-    auto pCreatedComponent = component_table[i]();
+    auto pCreatedSystem = system_table[i]();
 #ifdef _DEBUG
-    std::cout << "Component_" << i << " included: This is the " << pCreatedComponent->GetName() << " file\n";
+    std::cout << "System_" << i << " included: This is the " << pCreatedSystem->GetName() << " file\n";
 #endif
-    ComponentIDMap[pCreatedComponent->type] = std::move(pCreatedComponent->Clone());
-    ComponentNameMap[pCreatedComponent->GetName()] = std::move(pCreatedComponent);
+    SystemIDMap[pCreatedSystem->type] = std::move(pCreatedSystem->Clone());
+    SystemNameMap[pCreatedSystem->GetName()] = std::move(pCreatedSystem);
   }
 }
 

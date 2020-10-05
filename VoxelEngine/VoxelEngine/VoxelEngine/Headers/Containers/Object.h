@@ -8,7 +8,7 @@
 #include "EventManger.h"
 #include "Space.h"
 //#include "../Engine.h"
-#include "../Components/Component.h"
+#include "../Systems/System.h"
 #include "../FactoryID.h"
 #include <string>
 #include <memory>
@@ -42,29 +42,29 @@ public:
   std::string GetName() const { return name; }
   void SetName(std::string name_) { name = name_; }
   Space* GetSpace() const { return space; }
-  template <typename T> bool Has() { return FindComponent(T::componentType) != nullptr; }
-  bool Has(ID componentType) { return FindComponent(componentType) != nullptr; }
+  template <typename T> bool Has() { return FindSystem(T::systemType) != nullptr; }
+  bool Has(ID systemType) { return FindSystem(systemType) != nullptr; }
 
-    //Will not throw error if component not found; instead will return null
-  template <typename T> T* Get() { return reinterpret_cast<T*>(FindComponent(T::componentType)); }
-    //Will throw an error if the Object doesn't have the needed component
-  template <typename T> T* GetRequired() { return reinterpret_cast<T*>(FindRequiredComponent(T::componentType)); }
+    //Will not throw error if system not found; instead will return null
+  template <typename T> T* Get() { return reinterpret_cast<T*>(FindSystem(T::systemType)); }
+    //Will throw an error if the Object doesn't have the needed system
+  template <typename T> T* GetRequired() { return reinterpret_cast<T*>(FindRequiredSystem(T::systemType)); }
 
-  Component* AttachComponent(std::unique_ptr<Component> componentToAttach);
+  System* AttachSystem(std::unique_ptr<System> systemToAttach);
 
   template<typename T>
-  T* AttachComponent(std::unique_ptr<T> componentToAttach)
+  T* AttachSystem(std::unique_ptr<T> systemToAttach)
   {
-    if (componentToAttach->GetParent() != nullptr) throw("Can't add component that's already on another object");
-    DetatchComponent(componentToAttach->type);
-    componentToAttach->parent = this;
+    if (systemToAttach->GetParent() != nullptr) throw("Can't add system that's already on another object");
+    DetatchSystem(systemToAttach->type);
+    systemToAttach->parent = this;
     if (GetSpace()->HasInitialized())
-      componentToAttach->Init();
-    auto componentToAttachType = componentToAttach->type;
-    return reinterpret_cast<T*>(&*(components[componentToAttachType] = std::unique_ptr<Component>(static_cast<T*>(componentToAttach.release()))));
+      systemToAttach->Init();
+    auto systemToAttachType = systemToAttach->type;
+    return reinterpret_cast<T*>(&*(systems[systemToAttachType] = std::unique_ptr<System>(static_cast<T*>(systemToAttach.release()))));
   }
 
-  void DetatchComponent(ID type);
+  void DetatchSystem(ID type);
 
   void ParentTo(Object* parent_);
   void AddChild(Object* child_);
@@ -89,7 +89,7 @@ public:
   //Unregisters an object with a listener from the event manager.
   template <typename T, typename E> void UnregisterListener(T* object_, void(T::* callbackFunction_)(E*)) { eventManager->UnregisterListener(object_, callbackFunction_); }
 
-  Component* FindComponent(ID componentType);
+  System* FindSystem(ID systemType);
 
   PROPERTY(Bool, paused, false);
   PROPERTY(Bool, isTemp, false);
@@ -105,7 +105,7 @@ private:
 
   PROPERTY(String, name, std::string("empty"));
 
-  std::array<std::unique_ptr<Component>, COMPONENT_COUNT> components = { { 0 } };
+  std::array<std::unique_ptr<System>, COMPONENT_COUNT> systems = { { 0 } };
 
 };
 

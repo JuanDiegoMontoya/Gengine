@@ -1,7 +1,7 @@
 #if 0
 #include "stdafx.h"
 //#include <block.h>
-#include <Components/Camera.h>
+#include <Systems/Camera.h>
 //#include "World.h"
 #include "pipeline.h"
 #include "mesh.h"
@@ -13,7 +13,7 @@
 #include <chrono>
 #include <execution>
 #include "ctpl_stl.h"
-#include <Systems/InputSystem.h>
+#include <Managers/InputManager.h>
 #include "pick.h"
 #include <Refactor/settings.h>
 #include <functional>
