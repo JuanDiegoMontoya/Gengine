@@ -8,7 +8,7 @@
 
 #pragma warning(disable: 26812) // warning telling us to use scoped enums
 
-#define DEBUG_INPUT 1
+#define DEBUG_INPUT 0
 #if DEBUG_INPUT
 #include <iostream>
 #endif
@@ -45,16 +45,9 @@ void InputManager::UpdateEventsListen(UpdateEvent* updateEvent)
 {
   for (unsigned i = 0; i < BUTTON_COUNT; ++i)
   {
-    if (keyStates[i] == KeyState::pressed) keyStates[i]	= KeyState::up;
-    if (keyStates[i] == KeyState::released) keyStates[i] = KeyState::down;
-    //if (keyIsDown && keyStates[i] == KeyState::pressed)
-    //	keyStates[i] = KeyState::down;
-    //else if (keyIsDown && keyStates[i] != KeyState::down)
-    //	keyStates[i] = KeyState::pressed;
-    //else if (!keyIsDown && keyStates[i] == KeyState::released)
-    //	keyStates[i] = KeyState::up;
-    //else if (!keyIsDown && keyStates[i] != KeyState::up)
-    //	keyStates[i] = KeyState::released;
+    // keystates decay to either up or down after one frame
+    if (keyStates[i] & KeyState::up) keyStates[i]	= KeyState::up;
+    if (keyStates[i] & KeyState::down) keyStates[i] = KeyState::down;
   }
   scrollOffset = glm::vec2(0);
   screenOffset = glm::vec2(0);
@@ -95,7 +88,7 @@ void InputManager::keypress_cb([[maybe_unused]] GLFWwindow* window, int key, int
       keyStates[key] = KeyState::pressed;
       break;
     case GLFW_REPEAT:
-      keyStates[key] = KeyState::down;
+      keyStates[key] = KeyState::repeat;
       break;
     default:
       ASSERT_MSG(0, "Invalid keycode.");
@@ -158,7 +151,7 @@ void InputManager::mouse_button_cb(GLFWwindow* window, int button, int action, i
     keyStates[button] = KeyState::pressed;
     break;
   case GLFW_REPEAT:
-    keyStates[button] = KeyState::down;
+    keyStates[button] = KeyState::repeat;
     break;
   default:
     ASSERT_MSG(0, "Invalid keycode.");
@@ -169,7 +162,7 @@ void InputManager::mouse_button_cb(GLFWwindow* window, int button, int action, i
 void InputManager::init_glfw_input_cbs(GLFWwindow* window)
 {
   glfwSetKeyCallback(window, keypress_cb_wrapper);
-  glfwSetCursorPosCallback(window, mouse_scroll_cb_wrapper);
+  glfwSetCursorPosCallback(window, mouse_pos_cb_wrapper);
   glfwSetScrollCallback(window, mouse_scroll_cb_wrapper);
   glfwSetMouseButtonCallback(window, mouse_button_cb_wrapper);
 }

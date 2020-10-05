@@ -340,7 +340,7 @@
       <AdditionalDependencies>opengl32.lib;glfw3dll.lib;glew32.lib;shaderc_combined.lib;zlibstat.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
-      <Command>$(SolutionDir)x64\Release\PrePP.exe</Command>
+      <Command>$(SolutionDir)x64\Debug\PrePP.exe</Command>
       <Message>running Pre-Build file generation</Message>
     </PreBuildEvent>
     <PreLinkEvent>

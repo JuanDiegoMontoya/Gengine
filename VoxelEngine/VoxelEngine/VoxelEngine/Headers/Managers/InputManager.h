@@ -25,10 +25,11 @@ public:
 
   enum KeyState
   {
-    down     = 0b0001,
-    pressed  = 0b0011,
-    up       = 0b0100,
-    released = 0b1100
+    down     = 0b00001,
+    pressed  = 0b00011,
+    up       = 0b00100,
+    released = 0b01100,
+    repeat   = 0b10001
   };
 
   static const ID managerType = cInputManager;

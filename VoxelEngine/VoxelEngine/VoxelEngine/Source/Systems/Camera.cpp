@@ -59,7 +59,7 @@ std::unique_ptr<System> Camera::Clone() const
 void Camera::UpdateEventsListen(UpdateEvent* updateEvent)
 {
 	// TEMPORARY flying controls until real controls are added
-	float currSpeed = speed_ * updateEvent->dt;
+	float currSpeed = speed_ * updateEvent->dt.value;
 	if (IsKeyDown(GLFW_KEY_LEFT_SHIFT))
 		currSpeed *= 10;
 	if (IsKeyDown(GLFW_KEY_LEFT_CONTROL))
