@@ -167,7 +167,7 @@ int main()
 
   }
   output = std::string("\
-#ifndef COMPONENT_COUNT\n#define COMPONENT_COUNT ") + std::to_string(counter) + "\n#endif\n\n" +
+#ifndef SYSTEM_COUNT\n#define SYSTEM_COUNT ") + std::to_string(counter) + "\n#endif\n\n" +
 "#ifdef FACTORY_RUNNING\n\n#include \"../Headers/Factory.h\"\n" + headers + "\n\nvoid RegisterSystems()\n{\n" + output + "}\n\n" + 
 registerFunctions + "\n\n#endif // !FACTORY_RUNNING";
 

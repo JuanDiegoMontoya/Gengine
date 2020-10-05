@@ -25,7 +25,7 @@ Object::Object(const std::string& emptyName_) : name(emptyName_), space(nullptr)
 
 Object::~Object()
 {
-  for (int i = 0; i < COMPONENT_COUNT; i++)
+  for (int i = 0; i < SYSTEM_COUNT; i++)
     if (systems[i])
     {
       DetatchSystem(systems[i]->type);

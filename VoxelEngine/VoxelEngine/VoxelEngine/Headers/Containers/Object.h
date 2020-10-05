@@ -105,7 +105,7 @@ private:
 
   PROPERTY(String, name, std::string("empty"));
 
-  std::array<std::unique_ptr<System>, COMPONENT_COUNT> systems = { { 0 } };
+  std::array<std::unique_ptr<System>, SYSTEM_COUNT> systems = { { 0 } };
 
 };
 

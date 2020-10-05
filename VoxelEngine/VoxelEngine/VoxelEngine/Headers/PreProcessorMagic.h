@@ -30,7 +30,7 @@
 #define MACRO4(s) MACRO5(s)
 
 //This is a way to create a unique function name that can be called from another file without even knowing it's name directly
-#define REG_COMPONENT (MACRO4(BOOST_PP_COUNTER))
+#define REG_SYSTEM (MACRO4(BOOST_PP_COUNTER))
 
 //Yet another indirection for concatination
 #define MACRO13(s) Event##s
@@ -40,7 +40,7 @@
 #define REG_EVENT (MACRO12(BOOST_PP_COUNTER))
 
 //Callback "function" for generating the list of function pointers
-#define MAKE_COMPONENT_FUNCT(z, n, unused) BOOST_PP_COMMA_IF(n) &System##n
+#define MAKE_SYSTEM_FUNCT(z, n, unused) BOOST_PP_COMMA_IF(n) &System##n
 #define MAKE_EVENT_FUNCT(z, n, unused) BOOST_PP_COMMA_IF(n) &Event##n
 
 //#define str(s) #s

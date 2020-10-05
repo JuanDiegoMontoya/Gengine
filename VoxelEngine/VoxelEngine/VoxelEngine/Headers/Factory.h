@@ -13,7 +13,7 @@
 #include "../Headers/Containers/Object.h"
 #include "../Headers/Containers/BidirectionalMap.h"
 
-#define CLONE_COMPONENT(type) Factory::CloneSystem< type >( type ::systemType)
+#define CLONE_SYSTEM(type) Factory::CloneSystem< type >( type ::systemType)
 #define CLONE_EVENT(type) Factory::CloneEvent< type >( type ::eventType)
 
 typedef class Object Object;

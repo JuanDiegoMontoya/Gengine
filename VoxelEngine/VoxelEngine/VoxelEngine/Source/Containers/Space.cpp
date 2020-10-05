@@ -29,8 +29,8 @@ std::unique_ptr<Space> Space::CreateInitialSpace()
   newSpace->name = std::string("TestingSpace");
 
   Object* newObject = Factory::CloneObject(&*newSpace);
-  newObject->AttachSystem<TestingSystem>(CLONE_COMPONENT(TestingSystem));
-  newObject->AttachSystem<VoxelWorld>(CLONE_COMPONENT(VoxelWorld));
+  newObject->AttachSystem<TestingSystem>(CLONE_SYSTEM(TestingSystem));
+  newObject->AttachSystem<VoxelWorld>(CLONE_SYSTEM(VoxelWorld));
 
   auto FUCK = std::make_unique<Camera>();
   FUCK->GenProjection(80.0f);

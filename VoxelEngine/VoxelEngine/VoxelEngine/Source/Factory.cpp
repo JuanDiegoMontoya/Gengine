@@ -116,7 +116,7 @@ void Factory::Register()
     EventNameMap[pCreatedEvent->GetName()] = std::move(pCreatedEvent);
   }
   //Register all systems
-  std::vector<std::unique_ptr<System>(*)()> system_table = { BOOST_PP_REPEAT(COMPONENT_COUNT, MAKE_COMPONENT_FUNCT, ~) };
+  std::vector<std::unique_ptr<System>(*)()> system_table = { BOOST_PP_REPEAT(SYSTEM_COUNT, MAKE_SYSTEM_FUNCT, ~) };
 #undef FACTORY_RUNNING
   for (int i = 0; i < system_table.size(); ++i)
   {

@@ -1,5 +1,5 @@
-#ifndef COMPONENT_COUNT
-#define COMPONENT_COUNT 4
+#ifndef SYSTEM_COUNT
+#define SYSTEM_COUNT 4
 #endif
 
 #ifdef FACTORY_RUNNING
