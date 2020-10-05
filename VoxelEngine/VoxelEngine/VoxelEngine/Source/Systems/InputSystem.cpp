@@ -8,7 +8,7 @@
 
 #pragma warning(disable: 26812) // warning telling us to use scoped enums
 
-#define DEBUG_INPUT 1
+#define DEBUG_INPUT 0
 #if DEBUG_INPUT
 #include <iostream>
 #endif
@@ -56,6 +56,7 @@ void InputSystem::UpdateEventsListen(UpdateEvent* updateEvent)
     //else if (!keyIsDown && keyStates[i] != KeyState::up)
     //	keyStates[i] = KeyState::released;
   }
+
   scrollOffset = glm::vec2(0);
   screenOffset = glm::vec2(0);
   glfwPollEvents();
@@ -95,7 +96,7 @@ void InputSystem::keypress_cb([[maybe_unused]] GLFWwindow* window, int key, int 
       keyStates[key] = KeyState::pressed;
       break;
     case GLFW_REPEAT:
-      keyStates[key] = KeyState::down;
+      keyStates[key] = KeyState::repeat;
       break;
     default:
       ASSERT_MSG(0, "Invalid keycode.");
@@ -158,18 +159,19 @@ void InputSystem::mouse_button_cb(GLFWwindow* window, int button, int action, in
     keyStates[button] = KeyState::pressed;
     break;
   case GLFW_REPEAT:
-    keyStates[button] = KeyState::down;
+    keyStates[button] = KeyState::repeat;
     break;
   default:
     ASSERT_MSG(0, "Invalid keycode.");
     break;
   }
 }
+
 // sets GLFW input callbacks
 void InputSystem::init_glfw_input_cbs(GLFWwindow* window)
 {
   glfwSetKeyCallback(window, keypress_cb_wrapper);
-  glfwSetCursorPosCallback(window, mouse_scroll_cb_wrapper);
   glfwSetScrollCallback(window, mouse_scroll_cb_wrapper);
   glfwSetMouseButtonCallback(window, mouse_button_cb_wrapper);
+  glfwSetCursorPosCallback(window, mouse_pos_cb_wrapper);
 }

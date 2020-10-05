@@ -5,7 +5,7 @@ namespace Assert
 	void HandleAssert(const char *message, const char *condition, const char *fileName, long lineNumber);
 }
 
-#ifdef DE_BUG
+#ifndef NDEBUG
 #define ASSERT_MSG(x, msg) do{\
 		if(!(x))\
 		{\

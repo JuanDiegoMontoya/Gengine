@@ -196,9 +196,3 @@ void Space::RemoveEntity(std::string_view ObjectName)
 void Space::RemoveEntity(Entity entity)
 {
 }
-
-Entity Space::GetEntity(Entity entity)
-{
-  //entt::entity fdojsia;
-  //return registry.get;
-}

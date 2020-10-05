@@ -19,16 +19,18 @@ struct GLFWwindow;
 // keycodes can be negative in case of an error
 using Key = int;
 
+
 class InputSystem : public System
 {
 public:
 
   enum KeyState
   {
-    down     = 0b0001,
-    pressed  = 0b0011,
-    up       = 0b0100,
-    released = 0b1100
+    down     = 0b00001,
+    pressed  = 0b00011,
+    up       = 0b00100,
+    released = 0b01100,
+    repeat   = 0b10001
   };
 
   static const ID systemType = cInputSystem;
@@ -74,13 +76,26 @@ private:
   void mouse_scroll_cb(GLFWwindow* window, double xoffset, double yoffset);
   void mouse_button_cb(GLFWwindow* window, int button, int action, int mods);
 
-  static void keypress_cb_wrapper(GLFWwindow* window, int key, int scancode, int action, int mods) { InputSystem::GetInputSystem()->keypress_cb(window, key, scancode, action, mods); }
-  static void mouse_pos_cb_wrapper(GLFWwindow* window, double xpos, double ypos) { InputSystem::GetInputSystem()->mouse_pos_cb(window, xpos, ypos); }
-  static void mouse_scroll_cb_wrapper(GLFWwindow* window, double xoffset, double yoffset) { InputSystem::GetInputSystem()->mouse_scroll_cb(window, xoffset, yoffset); }
-  static void mouse_button_cb_wrapper(GLFWwindow* window, int button, int action, int mods) { InputSystem::GetInputSystem()->mouse_button_cb(window, button, action, mods); }
+  static void keypress_cb_wrapper(GLFWwindow* window, int key, int scancode, int action, int mods)
+  {
+    InputSystem::GetInputSystem()->keypress_cb(window, key, scancode, action, mods);
+  }
+  static void mouse_pos_cb_wrapper(GLFWwindow* window, double xpos, double ypos)
+  {
+    InputSystem::GetInputSystem()->mouse_pos_cb(window, xpos, ypos);
+  }
+  static void mouse_scroll_cb_wrapper(GLFWwindow* window, double xoffset, double yoffset)
+  {
+    InputSystem::GetInputSystem()->mouse_scroll_cb(window, xoffset, yoffset);
+  }
+  static void mouse_button_cb_wrapper(GLFWwindow* window, int button, int action, int mods)
+  {
+    InputSystem::GetInputSystem()->mouse_button_cb(window, button, action, mods);
+  }
 
   InputSystem::KeyState keyStates[BUTTON_COUNT] = { InputSystem::KeyState(0) };
 };
+
 
 inline bool IsKeyDown(Key key)
 {
@@ -92,9 +107,9 @@ inline bool IsKeyUp(Key key)
 }
 inline bool IsKeyPressed(Key key)
 {
-  return InputSystem::GetInputSystem()->IsKeyDown(key);
+  return InputSystem::GetInputSystem()->IsKeyPressed(key);
 }
 inline bool IsKeyReleased(Key key)
 {
-  return InputSystem::GetInputSystem()->IsKeyDown(key);
+  return InputSystem::GetInputSystem()->IsKeyReleased(key);
 }
