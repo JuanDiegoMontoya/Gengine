@@ -17,7 +17,7 @@
 //	std::cout << bb << std::endl;
 //}
 
-//#include <Graphics/BufferAllocator.h>
+//#include <Graphics/DynamicBuffer.h>
 //void TestAllocator()
 //{
 //	ChunkVBOAllocator allocator(25001, 8);

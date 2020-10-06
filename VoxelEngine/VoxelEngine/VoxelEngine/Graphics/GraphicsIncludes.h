@@ -12,3 +12,4 @@
 #include <Graphics/param_bo.h>
 #include <Graphics/Vertices.h>
 #include <Graphics/UBO.h>
+#include <Graphics/StaticBuffer.h>

@@ -225,9 +225,6 @@
     <ClInclude Include="Voxels\Utilities\BitArray.h">
       <Filter>Voxel Engine\Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="Voxels\Utilities\BufferAllocator.h">
-      <Filter>Voxel Engine\Utilities</Filter>
-    </ClInclude>
     <ClInclude Include="Voxels\Utilities\collision_check.h">
       <Filter>Voxel Engine\Utilities</Filter>
     </ClInclude>
@@ -277,9 +274,6 @@
       <Filter>3rd Party\FastNoiseSIMD</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\abo.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\BufferAllocator.h">
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\Context.h">
@@ -380,6 +374,12 @@
     </ClInclude>
     <ClInclude Include="Headers\Systems\StubSystem.h">
       <Filter>Header Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\StaticBuffer.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\DynamicBuffer.h">
+      <Filter>Graphics</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -587,6 +587,9 @@
     <ClCompile Include="Source\Managers\TraceManager.cpp">
       <Filter>Source Files\Managers</Filter>
     </ClCompile>
+    <ClCompile Include="Graphics\StaticBuffer.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Voxels\Chunks\BlockStorage.inl">
@@ -598,7 +601,7 @@
     <None Include="Voxels\Utilities\Palette.inl">
       <Filter>Voxel Engine\Utilities</Filter>
     </None>
-    <None Include="Graphics\BufferAllocator.inl">
+    <None Include="Graphics\DynamicBuffer.inl">
       <Filter>Graphics</Filter>
     </None>
   </ItemGroup>

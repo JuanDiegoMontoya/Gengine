@@ -1,5 +1,5 @@
 #pragma once
-#include <Graphics/BufferAllocator.h>
+#include <Graphics/DynamicBuffer.h>
 #include <Graphics/Shapes.h>
 
 namespace ChunkRenderer
@@ -35,7 +35,7 @@ namespace ChunkRenderer
 
 	void Update();
 
-	inline std::unique_ptr<BufferAllocator<AABB16>> allocator;
+	inline std::unique_ptr<DynamicBuffer<AABB16>> allocator;
 
 	struct Settings
 	{

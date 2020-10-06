@@ -1,6 +1,6 @@
 #include <Graphics/GraphicsIncludes.h>
 #include <Rendering/ChunkRenderer.h>
-#include <Graphics/BufferAllocator.h>
+#include <Graphics/DynamicBuffer.h>
 #include <Chunks/Chunk.h>
 #include <Systems/Camera.h>
 #include <Rendering/Frustum.h>
@@ -32,6 +32,9 @@ namespace ChunkRenderer
 		std::unique_ptr<VBO> vboCull; // stores only cube vertices
 		std::unique_ptr<DIB> dibCull;
 		GLsizei activeAllocs;
+		std::pair<uint64_t, GLuint> stateInfo { 0, 0 };
+		bool dirtyAlloc = true;
+		std::unique_ptr<StaticBuffer> allocBuffer;
 	}
 
 
@@ -42,7 +45,7 @@ namespace ChunkRenderer
 
 		// allocate big buffer
 		// TODO: vary the allocation size based on some user setting
-		allocator = std::make_unique<BufferAllocator<AABB16>>(100'000'000, 2 * sizeof(GLint));
+		allocator = std::make_unique<DynamicBuffer<AABB16>>(100'000'000, 2 * sizeof(GLint));
 		
 		/* :::::::::::BUFFER FORMAT:::::::::::
 		                        CHUNK 1                                    CHUNK 2                   NULL                   CHUNK 3
@@ -125,19 +128,22 @@ namespace ChunkRenderer
 		//glGenBuffers(1, &indata);
 		//glBindBuffer(GL_SHADER_STORAGE_BUFFER, indata);
 		//glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, indata);
-		glBindBuffer(GL_SHADER_STORAGE_BUFFER, allocator->GetAllocDataGPUHandle());
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, allocator->GetAllocDataGPUHandle());
 		const auto& allocs = allocator->GetAllocs();
+		
 		//glBufferData(GL_SHADER_STORAGE_BUFFER, allocator->AllocSize() * allocs.size(), allocs.data(), GL_STATIC_COPY);
 
 		// only re-construct if allocator has been modified
-		if (allocator->GetDirty())
+		if (dirtyAlloc)
 		{
+			allocBuffer = std::make_unique<StaticBuffer>(allocs.data(), allocator->AllocSize() * allocs.size());
 			dib = std::make_unique<DIB>(
 				nullptr,
 				allocator->ActiveAllocs() * sizeof(DrawArraysIndirectCommand),
 				GL_STATIC_COPY);
 		}
+
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, allocBuffer->GetID());
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, allocBuffer->GetID());
 
 		// make DIB output SSBO (binding 1) for the shader
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, dib->GetID());
@@ -191,7 +197,7 @@ namespace ChunkRenderer
 		sdr->setMat4("u_model", model);
 
 		glLineWidth(50);
-		allocator->Draw();
+		//allocator->Draw();
 		glLineWidth(2);
 
 		glEnable(GL_DEPTH_TEST);
@@ -270,7 +276,12 @@ namespace ChunkRenderer
 
 	void Update()
 	{
-		if (allocator)
-			allocator->Update();
+		if (stateInfo != allocator->GetStateInfo())
+		{
+			stateInfo = allocator->GetStateInfo();
+			dirtyAlloc = true;
+		}
+		//if (allocator)
+		//	allocator->Update();
 	}
 }

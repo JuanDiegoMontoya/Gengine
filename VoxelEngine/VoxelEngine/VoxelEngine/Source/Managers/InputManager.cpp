@@ -158,6 +158,7 @@ void InputManager::mouse_button_cb(GLFWwindow* window, int button, int action, i
     break;
   }
 }
+
 // sets GLFW input callbacks
 void InputManager::init_glfw_input_cbs(GLFWwindow* window)
 {

@@ -30,7 +30,7 @@
     <ClInclude Include="3rdParty\imgui\imstb_textedit.h" />
     <ClInclude Include="3rdParty\imgui\imstb_truetype.h" />
     <ClInclude Include="Graphics\abo.h" />
-    <ClInclude Include="Graphics\BufferAllocator.h" />
+    <ClInclude Include="Graphics\DynamicBuffer.h" />
     <ClInclude Include="Graphics\Context.h" />
     <ClInclude Include="Graphics\dib.h" />
     <ClInclude Include="Graphics\GlobalRendererInfo.h" />
@@ -41,6 +41,7 @@
     <ClInclude Include="Graphics\param_bo.h" />
     <ClInclude Include="Graphics\shader.h" />
     <ClInclude Include="Graphics\Shapes.h" />
+    <ClInclude Include="Graphics\StaticBuffer.h" />
     <ClInclude Include="Graphics\UBO.h" />
     <ClInclude Include="Graphics\utilities.h" />
     <ClInclude Include="Graphics\vao.h" />
@@ -111,7 +112,6 @@
     <ClInclude Include="Voxels\Rendering\texture.h" />
     <ClInclude Include="Voxels\Rendering\TextureArray.h" />
     <ClInclude Include="Voxels\Utilities\BitArray.h" />
-    <ClInclude Include="Voxels\Utilities\BufferAllocator.h" />
     <ClInclude Include="Voxels\Utilities\collision_check.h" />
     <ClInclude Include="Voxels\Utilities\collision_shapes.h" />
     <ClInclude Include="Voxels\Utilities\FixedQueue.h" />
@@ -151,6 +151,7 @@
     <ClCompile Include="Graphics\misc_utils.cpp" />
     <ClCompile Include="Graphics\param_bo.cpp" />
     <ClCompile Include="Graphics\shader.cpp" />
+    <ClCompile Include="Graphics\StaticBuffer.cpp" />
     <ClCompile Include="Graphics\stbiImpl.cpp" />
     <ClCompile Include="Graphics\UBO.cpp" />
     <ClCompile Include="Graphics\vao.cpp" />
@@ -200,7 +201,7 @@
     <ClCompile Include="Voxels\World\World.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Graphics\BufferAllocator.inl" />
+    <None Include="Graphics\DynamicBuffer.inl" />
     <None Include="Voxels\Chunks\BlockStorage.inl" />
     <None Include="Voxels\Chunks\ChunkHelpers.inl" />
     <None Include="Voxels\Utilities\Palette.inl" />

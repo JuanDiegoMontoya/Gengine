@@ -7,7 +7,7 @@
 #include <Chunks/ChunkStorage.h>
 #include <Graphics/Vertices.h>
 #include <Refactor/settings.h>
-#include <Graphics/BufferAllocator.h>
+#include <Graphics/DynamicBuffer.h>
 #include <Rendering/ChunkRenderer.h>
 
 #include <iomanip>
