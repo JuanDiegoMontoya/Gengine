@@ -12,7 +12,7 @@ namespace Utils
 {
 	struct ChunkPtrKeyEq
 	{
-		bool operator()(const ChunkPtr& first, const ChunkPtr& second) const
+		bool operator()(const Chunk* first, const Chunk* second) const
 		{
 			//ASSERT(first != second);
 			if (first == second)
@@ -32,14 +32,14 @@ void ChunkManager::chunk_generator_thread_task()
 {
 	//while (!shutdownThreads)
 	//{
-	//	//std::set<ChunkPtr, Utils::ChunkPtrKeyEq> temp;
-	//	std::unordered_set<ChunkPtr> temp;
+	//	//std::set<Chunk*, Utils::Chunk*KeyEq> temp;
+	//	std::unordered_set<Chunk*> temp;
 	//	{
 	//		std::lock_guard<std::mutex> lock1(chunk_generation_mutex_);
 	//		temp.swap(generation_queue_);
 	//	}
 
-	//	std::for_each(std::execution::seq, temp.begin(), temp.end(), [this](ChunkPtr chunk)
+	//	std::for_each(std::execution::seq, temp.begin(), temp.end(), [this](Chunk* chunk)
 	//	{
 	//		//WorldGen::GenerateChunk(chunk->GetPos());
 	//		std::lock_guard<std::mutex> lock2(chunk_mesher_mutex_);
@@ -58,10 +58,10 @@ void ChunkManager::chunk_mesher_thread_task()
 {
 	while (!shutdownThreads)
 	{
-		//std::set<ChunkPtr, Utils::ChunkPtrKeyEq> temp;
-		//std::set<ChunkPtr> temp;
-		Concurrency::concurrent_unordered_set<ChunkPtr> temp;
-		std::vector<ChunkPtr> sorted; // to-be ordered set containing temp's items
+		//std::set<Chunk*, Utils::Chunk*KeyEq> temp;
+		//std::set<Chunk*> temp;
+		Concurrency::concurrent_unordered_set<Chunk*> temp;
+		std::vector<Chunk*> sorted; // to-be ordered set containing temp's items
 		{
 			//std::lock_guard<std::mutex> lock1(chunk_mesher_mutex_);
 			std::lock_guard<std::mutex> lock1(t_mesher_mutex_);
@@ -72,7 +72,7 @@ void ChunkManager::chunk_mesher_thread_task()
 
 		// TODO: this is temp solution to load near chunks to camera first
 		std::sort(std::execution::par_unseq, sorted.begin(), sorted.end(), Utils::ChunkPtrKeyEq());
-		std::for_each(std::execution::seq, sorted.begin(), sorted.end(), [this](ChunkPtr chunk)
+		std::for_each(std::execution::seq, sorted.begin(), sorted.end(), [this](Chunk* chunk)
 		{
 			//SetThreadAffinityMask(GetCurrentThread(), ~1);
 			// send each mesh to GPU immediately after building it
@@ -104,15 +104,15 @@ void ChunkManager::chunk_deferred_update_task()
 // sends vertex data of fully-updated chunks to GPU from main thread (fast and simple)
 void ChunkManager::chunk_buffer_task()
 {
-	//std::set<ChunkPtr, Utils::ChunkPtrKeyEq> temp;
-	Concurrency::concurrent_unordered_set<ChunkPtr> temp;
+	//std::set<Chunk*, Utils::Chunk*KeyEq> temp;
+	Concurrency::concurrent_unordered_set<Chunk*> temp;
 	{
 		//std::lock_guard<std::mutex> lock(chunk_buffer_mutex_);
 		temp.swap(buffer_queue_);
 	}
 
 	// normally, there will only be a few items in here per frame
-	for (ChunkPtr chunk : temp)
+	for (Chunk* chunk : temp)
 		chunk->BuildBuffers();
 }
 
@@ -121,13 +121,13 @@ void ChunkManager::chunk_buffer_task()
 void ChunkManager::chunk_gen_mesh_nobuffer()
 {
 	//{
-	//	std::unordered_set<ChunkPtr> temp;
+	//	std::unordered_set<Chunk*> temp;
 	//	{
 	//		std::lock_guard<std::mutex> lock1(chunk_generation_mutex_);
 	//		temp.swap(generation_queue_);
 	//	}
 
-	//	std::for_each(std::execution::seq, temp.begin(), temp.end(), [this](ChunkPtr chunk)
+	//	std::for_each(std::execution::seq, temp.begin(), temp.end(), [this](Chunk* chunk)
 	//		{
 	//			//WorldGen::GenerateChunk(chunk->GetPos());
 	//			std::lock_guard<std::mutex> lock2(chunk_mesher_mutex_);
@@ -136,8 +136,8 @@ void ChunkManager::chunk_gen_mesh_nobuffer()
 	//}
 
 	//{
-	//	std::unordered_set<ChunkPtr> temp;
-	//	std::vector<ChunkPtr> sorted; // to-be ordered set containing temp's items
+	//	std::unordered_set<Chunk*> temp;
+	//	std::vector<Chunk*> sorted; // to-be ordered set containing temp's items
 	//	{
 	//		std::lock_guard<std::mutex> lock1(chunk_mesher_mutex_);
 	//		temp.swap(mesher_queue_);
@@ -146,8 +146,8 @@ void ChunkManager::chunk_gen_mesh_nobuffer()
 	//	sorted.insert(sorted.begin(), temp.begin(), temp.end());
 
 	//	// TODO: this is temp solution to load near chunks to camera first
-	//	std::sort(sorted.begin(), sorted.end(), Utils::ChunkPtrKeyEq());
-	//	std::for_each(std::execution::seq, sorted.begin(), sorted.end(), [this](ChunkPtr chunk)
+	//	std::sort(sorted.begin(), sorted.end(), Utils::Chunk*KeyEq());
+	//	std::for_each(std::execution::seq, sorted.begin(), sorted.end(), [this](Chunk* chunk)
 	//	{
 	//		//SetThreadAffinityMask(GetCurrentThread(), ~1);
 	//		// send each mesh to GPU immediately after building it

@@ -175,7 +175,7 @@ namespace Interface
 
 				if (ImGui::Button("Delete far chunks (unsafe)"))
 				{
-					std::vector<ChunkPtr> deleteList;
+					std::vector<Chunk*> deleteList;
 					std::for_each(ChunkStorage::GetMapRaw().begin(), ChunkStorage::GetMapRaw().end(),
 						[&](auto& p)
 					{
@@ -187,7 +187,7 @@ namespace Interface
 						}
 					});
 
-					for (ChunkPtr p : deleteList)
+					for (Chunk* p : deleteList)
 						delete p;
 				}
 

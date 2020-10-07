@@ -82,7 +82,7 @@ void ChunkManager::Update()
 		//mesher_queue_.clear();
 	}
 
-	for (ChunkPtr chunk : delayed_update_queue_)
+	for (Chunk* chunk : delayed_update_queue_)
 		UpdateChunk(chunk);
 	delayed_update_queue_.clear();
 
@@ -90,7 +90,7 @@ void ChunkManager::Update()
 }
 
 
-void ChunkManager::UpdateChunk(ChunkPtr chunk)
+void ChunkManager::UpdateChunk(Chunk* chunk)
 {
 	ASSERT(chunk != nullptr);
 	//std::lock_guard<std::mutex> lock(chunk_mesher_mutex_);
@@ -116,7 +116,7 @@ void ChunkManager::UpdateBlock(const glm::ivec3& wpos, Block bl, bool indirect)
 	ChunkHelpers::localpos p = ChunkHelpers::worldPosToLocalPos(wpos);
 	//BlockPtr block = Chunk::AtWorld(wpos);
 	Block remBlock = ChunkStorage::AtWorldD(p); // store state of removed block to update lighting
-	ChunkPtr chunk = ChunkStorage::GetChunk(p.chunk_pos);
+	Chunk* chunk = ChunkStorage::GetChunk(p.chunk_pos);
 
 	// create empty chunk if it's null
 	if (!chunk)
@@ -249,7 +249,7 @@ void ChunkManager::checkUpdateChunkNearBlock(const glm::ivec3& pos, const glm::i
 	//BlockPtr cb = Chunk::AtWorld(pos);
 	//BlockPtr nb = Chunk::AtWorld(pos + near);
 	//if (cb && nb && nb->GetType() != BlockType::bAir)
-	ChunkPtr cptr = ChunkStorage::GetChunk(p2.chunk_pos);
+	Chunk* cptr = ChunkStorage::GetChunk(p2.chunk_pos);
 	if (cptr)
 	{
 		//std::lock_guard<std::mutex> lock(chunk_mesher_mutex_);
@@ -268,7 +268,7 @@ void ChunkManager::removeFarChunks()
 	// delete chunks far from the camera (past leniency range)
 	if (generation_queue_.size() == 0 && mesher_queue_.size() == 0 && debug_cur_pool_left == 0)
 	{
-		std::vector<ChunkPtr> deleteList;
+		std::vector<Chunk*> deleteList;
 		// attempt at safety
 		//std::lock_guard<std::mutex> lock1(chunk_generation_mutex_);
 		//std::lock_guard<std::mutex> lock2(chunk_mesher_mutex_);
@@ -287,7 +287,7 @@ void ChunkManager::removeFarChunks()
 			return false;
 		});
 
-		for (ChunkPtr p : deleteList)
+		for (Chunk* p : deleteList)
 			delete p;
 	}
 
@@ -507,7 +507,7 @@ void ChunkManager::lightPropagateRemove(glm::ivec3 wpos, bool noqueue)
 bool ChunkManager::checkDirectSunlight(glm::ivec3 wpos)
 {
 	auto p = ChunkHelpers::worldPosToLocalPos(wpos);
-	ChunkPtr chunk = ChunkStorage::GetChunk(p.chunk_pos);
+	Chunk* chunk = ChunkStorage::GetChunk(p.chunk_pos);
 	if (!chunk)
 		return false;
 	Block block = chunk->BlockAt(p.block_pos);
@@ -515,7 +515,7 @@ bool ChunkManager::checkDirectSunlight(glm::ivec3 wpos)
 	// find the highest valid chunk
 	const glm::ivec3 up(0, 1, 0);
 	glm::ivec3 cpos = p.chunk_pos + up;
-	ChunkPtr next = chunk;
+	Chunk* next = chunk;
 	while (next)
 	{
 		chunk = next;

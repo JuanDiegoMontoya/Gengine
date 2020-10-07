@@ -381,6 +381,9 @@
     <ClInclude Include="Graphics\DynamicBuffer.h">
       <Filter>Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="Voxels\Chunks\ChunkSerialize.h">
+      <Filter>Voxel Engine\Chunks</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Engine.cpp">
@@ -589,6 +592,9 @@
     </ClCompile>
     <ClCompile Include="Graphics\StaticBuffer.cpp">
       <Filter>Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Voxels\Chunks\ChunkSerialize.cpp">
+      <Filter>Voxel Engine\Chunks</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

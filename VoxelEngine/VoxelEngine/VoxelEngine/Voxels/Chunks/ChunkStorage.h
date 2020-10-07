@@ -8,7 +8,7 @@ class ChunkStorage
 {
 public:
 
-	static inline ChunkPtr GetChunk(const glm::ivec3& cpos)
+	static inline Chunk* GetChunk(const glm::ivec3& cpos)
 	{
 		auto it = chunks_.find(cpos);
 		if (it != chunks_.end())

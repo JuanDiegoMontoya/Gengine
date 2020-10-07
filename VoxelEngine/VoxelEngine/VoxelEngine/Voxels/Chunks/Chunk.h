@@ -28,7 +28,7 @@
 	7: -x+y-z
 */
 
-typedef struct Chunk
+struct Chunk
 {
 private:
 public:
@@ -50,7 +50,7 @@ public:
 	/*################################
 					Status Functions
 	################################*/
-	inline const glm::ivec3& GetPos() { return pos_; }
+	inline const glm::ivec3& GetPos() const { return pos_; }
 
 	inline Block BlockAt(const glm::ivec3& p)
 	{
@@ -158,4 +158,4 @@ private:
 	std::vector<std::pair<int, Block>> updateQueue_;
 	//concurrency::concurrent_vector<std::pair<int, Block>> updateQueue_;
 	std::shared_mutex indirectMtx_;
-}Chunk, *ChunkPtr;
+};

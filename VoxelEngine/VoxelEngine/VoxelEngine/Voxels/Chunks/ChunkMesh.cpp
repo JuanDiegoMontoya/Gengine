@@ -150,7 +150,7 @@ inline void ChunkMesh::buildBlockFace(
 
 	nearblock.block_pos = blockPos + faces[face];
 
-	ChunkPtr nearChunk = parent;
+	Chunk* nearChunk = parent;
 
 	// if neighbor is out of this chunk, find which chunk it is in
 	if (any(lessThan(nearblock.block_pos, ivec3(0))) || any(greaterThanEqual(nearblock.block_pos, ivec3(Chunk::CHUNK_SIZE))))

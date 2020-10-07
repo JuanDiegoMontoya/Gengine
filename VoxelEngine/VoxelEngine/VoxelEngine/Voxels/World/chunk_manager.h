@@ -12,7 +12,7 @@
 #include <stack>
 #include <queue>
 
-typedef struct Chunk* ChunkPtr;
+struct Chunk;
 //class ChunkLoadManager;
 
 
@@ -36,7 +36,7 @@ public:
 
 	// interaction
 	void Update();
-	void UpdateChunk(ChunkPtr chunk);
+	void UpdateChunk(Chunk* chunk);
 	void UpdateChunk(const glm::ivec3 wpos); // update chunk at block position
 	void UpdateBlock(const glm::ivec3& wpos, Block bl, bool indirect = false);
 	//void UpdateBlockIndirect(const glm::ivec3& wpos, Block block);
@@ -70,16 +70,16 @@ public: // TODO: TEMPORARY
 
 	// generates actual blocks
 	void chunk_generator_thread_task();
-	//std::set<ChunkPtr, Utils::ChunkPtrKeyEq> generation_queue_;
-	Concurrency::concurrent_unordered_set<ChunkPtr> generation_queue_;
+	//std::set<Chunk*, Utils::Chunk*KeyEq> generation_queue_;
+	Concurrency::concurrent_unordered_set<Chunk*> generation_queue_;
 	//std::mutex chunk_generation_mutex_;
 	std::vector<std::unique_ptr<std::thread>> chunk_generator_threads_;
 
 	// generates meshes for ANY UPDATED chunk
 	void chunk_mesher_thread_task();
-	//std::set<ChunkPtr, Utils::ChunkPtrKeyEq> mesher_queue_;
-	//std::set<ChunkPtr> mesher_queue_;
-	Concurrency::concurrent_unordered_set<ChunkPtr> mesher_queue_;
+	//std::set<Chunk*, Utils::Chunk*KeyEq> mesher_queue_;
+	//std::set<Chunk*> mesher_queue_;
+	Concurrency::concurrent_unordered_set<Chunk*> mesher_queue_;
 	//std::mutex chunk_mesher_mutex_;
 	std::vector<std::unique_ptr<std::thread>> chunk_mesher_threads_;
 	std::atomic_int debug_cur_pool_left = 0;
@@ -88,18 +88,18 @@ public: // TODO: TEMPORARY
 
 	// NOT multithreaded task
 	void chunk_buffer_task();
-	//std::set<ChunkPtr, Utils::ChunkPtrKeyEq> buffer_queue_;
-	Concurrency::concurrent_unordered_set<ChunkPtr> buffer_queue_;
+	//std::set<Chunk*, Utils::Chunk*KeyEq> buffer_queue_;
+	Concurrency::concurrent_unordered_set<Chunk*> buffer_queue_;
 	//std::mutex chunk_buffer_mutex_;
 
 	std::mutex t_mesher_mutex_;
-	Concurrency::concurrent_unordered_set<ChunkPtr> t_mesher_queue_;
+	Concurrency::concurrent_unordered_set<Chunk*> t_mesher_queue_;
 
 	// DEBUG does everything in a serial fashion
 	// chunk_buffer_task must be called after this
 	void chunk_gen_mesh_nobuffer();
 
-	std::unordered_set<ChunkPtr> delayed_update_queue_;
+	std::unordered_set<Chunk*> delayed_update_queue_;
 
 	// new light intensity to add
 	void lightPropagateAdd(glm::ivec3 wpos, Light nLight, bool skipself = true, bool sunlight = false, bool noqueue = false);
@@ -118,7 +118,7 @@ public: // TODO: TEMPORARY
 	float loadDistance_;
 	float unloadLeniency_;
 	bool shutdownThreads = false;
-	//std::vector<ChunkPtr> updatedChunks_;
-	//std::vector<ChunkPtr> genChunkList_;
+	//std::vector<Chunk*> updatedChunks_;
+	//std::vector<Chunk*> genChunkList_;
 	//LevelPtr level_ = nullptr;
 };
