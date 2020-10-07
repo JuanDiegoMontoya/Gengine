@@ -213,6 +213,7 @@ namespace NuRenderer
 			}
 			if (IsKeyPressed(GLFW_KEY_6))
 			{
+				// TODO: shading/wireframe on this drawing mode
 				sett.debug_drawOcclusionCulling = !sett.debug_drawOcclusionCulling;
 				std::cout << "DbgDrawOccCulling " << std::boolalpha << sett.debug_drawOcclusionCulling << '\n';
 			}

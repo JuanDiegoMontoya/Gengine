@@ -150,6 +150,8 @@ public:
 private:
 	glm::ivec3 pos_;	// position relative to other chunks (1 chunk = 1 index)
 
+	friend class CompressedChunk;
+
 	//ArrayBlockStorage<CHUNK_SIZE_CUBED> storage;
 	PaletteBlockStorage<CHUNK_SIZE_CUBED> storage;
 	ChunkMesh mesh;

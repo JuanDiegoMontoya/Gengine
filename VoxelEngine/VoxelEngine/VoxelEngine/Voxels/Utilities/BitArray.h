@@ -9,8 +9,8 @@ class BitArray
 public:
 	BitArray(size_t size = 0);
 	void Resize(size_t newSize);
-	void SetSequence(int index, int len, unsigned val);
-	unsigned GetSequence(int index, int len) const;
+	void SetSequence(int index, int len, uint32_t bitfield);
+	uint32_t GetSequence(int index, int len) const;
 	
 	template <class Archive>
 	void serialize(Archive& ar)
@@ -34,21 +34,21 @@ inline void BitArray::Resize(size_t newSize)
 	data_.resize(newSize, 0);
 }
 
-inline void BitArray::SetSequence(int index, int len, unsigned val)
+inline void BitArray::SetSequence(int index, int len, uint32_t bitfield)
 {
 	for (int i = index; i < index + len; i++)
 	{
-		data_[i] = val & 1;
-		val >>= 1;
+		data_[i] = bitfield & 1;
+		bitfield >>= 1;
 	}
 }
 
-inline unsigned BitArray::GetSequence(int index, int len) const
+inline uint32_t BitArray::GetSequence(int index, int len) const
 {
-	unsigned ret = 0;
+	unsigned bitfield = 0;
 	for (int i = index; i < index + len; i++)
 	{
-		ret |= data_[i] << (i - index);
+		bitfield |= data_[i] << (i - index);
 	}
-	return ret;
+	return bitfield;
 }
