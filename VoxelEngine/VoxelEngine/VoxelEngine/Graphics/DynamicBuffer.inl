@@ -5,7 +5,7 @@
 
 
 template<typename UserT>
-DynamicBuffer<UserT>::DynamicBuffer<UserT>(uint32_t size, uint32_t alignment)
+DynamicBuffer<UserT>::DynamicBuffer(uint32_t size, uint32_t alignment)
   : align_(alignment), capacity_(size)
 {
   // add to size the distance to next aligned boundary

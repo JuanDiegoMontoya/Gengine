@@ -204,6 +204,20 @@ namespace NuRenderer
 				glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
 		}
 
+		{
+			auto& sett = ChunkRenderer::settings;
+			if (IsKeyPressed(GLFW_KEY_5))
+			{
+				sett.freezeCulling = !sett.freezeCulling;
+				std::cout << "Freeze culling " << std::boolalpha << sett.freezeCulling << '\n';
+			}
+			if (IsKeyPressed(GLFW_KEY_6))
+			{
+				sett.debug_drawOcclusionCulling = !sett.debug_drawOcclusionCulling;
+				std::cout << "DbgDrawOccCulling " << std::boolalpha << sett.debug_drawOcclusionCulling << '\n';
+			}
+		}
+
 		drawChunks();
 		//splatChunks();
 		drawChunksWater();

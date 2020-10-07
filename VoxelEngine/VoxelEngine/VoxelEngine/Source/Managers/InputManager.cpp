@@ -68,11 +68,11 @@ bool InputManager::IsKeyUp(Key key)
 }
 bool InputManager::IsKeyPressed(Key key)
 {
-  return keyStates[key] & KeyState::pressed;
+  return keyStates[key] == KeyState::pressed;
 }
 bool InputManager::IsKeyReleased(Key key)
 {
-  return keyStates[key] & KeyState::released;
+  return keyStates[key] == KeyState::released;
 }
 
 void InputManager::keypress_cb([[maybe_unused]] GLFWwindow* window, int key, int scancode, int action, int mods)

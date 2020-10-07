@@ -93,7 +93,7 @@ inline bool IsKeyUp(Key key)
 }
 inline bool IsKeyPressed(Key key)
 {
-  return InputManager::GetInputManager()->IsKeyDown(key);
+  return InputManager::GetInputManager()->IsKeyPressed(key);
 }
 inline bool IsKeyReleased(Key key)
 {
