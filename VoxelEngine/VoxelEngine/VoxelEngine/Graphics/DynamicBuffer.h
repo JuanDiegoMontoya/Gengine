@@ -94,7 +94,6 @@ template<typename UserT>
 class DebugDrawableBuffer : public DynamicBuffer<UserT>
 {
 public:
-
   void Draw();
   void GenDrawData();
 
