@@ -417,7 +417,7 @@ copy "$(ProjectDir)3rdParty\glfw-3.3-win64\lib-vc2019\glfw3.dll" "$(TargetDir)gl
       <AdditionalDependencies>opengl32.lib;glfw3dll.lib;glew32.lib;shaderc_combined.lib;zlibstat.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
-      <Command>$(SolutionDir)x64\Release\PrePP.exe</Command>
+      <Command>"$(SolutionDir)x64\Release\PrePP.exe"</Command>
       <Message>running Pre-Build file generation</Message>
     </PreBuildEvent>
     <PreLinkEvent>
