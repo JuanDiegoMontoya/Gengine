@@ -8,11 +8,11 @@
 class DenseBlockStorage
 {
 public:
-	virtual Block GetBlock(int index) = 0;
-	virtual BlockType GetBlockType(int index) = 0;
-	virtual void SetBlockType(int index, BlockType) = 0;
-	virtual void SetLight(int index, Light) = 0;
-	virtual Light GetLight(int index) = 0;
+  virtual Block GetBlock(int index) = 0;
+  virtual BlockType GetBlockType(int index) = 0;
+  virtual void SetBlockType(int index, BlockType) = 0;
+  virtual void SetLight(int index, Light) = 0;
+  virtual Light GetLight(int index) = 0;
 };
 
 // uncompressed block storage for chunks
@@ -20,24 +20,24 @@ template<unsigned _Size>
 class ArrayBlockStorage
 {
 public:
-	// num blocks
-	ArrayBlockStorage();
-	~ArrayBlockStorage();
-	ArrayBlockStorage(const ArrayBlockStorage&);
-	ArrayBlockStorage& operator=(const ArrayBlockStorage&);
+  // num blocks
+  ArrayBlockStorage();
+  ~ArrayBlockStorage();
+  ArrayBlockStorage(const ArrayBlockStorage&);
+  ArrayBlockStorage& operator=(const ArrayBlockStorage&);
 
-	Block& operator[](int index);
-	Block& GetBlockRef(int index);
-	Block GetBlock(int index);
-	BlockType GetBlockType(int index);
-	void SetBlock(int index, BlockType);
-	void SetLight(int index, Light);
-	Light GetLight(int index);
+  Block& operator[](int index);
+  Block& GetBlockRef(int index);
+  Block GetBlock(int index);
+  BlockType GetBlockType(int index);
+  void SetBlock(int index, BlockType);
+  void SetLight(int index, Light);
+  Light GetLight(int index);
 
 private:
 
-	std::array<Block, _Size> blocks_;
-	//Block* blocks_ = nullptr;
+  std::array<Block, _Size> blocks_;
+  //Block* blocks_ = nullptr;
 };
 
 
@@ -48,30 +48,30 @@ template<unsigned _Size>
 class PaletteBlockStorage
 {
 public:
-	void SetBlock(int index, BlockType);
-	Block GetBlock(int index);
-	BlockType GetBlockType(int index);
-	void SetLight(int index, Light);
-	Light GetLight(int index);
+  void SetBlock(int index, BlockType);
+  Block GetBlock(int index);
+  BlockType GetBlockType(int index);
+  void SetLight(int index, Light);
+  Light GetLight(int index);
 
-	PaletteBlockStorage& operator=(const PaletteBlockStorage& other)
-	{
-		pblock_ = other.pblock_;
-		plight_ = other.plight_;
-		return *this;
-	}
+  PaletteBlockStorage& operator=(const PaletteBlockStorage& other)
+  {
+    pblock_ = other.pblock_;
+    plight_ = other.plight_;
+    return *this;
+  }
 
 private:
-	friend class cereal::access;
+  friend class cereal::access;
 
-	template <class Archive>
-	void serialize(Archive& ar)
-	{
-		ar(pblock_);
-	}
+  template <class Archive>
+  void serialize(Archive& ar)
+  {
+    ar(pblock_);
+  }
 
-	Palette<BlockType, _Size> pblock_;
-	Palette<Light, _Size> plight_;
+  Palette<BlockType, _Size> pblock_;
+  Palette<Light, _Size> plight_;
 };
 
 #include "BlockStorage.inl"

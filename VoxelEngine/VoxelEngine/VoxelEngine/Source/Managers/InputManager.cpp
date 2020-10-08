@@ -46,7 +46,7 @@ void InputManager::UpdateEventsListen(UpdateEvent* updateEvent)
   for (unsigned i = 0; i < BUTTON_COUNT; ++i)
   {
     // keystates decay to either up or down after one frame
-    if (keyStates[i] & KeyState::up) keyStates[i]	= KeyState::up;
+    if (keyStates[i] & KeyState::up) keyStates[i]  = KeyState::up;
     if (keyStates[i] & KeyState::down) keyStates[i] = KeyState::down;
   }
   scrollOffset = glm::vec2(0);

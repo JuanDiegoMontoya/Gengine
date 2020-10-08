@@ -6,21 +6,21 @@
 class ABO
 {
 public:
-	ABO(GLuint num);
-	~ABO();
+  ABO(GLuint num);
+  ~ABO();
 
-	void Bind(GLuint index);
-	void Unbind();
-	void Reset(); // set all counters to 0
-	void Set(GLuint index, GLuint value);
+  void Bind(GLuint index);
+  void Unbind();
+  void Reset(); // set all counters to 0
+  void Set(GLuint index, GLuint value);
 
-	GLuint Get(GLuint index);
-	GLuint GetID() { return rendererID_; }
-	GLuint GetSize() { return numCounters_; }
+  GLuint Get(GLuint index);
+  GLuint GetID() { return rendererID_; }
+  GLuint GetSize() { return numCounters_; }
 private:
-	GLuint rendererID_;
-	GLuint numCounters_;
+  GLuint rendererID_;
+  GLuint numCounters_;
 #if PERSISTENCE
-	GLuint* rbuffer; // persistently mapped
+  GLuint* rbuffer; // persistently mapped
 #endif
 };

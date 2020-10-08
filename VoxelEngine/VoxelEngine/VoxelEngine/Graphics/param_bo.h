@@ -5,16 +5,16 @@
 class Param_BO
 {
 public:
-	Param_BO();
-	~Param_BO();
+  Param_BO();
+  ~Param_BO();
 
-	void Reset();
+  void Reset();
 
-	void Bind() const;
-	void Unbind() const;
+  void Bind() const;
+  void Unbind() const;
 
-	GLuint GetID() const { return id_; }
+  GLuint GetID() const { return id_; }
 
 private:
-	GLuint id_;
+  GLuint id_;
 };

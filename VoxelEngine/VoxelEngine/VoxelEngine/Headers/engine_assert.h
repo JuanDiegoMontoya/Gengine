@@ -2,21 +2,21 @@
 
 namespace Assert
 {
-	void HandleAssert(const char *message, const char *condition, const char *fileName, long lineNumber);
+  void HandleAssert(const char *message, const char *condition, const char *fileName, long lineNumber);
 }
 
 #ifndef NDEBUG
 #define ASSERT_MSG(x, msg) do{\
-		if(!(x))\
-		{\
-			Assert::HandleAssert(msg, #x, __FILE__, __LINE__);\
-			std::terminate();\
-		}\
+    if(!(x))\
+    {\
+      Assert::HandleAssert(msg, #x, __FILE__, __LINE__);\
+      std::terminate();\
+    }\
   } while(0)
 
 #define ASSERT(x) do{\
     if(!(x))\
-		{\
+    {\
       Assert::HandleAssert("Assertion Failed!", #x, __FILE__, __LINE__);\
       std::terminate();\
     }\

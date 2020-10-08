@@ -5,10 +5,10 @@
 class HUD
 {
 public:
-	void Update();
+  void Update();
 
-	BlockType GetSelected() { return selected_; }
-	void SetSelected(BlockType s) { selected_ = s; }
+  BlockType GetSelected() { return selected_; }
+  void SetSelected(BlockType s) { selected_ = s; }
 private:
-	BlockType selected_ = BlockType::bError;
+  BlockType selected_ = BlockType::bError;
 };

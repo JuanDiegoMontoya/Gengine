@@ -4,13 +4,13 @@
 class VBO
 {
 public:
-	VBO(const void* data, unsigned int size, GLenum drawmode = GL_STATIC_DRAW);
-	~VBO();
+  VBO(const void* data, unsigned int size, GLenum drawmode = GL_STATIC_DRAW);
+  ~VBO();
 
-	void Bind() const;
-	void Unbind() const;
+  void Bind() const;
+  void Unbind() const;
 
-	GLuint GetID() { return vboID_; }
+  GLuint GetID() { return vboID_; }
 private:
-	GLuint vboID_;
+  GLuint vboID_;
 };

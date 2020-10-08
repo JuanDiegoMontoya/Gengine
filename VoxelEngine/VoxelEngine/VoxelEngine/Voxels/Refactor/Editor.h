@@ -3,7 +3,7 @@ class ChunkManager;
 
 namespace Editor
 {
-	void Update();
+  void Update();
 
-	inline ChunkManager* chunkManager;
+  inline ChunkManager* chunkManager;
 }

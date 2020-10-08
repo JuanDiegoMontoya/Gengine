@@ -3,10 +3,10 @@
 
 namespace Debug 
 {
-	//extern std::map<std::string, double> systemsPerfInfo;
+  //extern std::map<std::string, double> systemsPerfInfo;
 
-	void Update(float dt);
-	void PushPerfInfo(std::pair<entt::hashed_string, double>&&);
+  void Update(float dt);
+  void PushPerfInfo(std::pair<entt::hashed_string, double>&&);
 }
 
 #if DE_BUG
@@ -16,11 +16,11 @@ namespace Debug
 #else
 #define PERF_BENCHMARK_START  high_resolution_clock::time_point benchmark_clock_ = high_resolution_clock::now(); 
 #define PERF_BENCHMARK_END \
-	duration<double> benchmark_duration_ = duration_cast<duration<double>>(high_resolution_clock::now() - benchmark_clock_); \
-	std::pair<entt::hashed_string, double> benchmark_data_; \
-	benchmark_data_.first = __FUNCTION__; \
-	benchmark_data_.second = benchmark_duration_.count() * 1000; \
-	Debug::PushPerfInfo(benchmark_data_);
+  duration<double> benchmark_duration_ = duration_cast<duration<double>>(high_resolution_clock::now() - benchmark_clock_); \
+  std::pair<entt::hashed_string, double> benchmark_data_; \
+  benchmark_data_.first = __FUNCTION__; \
+  benchmark_data_.second = benchmark_duration_.count() * 1000; \
+  Debug::PushPerfInfo(benchmark_data_);
 #endif // TRACY_ENABLE
 
 #define DEBUG_DO(x) x

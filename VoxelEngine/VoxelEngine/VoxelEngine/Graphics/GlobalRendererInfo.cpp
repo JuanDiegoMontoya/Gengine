@@ -5,14 +5,14 @@
 
 void GlobalRendererInfo::SetCamera(Camera* camera)
 {
-	UBOData uboData;
-	activeCamera = camera;
+  UBOData uboData;
+  activeCamera = camera;
 
-	if (activeCamera)
-	{
-		uboData.viewProj = activeCamera->GetProj() * activeCamera->GetView();
-		uboData.invProj = glm::inverse(activeCamera->GetProj());
-		uboData.invView = glm::inverse(activeCamera->GetView());
-		ubo = std::make_unique<UBO>(&uboData, sizeof(UBOData));
-	}
+  if (activeCamera)
+  {
+    uboData.viewProj = activeCamera->GetProj() * activeCamera->GetView();
+    uboData.invProj = glm::inverse(activeCamera->GetProj());
+    uboData.invView = glm::inverse(activeCamera->GetView());
+    ubo = std::make_unique<UBO>(&uboData, sizeof(UBOData));
+  }
 }

@@ -6,14 +6,14 @@
 class VAO
 {
 public:
-	VAO();
-	~VAO();
+  VAO();
+  ~VAO();
 
-	void AddBuffer(const VBO& vb, const VBOlayout& layout);
+  void AddBuffer(const VBO& vb, const VBOlayout& layout);
 
-	void Bind() const;
-	void Unbind() const;
+  void Bind() const;
+  void Unbind() const;
 
 private:
-	GLuint rendererID_;
+  GLuint rendererID_;
 };
