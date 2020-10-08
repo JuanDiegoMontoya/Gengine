@@ -19,6 +19,7 @@ public:
 
 private:
   friend class cereal::access;
+  friend class CompressedChunk;
 
   struct PaletteEntry
   {

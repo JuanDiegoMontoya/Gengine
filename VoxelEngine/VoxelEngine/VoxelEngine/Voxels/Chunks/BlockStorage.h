@@ -28,11 +28,11 @@ public:
 
   Block& operator[](int index);
   Block& GetBlockRef(int index);
-  Block GetBlock(int index);
-  BlockType GetBlockType(int index);
+  Block GetBlock(int index) const;
+  BlockType GetBlockType(int index) const;
   void SetBlock(int index, BlockType);
   void SetLight(int index, Light);
-  Light GetLight(int index);
+  Light GetLight(int index) const;
 
 private:
 
@@ -49,10 +49,10 @@ class PaletteBlockStorage
 {
 public:
   void SetBlock(int index, BlockType);
-  Block GetBlock(int index);
-  BlockType GetBlockType(int index);
+  Block GetBlock(int index) const;
+  BlockType GetBlockType(int index) const;
   void SetLight(int index, Light);
-  Light GetLight(int index);
+  Light GetLight(int index) const;
 
   PaletteBlockStorage& operator=(const PaletteBlockStorage& other)
   {
@@ -63,6 +63,7 @@ public:
 
 private:
   friend class cereal::access;
+  friend class CompressedChunk;
 
   template <class Archive>
   void serialize(Archive& ar)

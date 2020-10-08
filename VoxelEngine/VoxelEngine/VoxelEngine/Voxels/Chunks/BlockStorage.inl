@@ -37,13 +37,13 @@ inline Block& ArrayBlockStorage<_Size>::GetBlockRef(int index)
 }
 
 template<unsigned _Size>
-inline Block ArrayBlockStorage<_Size>::GetBlock(int index)
+inline Block ArrayBlockStorage<_Size>::GetBlock(int index) const
 {
   return blocks_[index];
 }
 
 template<unsigned _Size>
-inline BlockType ArrayBlockStorage<_Size>::GetBlockType(int index)
+inline BlockType ArrayBlockStorage<_Size>::GetBlockType(int index) const
 {
   return blocks_[index].GetType();
 }
@@ -61,7 +61,7 @@ inline void ArrayBlockStorage<_Size>::SetLight(int index, Light light)
 }
 
 template<unsigned _Size>
-inline Light ArrayBlockStorage<_Size>::GetLight(int index)
+inline Light ArrayBlockStorage<_Size>::GetLight(int index) const
 {
   return blocks_[index].GetLight();
 }
@@ -78,13 +78,13 @@ inline void PaletteBlockStorage<_Size>::SetBlock(int index, BlockType type)
 }
 
 template<unsigned _Size>
-inline Block PaletteBlockStorage<_Size>::GetBlock(int index)
+inline Block PaletteBlockStorage<_Size>::GetBlock(int index) const
 {
   return Block(GetBlockType(index), GetLight(index));
 }
 
 template<unsigned _Size>
-inline BlockType PaletteBlockStorage<_Size>::GetBlockType(int index)
+inline BlockType PaletteBlockStorage<_Size>::GetBlockType(int index) const
 {
   return pblock_.GetVal(index);
 }
@@ -96,7 +96,7 @@ inline void PaletteBlockStorage<_Size>::SetLight(int index, Light light)
 }
 
 template<unsigned _Size>
-inline Light PaletteBlockStorage<_Size>::GetLight(int index)
+inline Light PaletteBlockStorage<_Size>::GetLight(int index) const
 {
   return plight_.GetVal(index);
 }

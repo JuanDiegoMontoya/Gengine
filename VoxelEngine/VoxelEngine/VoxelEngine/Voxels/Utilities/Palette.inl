@@ -117,55 +117,62 @@ void Palette<T, _Size>::growPalette()
     data_.SetSequence(i * paletteEntryLength_, paletteEntryLength_, indices[i]);
 }
 
-//template<typename T, size_t _Size>
-//inline void Palette<T, _Size>::fitPalette()
-//{
-//  // Remove old entries...
-//  for (int i = 0; i < palette_.size(); i++) {
-//    if (palette_[i].refcount == 0)
-//    {
-//      palette[i] = null;
-//      paletteCount -= 1;
-//    }
-//  }
-//
-//  // Is the palette less than half of its closest power-of-two?
-//  if (paletteCount > powerOfTwo(paletteCount) / 2) {
-//    // NO: The palette cannot be shrunk!
-//    return;
-//  }
-//
-//  // decode all indices
-//  int[] indices = new int[size];
-//  for (int i = 0; i < indices.length; i++) {
-//    indices[i] = data.get(i * indicesLength, indicesLength);
-//  }
-//
-//  // Create new palette, halfing it in size
-//  indicesLength = indicesLength >> 1;
-//  PaletteEntry[] newPalette = new PaletteEntry[2 pow indicesLength];
-//
-//  // We gotta compress the palette entries!
-//  int paletteCounter = 0;
-//  for (int pi = 0; pi < palette.length; pi++, paletteCounter++) {
-//    PaletteEntry entry = newPalette[paletteCounter] = palette[pi];
-//
-//    // Re-encode the indices (find and replace; with limit)
-//    for (int di = 0, fc = 0; di < indices.length && fc < entry.refcount; di++) {
-//      if (pi == indices[di]) {
-//        indices[di] = paletteCounter;
-//        fc += 1;
-//      }
-//    }
-//  }
-//
-//  // Allocate new BitBuffer
-//  data = new BitBuffer(size * indicesLength); // the length is in bits, not bytes!
-//
-//  // Encode the indices
-//  for (int i = 0; i < indices.length; i++) {
-//    data.set(i * indicesLength, indicesLength, indices[i]);
-//  }
-//}
+
+#if 0
+template<typename T, size_t _Size>
+inline void Palette<T, _Size>::fitPalette()
+{
+  // Remove old entries
+  for (int i = 0; i < palette_.size(); i++)
+  {
+    if (palette_[i].refcount == 0)
+    {
+      palette_[i] = {}; // zero-initialize contents of palette entry
+      paletteCount -= 1;
+    }
+  }
+  
+  // TODO: this logic
+  // Is the palette less than half of its closest power-of-two?
+  if (paletteCount > powerOfTwo(paletteCount) / 2)
+  {
+    // NO: The palette cannot be shrunk!
+    return;
+  }
+
+  // decode all indices
+  //int[] indices = new int[size];
+  std::vector<int> indices(size);
+  for (int i = 0; i < indices.size(); i++) {
+    indices[i] = data.get(i * indicesLength, indicesLength);
+  }
+
+  // Create new palette, halfing it in size
+  indicesLength = indicesLength >> 1;
+  PaletteEntry[] newPalette = new PaletteEntry[2 pow indicesLength];
+
+  // We gotta compress the palette entries!
+  int paletteCounter = 0;
+  for (int pi = 0; pi < palette.length; pi++, paletteCounter++) {
+    PaletteEntry entry = newPalette[paletteCounter] = palette[pi];
+
+    // Re-encode the indices (find and replace; with limit)
+    for (int di = 0, fc = 0; di < indices.length && fc < entry.refcount; di++) {
+      if (pi == indices[di]) {
+        indices[di] = paletteCounter;
+        fc += 1;
+      }
+    }
+  }
+
+  // Allocate new BitBuffer
+  data = new BitBuffer(size * indicesLength); // the length is in bits, not bytes!
+
+  // Encode the indices
+  for (int i = 0; i < indices.length; i++) {
+    data.set(i * indicesLength, indicesLength, indices[i]);
+  }
+}
+#endif
 
 #pragma warning(pop)
