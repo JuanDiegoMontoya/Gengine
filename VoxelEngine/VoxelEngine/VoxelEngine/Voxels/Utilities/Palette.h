@@ -5,7 +5,7 @@
 #include <shared_mutex>
 
 // fixed-size array optimized for space
-template<typename T, size_t _Size>
+template<typename T, size_t Size>
 class Palette
 {
 public:
@@ -50,28 +50,28 @@ private:
 
 
 // thread-safe variation of the palette
-template<typename T, size_t _Size>
-class ConcurrentPalette : public Palette<T, _Size>
+template<typename T, size_t Size>
+class ConcurrentPalette : public Palette<T, Size>
 {
 public:
 
-  ConcurrentPalette<T, _Size>& operator=(const ConcurrentPalette<T, _Size>& other)
+  ConcurrentPalette<T, Size>& operator=(const ConcurrentPalette<T, Size>& other)
   {
     std::lock_guard w(mtx);
-    Palette<T, _Size>::operator=(other);
+    Palette<T, Size>::operator=(other);
     return *this;
   }
 
   void SetVal(size_t index, T val)
   {
     std::lock_guard w(mtx);
-    Palette<T, _Size>::SetVal(index, val);
+    Palette<T, Size>::SetVal(index, val);
   }
 
   T GetVal(size_t index) const
   {
     std::shared_lock r(mtx);
-    return Palette<T, _Size>::GetVal(index);
+    return Palette<T, Size>::GetVal(index);
   }
 
 private:

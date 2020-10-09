@@ -16,7 +16,7 @@ public:
 };
 
 // uncompressed block storage for chunks
-template<unsigned _Size>
+template<unsigned Size>
 class ArrayBlockStorage
 {
 public:
@@ -36,7 +36,7 @@ public:
 
 private:
 
-  std::array<Block, _Size> blocks_;
+  std::array<Block, Size> blocks_;
   //Block* blocks_ = nullptr;
 };
 
@@ -44,7 +44,7 @@ private:
 // https://www.reddit.com/r/VoxelGameDev/comments/9yu8qy/palettebased_compression_for_chunked_discrete/
 // compressed block storage
 // can't really return references w/o doing crazy proxy class stuff
-template<unsigned _Size>
+template<unsigned Size>
 class PaletteBlockStorage
 {
 public:
@@ -71,8 +71,8 @@ private:
     ar(pblock_);
   }
 
-  Palette<BlockType, _Size> pblock_;
-  Palette<Light, _Size> plight_;
+  Palette<BlockType, Size> pblock_;
+  Palette<Light, Size> plight_;
 };
 
 #include "BlockStorage.inl"

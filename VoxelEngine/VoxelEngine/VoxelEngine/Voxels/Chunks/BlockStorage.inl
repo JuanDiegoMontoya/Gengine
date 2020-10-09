@@ -1,67 +1,67 @@
 #pragma once
 #include <Chunks/BlockStorage.h>
 
-template<unsigned _Size>
-inline ArrayBlockStorage<_Size>::ArrayBlockStorage()
+template<unsigned Size>
+inline ArrayBlockStorage<Size>::ArrayBlockStorage()
 {
 }
 
-template<unsigned _Size>
-inline ArrayBlockStorage<_Size>::~ArrayBlockStorage()
+template<unsigned Size>
+inline ArrayBlockStorage<Size>::~ArrayBlockStorage()
 {
 }
 
-template<unsigned _Size>
-inline ArrayBlockStorage<_Size>::ArrayBlockStorage(const ArrayBlockStorage& other)
+template<unsigned Size>
+inline ArrayBlockStorage<Size>::ArrayBlockStorage(const ArrayBlockStorage& other)
 {
   *this = other;
 }
 
-template<unsigned _Size>
-inline ArrayBlockStorage<_Size>& ArrayBlockStorage<_Size>::operator=(const ArrayBlockStorage& other)
+template<unsigned Size>
+inline ArrayBlockStorage<Size>& ArrayBlockStorage<Size>::operator=(const ArrayBlockStorage& other)
 {
   this->blocks = other.blocks;
   return *this;
 }
 
-template<unsigned _Size>
-inline Block& ArrayBlockStorage<_Size>::operator[](int index)
+template<unsigned Size>
+inline Block& ArrayBlockStorage<Size>::operator[](int index)
 {
   return blocks_[index];
 }
 
-template<unsigned _Size>
-inline Block& ArrayBlockStorage<_Size>::GetBlockRef(int index)
+template<unsigned Size>
+inline Block& ArrayBlockStorage<Size>::GetBlockRef(int index)
 {
   return blocks_[index];
 }
 
-template<unsigned _Size>
-inline Block ArrayBlockStorage<_Size>::GetBlock(int index) const
+template<unsigned Size>
+inline Block ArrayBlockStorage<Size>::GetBlock(int index) const
 {
   return blocks_[index];
 }
 
-template<unsigned _Size>
-inline BlockType ArrayBlockStorage<_Size>::GetBlockType(int index) const
+template<unsigned Size>
+inline BlockType ArrayBlockStorage<Size>::GetBlockType(int index) const
 {
   return blocks_[index].GetType();
 }
 
-template<unsigned _Size>
-inline void ArrayBlockStorage<_Size>::SetBlock(int index, BlockType type)
+template<unsigned Size>
+inline void ArrayBlockStorage<Size>::SetBlock(int index, BlockType type)
 {
   blocks_[index].SetType(type);
 }
 
-template<unsigned _Size>
-inline void ArrayBlockStorage<_Size>::SetLight(int index, Light light)
+template<unsigned Size>
+inline void ArrayBlockStorage<Size>::SetLight(int index, Light light)
 {
   blocks_[index].GetLightRef() = light;
 }
 
-template<unsigned _Size>
-inline Light ArrayBlockStorage<_Size>::GetLight(int index) const
+template<unsigned Size>
+inline Light ArrayBlockStorage<Size>::GetLight(int index) const
 {
   return blocks_[index].GetLight();
 }
@@ -71,32 +71,32 @@ inline Light ArrayBlockStorage<_Size>::GetLight(int index) const
 
 
 
-template<unsigned _Size>
-inline void PaletteBlockStorage<_Size>::SetBlock(int index, BlockType type)
+template<unsigned Size>
+inline void PaletteBlockStorage<Size>::SetBlock(int index, BlockType type)
 {
   pblock_.SetVal(index, type);
 }
 
-template<unsigned _Size>
-inline Block PaletteBlockStorage<_Size>::GetBlock(int index) const
+template<unsigned Size>
+inline Block PaletteBlockStorage<Size>::GetBlock(int index) const
 {
   return Block(GetBlockType(index), GetLight(index));
 }
 
-template<unsigned _Size>
-inline BlockType PaletteBlockStorage<_Size>::GetBlockType(int index) const
+template<unsigned Size>
+inline BlockType PaletteBlockStorage<Size>::GetBlockType(int index) const
 {
   return pblock_.GetVal(index);
 }
 
-template<unsigned _Size>
-inline void PaletteBlockStorage<_Size>::SetLight(int index, Light light)
+template<unsigned Size>
+inline void PaletteBlockStorage<Size>::SetLight(int index, Light light)
 {
   plight_.SetVal(index, light);
 }
 
-template<unsigned _Size>
-inline Light PaletteBlockStorage<_Size>::GetLight(int index) const
+template<unsigned Size>
+inline Light PaletteBlockStorage<Size>::GetLight(int index) const
 {
   return plight_.GetVal(index);
 }
