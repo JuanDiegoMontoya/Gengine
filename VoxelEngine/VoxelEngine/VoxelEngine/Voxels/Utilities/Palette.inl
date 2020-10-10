@@ -5,6 +5,8 @@
 #pragma warning(push)
 #pragma warning(disable : 4334 4267 26451) // 32-bit shift, 8->4 byte int conversion
 
+#pragma optimize("", off)
+
 template<typename T, size_t Size>
 Palette<T, Size>::Palette()
 {
@@ -118,7 +120,6 @@ void Palette<T, Size>::growPalette()
 }
 
 
-#if 1
 template<typename T, size_t Size>
 inline void Palette<T, Size>::fitPalette()
 {
@@ -184,6 +185,7 @@ inline void Palette<T, Size>::fitPalette()
     data_.SetSequence(i * paletteEntryLength_, paletteEntryLength_, indices[i]);
   }
 }
-#endif
+
+#pragma optimize("", on)
 
 #pragma warning(pop)

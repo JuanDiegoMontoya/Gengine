@@ -26,6 +26,11 @@ private:
     T type{};
     int refcount = 0;
 
+    PaletteEntry() = default;
+    PaletteEntry(const T& ty) : type(ty) {}
+    PaletteEntry(const T& ty, int refc) : type(ty), refcount(refc) {}
+    bool operator==(const PaletteEntry& other) { return type == other.type; }
+
     template <class Archive>
     void serialize(Archive& ar)
     {

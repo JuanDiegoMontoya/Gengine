@@ -17,6 +17,8 @@
 #include <Managers/InputManager.h>
 
 #include <Engine.h>
+#include <Chunks/ChunkSerialize.h>
+#include <Chunks/ChunkStorage.h>
 
 std::string VoxelWorld::GetName() { return "VoxelWorld"; }
 
@@ -50,6 +52,7 @@ void VoxelWorld::Init()
 
   NuRenderer::Init();
   
+  CompressedChunk compressed(*ChunkStorage::GetChunk(glm::ivec3(0)));
 }
 
 void VoxelWorld::End()
