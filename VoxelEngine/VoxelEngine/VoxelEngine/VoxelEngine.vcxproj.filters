@@ -384,6 +384,12 @@
     <ClInclude Include="Voxels\Chunks\ChunkSerialize.h">
       <Filter>Voxel Engine\Chunks</Filter>
     </ClInclude>
+    <ClInclude Include="Voxels\Utilities\DeltaEncoder.h">
+      <Filter>Voxel Engine\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\Utilities\RunLengthEncoder.h">
+      <Filter>Voxel Engine\Utilities</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Engine.cpp">

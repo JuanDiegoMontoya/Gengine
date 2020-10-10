@@ -1,6 +1,8 @@
 #include "ChunkSerialize.h"
 #include <zlib.h>
 #include <cereal/cereal.hpp>
+#include <Utilities/DeltaEncoder.h>
+#include <Utilities/RunLengthEncoder.h>
 
 #pragma optimize("", off)
 CompressedChunk::CompressedChunk(const Chunk& chunk)
@@ -49,5 +51,11 @@ CompressedChunk::CompressedChunk(const Chunk& chunk)
   ASSERT(remdb == blockToRem);
   ASSERT(remdl == lightToRem);
 
+  auto deltaA = Compression::EncodeDelta(std::span(blocksIndices.data(), blocksIndices.size()));
+  auto ddataA = Compression::DecodeDelta(std::span(deltaA.data(), deltaA.size()));
+  ASSERT(ddataA == blocksIndices);
 
+  auto rleA = Compression::EncodeRLE(std::span(deltaA.data(), deltaA.size()));
+  auto rdataA = Compression::DecodeRLE(std::span(rleA.data(), rleA.size()));
+  ASSERT(deltaA == rdataA);
 }

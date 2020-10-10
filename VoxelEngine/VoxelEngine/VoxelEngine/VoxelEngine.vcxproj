@@ -115,9 +115,11 @@
     <ClInclude Include="Voxels\Utilities\BitArray.h" />
     <ClInclude Include="Voxels\Utilities\collision_check.h" />
     <ClInclude Include="Voxels\Utilities\collision_shapes.h" />
+    <ClInclude Include="Voxels\Utilities\DeltaEncoder.h" />
     <ClInclude Include="Voxels\Utilities\FixedQueue.h" />
     <ClInclude Include="Voxels\Utilities\ImGuiBonus.h" />
     <ClInclude Include="Voxels\Utilities\Palette.h" />
+    <ClInclude Include="Voxels\Utilities\RunLengthEncoder.h" />
     <ClInclude Include="Voxels\Utilities\serialize.h" />
     <ClInclude Include="Voxels\Utilities\Timer.h" />
     <ClInclude Include="Voxels\WorldGen\WorldGen2.h" />

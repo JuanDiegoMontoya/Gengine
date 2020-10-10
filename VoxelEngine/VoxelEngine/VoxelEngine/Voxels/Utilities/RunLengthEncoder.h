@@ -1,46 +1,47 @@
 #pragma once
 #include <span>
 #include <vector>
-#include <engine_assert.h>
 
-template<typename T>
-struct RLEelement
+namespace Compression
 {
-  uint32_t count{};
-  T value{};
-};
-
-template<typename T>
-std::vector<RLEelement<T>> EncodeRLE(std::span<T> array)
-{
-  std::vector<RLEelement<T>> data;
-
-  RLEelement curElement{ .value = array[0] };
-  for (auto value : array)
+  template<typename T>
+  struct RLEelement
   {
-    if (value != curElement.value)
+    uint32_t count{};
+    T value{};
+  };
+
+  template<typename T>
+  std::vector<RLEelement<T>> EncodeRLE(std::span<T> array)
+  {
+    std::vector<RLEelement<T>> data;
+
+    RLEelement<T> curElement{ .value = array[0] };
+    for (auto value : array)
     {
-      data.push_back(curElement);
-      curElement = RLEelement{ .count = 0, .value = value };
-    }
-    else
-    {
+      if (value != curElement.value)
+      {
+        data.push_back(curElement);
+        curElement = RLEelement<T>{ .count = 0, .value = value };
+      }
       curElement.count++;
     }
+    if (curElement.count > 0)
+      data.push_back(curElement);
+
+    return data;
   }
 
-  return data;
-}
-
-template<typename T>
-std::vector<T> DecodeRLE(std::vector<RLEelement<T>> data)
-{
-  std::vector<T> array;
-
-  for (auto rlee : data)
+  template<typename T>
+  std::vector<T> DecodeRLE(std::span<RLEelement<T>> data)
   {
-    array.insert(array.end(), rlee.count, rlee.value);
-  }
+    std::vector<T> array;
 
-  return array;
+    for (auto rlee : data)
+    {
+      array.insert(array.end(), rlee.count, rlee.value);
+    }
+
+    return array;
+  }
 }
