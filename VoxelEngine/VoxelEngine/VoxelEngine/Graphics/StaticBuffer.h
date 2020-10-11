@@ -13,6 +13,7 @@ public:
 
   StaticBuffer& operator=(const StaticBuffer&) = delete;
   StaticBuffer& operator=(StaticBuffer&&) = delete;
+  bool operator==(const StaticBuffer&) const = default;
 
   // updates a subset of the buffer's data store
   void SubData(const void* data, GLuint size, GLuint offset = 0);
@@ -30,8 +31,8 @@ public:
   }
 
   // for when this class doesn't offer enough functionality
-  // not const because the ID can be used to modify the buffer
-  GLuint GetID() { return rendererID_; }
+  // Note: constness is shallow!
+  GLuint GetID() const { return rendererID_; }
 
 private:
   GLuint rendererID_ = 0;

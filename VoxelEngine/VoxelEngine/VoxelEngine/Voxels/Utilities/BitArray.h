@@ -16,6 +16,10 @@ public:
 
   // erases all sequences of the given bitfield of length "len"
   size_t EraseAll(int len, uint32_t bitfield);
+
+  // returns a BitArray containing all elements for which predicate returned true
+  template<typename Pred>
+  BitArray FindAll(int groupSize, Pred predicate);
   
   template <class Archive>
   void serialize(Archive& ar)
@@ -82,3 +86,19 @@ inline size_t BitArray::EraseAll(int len, uint32_t bitfield)
   return count;
 }
 
+template<typename Pred>
+inline BitArray BitArray::FindAll(int groupSize, Pred predicate)
+{
+  ASSERT(data_.size() % groupSize == 0); // no dangling bits allowed
+  BitArray arr(data_.size());
+  int a = 0;
+  for (int i = 0; i < data_.size() / groupSize; i++)
+  {
+    if (auto bits = GetSequence(i * groupSize, groupSize); predicate(bits) == true)
+    {
+      arr.SetSequence(a++ * groupSize, groupSize, bits);
+    }
+  }
+  arr.Resize(a * groupSize);
+  return arr;
+}

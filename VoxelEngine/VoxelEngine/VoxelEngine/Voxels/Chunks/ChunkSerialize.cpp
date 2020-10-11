@@ -46,15 +46,19 @@ CompressedChunk::CompressedChunk(const Chunk& chunk)
   const int lightToRem = lights.palette_[emptyLightIndex].refcount;
   blocks.palette_.erase(blocks.palette_.begin() + emptyBlockIndex);
   lights.palette_.erase(lights.palette_.begin() + emptyBlockIndex);
-  auto remdb = blocks.data_.EraseAll(blockIndexLen, emptyBlockIndex);
-  auto remdl = lights.data_.EraseAll(lightIndexLen, emptyLightIndex);
+  auto blocksPsize = blocks.data_.size();
+  auto lightsPsize = lights.data_.size();
+  blocks.data_ = blocks.data_.FindAll(blockIndexLen, [=](auto n) { return n != emptyBlockIndex; });
+  lights.data_ = lights.data_.FindAll(lightIndexLen, [=](auto n) { return n != emptyLightIndex; });
+  auto remdb = (blocksPsize - blocks.data_.size()) / blockIndexLen;
+  auto remdl = (lightsPsize - lights.data_.size()) / lightIndexLen;
   ASSERT(remdb == blockToRem);
   ASSERT(remdl == lightToRem);
-
+  
   auto deltaA = Compression::EncodeDelta(std::span(blocksIndices.data(), blocksIndices.size()));
   auto ddataA = Compression::DecodeDelta(std::span(deltaA.data(), deltaA.size()));
   ASSERT(ddataA == blocksIndices);
-
+  
   auto rleA = Compression::EncodeRLE(std::span(deltaA.data(), deltaA.size()));
   auto rdataA = Compression::DecodeRLE(std::span(rleA.data(), rleA.size()));
   ASSERT(deltaA == rdataA);
