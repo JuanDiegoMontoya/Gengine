@@ -5,6 +5,7 @@
 class CompressedChunk
 {
 public:
+  CompressedChunk() {};
   CompressedChunk(const Chunk& chunk);
   ~CompressedChunk() = default;
 
@@ -15,8 +16,8 @@ public:
   // 5. delta compress subchunk indices
   // 6. RLE compress data
   
-  void ReadChunkData();
+  PaletteBlockStorage<Chunk::CHUNK_SIZE_CUBED> Decompress();
 
 private:
-  
+
 };

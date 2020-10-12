@@ -390,6 +390,9 @@
     <ClInclude Include="Voxels\Utilities\RunLengthEncoder.h">
       <Filter>Voxel Engine\Utilities</Filter>
     </ClInclude>
+    <ClInclude Include="Voxels\Utilities\CompressBuffer.h">
+      <Filter>Voxel Engine\Utilities</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Engine.cpp">
@@ -601,6 +604,9 @@
     </ClCompile>
     <ClCompile Include="Voxels\Chunks\ChunkSerialize.cpp">
       <Filter>Voxel Engine\Chunks</Filter>
+    </ClCompile>
+    <ClCompile Include="Voxels\Utilities\CompressBuffer.cpp">
+      <Filter>Voxel Engine\Utilities</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

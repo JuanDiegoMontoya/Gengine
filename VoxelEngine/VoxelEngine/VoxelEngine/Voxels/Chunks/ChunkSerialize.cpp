@@ -3,8 +3,50 @@
 #include <cereal/cereal.hpp>
 #include <Utilities/DeltaEncoder.h>
 #include <Utilities/RunLengthEncoder.h>
+#include <Utilities/CompressBuffer.h>
 
-#pragma optimize("", off)
+template<typename T>
+struct CompressedMaterialInfo
+{
+  CompressedMaterialInfo(Palette<T, Chunk::CHUNK_SIZE_CUBED> p) :
+    indices(Chunk::CHUNK_SIZE_CUBED / 8, UINT16_MAX),
+    bitmasks(Chunk::CHUNK_SIZE_CUBED / 8, 0),
+    palette(p) {}
+
+  std::vector<uint16_t> indices;
+  std::vector<uint8_t> bitmasks;
+  Palette<T, Chunk::CHUNK_SIZE_CUBED> palette;
+
+  void MakeIndicesAndBitmasks(const T& emptyVal)
+  {
+    for (int i = 0; i < Chunk::CHUNK_SIZE_CUBED; i++)
+    {
+      if (palette.GetVal(i) != emptyVal)
+      {
+        indices[i / 8] = i - (i % 8);
+        bitmasks[i / 8] |= 1 << (i % 8);
+      }
+    }
+    std::erase(indices, UINT16_MAX);
+    std::erase(bitmasks, 0);
+  }
+
+  void RemoveEmptyPaletteData(const T& emptyVal)
+  {
+    // get indices of empty entries in palettes
+    int indexLen = palette.paletteEntryLength_;
+    int emptyIndex = std::find(palette.palette_.begin(), palette.palette_.end(), emptyVal) - palette.palette_.begin();
+
+    // remove empty entries from palettes and from data
+    const int toRemove = palette.palette_[emptyIndex].refcount;
+    palette.palette_.erase(palette.palette_.begin() + emptyIndex);
+    auto prevSize = palette.data_.size();
+    palette.data_ = palette.data_.FindAll(indexLen, [emptyIndex](auto n) { return n != emptyIndex; });
+    auto remdb = (prevSize - palette.data_.size()) / indexLen;
+    ASSERT(remdb == toRemove);
+  }
+};
+
 CompressedChunk::CompressedChunk(const Chunk& chunk)
 {
   auto blocks = chunk.storage.pblock_;
@@ -13,53 +55,21 @@ CompressedChunk::CompressedChunk(const Chunk& chunk)
   // records positions of blocks in the chunk
   // indices represent start of sequence of 8 blocks, at least one of which is NOT empty
   // bitmasks represent which blocks in an 8-block sequence is NOT empty
-  std::vector<uint8_t> blocksBitmasks(Chunk::CHUNK_SIZE_CUBED / 8, 0);
-  std::vector<uint8_t> lightsBitmasks(Chunk::CHUNK_SIZE_CUBED / 8, 0);
-  std::vector<uint16_t> blocksIndices(Chunk::CHUNK_SIZE_CUBED / 8, UINT16_MAX);
-  std::vector<uint16_t> lightsIndices(Chunk::CHUNK_SIZE_CUBED / 8, UINT16_MAX);
-  for (int i = 0; i < Chunk::CHUNK_SIZE_CUBED; i++)
-  {
-    if (blocks.GetVal(i) != BlockType::bAir)
-    {
-      blocksIndices[i / 8] = i - (i % 8);
-      blocksBitmasks[i / 8] |= 1 << (i % 8);
-    }
-    if (lights.GetVal(i) != Light{})
-    {
-      lightsIndices[i / 8] = i - (i % 8);
-      lightsBitmasks[i / 8] |= 1 << (i % 8);
-    }
-  }
-  std::erase(blocksBitmasks, 0);
-  std::erase(lightsBitmasks, 0);
-  std::erase(blocksIndices, UINT16_MAX);
-  std::erase(lightsIndices, UINT16_MAX);
+  CompressedMaterialInfo<BlockType> blockData(blocks);
+  CompressedMaterialInfo<Light> lightData(lights);
+  blockData.MakeIndicesAndBitmasks(BlockType::bAir);
+  lightData.MakeIndicesAndBitmasks(Light{});
 
-  // get indices of empty entries in palettes
-  int blockIndexLen = blocks.paletteEntryLength_;
-  int lightIndexLen = lights.paletteEntryLength_;
-  int emptyBlockIndex = std::find(blocks.palette_.begin(), blocks.palette_.end(), BlockType::bAir) - blocks.palette_.begin();
-  int emptyLightIndex = std::find(lights.palette_.begin(), lights.palette_.end(), Light{}) - lights.palette_.begin();
+  blockData.RemoveEmptyPaletteData(BlockType::bAir);
+  lightData.RemoveEmptyPaletteData(Light{});
 
-  // remove empty entries from palettes and from data
-  const int blockToRem = blocks.palette_[emptyBlockIndex].refcount;
-  const int lightToRem = lights.palette_[emptyLightIndex].refcount;
-  blocks.palette_.erase(blocks.palette_.begin() + emptyBlockIndex);
-  lights.palette_.erase(lights.palette_.begin() + emptyBlockIndex);
-  auto blocksPsize = blocks.data_.size();
-  auto lightsPsize = lights.data_.size();
-  blocks.data_ = blocks.data_.FindAll(blockIndexLen, [=](auto n) { return n != emptyBlockIndex; });
-  lights.data_ = lights.data_.FindAll(lightIndexLen, [=](auto n) { return n != emptyLightIndex; });
-  auto remdb = (blocksPsize - blocks.data_.size()) / blockIndexLen;
-  auto remdl = (lightsPsize - lights.data_.size()) / lightIndexLen;
-  ASSERT(remdb == blockToRem);
-  ASSERT(remdl == lightToRem);
-  
-  auto deltaA = Compression::EncodeDelta(std::span(blocksIndices.data(), blocksIndices.size()));
+  auto deltaA = Compression::EncodeDelta(std::span(blockData.indices.data(), blockData.indices.size()));
   auto ddataA = Compression::DecodeDelta(std::span(deltaA.data(), deltaA.size()));
-  ASSERT(ddataA == blocksIndices);
+  ASSERT(ddataA == blockData.indices);
   
   auto rleA = Compression::EncodeRLE(std::span(deltaA.data(), deltaA.size()));
   auto rdataA = Compression::DecodeRLE(std::span(rleA.data(), rleA.size()));
   ASSERT(deltaA == rdataA);
+
+  auto compressedA = Compression::Compress(std::span(rleA.data(), rleA.size()));
 }

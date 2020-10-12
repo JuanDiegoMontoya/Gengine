@@ -21,6 +21,8 @@ public:
   template<typename Pred>
   BitArray FindAll(int groupSize, Pred predicate);
   
+  std::vector<uint8_t> ByteRepresentation();
+
   template <class Archive>
   void serialize(Archive& ar)
   {
@@ -84,6 +86,24 @@ inline size_t BitArray::EraseAll(int len, uint32_t bitfield)
     }
   }
   return count;
+}
+
+inline std::vector<uint8_t> BitArray::ByteRepresentation()
+{
+  std::vector<uint8_t> bytes;
+  uint8_t curbyte = 0;
+  int curbit = 0;
+  for (auto bit : data_)
+  {
+    curbyte |= bit << curbit++;
+    if (curbit == 8)
+    {
+      bytes.push_back(curbyte);
+      curbit = 0;
+      curbyte = 0;
+    }
+  }
+  return bytes;
 }
 
 template<typename Pred>

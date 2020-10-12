@@ -4,6 +4,9 @@
 #include <cereal/types/vector.hpp>
 #include <shared_mutex>
 
+template<typename T>
+struct CompressedMaterialInfo;
+
 // fixed-size array optimized for space
 template<typename T, size_t Size>
 class Palette
@@ -20,6 +23,7 @@ public:
 private:
   friend class cereal::access;
   friend class CompressedChunk;
+  friend struct CompressedMaterialInfo<T>;
 
   struct PaletteEntry
   {
