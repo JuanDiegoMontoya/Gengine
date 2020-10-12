@@ -7,6 +7,10 @@ namespace Compression
   template<typename T>
   struct RLEelement
   {
+    bool operator==(const RLEelement<T> rhs) const
+    {
+      return count == rhs.count && value == rhs.value;
+    }
     uint32_t count{};
     T value{};
   };

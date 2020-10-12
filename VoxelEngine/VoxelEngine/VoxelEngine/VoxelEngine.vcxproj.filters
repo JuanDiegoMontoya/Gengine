@@ -605,9 +605,6 @@
     <ClCompile Include="Voxels\Chunks\ChunkSerialize.cpp">
       <Filter>Voxel Engine\Chunks</Filter>
     </ClCompile>
-    <ClCompile Include="Voxels\Utilities\CompressBuffer.cpp">
-      <Filter>Voxel Engine\Utilities</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Voxels\Chunks\BlockStorage.inl">

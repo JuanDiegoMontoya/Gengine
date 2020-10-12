@@ -19,6 +19,9 @@ struct CompressedMaterialInfo
 
   void MakeIndicesAndBitmasks(const T& emptyVal)
   {
+    // records positions of blocks in the chunk
+    // indices represent start of sequence of 8 blocks, at least one of which is NOT empty
+    // bitmasks represent which blocks in an 8-block sequence is NOT empty
     for (int i = 0; i < Chunk::CHUNK_SIZE_CUBED; i++)
     {
       if (palette.GetVal(i) != emptyVal)
@@ -52,9 +55,6 @@ CompressedChunk::CompressedChunk(const Chunk& chunk)
   auto blocks = chunk.storage.pblock_;
   auto lights = chunk.storage.plight_;
 
-  // records positions of blocks in the chunk
-  // indices represent start of sequence of 8 blocks, at least one of which is NOT empty
-  // bitmasks represent which blocks in an 8-block sequence is NOT empty
   CompressedMaterialInfo<BlockType> blockData(blocks);
   CompressedMaterialInfo<Light> lightData(lights);
   blockData.MakeIndicesAndBitmasks(BlockType::bAir);
@@ -72,4 +72,7 @@ CompressedChunk::CompressedChunk(const Chunk& chunk)
   ASSERT(deltaA == rdataA);
 
   auto compressedA = Compression::Compress(std::span(rleA.data(), rleA.size()));
+  auto uncompressA = Compression::Uncompress(compressedA);
+  //decltype(rleA) uncompressedVec(uncompressA.data.get(), uncompressA.data.get() + uncompressA.size_bytes());
+  ASSERT(uncompressA == rleA);
 }

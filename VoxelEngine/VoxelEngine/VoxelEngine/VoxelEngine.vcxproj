@@ -199,7 +199,6 @@
     <ClCompile Include="Voxels\Rendering\texture.cpp" />
     <ClCompile Include="Voxels\Rendering\TextureArray.cpp" />
     <ClCompile Include="Voxels\Utilities\collision_check.cpp" />
-    <ClCompile Include="Voxels\Utilities\CompressBuffer.cpp" />
     <ClCompile Include="Voxels\Utilities\ImGuiBonus.cpp" />
     <ClCompile Include="Voxels\WorldGen\WorldGen2.cpp" />
     <ClCompile Include="Voxels\World\chunk_manager.cpp" />
