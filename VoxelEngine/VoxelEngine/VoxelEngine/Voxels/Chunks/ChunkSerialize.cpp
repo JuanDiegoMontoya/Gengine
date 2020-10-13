@@ -4,6 +4,11 @@
 #include <Utilities/DeltaEncoder.h>
 #include <Utilities/RunLengthEncoder.h>
 #include <Utilities/CompressBuffer.h>
+#include <Utilities/serialize.h>
+
+#include <cereal/types/vector.hpp>
+#include <cereal/archives/binary.hpp>
+#include <sstream>
 
 template<typename T>
 struct CompressedMaterialInfo
@@ -50,10 +55,10 @@ struct CompressedMaterialInfo
   }
 };
 
-CompressedChunk::CompressedChunk(const Chunk& chunk)
+CompressedChunkData CompressChunk(PaletteBlockStorage<Chunk::CHUNK_SIZE_CUBED> data)
 {
-  auto blocks = chunk.storage.pblock_;
-  auto lights = chunk.storage.plight_;
+  auto blocks = data.pblock_;
+  auto lights = data.plight_;
 
   CompressedMaterialInfo<BlockType> blockData(blocks);
   CompressedMaterialInfo<Light> lightData(lights);
@@ -64,15 +69,23 @@ CompressedChunk::CompressedChunk(const Chunk& chunk)
   lightData.RemoveEmptyPaletteData(Light{});
 
   auto deltaA = Compression::EncodeDelta(std::span(blockData.indices.data(), blockData.indices.size()));
-  auto ddataA = Compression::DecodeDelta(std::span(deltaA.data(), deltaA.size()));
-  ASSERT(ddataA == blockData.indices);
+  auto deltaB = Compression::EncodeDelta(std::span(lightData.indices.data(), lightData.indices.size()));
   
   auto rleA = Compression::EncodeRLE(std::span(deltaA.data(), deltaA.size()));
-  auto rdataA = Compression::DecodeRLE(std::span(rleA.data(), rleA.size()));
-  ASSERT(deltaA == rdataA);
+  auto rleB = Compression::EncodeRLE(std::span(deltaB.data(), deltaB.size()));
 
   auto compressedA = Compression::Compress(std::span(rleA.data(), rleA.size()));
-  auto uncompressA = Compression::Uncompress(compressedA);
-  //decltype(rleA) uncompressedVec(uncompressA.data.get(), uncompressA.data.get() + uncompressA.size_bytes());
-  ASSERT(uncompressA == rleA);
+  auto compressedB = Compression::Compress(std::span(rleB.data(), rleB.size()));
+  //auto ddataA = Compression::DecodeDelta(std::span(deltaA.data(), deltaA.size()));
+  //ASSERT(ddataA == blockData.indices);
+  //auto rdataA = Compression::DecodeRLE(std::span(rleA.data(), rleA.size()));
+  //ASSERT(deltaA == rdataA);
+  //auto uncompressA = Compression::Uncompress(compressedA);
+  //ASSERT(uncompressA == rleA);
+  std::stringstream binaryData;
+  cereal::BinaryOutputArchive archive(binaryData);
+  archive(compressedA, compressedB);
+
+  CompressedChunkData ret;
+  return ret;
 }

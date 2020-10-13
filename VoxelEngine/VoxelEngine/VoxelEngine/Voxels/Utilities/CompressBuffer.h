@@ -5,6 +5,7 @@
 #include <vector>
 #include <zlib.h>
 #include <memory>
+#include <cassert>
 
 namespace Compression
 {
@@ -21,6 +22,7 @@ namespace Compression
   using UncompressionResult = std::vector<T>;
 
   // compresses a contiguous set of data
+  // data must be serial before compressing
   template<typename T>
   CompressionResult<T> Compress(std::span<T> array)
   {
@@ -35,7 +37,7 @@ namespace Compression
       (Byte*)array.data(),
       uncompressedSize
     );
-    ASSERT(z_result == Z_OK);
+    assert(z_result == Z_OK);
 
     // compressedSize may have changed
     compressedData.data = std::make_unique<std::byte[]>(compressedSize);

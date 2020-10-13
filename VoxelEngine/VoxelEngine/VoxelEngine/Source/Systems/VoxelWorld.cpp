@@ -52,7 +52,7 @@ void VoxelWorld::Init()
 
   NuRenderer::Init();
   
-  CompressedChunk compressed(*ChunkStorage::GetChunk(glm::ivec3(0)));
+  auto compressed = CompressChunk(ChunkStorage::GetChunk(glm::ivec3(0))->GetStorage());
 }
 
 void VoxelWorld::End()

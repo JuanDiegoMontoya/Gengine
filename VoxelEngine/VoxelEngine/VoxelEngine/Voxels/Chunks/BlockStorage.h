@@ -61,10 +61,6 @@ public:
     return *this;
   }
 
-private:
-  friend class cereal::access;
-  friend class CompressedChunk;
-
   template <class Archive>
   void serialize(Archive& ar)
   {
