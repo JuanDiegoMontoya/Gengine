@@ -9,6 +9,8 @@ struct Settings
 	int MSAA;
 	bool maximize;
 	bool fullscreen;
+
+	bool dirty = false;
 };
 struct Layout
 {
@@ -18,4 +20,6 @@ struct Layout
 
 	int left;
 	int top;
+
+	bool dirty = false;
 };

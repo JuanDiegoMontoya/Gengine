@@ -19,7 +19,13 @@ public:
 	Layout GetLayout() { return layout; }
 	Layout& GetLayoutRef() { return layout; }
 
-	bool IsDirtyLayout() { return DirtyLayout; }
+	bool IsDirtyLayout() { return layout.dirty; }
+	bool IsDirtySettings() { return settings.dirty; }
+
+	static inline GLFWwindow* window;
+
+	static inline Settings settings;
+	static inline Layout layout;
 
 private:
 	std::string name;
@@ -27,12 +33,6 @@ private:
 	bool WindowInitialized = false;
 	bool DirtyLayout = false;
 
-	Settings settings;
-	Layout layout;
-
 	void MakeWindow();
-
-protected:
-	GLFWwindow* window = nullptr;
 
 };

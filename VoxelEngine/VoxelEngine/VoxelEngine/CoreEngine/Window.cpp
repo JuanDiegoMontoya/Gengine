@@ -112,14 +112,16 @@ void Window::MakeWindow()
 	GLenum e;
 	if ((e = glGetError()) != GL_NO_ERROR)
 	{
-		//log << "5-00 " << glewGetErrorString(e) << logbreak;
-		printf("5-00 %s\n", glewGetErrorString(e));
+		printf("Error in Window.h: %s\n", glewGetErrorString(e));
 	}
 }
 
-Window::Window(const char* pName, Settings pSettings, Layout pLayout) : layout(pLayout), settings(pSettings)
+Window::Window(const char* pName, Settings pSettings, Layout pLayout)
 {
 	name = pName;
+
+	layout = pLayout;
+	settings = pSettings;
 
 	MakeWindow();
 }
