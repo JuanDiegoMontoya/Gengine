@@ -8,6 +8,7 @@
 Camera::Camera()
 {
   frustum_ = std::make_unique<Frustum>();
+  GenProjection();
 }
 
 Camera::~Camera()

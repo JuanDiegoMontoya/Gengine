@@ -6,13 +6,13 @@ class DrawEvent;
 class ChunkManager;
 class HUD;
 
-class VoxelWorld
+class VoxelSystem
 {
 public:
-  VoxelWorld();
-  ~VoxelWorld();
+  VoxelSystem();
+  ~VoxelSystem();
   void Init();
-  void End();
+  //void End();
 
   void Update(float dt);
   void Draw();

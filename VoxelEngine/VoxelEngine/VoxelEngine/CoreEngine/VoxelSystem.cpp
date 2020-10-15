@@ -12,7 +12,17 @@
 #include <Chunks/ChunkSerialize.h>
 #include <Chunks/ChunkStorage.h>
 
-void VoxelWorld::Init()
+VoxelSystem::VoxelSystem()
+{
+  chunkManager_ = std::make_unique<ChunkManager>();
+  hud_ = std::make_unique<HUD>();
+}
+
+VoxelSystem::~VoxelSystem()
+{
+}
+
+void VoxelSystem::Init()
 {
   WorldGen2::Init();
   chunkManager_->Init();
@@ -28,7 +38,7 @@ void VoxelWorld::Init()
 }
 
 
-void VoxelWorld::Update(float dt)
+void VoxelSystem::Update(float dt)
 {
   // update each camera
   //if (!Interface::activeCursor)
@@ -41,7 +51,6 @@ void VoxelWorld::Update(float dt)
   //  CheckCollision();
   //}
 
-
   chunkManager_->Update();
   //CheckInteraction();
   //sun_->Update();
@@ -52,8 +61,8 @@ void VoxelWorld::Update(float dt)
 }
 
 // TODO: move this code into the system or sumthin
-void VoxelWorld::Draw()
+void VoxelSystem::Draw()
 {
-  //NuRenderer::DrawAll();
+  NuRenderer::DrawAll();
   //glfwSwapBuffers(GraphicsManager::GetGraphicsManager()->GetWindow());
 }
