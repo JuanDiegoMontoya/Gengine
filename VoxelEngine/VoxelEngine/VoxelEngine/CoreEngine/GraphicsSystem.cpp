@@ -24,14 +24,22 @@ void GraphicsSystem::Shutdown()
   glfwDestroyWindow(window);
 }
 
+void GraphicsSystem::StartFrame()
+{
+  auto cc = glm::vec3(.529f, .808f, .922f);
+  glClearColor(cc.r, cc.g, cc.b, 1.f);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+}
+
 void GraphicsSystem::Update(Scene& scene, float dt)
 {
-  // TODO: bad bad bad
+  // TODO: bad(?)
   if (Input::IsKeyDown(GLFW_KEY_ESCAPE))
     scene.GetEngine().Stop();
   Camera::ActiveCamera->Update(dt);
+}
 
-  //glClearColor(0, 1, 1, 1);
-  //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+void GraphicsSystem::EndFrame()
+{
   glfwSwapBuffers(window);
 }
