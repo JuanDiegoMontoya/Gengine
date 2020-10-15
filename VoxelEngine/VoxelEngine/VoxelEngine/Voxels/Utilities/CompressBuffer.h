@@ -5,7 +5,7 @@
 #include <vector>
 #include <zlib.h>
 #include <memory>
-#include <cassert>
+#include <GAssert.h>
 
 namespace Compression
 {

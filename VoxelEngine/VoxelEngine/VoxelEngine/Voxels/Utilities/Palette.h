@@ -20,9 +20,10 @@ public:
   void SetVal(size_t index, T);
   T GetVal(size_t index) const;
 
+  const BitArray& GetData() const { return data_; }
+
 private:
   friend class cereal::access;
-  friend class CompressedChunk;
   friend struct CompressedMaterialInfo<T>;
 
   struct PaletteEntry

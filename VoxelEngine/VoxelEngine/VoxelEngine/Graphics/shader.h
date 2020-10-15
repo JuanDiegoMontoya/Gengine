@@ -3,7 +3,7 @@
 #include <unordered_map>
 #include <optional>
 #include <span>
-#include <engine_assert.h>
+#include <GAssert.h>
 
 #include <Graphics/GraphicsIncludes.h>
 #include <shaderc/shaderc.hpp>

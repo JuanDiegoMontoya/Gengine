@@ -2,13 +2,12 @@
 #include <Refactor/sun.h>
 #include <Graphics/vao.h>
 #include <Graphics/vbo.h>
-#include <Systems/Camera.h>
+#include <Camera.h>
 #include <Graphics/shader.h>
 #include <Refactor/settings.h>
 #include <limits>
 #include <Graphics/Vertices.h>
 
-#include <Managers/GraphicsManager.h>
 #include <Graphics/GraphicsIncludes.h>
 
 Sun::Sun()
@@ -36,10 +35,10 @@ void Sun::Update()
   }
 
   if (followCam)
-    pos_ = GetCurrentCamera()->GetPos() - dir_ * followDist;
+    pos_ = Camera::ActiveCamera->GetPos() - dir_ * followDist;
   
   //glm::mat4 lightView = glm::lookAt(pos_, dir_, glm::vec3(0.0, 1.0, 0.0));
-  view_ = glm::lookAt(pos_, glm::normalize(GetCurrentCamera()->GetDir()), glm::vec3(0.0, 1.0, 0.0));
+  view_ = glm::lookAt(pos_, glm::normalize(Camera::ActiveCamera->GetDir()), glm::vec3(0.0, 1.0, 0.0));
 }
 
 //void Sun::Init()
@@ -54,7 +53,7 @@ void Sun::Render()
 
   vao_->Bind();
   vbo_->Bind();
-  auto cam = GetCurrentCamera();
+  auto cam = Camera::ActiveCamera;
   const glm::mat4& view = cam->GetView();
   const glm::mat4& proj = cam->GetProj();
 

@@ -7,7 +7,7 @@
 #include <Chunks/ChunkHelpers.h>
 #include <Chunks/BlockStorage.h>
 #include <Chunks/ChunkMesh.h>
-#include <engine_assert.h>
+#include <GAssert.h>
 #include <cereal/archives/binary.hpp>
 
 // TODO: make these constexpr functions!

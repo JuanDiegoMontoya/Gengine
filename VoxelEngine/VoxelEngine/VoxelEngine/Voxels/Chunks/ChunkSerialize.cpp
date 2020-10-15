@@ -10,6 +10,7 @@
 #include <cereal/archives/binary.hpp>
 #include <sstream>
 
+
 template<typename T>
 struct CompressedMaterialInfo
 {
@@ -63,25 +64,32 @@ CompressedChunkData CompressChunk(PaletteBlockStorage<Chunk::CHUNK_SIZE_CUBED> d
   CompressedMaterialInfo<BlockType> blockData(blocks);
   CompressedMaterialInfo<Light> lightData(lights);
   blockData.MakeIndicesAndBitmasks(BlockType::bAir);
-  lightData.MakeIndicesAndBitmasks(Light{});
-
   blockData.RemoveEmptyPaletteData(BlockType::bAir);
+  lightData.MakeIndicesAndBitmasks(Light{});
   lightData.RemoveEmptyPaletteData(Light{});
+  auto bytesA = blockData.palette.GetData().ByteRepresentation();
 
   auto deltaA = Compression::EncodeDelta(std::span(blockData.indices.data(), blockData.indices.size()));
   auto deltaB = Compression::EncodeDelta(std::span(lightData.indices.data(), lightData.indices.size()));
-  
+
   auto rleA = Compression::EncodeRLE(std::span(deltaA.data(), deltaA.size()));
   auto rleB = Compression::EncodeRLE(std::span(deltaB.data(), deltaB.size()));
 
   auto compressedA = Compression::Compress(std::span(rleA.data(), rleA.size()));
   auto compressedB = Compression::Compress(std::span(rleB.data(), rleB.size()));
-  //auto ddataA = Compression::DecodeDelta(std::span(deltaA.data(), deltaA.size()));
-  //ASSERT(ddataA == blockData.indices);
-  //auto rdataA = Compression::DecodeRLE(std::span(rleA.data(), rleA.size()));
-  //ASSERT(deltaA == rdataA);
-  //auto uncompressA = Compression::Uncompress(compressedA);
-  //ASSERT(uncompressA == rleA);
+
+#if 1
+  // tests
+  auto bitsA = BitArray(bytesA);
+  ASSERT(bitsA == blockData.palette.GetData());
+  auto ddataA = Compression::DecodeDelta(std::span(deltaA.data(), deltaA.size()));
+  ASSERT(ddataA == blockData.indices);
+  auto rdataA = Compression::DecodeRLE(std::span(rleA.data(), rleA.size()));
+  ASSERT(deltaA == rdataA);
+  auto uncompressA = Compression::Uncompress(compressedA);
+  ASSERT(uncompressA == rleA);
+#endif
+
   std::stringstream binaryData;
   cereal::BinaryOutputArchive archive(binaryData);
   archive(compressedA, compressedB);

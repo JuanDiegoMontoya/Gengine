@@ -1,5 +1,14 @@
 #pragma once
 #include <cereal/types/vector.hpp>
+#include <GAssert.h>
+
+//#pragma optimize("", off)
+
+struct SerializableBitArray
+{
+  uint32_t numBits;
+  std::vector<uint8_t> bytes;
+};
 
 // specialized wrapper around std::vector<bool>
 // or any other dynamic bitset container
@@ -8,11 +17,13 @@ class BitArray
 {
 public:
   BitArray(size_t size = 0);
+  BitArray(const SerializableBitArray& data);
   void Resize(size_t newSize);
   void SetSequence(int index, int len, uint32_t bitfield);
   uint32_t GetSequence(int index, int len) const;
   void EraseSequence(int index, int len);
   size_t size() const { return data_.size(); }
+  bool operator==(const BitArray&) const = default;
 
   // erases all sequences of the given bitfield of length "len"
   size_t EraseAll(int len, uint32_t bitfield);
@@ -21,7 +32,7 @@ public:
   template<typename Pred>
   BitArray FindAll(int groupSize, Pred predicate);
   
-  std::vector<uint8_t> ByteRepresentation();
+  SerializableBitArray ByteRepresentation() const;
 
   template <class Archive>
   void serialize(Archive& ar)
@@ -37,6 +48,22 @@ private:
 inline BitArray::BitArray(size_t size)
 {
   data_.resize(size, 0);
+}
+
+inline BitArray::BitArray(const SerializableBitArray& data)
+{
+  data_.reserve(data.numBits);
+  int i = 0;
+  for (auto byte : data.bytes)
+  {
+    for (uint8_t curBit = 0; curBit < 8; curBit++, i++)
+    {
+      // branch could be optimized
+      if (i >= data.numBits)
+        break;
+      data_.push_back(byte & (1 << curBit));
+    }
+  }
 }
 
 inline void BitArray::Resize(size_t newSize)
@@ -88,22 +115,27 @@ inline size_t BitArray::EraseAll(int len, uint32_t bitfield)
   return count;
 }
 
-inline std::vector<uint8_t> BitArray::ByteRepresentation()
+inline SerializableBitArray BitArray::ByteRepresentation() const
 {
-  std::vector<uint8_t> bytes;
+  SerializableBitArray arr;
+  arr.numBits = data_.size();
+
   uint8_t curbyte = 0;
   int curbit = 0;
-  for (auto bit : data_)
+  for (const auto bit : data_)
   {
     curbyte |= bit << curbit++;
     if (curbit == 8)
     {
-      bytes.push_back(curbyte);
+      arr.bytes.push_back(curbyte);
       curbit = 0;
       curbyte = 0;
     }
   }
-  return bytes;
+  if (curbit != 0)
+    arr.bytes.push_back(curbyte);
+  
+  return arr;
 }
 
 template<typename Pred>

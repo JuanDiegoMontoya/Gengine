@@ -1,5 +1,5 @@
 #include <iostream>
-#include <engine_assert.h>
+#include <GAssert.h>
 
 void Assert::HandleAssert(const char* msg, const char* condition, const char* fname, long lineNumber)
 {

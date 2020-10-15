@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <execution>
 #include <Chunks/ChunkStorage.h>
-#include <Managers/GraphicsManager.h>>
+#include <Camera.h>>
 
 // TODO: add a way to notify these threads to terminate when the program
 // does to prevent crash on exit
@@ -19,7 +19,7 @@ namespace Utils
         return false;
       glm::vec3 wposA = glm::vec3(first->GetPos() * Chunk::CHUNK_SIZE);
       glm::vec3 wposB = glm::vec3(second->GetPos() * Chunk::CHUNK_SIZE);
-      glm::vec3 cam = GetCurrentCamera()->GetPos();
+      glm::vec3 cam = Camera::ActiveCamera->GetPos();
       return
         glm::distance(wposA, cam) <
         glm::distance(wposB, cam);

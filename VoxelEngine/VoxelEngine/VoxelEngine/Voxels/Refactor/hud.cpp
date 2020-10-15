@@ -1,16 +1,16 @@
 #include <Refactor/hud.h>
-#include <Managers/InputManager.h>
-#include <Systems/Camera.h>
+#include <Input.h>
+#include <Camera.h>
 #include <Graphics/shader.h>
 #include <Rendering/NuRenderer.h>
 #include <Rendering/TextureArray.h>
 #include "Interface.h"
-#include <Managers/GraphicsManager.h>
+#include <imgui/imgui.h>
 
 
 void HUD::Update()
 {
-  int ofs = InputManager::GetInputManager()->GetScrollOffset().y;
+  int ofs = Input::GetScrollOffset().y;
   int num = int(selected_) + ofs;
   //if (num >= int(BlockType::bCount) || num < 0)
   //  ofs = 0;
@@ -21,7 +21,7 @@ void HUD::Update()
     //printf("%d\n", selected_);
   }
   //reinterpret_cast<unsigned char&>(selected_) += ofs;
-  Camera* cam = GetCurrentCamera();
+  Camera* cam = Camera::ActiveCamera;
   //printf("%f\n", Input::Mouse().scrollOffset.y);
 
   // render the selected object on the screen

@@ -3,6 +3,7 @@
 #include <Utilities/CompressBuffer.h>
 #include <Utilities/RunLengthEncoder.h>
 #include <Utilities/DeltaEncoder.h>
+#include <Utilities/BitArray.h>
 #include <cereal/types/vector.hpp>
 #include <cereal/archives/binary.hpp>
 
@@ -50,5 +51,11 @@ namespace cereal
     comp.data = std::make_unique<std::byte[]>(comp.compressedSize);
     archive(comp.uncompressedSize,
       cereal::binary_data(comp.data.get(), comp.compressedSize * sizeof(std::byte)));
+  }
+
+  template<class Archive>
+  void serialize(Archive& archive, SerializableBitArray arr)
+  {
+    archive(arr.numBits, arr.bytes);
   }
 }

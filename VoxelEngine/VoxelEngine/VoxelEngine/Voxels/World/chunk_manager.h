@@ -1,7 +1,6 @@
 #pragma once
 #include <Chunks/Chunk.h>
 #include <block.h>
-#include <Systems/Camera.h>
 
 #include <set>
 //#include <unordered_set>
@@ -11,6 +10,8 @@
 #include <atomic>
 #include <stack>
 #include <queue>
+
+#include <Camera.h>
 
 struct Chunk;
 //class ChunkLoadManager;

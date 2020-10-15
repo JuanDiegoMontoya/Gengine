@@ -29,6 +29,18 @@
     <ClInclude Include="3rdParty\imgui\imstb_rectpack.h" />
     <ClInclude Include="3rdParty\imgui\imstb_textedit.h" />
     <ClInclude Include="3rdParty\imgui\imstb_truetype.h" />
+    <ClInclude Include="CoreEngine\Camera.h" />
+    <ClInclude Include="CoreEngine\Components.h" />
+    <ClInclude Include="CoreEngine\DebugSystem.h" />
+    <ClInclude Include="CoreEngine\Engine.h" />
+    <ClInclude Include="CoreEngine\Entity.h" />
+    <ClInclude Include="CoreEngine\GAssert.h" />
+    <ClInclude Include="CoreEngine\GraphicsSystem.h" />
+    <ClInclude Include="CoreEngine\Input.h" />
+    <ClInclude Include="CoreEngine\MathIncludes.h" />
+    <ClInclude Include="CoreEngine\Scene.h" />
+    <ClInclude Include="CoreEngine\ScriptableEntity.h" />
+    <ClInclude Include="CoreEngine\Window.h" />
     <ClInclude Include="Graphics\abo.h" />
     <ClInclude Include="Graphics\DynamicBuffer.h" />
     <ClInclude Include="Graphics\Context.h" />
@@ -48,47 +60,6 @@
     <ClInclude Include="Graphics\vbo.h" />
     <ClInclude Include="Graphics\vbo_layout.h" />
     <ClInclude Include="Graphics\Vertices.h" />
-    <ClInclude Include="Headers\Components\Transform.h" />
-    <ClInclude Include="Headers\Containers\BidirectionalMap.h" />
-    <ClInclude Include="Headers\Containers\CircularBuffer.h" />
-    <ClInclude Include="Headers\Containers\Entity.h" />
-    <ClInclude Include="Headers\Containers\EventManger.h" />
-    <ClInclude Include="Headers\Containers\Object.h" />
-    <ClInclude Include="Headers\Containers\Properties.h" />
-    <ClInclude Include="Headers\Containers\Space.h" />
-    <ClInclude Include="Headers\Debug.h" />
-    <ClInclude Include="Headers\Engine.h" />
-    <ClInclude Include="Headers\engine_assert.h" />
-    <ClInclude Include="Headers\Events\AllEventHeaders.h" />
-    <ClInclude Include="Headers\Events\DestroyEvent.h" />
-    <ClInclude Include="Headers\Events\DrawEvent.h" />
-    <ClInclude Include="Headers\Events\Event.h" />
-    <ClInclude Include="Headers\Events\RenderEvent.h" />
-    <ClInclude Include="Headers\Events\InitEvent.h" />
-    <ClInclude Include="Headers\Events\StubEvent.h" />
-    <ClInclude Include="Headers\Events\TestingEvent.h" />
-    <ClInclude Include="Headers\Events\TraceEvent.h" />
-    <ClInclude Include="Headers\Events\UpdateEvent.h" />
-    <ClInclude Include="Headers\Factory.h" />
-    <ClInclude Include="Headers\FactoryID.h" />
-    <ClInclude Include="Headers\ImGuiIncludes.h" />
-    <ClInclude Include="Headers\JunkDrawer.h" />
-    <ClInclude Include="Headers\Managers\AllManagerHeaders.h" />
-    <ClInclude Include="Headers\Managers\FrameRateController.h" />
-    <ClInclude Include="Headers\Managers\GraphicsManager.h" />
-    <ClInclude Include="Headers\Managers\InputManager.h" />
-    <ClInclude Include="Headers\Managers\StubManager.h" />
-    <ClInclude Include="Headers\Managers\TraceManager.h" />
-    <ClInclude Include="Headers\MathIncludes.h" />
-    <ClInclude Include="Headers\PreProcessorMagic.h" />
-    <ClInclude Include="Headers\Sandbox.h" />
-    <ClInclude Include="Headers\Systems\AllSystemHeaders.h" />
-    <ClInclude Include="Headers\Systems\Camera.h" />
-    <ClInclude Include="Headers\Systems\System.h" />
-    <ClInclude Include="Headers\Systems\Manager.h" />
-    <ClInclude Include="Headers\Systems\StubSystem.h" />
-    <ClInclude Include="Headers\Systems\TestingSystem.h" />
-    <ClInclude Include="Headers\Systems\VoxelWorld.h" />
     <ClInclude Include="Voxels\biome.h" />
     <ClInclude Include="Voxels\block.h" />
     <ClInclude Include="Voxels\Chunks\BlockStorage.h" />
@@ -100,7 +71,6 @@
     <ClInclude Include="Voxels\light.h" />
     <ClInclude Include="Voxels\pick.h" />
     <ClInclude Include="Voxels\prefab.h" />
-    <ClInclude Include="Voxels\Refactor\Editor.h" />
     <ClInclude Include="Voxels\Refactor\hud.h" />
     <ClInclude Include="Voxels\Refactor\Interface.h" />
     <ClInclude Include="Voxels\Refactor\player.h" />
@@ -144,6 +114,16 @@
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <ClCompile Include="3rdParty\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="CoreEngine\Camera.cpp" />
+    <ClCompile Include="CoreEngine\DebugSystem.cpp" />
+    <ClCompile Include="CoreEngine\Engine.cpp" />
+    <ClCompile Include="CoreEngine\Entity.cpp" />
+    <ClCompile Include="CoreEngine\GAssert.cpp" />
+    <ClCompile Include="CoreEngine\GraphicsSystem.cpp" />
+    <ClCompile Include="CoreEngine\Input.cpp" />
+    <ClCompile Include="CoreEngine\main.cpp" />
+    <ClCompile Include="CoreEngine\Scene.cpp" />
+    <ClCompile Include="CoreEngine\Window.cpp" />
     <ClCompile Include="Graphics\abo.cpp" />
     <ClCompile Include="Graphics\Context.cpp" />
     <ClCompile Include="Graphics\dib.cpp" />
@@ -160,25 +140,6 @@
     <ClCompile Include="Graphics\UBO.cpp" />
     <ClCompile Include="Graphics\vao.cpp" />
     <ClCompile Include="Graphics\vbo.cpp" />
-    <ClCompile Include="Source\Containers\Entity.cpp" />
-    <ClCompile Include="Source\Containers\EventManger.cpp" />
-    <ClCompile Include="Source\Containers\Object.cpp" />
-    <ClCompile Include="Source\Containers\Space.cpp" />
-    <ClCompile Include="Source\engine_assert.cpp" />
-    <ClCompile Include="Source\Entry.cpp" />
-    <ClCompile Include="Source\Engine.cpp" />
-    <ClCompile Include="Source\Factory.cpp" />
-    <ClCompile Include="Source\GuiIfy.cpp" />
-    <ClCompile Include="Source\Managers\FrameRateController.cpp" />
-    <ClCompile Include="Source\Managers\GraphicsManager.cpp" />
-    <ClCompile Include="Source\Managers\InputManager.cpp" />
-    <ClCompile Include="Source\Managers\StubManager.cpp" />
-    <ClCompile Include="Source\Managers\TraceManager.cpp" />
-    <ClCompile Include="Source\Systems\Camera.cpp" />
-    <ClCompile Include="Source\Systems\StubSystem.cpp" />
-    <ClCompile Include="Source\Systems\System.cpp" />
-    <ClCompile Include="Source\Systems\TestingSystem.cpp" />
-    <ClCompile Include="Source\Systems\VoxelWorld.cpp" />
     <ClCompile Include="Voxels\biome.cpp" />
     <ClCompile Include="Voxels\block.cpp" />
     <ClCompile Include="Voxels\Chunks\Chunk.cpp" />
@@ -189,7 +150,6 @@
     <ClCompile Include="Voxels\Refactor\Editor.cpp" />
     <ClCompile Include="Voxels\Refactor\hud.cpp" />
     <ClCompile Include="Voxels\Refactor\Interface.cpp" />
-    <ClCompile Include="Voxels\Refactor\main.cpp" />
     <ClCompile Include="Voxels\Refactor\player.cpp" />
     <ClCompile Include="Voxels\Refactor\settings.cpp" />
     <ClCompile Include="Voxels\Refactor\sun.cpp" />
@@ -273,8 +233,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(ProjectDir)3rdParty;$(ProjectDir)3rdParty\shaderc\include;$(ProjectDir)Headers;$(ProjectDir)3rdParty\glew-2.1.0\include;$(ProjectDir);$(ProjectDir)3rdParty\entt\src;$(ProjectDir)3rdParty\stb;$(ProjectDir)3rdParty\glfw-3.3-win64\include;$(ProjectDir)Voxels;$(ProjectDir)3rdParty\cereal-1.2.2\include;$(ProjectDir)3rdParty\zlib-1.2.11;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
-    <PreBuildEventUseInBuild>true</PreBuildEventUseInBuild>
+    <IncludePath>$(ProjectDir)3rdParty;$(ProjectDir)3rdParty\shaderc\include;$(ProjectDir)3rdParty\glew-2.1.0\include;$(ProjectDir);$(ProjectDir)3rdParty\entt\src;$(ProjectDir)3rdParty\stb;$(ProjectDir)3rdParty\glfw-3.3-win64\include;$(ProjectDir)Voxels;$(ProjectDir)3rdParty\cereal-1.2.2\include;$(ProjectDir)CoreEngine;$(ProjectDir)3rdParty\zlib-1.2.11;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <PreBuildEventUseInBuild>false</PreBuildEventUseInBuild>
     <CustomBuildBeforeTargets>
     </CustomBuildBeforeTargets>
     <CustomBuildAfterTargets>PreBuildEvent</CustomBuildAfterTargets>
@@ -290,8 +250,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(ProjectDir)3rdParty;$(ProjectDir)3rdParty\shaderc\include;$(ProjectDir)Headers;$(ProjectDir)3rdParty\glew-2.1.0\include;$(ProjectDir);$(ProjectDir)3rdParty\entt\src;$(ProjectDir)3rdParty\stb;$(ProjectDir)3rdParty\glfw-3.3-win64\include;$(ProjectDir)Voxels;$(ProjectDir)3rdParty\cereal-1.2.2\include;$(ProjectDir)3rdParty\zlib-1.2.11;$(IncludePath)</IncludePath>
-    <PreBuildEventUseInBuild>true</PreBuildEventUseInBuild>
+    <IncludePath>$(ProjectDir)3rdParty;$(ProjectDir)3rdParty\shaderc\include;$(ProjectDir)3rdParty\glew-2.1.0\include;$(ProjectDir);$(ProjectDir)3rdParty\entt\src;$(ProjectDir)3rdParty\stb;$(ProjectDir)3rdParty\glfw-3.3-win64\include;$(ProjectDir)Voxels;$(ProjectDir)3rdParty\cereal-1.2.2\include;$(ProjectDir)CoreEngine;$(ProjectDir)3rdParty\zlib-1.2.11;$(IncludePath)</IncludePath>
+    <PreBuildEventUseInBuild>false</PreBuildEventUseInBuild>
     <CustomBuildBeforeTargets>
     </CustomBuildBeforeTargets>
     <CustomBuildAfterTargets>PreBuildEvent</CustomBuildAfterTargets>
@@ -347,8 +307,10 @@
       <AdditionalDependencies>opengl32.lib;glfw3dll.lib;glew32.lib;shaderc_combined.lib;zlibstat.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
-      <Command>$(SolutionDir)x64\Debug\PrePP.exe</Command>
-      <Message>running Pre-Build file generation</Message>
+      <Command>
+      </Command>
+      <Message>
+      </Message>
     </PreBuildEvent>
     <PreLinkEvent>
       <Command>
@@ -421,8 +383,10 @@ copy "$(ProjectDir)3rdParty\glfw-3.3-win64\lib-vc2019\glfw3.dll" "$(TargetDir)gl
       <AdditionalDependencies>opengl32.lib;glfw3dll.lib;glew32.lib;shaderc_combined.lib;zlibstat.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
-      <Command>"$(SolutionDir)x64\Release\PrePP.exe"</Command>
-      <Message>running Pre-Build file generation</Message>
+      <Command>
+      </Command>
+      <Message>
+      </Message>
     </PreBuildEvent>
     <PreLinkEvent>
       <Command>

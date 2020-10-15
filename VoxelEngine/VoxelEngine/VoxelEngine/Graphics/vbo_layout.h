@@ -1,6 +1,6 @@
 #pragma once
 #include <vector>
-#include <engine_assert.h>
+#include <GAssert.h>
 
 struct VBOElement
 {
@@ -17,7 +17,7 @@ struct VBOElement
     case GL_UNSIGNED_BYTE: return sizeof(GLubyte);
     }
 
-    assert(false);
+    ASSERT(false);
     return 0;
   }
 };

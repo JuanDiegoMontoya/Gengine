@@ -2,7 +2,7 @@
 #include <Rendering/ChunkRenderer.h>
 #include <Graphics/DynamicBuffer.h>
 #include <Chunks/Chunk.h>
-#include <Systems/Camera.h>
+#include <Camera.h>
 #include <Rendering/Frustum.h>
 #include <execution>
 #include <Graphics/shader.h>
@@ -10,7 +10,6 @@
 #include <Chunks/ChunkStorage.h>
 #include <Graphics/Vertices.h>
 #include <memory>
-#include <Managers/GraphicsManager.h>
 
 
 namespace ChunkRenderer
@@ -101,7 +100,7 @@ namespace ChunkRenderer
     TracyGpuZone("Gen draw commands norm");
 #endif
 
-    Camera* cam = GetCurrentCamera();
+    Camera* cam = Camera::ActiveCamera;
     // make buffer sized as if every allocation was non-null
     auto& sdr = Shader::shaders["compact_batch"];
     sdr->Use();
@@ -249,7 +248,7 @@ namespace ChunkRenderer
     auto& sr = Shader::shaders["chunk_render_cull"];
     sr->Use();
 
-    Camera* cam = GetCurrentCamera();
+    Camera* cam = Camera::ActiveCamera;
     const glm::mat4 viewProj = cam->GetProj() * cam->GetView();
     sr->setMat4("u_viewProj", viewProj);
     sr->setUInt("u_chunk_size", Chunk::CHUNK_SIZE);

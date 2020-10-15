@@ -1,3 +1,4 @@
+#if 0
 #include <Graphics/GlobalRendererInfo.h>
 #include <Graphics/GraphicsIncludes.h>
 #include <Systems/Camera.h>
@@ -16,3 +17,4 @@ void GlobalRendererInfo::SetCamera(Camera* camera)
     ubo = std::make_unique<UBO>(&uboData, sizeof(UBOData));
   }
 }
+#endif
