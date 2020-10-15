@@ -4,6 +4,7 @@
 
 class GraphicsSystem;
 class DebugSystem;
+class VoxelSystem;
 
 class Engine
 {
@@ -13,6 +14,8 @@ public:
 
   void Run();
 
+  void Stop() { running = false; }
+
 private:
   double dt;
   std::vector<Scene> scenes;
@@ -21,4 +24,5 @@ private:
 
   std::unique_ptr<GraphicsSystem> graphicsSystem;
   std::unique_ptr<DebugSystem> debugSystem;
+  std::unique_ptr<VoxelSystem> voxelSystem;
 };

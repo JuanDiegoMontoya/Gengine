@@ -4,32 +4,33 @@
 
 #include "GraphicsSystem.h"
 #include "DebugSystem.h"
+#include "VoxelSystem.h"
 
-// TODO: TEMP GARBAGE
-#include <Graphics/Context.h>
 
 Engine::Engine()
 {
   graphicsSystem = std::make_unique<GraphicsSystem>();
   debugSystem = std::make_unique<DebugSystem>();
+  voxelSystem = std::make_unique<VoxelSystem>();
 
-  scenes.push_back(Scene());
+  scenes.push_back(Scene(*this));
 }
 
 Engine::~Engine()
 {
-
 }
 
 void Engine::Run()
 {
-  GLFWwindow* window = init_glfw_context();
-  debugSystem->Init(window);
+  graphicsSystem->Init();
+  debugSystem->Init(graphicsSystem->GetWindow());
+  voxelSystem->Init();
 
   Timer timer;
   while (running)
   {
     dt = timer.elapsed();
+    timer.reset();
 
     Input::Update();
 
@@ -37,9 +38,12 @@ void Engine::Run()
     {
       debugSystem->StartFrame(scene, dt);
 
+      voxelSystem->Draw();
       graphicsSystem->Update(scene, dt);
 
       debugSystem->EndFrame(scene, dt);
     }
   }
+
+  graphicsSystem->Shutdown();
 }
