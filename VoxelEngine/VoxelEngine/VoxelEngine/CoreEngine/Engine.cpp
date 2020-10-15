@@ -34,15 +34,18 @@ void Engine::Run()
 
     Input::Update();
 
+    graphicsSystem->StartFrame();
     for (Scene& scene : scenes)
     {
       debugSystem->StartFrame(scene, dt);
 
       voxelSystem->Draw();
       graphicsSystem->Update(scene, dt);
+      debugSystem->Update(scene, dt);
 
       debugSystem->EndFrame(scene, dt);
     }
+    graphicsSystem->EndFrame();
   }
 
   graphicsSystem->Shutdown();

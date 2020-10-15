@@ -8,7 +8,10 @@ class GraphicsSystem
 public:
   void Init();
   void Shutdown();
+
+  void StartFrame();
   void Update(Scene& scene, float dt);
+  void EndFrame();
 
   GLFWwindow* GetWindow() { return window; }
 private:

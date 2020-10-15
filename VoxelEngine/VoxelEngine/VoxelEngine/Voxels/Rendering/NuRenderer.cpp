@@ -189,7 +189,7 @@ namespace NuRenderer
   void DrawAll()
   {
     //PERF_BENCHMARK_START;
-    Clear();
+    //Clear();
 
     if (settings.gammaCorrection)
       glEnable(GL_FRAMEBUFFER_SRGB); // gamma correction

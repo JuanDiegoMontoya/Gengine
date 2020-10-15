@@ -27,7 +27,6 @@ void DebugSystem::StartFrame(Scene& scene, float dt)
 
 void DebugSystem::Update(Scene& scene, float dt)
 {
-  printf("Updated debug system\n");
   ImGui::Begin("test e");
   ImGui::Text("wfjoi");
   ImGui::Button("fdjiosa");
