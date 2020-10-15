@@ -280,6 +280,21 @@
     <ClInclude Include="CoreEngine\VoxelSystem.h">
       <Filter>CoreEngine</Filter>
     </ClInclude>
+    <ClInclude Include="CoreEngine\AssimpUtils.h">
+      <Filter>CoreEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\Mesh.h">
+      <Filter>CoreEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\MeshUtils.h">
+      <Filter>CoreEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\WindowCB.h">
+      <Filter>CoreEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\WindowUtils.h">
+      <Filter>CoreEngine</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="3rdParty\imgui\imgui.cpp">
@@ -463,6 +478,12 @@
       <Filter>CoreEngine</Filter>
     </ClCompile>
     <ClCompile Include="CoreEngine\VoxelSystem.cpp">
+      <Filter>CoreEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreEngine\Mesh.cpp">
+      <Filter>CoreEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreEngine\WindowCB.cpp">
       <Filter>CoreEngine</Filter>
     </ClCompile>
   </ItemGroup>
