@@ -40,6 +40,7 @@
     <ClInclude Include="CoreEngine\MathIncludes.h" />
     <ClInclude Include="CoreEngine\Scene.h" />
     <ClInclude Include="CoreEngine\ScriptableEntity.h" />
+    <ClInclude Include="CoreEngine\VoxelSystem.h" />
     <ClInclude Include="CoreEngine\Window.h" />
     <ClInclude Include="Graphics\abo.h" />
     <ClInclude Include="Graphics\DynamicBuffer.h" />
@@ -123,6 +124,7 @@
     <ClCompile Include="CoreEngine\Input.cpp" />
     <ClCompile Include="CoreEngine\main.cpp" />
     <ClCompile Include="CoreEngine\Scene.cpp" />
+    <ClCompile Include="CoreEngine\VoxelSystem.cpp" />
     <ClCompile Include="CoreEngine\Window.cpp" />
     <ClCompile Include="Graphics\abo.cpp" />
     <ClCompile Include="Graphics\Context.cpp" />

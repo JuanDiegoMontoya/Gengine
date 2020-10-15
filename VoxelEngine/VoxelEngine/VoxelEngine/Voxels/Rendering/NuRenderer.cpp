@@ -2,8 +2,8 @@
 //#include "World.h"
 #include <Engine.h>
 #include <Graphics/shader.h>
-#include <Systems/Camera.h>
-#include <Managers/InputManager.h>
+#include <Camera.h>
+#include <Input.h>
 #include <Chunks/ChunkStorage.h>
 #include <Graphics/dib.h>
 #include <Rendering/ChunkRenderer.h>
@@ -13,8 +13,8 @@
 #include <Refactor/sun.h>
 #include <Rendering/RenderOrder.h>
 
-#include <Managers/GraphicsManager.h>
-#include <Systems/VoxelWorld.h>
+#include <GraphicsSystem.h>
+#include <VoxelSystem.h>
 
 namespace NuRenderer
 {
@@ -194,24 +194,24 @@ namespace NuRenderer
     if (settings.gammaCorrection)
       glEnable(GL_FRAMEBUFFER_SRGB); // gamma correction
 
-    if (IsKeyDown(GLFW_KEY_LEFT_SHIFT))
+    if (Input::IsKeyDown(GLFW_KEY_LEFT_SHIFT))
     {
-      if (IsKeyDown(GLFW_KEY_1))
+      if (Input::IsKeyDown(GLFW_KEY_1))
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-      if (IsKeyDown(GLFW_KEY_2))
+      if (Input::IsKeyDown(GLFW_KEY_2))
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-      if (IsKeyDown(GLFW_KEY_3))
+      if (Input::IsKeyDown(GLFW_KEY_3))
         glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
     }
 
     {
       auto& sett = ChunkRenderer::settings;
-      if (IsKeyPressed(GLFW_KEY_5))
+      if (Input::IsKeyPressed(GLFW_KEY_5))
       {
         sett.freezeCulling = !sett.freezeCulling;
         std::cout << "Freeze culling " << std::boolalpha << sett.freezeCulling << '\n';
       }
-      if (IsKeyPressed(GLFW_KEY_6))
+      if (Input::IsKeyPressed(GLFW_KEY_6))
       {
         // TODO: shading/wireframe on this drawing mode
         sett.debug_drawOcclusionCulling = !sett.debug_drawOcclusionCulling;
@@ -242,7 +242,7 @@ namespace NuRenderer
     auto& currShader = Shader::shaders["chunk_optimized"];
     currShader->Use();
 
-    Camera* cam = GetCurrentCamera();
+    Camera* cam = Camera::ActiveCamera;
     float angle = glm::max(glm::dot(-glm::normalize(NuRenderer::activeSun_->GetDir()), glm::vec3(0, 1, 0)), 0.f);
     currShader->setFloat("sunAngle", angle);
     //printf("Angle: %f\n", angle);
@@ -307,7 +307,7 @@ namespace NuRenderer
       one that exists in the world for simplicity. */
     auto& currShader = Shader::shaders["axis"];
     currShader->Use();
-    Camera* cam = GetCurrentCamera();
+    Camera* cam = Camera::ActiveCamera;
     currShader->setMat4("u_model", glm::translate(glm::mat4(1), cam->GetPos() + cam->GetFront() * 10.f)); // add scaling factor (larger # = smaller visual)
     currShader->setMat4("u_view", cam->GetView());
     currShader->setMat4("u_proj", cam->GetProj());

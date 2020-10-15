@@ -277,6 +277,9 @@
     <ClInclude Include="CoreEngine\Camera.h">
       <Filter>CoreEngine</Filter>
     </ClInclude>
+    <ClInclude Include="CoreEngine\VoxelSystem.h">
+      <Filter>CoreEngine</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="3rdParty\imgui\imgui.cpp">
@@ -457,6 +460,9 @@
       <Filter>CoreEngine</Filter>
     </ClCompile>
     <ClCompile Include="CoreEngine\Camera.cpp">
+      <Filter>CoreEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreEngine\VoxelSystem.cpp">
       <Filter>CoreEngine</Filter>
     </ClCompile>
   </ItemGroup>

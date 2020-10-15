@@ -14,8 +14,8 @@ public:
   void Init();
   void End();
 
-  void UpdateEventsListen(UpdateEvent* updateEvent);
-  void DrawEventsListen(DrawEvent* drawEvent);
+  void Update(float dt);
+  void Draw();
 
   struct Settings
   {
@@ -23,6 +23,7 @@ public:
     float fogStart = 500.f;
     float fogEnd = 3000.f;
   }static inline settings;
+
 private:
 
   friend void RegisterSystems();
