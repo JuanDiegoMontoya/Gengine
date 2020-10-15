@@ -3,6 +3,7 @@
 #include "MeshUtils.h"
 
 #include <algorithm>
+#include <iostream>
 
 static Assimp::Importer importer;
 
