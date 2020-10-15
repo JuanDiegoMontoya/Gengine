@@ -12,6 +12,8 @@ Engine::Engine()
 {
   graphicsSystem = std::make_unique<GraphicsSystem>();
   debugSystem = std::make_unique<DebugSystem>();
+
+  scenes.push_back(Scene());
 }
 
 Engine::~Engine()
