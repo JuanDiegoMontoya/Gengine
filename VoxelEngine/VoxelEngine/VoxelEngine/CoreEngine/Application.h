@@ -3,6 +3,7 @@
 #include <GAssert.h>
 
 class Engine;
+class Scene;
 
 class Application
 {
@@ -15,12 +16,14 @@ public:
   static void Start();
   static void Quit();
 
+  static void SetStartCallback(void(*fn)(Scene*)) { start = fn; }
   static void SetLoadSceneCallback(void(*fn)(std::string_view)) { loadSceneStr = fn; }
   static void SetLoadSceneCallback(void(*fn)(unsigned)) { loadSceneIndex = fn; }
   static void SetUnloadSceneCallback(void(*fn)(std::string_view)) { unloadSceneStr = fn; }
   static void SetUnloadSceneCallback(void(*fn)(unsigned)) { unloadSceneIndex = fn; }
 
 private:
+  static inline void(*start)(Scene*) = nullptr;
   static inline void(*loadSceneStr)(std::string_view) = nullptr;
   static inline void(*loadSceneIndex)(unsigned) = nullptr;
   static inline void(*unloadSceneStr)(std::string_view) = nullptr;

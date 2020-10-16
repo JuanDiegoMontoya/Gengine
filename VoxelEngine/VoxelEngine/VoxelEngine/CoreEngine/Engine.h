@@ -14,15 +14,21 @@ public:
 
   void Run();
 
+  Scene* GetScene(std::string_view name);
+  Scene* GetScene(unsigned index);
+  void AddScene(Scene* scene);// { scenes.push_back(std::make_unique<Scene>(scene)); }
+  void SetActiveScene(std::string_view name);// { activeScene = scene; }
+  void SetActiveScene(unsigned index);
 
 private:
   friend class Application;
-  void Stop() { running = false; }
+  void Stop() { running_ = false; }
 
-  double dt;
-  std::vector<Scene> scenes;
+  double dt_{};
+  std::vector<std::unique_ptr<Scene>> scenes_;
+  Scene* activeScene_ = nullptr;
 
-  bool running = true;
+  bool running_ = true;
 
   std::unique_ptr<GraphicsSystem> graphicsSystem;
   std::unique_ptr<DebugSystem> debugSystem;

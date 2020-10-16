@@ -1,5 +1,6 @@
 #pragma once
 #include <entt.hpp>
+#include <string>
 
 class Entity;
 class Engine;
@@ -7,12 +8,21 @@ class Engine;
 class Scene
 {
 public:
-  Scene(Engine& engine) : engine_(engine) {}
+  Scene(std::string_view name, Engine& engine);
+  ~Scene();
+
   Entity CreateEntity(std::string_view name = "");
   void RemoveEntity(std::string_view name);
   void RemoveEntity(Entity entity);
 
   Engine& GetEngine() { return engine_; }
+  std::string_view GetName() { return name_; }
+
+  Scene(Scene&&) = delete;
+  Scene(Scene&) = delete;
+  Scene& operator=(const Scene&) = delete;
+  Scene& operator=(const Scene&&) = delete;
+  bool operator==(const Scene&) const = delete;
 
 private:
   friend class Entity;
@@ -20,4 +30,6 @@ private:
 
   // non-owning
   Engine& engine_;
+
+  std::string name_;
 };

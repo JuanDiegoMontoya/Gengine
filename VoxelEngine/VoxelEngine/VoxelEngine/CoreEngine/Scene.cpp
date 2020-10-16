@@ -2,6 +2,15 @@
 #include "Entity.h"
 #include "Components.h"
 
+Scene::Scene(std::string_view name, Engine& engine)
+  : name_(name), engine_(engine)
+{
+}
+
+Scene::~Scene()
+{
+}
+
 Entity Scene::CreateEntity(std::string_view name)
 {
   Entity entity(registry_.create(), this);
