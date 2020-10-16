@@ -1,10 +1,15 @@
-#include "Engine.h"
+#include <Application.h>
+#include <Scene.h>
+#include <Entity.h>
+
+void OnStart(Scene* scene)
+{
+
+}
 
 int main()
 {
-  Engine engine;
-
-  engine.Run();
-
+  Application::SetStartCallback(OnStart);
+  Application::Start();
   return 0;
 }

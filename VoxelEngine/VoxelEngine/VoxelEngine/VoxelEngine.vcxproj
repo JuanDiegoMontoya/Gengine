@@ -29,6 +29,7 @@
     <ClInclude Include="3rdParty\imgui\imstb_rectpack.h" />
     <ClInclude Include="3rdParty\imgui\imstb_textedit.h" />
     <ClInclude Include="3rdParty\imgui\imstb_truetype.h" />
+    <ClInclude Include="CoreEngine\Application.h" />
     <ClInclude Include="CoreEngine\AssimpUtils.h" />
     <ClInclude Include="CoreEngine\Camera.h" />
     <ClInclude Include="CoreEngine\Components.h" />
@@ -120,6 +121,7 @@
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <ClCompile Include="3rdParty\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="CoreEngine\Application.cpp" />
     <ClCompile Include="CoreEngine\Camera.cpp" />
     <ClCompile Include="CoreEngine\DebugSystem.cpp" />
     <ClCompile Include="CoreEngine\Engine.cpp" />

@@ -3,6 +3,7 @@
 #include <Input.h>
 #include <Rendering/Frustum.h>
 #include <iostream>
+#include <Graphics/utilities.h>
 
 
 Camera::Camera()
@@ -58,5 +59,6 @@ void Camera::UpdateViewMat()
 
 void Camera::GenProjection(float fovDeg)
 {
-  proj_ = glm::perspective(glm::radians(fovDeg), 1920.f / 1080.f, near_, far_);
+  //proj_ = glm::perspective(glm::radians(fovDeg), 1920.f / 1080.f, near_, far_);
+  proj_ = Utils::MakeInfReversedZProjRH(glm::radians(fovDeg), 1920.f / 1080.f, near_);
 }
