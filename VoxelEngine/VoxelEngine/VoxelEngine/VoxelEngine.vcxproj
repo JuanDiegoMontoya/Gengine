@@ -331,7 +331,8 @@
     </CustomBuildStep>
     <PostBuildEvent>
       <Command>copy "$(ProjectDir)3rdParty\glew-2.1.0\bin\Release\x64\glew32.dll" "$(TargetDir)glew32.dll" /Y
-copy "$(ProjectDir)3rdParty\glfw-3.3-win64\lib-vc2019\glfw3.dll" "$(TargetDir)glfw3.dll" /Y</Command>
+copy "$(ProjectDir)3rdParty\glfw-3.3-win64\lib-vc2019\glfw3.dll" "$(TargetDir)glfw3.dll" /Y
+copy "$(ProjectDir)3rdParty\assimp-3.3.1\bin\x64\assimp-vc142-mtd.dll" "$(TargetDir)assimp-vc142-mtd.dll" /Y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -407,7 +408,8 @@ copy "$(ProjectDir)3rdParty\glfw-3.3-win64\lib-vc2019\glfw3.dll" "$(TargetDir)gl
     </CustomBuildStep>
     <PostBuildEvent>
       <Command>copy "$(ProjectDir)3rdParty\glew-2.1.0\bin\Release\x64\glew32.dll" "$(TargetDir)glew32.dll" /Y
-copy "$(ProjectDir)3rdParty\glfw-3.3-win64\lib-vc2019\glfw3.dll" "$(TargetDir)glfw3.dll" /Y</Command>
+copy "$(ProjectDir)3rdParty\glfw-3.3-win64\lib-vc2019\glfw3.dll" "$(TargetDir)glfw3.dll" /Y
+copy "$(ProjectDir)3rdParty\assimp-3.3.1\bin\x64\assimp-vc142-mtd.dll" "$(TargetDir)assimp-vc142-mtd.dll" /Y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
