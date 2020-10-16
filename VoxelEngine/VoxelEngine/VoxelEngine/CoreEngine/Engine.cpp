@@ -38,8 +38,8 @@ void Engine::Run()
     graphicsSystem->StartFrame();
     debugSystem->StartFrame(*activeScene_, dt_);
 
-    voxelSystem->Draw();
     graphicsSystem->Update(*activeScene_, dt_);
+    voxelSystem->Draw();
 
     physicsSystem->Update(*activeScene_, dt_);
     debugSystem->Update(*activeScene_, dt_);

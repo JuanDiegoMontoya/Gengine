@@ -1,9 +1,9 @@
 #version 460 core
 
-uniform sampler2D albedoMap;
+layout(location = 3) uniform sampler2D albedoMap;
 
 out vec4 color;
-in vec2 TexCoord;
+layout(location = 2) in vec2 TexCoord;
 
 void main()
 {

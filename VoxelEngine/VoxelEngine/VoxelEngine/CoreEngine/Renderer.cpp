@@ -10,7 +10,7 @@ using namespace Components;
 
 void Renderer::Render(Model& model, Mesh& mesh, Material& mat)
 {
-	auto ShadershadersShaderMcShaderFuckFaceUse = Shader::shaders["ShaderMcShaderFuckFace"];
+	auto& ShadershadersShaderMcShaderFuckFaceUse = Shader::shaders["ShaderMcShaderFuckFace"];
 	ShadershadersShaderMcShaderFuckFaceUse->Use();
 
 	glm::mat4 modelMatrix = model.model;
