@@ -15,14 +15,14 @@ public:
   template<typename T, typename... Args>
   T& AddComponent(Args&&... args)
   {
-    ASSERT_MSG(!HasComponent<T>(), "Entity already has system!");
+    ASSERT_MSG(!HasComponent<T>(), "Entity already has component!");
     return scene_->registry_.emplace<T>(entityHandle_, std::forward<Args>(args)...);
   }
 
   template<typename T>
   T& GetComponent()
   {
-    ASSERT_MSG(HasComponent<T>(), "Entity missing system!");
+    ASSERT_MSG(HasComponent<T>(), "Entity missing component!");
     return scene_->registry_.get<T>(entityHandle_);
   }
 
@@ -35,7 +35,7 @@ public:
   template<typename T>
   void RemoveComponent()
   {
-    ASSERT_MSG(HasComponent<T>(), "Entity missing system!");
+    ASSERT_MSG(HasComponent<T>(), "Entity missing component!");
     scene_->registry_.remove<T>(entityHandle_);
   }
 

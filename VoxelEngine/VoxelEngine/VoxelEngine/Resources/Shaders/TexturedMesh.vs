@@ -4,13 +4,13 @@ layout(location = 0) in vec3 vertPosition;
 layout(location = 1) in vec3 vertNormal;
 layout(location = 2) in vec2 vertTexCoord;
 
-out vec3 fragPos;
-out vec4 Normal;
-out vec2 TexCoord;
-
 uniform mat4 MVP;
 uniform mat4 Model;
 uniform mat4 InvTrModel;
+
+out vec3 fragPos;
+out vec4 Normal;
+out vec2 TexCoord;
 
 void main()
 {

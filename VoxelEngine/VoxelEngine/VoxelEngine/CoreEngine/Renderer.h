@@ -11,13 +11,10 @@ class Shader;
 class Renderer
 {
 	public:
-		Renderer();
-		~Renderer();
+		static void Init();
 
-		void Init();
-
-		void Render(Model& model, Mesh& mesh, Material& mat);
+		static void Render(Model& model, Mesh& mesh, Material& mat);
 
 	private:
-		Shader* ShaderMcShaderFace = nullptr;
+		static inline Shader* ShaderMcShaderFace = nullptr;
 };

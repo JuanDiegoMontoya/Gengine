@@ -8,7 +8,7 @@
 
 static Assimp::Importer importer;
 
-std::vector<MeshHandle> Mesh::CreateMesh(std::string filename, bool& hasSkeleton, bool& hasAnimations)
+std::vector<MeshHandle> MeshManager::CreateMesh(std::string filename, bool& hasSkeleton, bool& hasAnimations)
 {
 	const aiScene* scene = importer.ReadFile(filename.c_str(), aiProcessPreset_TargetRealtime_Fast);
 	
@@ -35,7 +35,7 @@ std::vector<MeshHandle> Mesh::CreateMesh(std::string filename, bool& hasSkeleton
 	return meshHandles;
 }
 
-MeshHandle Mesh::GenHandle_GL(std::vector<unsigned>& indices, std::vector<Vertex>& vertices)
+MeshHandle MeshManager::GenHandle_GL(std::vector<unsigned>& indices, std::vector<Vertex>& vertices)
 {
 	MeshHandle mh;
 
@@ -69,7 +69,7 @@ MeshHandle Mesh::GenHandle_GL(std::vector<unsigned>& indices, std::vector<Vertex
 	return mh;
 }
 
-void Mesh::LoadMesh(const aiScene* scene, aiMesh* mesh, std::vector<unsigned>& indices, std::vector<Vertex>& vertices)
+void MeshManager::LoadMesh(const aiScene* scene, aiMesh* mesh, std::vector<unsigned>& indices, std::vector<Vertex>& vertices)
 {
 	for (unsigned i = 0; i < mesh->mNumVertices; i++)
 	{

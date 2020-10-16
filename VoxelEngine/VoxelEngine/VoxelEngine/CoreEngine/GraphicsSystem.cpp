@@ -5,11 +5,17 @@
 #include "Application.h"
 #include "Camera.h"
 #include "Components.h"
+#include "Renderer.h"
+#include "Mesh.h"
 
 // TODO: TEMP GARBAGE
 #include <Graphics/Context.h>
 
 Camera* cam;
+
+// Temp Bad
+static Entity thing;
+static int tempInt = 0;
 
 void GraphicsSystem::Init()
 {
@@ -41,6 +47,8 @@ void GraphicsSystem::Init()
     fprintf(stderr, "glCheckFramebufferStatus: %x\n", status);
   }
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+  Renderer::Init();
 }
 
 void GraphicsSystem::Shutdown()
@@ -67,13 +75,33 @@ void GraphicsSystem::Update(Scene& scene, float dt)
     Application::Quit();
   Camera::ActiveCamera->Update(dt);
 
+  // Temp Bad
+  if (tempInt == 0)
+  {
+      thing = scene.CreateEntity("Cum222");
+      thing.AddComponent<Components::Transform>();
+
+      thing.AddComponent<Components::Model>();
+      thing.GetComponent<Components::Model>().model = glm::mat4(1.0f);
+
+      bool l, o;
+      thing.AddComponent<Components::Mesh>();
+      thing.GetComponent<Components::Mesh>().meshHandle = MeshManager::CreateMesh("./Resources/Models/bunny.obj", l, o)[0];
+
+      thing.AddComponent<Components::Material>();
+      thing.GetComponent<Components::Material>().texHandle = MeshManager::GetFuckingTexture("");
+
+      tempInt = 69;
+  }
+  Renderer::Render(thing.GetComponent<Components::Model>(), thing.GetComponent<Components::Mesh>(), thing.GetComponent<Components::Material>());
+
   // draw objects in the scene
   auto group = scene.GetRegistry().group<Components::Model>(entt::get<Components::Mesh, Components::Material>);
   for (auto entity : group)
   {
     auto [model, mesh, material] = group.get<Components::Model, Components::Mesh, Components::Material>(entity);
 
-    //Renderer::DrawThing(model, mesh, material);
+    Renderer::Render(model, mesh, material);
   }
 }
 
