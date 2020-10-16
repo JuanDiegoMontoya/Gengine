@@ -70,12 +70,12 @@ void GraphicsSystem::StartFrame()
 
 void GraphicsSystem::Update(Scene& scene, float dt)
 {
-  // TODO: bad(?)
+  // TODO: put in game manager script
   if (Input::IsKeyDown(GLFW_KEY_ESCAPE))
     Application::Quit();
   Camera::ActiveCamera->Update(dt);
 
-  // Temp Bad
+  // TODO: Temp Bad
   if (tempInt == 0)
   {
       thing = scene.CreateEntity("Cum222");
@@ -85,8 +85,9 @@ void GraphicsSystem::Update(Scene& scene, float dt)
       thing.GetComponent<Components::Model>().model = glm::mat4(1.0f);
 
       bool l, o;
-      thing.AddComponent<Components::Mesh>();
-      thing.GetComponent<Components::Mesh>().meshHandle = MeshManager::CreateMesh("./Resources/Models/bunny.obj", l, o)[0];
+      Components::Mesh mesh;
+      mesh.meshHandle = MeshManager::CreateMesh("./Resources/Models/bunny.obj", l, o)[0];
+      thing.AddComponent<Components::Mesh>(mesh);
 
       thing.AddComponent<Components::Material>();
       thing.GetComponent<Components::Material>().texHandle = MeshManager::GetFuckingTexture("");
@@ -101,7 +102,7 @@ void GraphicsSystem::Update(Scene& scene, float dt)
   {
     auto [model, mesh, material] = group.get<Components::Model, Components::Mesh, Components::Material>(entity);
 
-    Renderer::Render(model, mesh, material);
+    //Renderer::Render(model, mesh, material);
   }
 }
 

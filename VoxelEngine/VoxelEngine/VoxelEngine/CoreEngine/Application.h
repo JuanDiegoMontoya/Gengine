@@ -14,6 +14,7 @@ public:
   static void UnloadScene(unsigned index) { ASSERT(unloadSceneIndex); unloadSceneIndex(index); }
   static bool IsPlaying() { return isPlaying_; }
   static void Start();
+  static void Shutdown();
   static void Quit();
 
   static void SetStartCallback(void(*fn)(Scene*)) { start = fn; }

@@ -19,5 +19,6 @@ int main()
 {
   Application::SetStartCallback(OnStart);
   Application::Start();
+  Application::Shutdown();
   return 0;
 }

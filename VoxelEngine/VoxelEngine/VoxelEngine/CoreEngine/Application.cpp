@@ -12,8 +12,12 @@ void Application::Start()
   engine_->Run();
 }
 
+void Application::Shutdown()
+{
+  delete engine_;
+}
+
 void Application::Quit()
 {
   engine_->Stop();
-  delete engine_;
 }
