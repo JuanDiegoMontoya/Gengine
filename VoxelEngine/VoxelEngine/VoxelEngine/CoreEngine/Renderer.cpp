@@ -10,7 +10,8 @@ using namespace Components;
 
 void Renderer::Render(Model& model, Mesh& mesh, Material& mat)
 {
-	ShaderMcShaderFace->Use();
+	auto ShadershadersShaderMcShaderFuckFaceUse = Shader::shaders["ShaderMcShaderFuckFace"];
+	ShadershadersShaderMcShaderFuckFaceUse->Use();
 
 	glm::mat4 modelMatrix = model.model;
 	modelMatrix = glm::scale(modelMatrix, { 10, 10, 10 });
@@ -19,13 +20,13 @@ void Renderer::Render(Model& model, Mesh& mesh, Material& mat)
 
 	glm::mat4 MVP = Camera::ActiveCamera->GetProjView() * modelMatrix;
 
-	//ShaderMcShaderFace->setMat4("InvTrModel", modelInv);
-	ShaderMcShaderFace->setMat4("MVP", MVP);
-	//ShaderMcShaderFace->setMat4("Model", modelMatrix);
+	//ShadershadersShaderMcShaderFuckFaceUse->setMat4("InvTrModel", modelInv);
+	ShadershadersShaderMcShaderFuckFaceUse->setMat4("MVP", MVP);
+	//ShadershadersShaderMcShaderFuckFaceUse->setMat4("Model", modelMatrix);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, mat.texHandle);
-	ShaderMcShaderFace->setInt("albedoMap", 0);
+	ShadershadersShaderMcShaderFuckFaceUse->setInt("albedoMap", 0);
 
 	MeshHandle mHandle = mesh.meshHandle;
 
@@ -35,7 +36,11 @@ void Renderer::Render(Model& model, Mesh& mesh, Material& mat)
 
 void Renderer::Init()
 {
-	ShaderMcShaderFace = new Shader("TexturedMesh.vs", "TexturedMesh.fs");
+	Shader::shaders["ShaderMcShaderFuckFace"].emplace(Shader(
+		{
+		  { "TexturedMesh.vs", GL_VERTEX_SHADER },
+		  { "TexturedMesh.fs", GL_FRAGMENT_SHADER }
+		}));
 	/*Layout layout = Window::layout;
 
 	int width = layout.width;
