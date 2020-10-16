@@ -3,6 +3,8 @@
 #include <vector>
 #include <string>
 
+#include "MeshUtils.h"
+
 class MeshHandle;
 class Animation;
 

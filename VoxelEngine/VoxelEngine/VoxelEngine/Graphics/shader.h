@@ -178,7 +178,7 @@ private:
   friend class IncludeHandler;
 
   // shader dir includes source and headers alike
-  static constexpr const char* shader_dir_ = "./resources/Shaders/";
+  static constexpr const char* shader_dir_ = "./Resources/Shaders/";
   static std::string loadFile(std::string path);
 
   GLint compileShader(shaderType type, const std::vector<std::string>& src, std::string_view path);
