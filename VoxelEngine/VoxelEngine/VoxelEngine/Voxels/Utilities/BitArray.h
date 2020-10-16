@@ -53,7 +53,7 @@ inline BitArray::BitArray(size_t size)
 inline BitArray::BitArray(const SerializableBitArray& data)
 {
   data_.reserve(data.numBits);
-  int i = 0;
+  uint32_t i = 0;
   for (auto byte : data.bytes)
   {
     for (uint8_t curBit = 0; curBit < 8; curBit++, i++)
