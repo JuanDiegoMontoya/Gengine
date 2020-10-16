@@ -1,6 +1,5 @@
 #include "Mesh.h"
 #include "AssimpUtils.h"
-#include "MeshUtils.h"
 
 #include <algorithm>
 #include <iostream>
