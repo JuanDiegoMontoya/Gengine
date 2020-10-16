@@ -10,12 +10,8 @@
 
 // TODO: TEMP GARBAGE
 #include <Graphics/Context.h>
-
 Camera* cam;
 
-// Temp Bad
-static Entity thing;
-static int tempInt = 0;
 
 void GraphicsSystem::Init()
 {
@@ -75,34 +71,15 @@ void GraphicsSystem::Update(Scene& scene, float dt)
     Application::Quit();
   Camera::ActiveCamera->Update(dt);
 
-  // TODO: Temp Bad
-  if (tempInt == 0)
-  {
-      thing = scene.CreateEntity("Cum222");
-      thing.AddComponent<Components::Transform>();
-
-      thing.AddComponent<Components::Model>();
-      thing.GetComponent<Components::Model>().model = glm::mat4(1.0f);
-
-      bool l, o;
-      Components::Mesh mesh;
-      mesh.meshHandle = MeshManager::CreateMesh("./Resources/Models/bunny.obj", l, o)[0];
-      thing.AddComponent<Components::Mesh>(mesh);
-
-      thing.AddComponent<Components::Material>();
-      thing.GetComponent<Components::Material>().texHandle = MeshManager::GetFuckingTexture("");
-
-      tempInt = 69;
-  }
-  Renderer::Render(thing.GetComponent<Components::Model>(), thing.GetComponent<Components::Mesh>(), thing.GetComponent<Components::Material>());
-
   // draw objects in the scene
-  auto group = scene.GetRegistry().group<Components::Model>(entt::get<Components::Mesh, Components::Material>);
-  for (auto entity : group)
   {
-    auto [model, mesh, material] = group.get<Components::Model, Components::Mesh, Components::Material>(entity);
-
-    //Renderer::Render(model, mesh, material);
+    using namespace Components;
+    auto group = scene.GetRegistry().group<::Model>(entt::get<Mesh, Material, Tag>);
+    for (auto entity : group)
+    {
+      auto [model, mesh, material, tag] = group.get<Model, Mesh, Material, Tag>(entity);
+      Renderer::Render(model, mesh, material);
+    }
   }
 }
 

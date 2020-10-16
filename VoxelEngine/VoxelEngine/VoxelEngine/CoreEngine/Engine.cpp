@@ -15,6 +15,10 @@ Engine::Engine()
   debugSystem = std::make_unique<DebugSystem>();
   voxelSystem = std::make_unique<VoxelSystem>();
   physicsSystem = std::make_unique<PhysicsSystem>();
+
+  graphicsSystem->Init();
+  debugSystem->Init(graphicsSystem->GetWindow());
+  voxelSystem->Init();
 }
 
 Engine::~Engine()
@@ -23,10 +27,6 @@ Engine::~Engine()
 
 void Engine::Run()
 {
-  graphicsSystem->Init();
-  debugSystem->Init(graphicsSystem->GetWindow());
-  voxelSystem->Init();
-
   Timer timer;
   while (running_)
   {
