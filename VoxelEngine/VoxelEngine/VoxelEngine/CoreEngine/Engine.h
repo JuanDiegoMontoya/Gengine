@@ -5,6 +5,7 @@
 class GraphicsSystem;
 class DebugSystem;
 class VoxelSystem;
+class PhysicsSystem;
 
 class Engine
 {
@@ -33,4 +34,5 @@ private:
   std::unique_ptr<GraphicsSystem> graphicsSystem;
   std::unique_ptr<DebugSystem> debugSystem;
   std::unique_ptr<VoxelSystem> voxelSystem;
+  std::unique_ptr<PhysicsSystem> physicsSystem;
 };

@@ -3,12 +3,10 @@
 #include <vector>
 
 #include "MeshUtils.h"
+#include "Components.h"
 
+using namespace Components;
 class Shader;
-
-struct Material;
-struct Mesh;
-struct Model;
 
 class Renderer
 {

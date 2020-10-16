@@ -14,7 +14,7 @@ Scene::~Scene()
 Entity Scene::CreateEntity(std::string_view name)
 {
   Entity entity(registry_.create(), this);
-  auto& tag = entity.AddComponent<Tag>();
+  auto& tag = entity.AddComponent<Components::Tag>();
   tag.tag = name.empty() ? "Entity" : name;
   return entity;
 }

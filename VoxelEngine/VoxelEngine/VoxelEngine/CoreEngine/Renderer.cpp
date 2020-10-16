@@ -6,6 +6,8 @@
 #include "Components.h"
 #include "Camera.h"
 
+using namespace Components;
+
 void Renderer::Render(Model& model, Mesh& mesh, Material& mat)
 {
 	ShaderMcShaderFace->Use();
@@ -31,7 +33,7 @@ void Renderer::Render(Model& model, Mesh& mesh, Material& mat)
 
 void Renderer::Init()
 {
-	Layout layout = Window::layout;
+	/*Layout layout = Window::layout;
 
 	int width = layout.width;
 	int height = layout.height;
@@ -52,7 +54,7 @@ void Renderer::Init()
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 	{
 		std::cout << "ERROR::FRAMEBUFFER:: Framebuffer in Raytrace Renderer is not complete!" << std::endl;
-	}
+	}*/
 }
 
 Renderer::Renderer()

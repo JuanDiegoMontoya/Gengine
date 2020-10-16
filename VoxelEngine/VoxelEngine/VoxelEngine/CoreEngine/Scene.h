@@ -17,6 +17,7 @@ public:
 
   Engine& GetEngine() { return engine_; }
   std::string_view GetName() { return name_; }
+  entt::registry& GetRegistry() { return registry_; }
 
   Scene(Scene&&) = delete;
   Scene(Scene&) = delete;

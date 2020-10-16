@@ -1,3 +1,5 @@
+#include <GL/glew.h>
+
 #include "Mesh.h"
 #include "AssimpUtils.h"
 

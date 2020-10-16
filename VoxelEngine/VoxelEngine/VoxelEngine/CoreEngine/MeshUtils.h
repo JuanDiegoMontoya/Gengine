@@ -1,15 +1,13 @@
 #pragma once
 
-#include <GL/glew.h>
-
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
 struct MeshHandle
 {
-	GLuint VAO = 0;
-	GLuint Texture = 0;
+	unsigned VAO = 0;
+	unsigned Texture = 0;
 
 	int indexCount = 0;
 };

@@ -4,6 +4,7 @@
 #include "Input.h"
 #include "Application.h"
 #include "Camera.h"
+#include "Components.h"
 
 // TODO: TEMP GARBAGE
 #include <Graphics/Context.h>
@@ -65,6 +66,15 @@ void GraphicsSystem::Update(Scene& scene, float dt)
   if (Input::IsKeyDown(GLFW_KEY_ESCAPE))
     Application::Quit();
   Camera::ActiveCamera->Update(dt);
+
+  // draw objects in the scene
+  auto group = scene.GetRegistry().group<Components::Model>(entt::get<Components::Mesh, Components::Material>);
+  for (auto entity : group)
+  {
+    auto [model, mesh, material] = group.get<Components::Model, Components::Mesh, Components::Material>(entity);
+
+    //Renderer::DrawThing(model, mesh, material);
+  }
 }
 
 void GraphicsSystem::EndFrame()

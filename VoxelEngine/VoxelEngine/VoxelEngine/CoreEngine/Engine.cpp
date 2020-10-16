@@ -6,6 +6,7 @@
 #include "GraphicsSystem.h"
 #include "DebugSystem.h"
 #include "VoxelSystem.h"
+#include "PhysicsSystem.h"
 
 
 Engine::Engine()
@@ -13,6 +14,7 @@ Engine::Engine()
   graphicsSystem = std::make_unique<GraphicsSystem>();
   debugSystem = std::make_unique<DebugSystem>();
   voxelSystem = std::make_unique<VoxelSystem>();
+  physicsSystem = std::make_unique<PhysicsSystem>();
 }
 
 Engine::~Engine()
@@ -38,6 +40,8 @@ void Engine::Run()
 
     voxelSystem->Draw();
     graphicsSystem->Update(*activeScene_, dt_);
+
+    physicsSystem->Update(*activeScene_, dt_);
     debugSystem->Update(*activeScene_, dt_);
 
     debugSystem->EndFrame(*activeScene_, dt_);
