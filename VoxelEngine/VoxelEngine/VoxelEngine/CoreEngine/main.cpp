@@ -1,10 +1,7 @@
-#include "Engine.h"
+#include <Application.h>
 
 int main()
 {
-  Engine engine;
-
-  engine.Run();
-
+  Application::Start();
   return 0;
 }

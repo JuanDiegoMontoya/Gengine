@@ -14,9 +14,11 @@ public:
 
   void Run();
 
-  void Stop() { running = false; }
 
 private:
+  friend class Application;
+  void Stop() { running = false; }
+
   double dt;
   std::vector<Scene> scenes;
 

@@ -2,7 +2,7 @@
 #include "Scene.h"
 #include <Graphics/GraphicsIncludes.h>
 #include "Input.h"
-#include "Engine.h"
+#include "Application.h"
 #include "Camera.h"
 
 // TODO: TEMP GARBAGE
@@ -63,7 +63,7 @@ void GraphicsSystem::Update(Scene& scene, float dt)
 {
   // TODO: bad(?)
   if (Input::IsKeyDown(GLFW_KEY_ESCAPE))
-    scene.GetEngine().Stop();
+    Application::Quit();
   Camera::ActiveCamera->Update(dt);
 }
 
