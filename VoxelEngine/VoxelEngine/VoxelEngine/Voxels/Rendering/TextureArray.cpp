@@ -68,7 +68,7 @@ TextureArray::~TextureArray()
 }
 
 
-void TextureArray::Bind(GLuint slot) const
+void TextureArray::Bind(unsigned slot) const
 {
   glBindTextureUnit(slot, rendererID_);
 }

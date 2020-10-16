@@ -51,12 +51,18 @@ Texture2D::Texture2D(std::string_view path)
   glGenerateTextureMipmap(rendererID_);
 }
 
+Texture2D::Texture2D(Texture2D&& rhs)
+  : rendererID_(rhs.rendererID_), dim_(rhs.dim_)
+{
+  rhs.rendererID_ = 0;
+}
+
 Texture2D::~Texture2D()
 {
   glDeleteTextures(1, &rendererID_);
 }
 
-void Texture2D::Bind(GLuint slot) const
+void Texture2D::Bind(unsigned slot) const
 {
   glBindTextureUnit(slot, rendererID_);
 }
