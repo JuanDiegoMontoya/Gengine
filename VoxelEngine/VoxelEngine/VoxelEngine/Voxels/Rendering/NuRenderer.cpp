@@ -9,7 +9,7 @@
 #include <Rendering/ChunkRenderer.h>
 #include <block.h>
 #include <Rendering/TextureArray.h>
-#include <Rendering/texture.h>
+#include <Texture2D.h>
 #include <Refactor/sun.h>
 #include <Rendering/RenderOrder.h>
 
@@ -22,7 +22,7 @@ namespace NuRenderer
   {
     // block textures
     std::unique_ptr<TextureArray> textures;
-    std::unique_ptr<Texture> blueNoise64;
+    std::unique_ptr<Texture2D> blueNoise64;
   }
 
 
@@ -108,10 +108,10 @@ namespace NuRenderer
     {
       texs.push_back(std::string(prop.name) + ".png");
     }
-    textures = std::make_unique<TextureArray>(texs);
+    textures = std::make_unique<TextureArray>(std::span(texs.data(), texs.size()), glm::ivec2(32));
 
-    //blueNoise64 = std::make_unique<Texture>("BlueNoise/64_64/LDR_LLL1_0.png");
-    blueNoise64 = std::make_unique<Texture>("BlueNoise/256_256/LDR_LLL1_0.png");
+    //blueNoise64 = std::make_unique<Texture2D>("BlueNoise/64_64/LDR_LLL1_0.png");
+    blueNoise64 = std::make_unique<Texture2D>("BlueNoise/256_256/LDR_LLL1_0.png");
 
     //GLint count;
     //glGetIntegerv(GL_NUM_EXTENSIONS, &count);

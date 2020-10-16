@@ -1,17 +1,18 @@
 #pragma once
-#include <span>
+#include <string>
 
-class TextureArray
+class Texture2D
 {
 public:
-  TextureArray(std::span<std::string> textures, glm::ivec2 xyDim);
-  ~TextureArray();
+  Texture2D(std::string_view path);
+  ~Texture2D();
 
   void Bind(GLuint slot = 0) const;
 
-private:
+  glm::ivec2 GetDimensions() { return dim_; }
 
+private:
   GLuint rendererID_ = 0;
-  glm::ivec2 dim{};
+  glm::ivec2 dim_{};
   static inline const std::string texPath = "./Resources/Textures/";
 };

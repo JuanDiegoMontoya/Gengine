@@ -220,9 +220,6 @@
     <ClInclude Include="Graphics\GlobalRendererInfo.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Voxels\Rendering\texture.h">
-      <Filter>Voxel Engine\Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="Graphics\StaticBuffer.h">
       <Filter>Graphics</Filter>
     </ClInclude>
@@ -302,6 +299,12 @@
       <Filter>CoreEngine</Filter>
     </ClInclude>
     <ClInclude Include="CoreEngine\Renderer.h">
+      <Filter>CoreEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\Texture2D.h">
+      <Filter>CoreEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\Material.h">
       <Filter>CoreEngine</Filter>
     </ClInclude>
   </ItemGroup>
@@ -444,9 +447,6 @@
     <ClCompile Include="Graphics\GlobalRendererInfo.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Voxels\Rendering\texture.cpp">
-      <Filter>Voxel Engine\Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="Graphics\stbiImpl.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
@@ -500,6 +500,12 @@
       <Filter>CoreEngine</Filter>
     </ClCompile>
     <ClCompile Include="CoreEngine\Renderer.cpp">
+      <Filter>CoreEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreEngine\Texture2D.cpp">
+      <Filter>CoreEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreEngine\Material.cpp">
       <Filter>CoreEngine</Filter>
     </ClCompile>
   </ItemGroup>

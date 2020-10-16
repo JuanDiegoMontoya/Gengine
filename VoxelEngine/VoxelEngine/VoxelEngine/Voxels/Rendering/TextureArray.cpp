@@ -5,12 +5,12 @@
 #include <iostream>
 
 #pragma optimize("", off)
-TextureArray::TextureArray(const std::vector<std::string>& textures)
+TextureArray::TextureArray(std::span<std::string> textures, glm::ivec2 xyDim)
+  : dim(xyDim)
 {
   const GLsizei layerCount = textures.size();
-  glGenTextures(1, &id_);
-  glBindTexture(GL_TEXTURE_2D_ARRAY, id_);
-  glTexStorage3D(GL_TEXTURE_2D_ARRAY, mipCount_, GL_RGBA8, dim, dim, layerCount);
+  glCreateTextures(GL_TEXTURE_2D_ARRAY, 1, &rendererID_);
+  glTextureStorage3D(rendererID_, 1, GL_RGBA8, dim.x, dim.y, layerCount);
 
   stbi_set_flip_vertically_on_load(true);
 
@@ -20,7 +20,6 @@ TextureArray::TextureArray(const std::vector<std::string>& textures)
     std::string tex = texPath + texture;
     bool hasTex = std::filesystem::exists(texPath + texture);
 
-    // TODO: gen mipmaps (increment mip level each mip iteration)
     if (hasTex == false)
     {
       std::cout << "Failed to load texture " << texture << ", using fallback.\n";
@@ -30,13 +29,13 @@ TextureArray::TextureArray(const std::vector<std::string>& textures)
     int width, height, n;
     auto pixels = (unsigned char*)stbi_load(tex.c_str(), &width, &height, &n, 4);
     ASSERT(pixels != nullptr);
-    ASSERT(width == dim && height == dim);
-
-    glTexSubImage3D(
-      GL_TEXTURE_2D_ARRAY,
+    ASSERT(width == dim.x && height == dim.y);
+    
+    glTextureSubImage3D(
+      rendererID_,
       0,           // mip level 0
       0, 0, i,     // image start layer
-      dim, dim, 1, // x, y, z size (z = 1 b/c it's just a single layer)
+      dim.x, dim.y, 1, // x, y, z size (z = 1 b/c it's just a single layer)
       GL_RGBA,
       GL_UNSIGNED_BYTE,
       pixels);
@@ -50,36 +49,26 @@ TextureArray::TextureArray(const std::vector<std::string>& textures)
   // TODO: make this parameter user-selectable
   GLfloat a;
   glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &a);
-  glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAX_ANISOTROPY, a);
-
+  glTextureParameterf(rendererID_, GL_TEXTURE_MAX_ANISOTROPY, a);
+  
   // TODO: play with this parameter for optimal looks, maybe make it user-selectable
-  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  glTextureParameteri(rendererID_, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+  glTextureParameteri(rendererID_, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTextureParameteri(rendererID_, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTextureParameteri(rendererID_, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
   // use OpenGL to generate mipmaps for us
-  glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
-
-  glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
+  glGenerateTextureMipmap(rendererID_);
 }
-#pragma optimize("", on)
 
 
 TextureArray::~TextureArray()
 {
-  glDeleteTextures(1, &id_);
+  glDeleteTextures(1, &rendererID_);
 }
 
 
 void TextureArray::Bind(GLuint slot) const
 {
-  glActiveTexture(GL_TEXTURE0 + slot);
-  glBindTexture(GL_TEXTURE_2D_ARRAY, id_);
-}
-
-
-void TextureArray::Unbind() const
-{
-  glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
+  glBindTextureUnit(slot, rendererID_);
 }

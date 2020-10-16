@@ -39,6 +39,7 @@
     <ClInclude Include="CoreEngine\GAssert.h" />
     <ClInclude Include="CoreEngine\GraphicsSystem.h" />
     <ClInclude Include="CoreEngine\Input.h" />
+    <ClInclude Include="CoreEngine\Material.h" />
     <ClInclude Include="CoreEngine\MathIncludes.h" />
     <ClInclude Include="CoreEngine\Mesh.h" />
     <ClInclude Include="CoreEngine\MeshUtils.h" />
@@ -46,6 +47,7 @@
     <ClInclude Include="CoreEngine\Renderer.h" />
     <ClInclude Include="CoreEngine\Scene.h" />
     <ClInclude Include="CoreEngine\ScriptableEntity.h" />
+    <ClInclude Include="CoreEngine\Texture2D.h" />
     <ClInclude Include="CoreEngine\VoxelSystem.h" />
     <ClInclude Include="CoreEngine\Window.h" />
     <ClInclude Include="CoreEngine\WindowCB.h" />
@@ -89,7 +91,6 @@
     <ClInclude Include="Voxels\Rendering\Frustum.h" />
     <ClInclude Include="Voxels\Rendering\NuRenderer.h" />
     <ClInclude Include="Voxels\Rendering\RenderOrder.h" />
-    <ClInclude Include="Voxels\Rendering\texture.h" />
     <ClInclude Include="Voxels\Rendering\TextureArray.h" />
     <ClInclude Include="Voxels\Utilities\BitArray.h" />
     <ClInclude Include="Voxels\Utilities\collision_check.h" />
@@ -132,10 +133,12 @@
     <ClCompile Include="CoreEngine\GraphicsSystem.cpp" />
     <ClCompile Include="CoreEngine\Input.cpp" />
     <ClCompile Include="CoreEngine\main.cpp" />
+    <ClCompile Include="CoreEngine\Material.cpp" />
     <ClCompile Include="CoreEngine\Mesh.cpp" />
     <ClCompile Include="CoreEngine\PhysicsSystem.cpp" />
     <ClCompile Include="CoreEngine\Renderer.cpp" />
     <ClCompile Include="CoreEngine\Scene.cpp" />
+    <ClCompile Include="CoreEngine\Texture2D.cpp" />
     <ClCompile Include="CoreEngine\VoxelSystem.cpp" />
     <ClCompile Include="CoreEngine\Window.cpp" />
     <ClCompile Include="CoreEngine\WindowCB.cpp" />
@@ -171,7 +174,6 @@
     <ClCompile Include="Voxels\Rendering\ChunkRenderer.cpp" />
     <ClCompile Include="Voxels\Rendering\Frustum.cpp" />
     <ClCompile Include="Voxels\Rendering\NuRenderer.cpp" />
-    <ClCompile Include="Voxels\Rendering\texture.cpp" />
     <ClCompile Include="Voxels\Rendering\TextureArray.cpp" />
     <ClCompile Include="Voxels\Utilities\collision_check.cpp" />
     <ClCompile Include="Voxels\Utilities\ImGuiBonus.cpp" />
