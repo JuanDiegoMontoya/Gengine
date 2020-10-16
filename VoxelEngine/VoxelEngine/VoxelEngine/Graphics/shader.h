@@ -192,6 +192,7 @@ private:
       const shaderc::CompileOptions options,
       std::string path,
       shaderc_shader_kind a);
+
 };
 
 #pragma warning(pop)

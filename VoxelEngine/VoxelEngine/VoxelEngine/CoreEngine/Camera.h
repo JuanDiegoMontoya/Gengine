@@ -15,6 +15,7 @@ public:
   void UpdateViewMat();
   const glm::mat4& GetView() const { return view_; }
   const glm::mat4& GetProj() const { return proj_; }
+  glm::mat4 GetProjView() { return proj_ * view_; }
   const glm::vec3& GetPos() const { return worldpos_; }
   const glm::vec3& GetDir() const { return dir_; }
   const Frustum* GetFrustum() const { return frustum_.get(); }

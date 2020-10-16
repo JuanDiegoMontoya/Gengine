@@ -4,6 +4,8 @@
 #include <glm/gtc/quaternion.hpp>
 #include "ScriptableEntity.h"
 
+struct MeshHandle;
+
 /// <summary>
 /// General components
 /// </summary>
@@ -38,7 +40,7 @@ struct Model
 // temp
 struct Mesh
 {
-  uint32_t meshHandle;
+  MeshHandle meshHandle;
 };
 
 // temp
