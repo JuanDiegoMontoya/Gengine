@@ -298,6 +298,9 @@
     <ClInclude Include="CoreEngine\Application.h">
       <Filter>CoreEngine</Filter>
     </ClInclude>
+    <ClInclude Include="CoreEngine\PhysicsSystem.h">
+      <Filter>CoreEngine</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="3rdParty\imgui\imgui.cpp">
@@ -490,6 +493,9 @@
       <Filter>CoreEngine</Filter>
     </ClCompile>
     <ClCompile Include="CoreEngine\Application.cpp" />
+    <ClCompile Include="CoreEngine\PhysicsSystem.cpp">
+      <Filter>CoreEngine</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Voxels\Chunks\BlockStorage.inl">

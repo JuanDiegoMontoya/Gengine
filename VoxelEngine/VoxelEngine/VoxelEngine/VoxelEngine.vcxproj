@@ -42,6 +42,7 @@
     <ClInclude Include="CoreEngine\MathIncludes.h" />
     <ClInclude Include="CoreEngine\Mesh.h" />
     <ClInclude Include="CoreEngine\MeshUtils.h" />
+    <ClInclude Include="CoreEngine\PhysicsSystem.h" />
     <ClInclude Include="CoreEngine\Scene.h" />
     <ClInclude Include="CoreEngine\ScriptableEntity.h" />
     <ClInclude Include="CoreEngine\VoxelSystem.h" />
@@ -131,6 +132,7 @@
     <ClCompile Include="CoreEngine\Input.cpp" />
     <ClCompile Include="CoreEngine\main.cpp" />
     <ClCompile Include="CoreEngine\Mesh.cpp" />
+    <ClCompile Include="CoreEngine\PhysicsSystem.cpp" />
     <ClCompile Include="CoreEngine\Scene.cpp" />
     <ClCompile Include="CoreEngine\VoxelSystem.cpp" />
     <ClCompile Include="CoreEngine\Window.cpp" />
