@@ -20,9 +20,6 @@ class MeshManager
 {
 public:
 	static std::vector<MeshHandle> CreateMesh(std::string filename, bool&, bool&);
-	
-	// Chris: is this temp?
-	static unsigned GetFuckingTexture(std::string filename);
 
 private:
 	static MeshHandle GenHandle_GL(std::vector<unsigned>&, std::vector<Vertex>&);
