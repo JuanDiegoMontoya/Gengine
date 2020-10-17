@@ -4,6 +4,7 @@
 #include <glm/gtc/quaternion.hpp>
 #include "ScriptableEntity.h"
 #include "MeshUtils.h"
+#include <Material.h>
 
 namespace Components
 {
@@ -51,10 +52,11 @@ namespace Components
   };
 
   // temp
-  struct Material
-  {
-    uint32_t texHandle;
-  };
+  using Material = ::MaterialHandle;
+  //struct Material
+  //{
+  //  ::Material matHandle;
+  //};
 
   struct Camera2
   {

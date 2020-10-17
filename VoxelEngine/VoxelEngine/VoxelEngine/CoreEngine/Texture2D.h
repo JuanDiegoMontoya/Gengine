@@ -6,7 +6,7 @@ class Texture2D
 {
 public:
   Texture2D(std::string_view path);
-  Texture2D(Texture2D&& rhs);
+  Texture2D(Texture2D&& rhs) noexcept;
   ~Texture2D();
 
   void Bind(unsigned slot = 0) const;

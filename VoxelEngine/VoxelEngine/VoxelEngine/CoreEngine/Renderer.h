@@ -5,7 +5,6 @@
 #include "MeshUtils.h"
 #include "Components.h"
 
-using namespace Components;
 class Shader;
 
 class Renderer
@@ -13,7 +12,7 @@ class Renderer
 	public:
 		static void Init();
 
-		static void Render(Model& model, Mesh& mesh, Material& mat);
+		static void Render(Components::Model& model, Components::Mesh& mesh, Components::Material& mat);
 
 	private:
 		static inline Shader* ShaderMcShaderFace = nullptr;

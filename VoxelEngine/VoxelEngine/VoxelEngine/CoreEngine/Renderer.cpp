@@ -5,6 +5,7 @@
 #include "../Graphics/shader.h"
 #include "Components.h"
 #include "Camera.h"
+#include "Texture2D.h"
 
 using namespace Components;
 
@@ -24,8 +25,13 @@ void Renderer::Render(Model& model, Mesh& mesh, Material& mat)
 	ShadershadersShaderMcShaderFuckFaceUse->setMat4("MVP", MVP);
 	//ShadershadersShaderMcShaderFuckFaceUse->setMat4("Model", modelMatrix);
 
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, mat.texHandle);
+	//glActiveTexture(GL_TEXTURE0);
+	//glBindTexture(GL_TEXTURE_2D, mat.texHandle);
+	int i = 0;
+	for (const auto& tex : MaterialManager::materials[mat].textures)
+	{
+		tex.Bind(i++);
+	}
 	ShadershadersShaderMcShaderFuckFaceUse->setInt("albedoMap", 0);
 
 	MeshHandle mHandle = mesh.meshHandle;

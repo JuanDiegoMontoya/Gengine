@@ -51,7 +51,7 @@ Texture2D::Texture2D(std::string_view path)
   glGenerateTextureMipmap(rendererID_);
 }
 
-Texture2D::Texture2D(Texture2D&& rhs)
+Texture2D::Texture2D(Texture2D&& rhs) noexcept
   : rendererID_(rhs.rendererID_), dim_(rhs.dim_)
 {
   rhs.rendererID_ = 0;

@@ -4,11 +4,20 @@
 #include <Components.h>
 #include "Renderer.h"
 #include "Mesh.h"
+#include "Material.h"
 
 #include <iostream>
 
+// main.cpp: this is where the user's code belongs
+static MaterialHandle userMaterial{};
+
 void OnStart(Scene* scene)
 {
+  MaterialInfo info;
+  info.shaderID = "ShaderMcShaderFuckFace";
+  info.tex2Dpaths.push_back("this is an invalid texture! (it should use a fallback)");
+  userMaterial = MaterialManager::CreateMaterial(info);
+
   std::cout << "User function, initial scene name: " << scene->GetName() << '\n';
 
   {
@@ -23,8 +32,9 @@ void OnStart(Scene* scene)
     mesh.meshHandle = MeshManager::CreateMesh("./Resources/Models/bunny.obj", l, o)[0];
     thing.AddComponent<Components::Mesh>(mesh);
 
-    thing.AddComponent<Components::Material>();
-    thing.GetComponent<Components::Material>().texHandle = MeshManager::GetFuckingTexture("");
+    Components::Material material = userMaterial;
+    thing.AddComponent<Components::Material>(material);
+    //thing.GetComponent<Components::Material>().texHandle = MeshManager::GetFuckingTexture("");
   }
 }
 
