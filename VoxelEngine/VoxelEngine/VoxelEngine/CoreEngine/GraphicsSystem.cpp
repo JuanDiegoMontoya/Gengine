@@ -74,7 +74,7 @@ void GraphicsSystem::Update(Scene& scene, float dt)
   // draw objects in the scene
   {
     using namespace Components;
-    auto group = scene.GetRegistry().group<::Model>(entt::get<Mesh, Material, Tag>);
+    auto group = scene.GetRegistry().group<Model>(entt::get<Mesh, Material, Tag>);
     for (auto entity : group)
     {
       auto [model, mesh, material, tag] = group.get<Model, Mesh, Material, Tag>(entity);

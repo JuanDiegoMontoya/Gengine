@@ -4,8 +4,8 @@
 #include <unordered_map>
 #include <memory>
 #include <entt/src/core/hashed_string.hpp>
+#include <Texture2D.h>
 
-class Texture2D;
 class Shader;
 
 using MaterialHandle = uint32_t;
@@ -33,7 +33,8 @@ private:
   // the user doesn't get to know about this
   struct MaterialInternalInfo
   {
-    MaterialInfo data;
+    std::vector<std::string> tex2Dpaths;
+    entt::hashed_string shaderID;
     std::vector<Texture2D> textures;
   };
 

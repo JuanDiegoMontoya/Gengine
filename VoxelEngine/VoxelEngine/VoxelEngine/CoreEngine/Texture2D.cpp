@@ -11,6 +11,12 @@ Texture2D::Texture2D(std::string_view path)
 
   std::string tex = texPath + std::string(path);
   bool hasTex = std::filesystem::exists(texPath + std::string(path));
+  if (hasTex == false)
+  {
+    std::cout << "Failed to load texture " << path << ", using fallback.\n";
+    tex = texPath + "error.png";
+  }
+
   int n;
   auto pixels = (unsigned char*)stbi_load(tex.c_str(), &dim_.x, &dim_.y, &n, 4);
   ASSERT(pixels != nullptr);
@@ -29,11 +35,6 @@ Texture2D::Texture2D(std::string_view path)
   glTextureParameteri(rendererID_, GL_TEXTURE_WRAP_S, GL_REPEAT);
   glTextureParameteri(rendererID_, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-  if (hasTex == false)
-  {
-    std::cout << "Failed to load texture " << path << ", using fallback.\n";
-    tex = texPath + "error.png";
-  }
 
   glTextureStorage2D(rendererID_, 1, GL_RGBA8, dim_.x, dim_.y);
   glTextureSubImage2D(

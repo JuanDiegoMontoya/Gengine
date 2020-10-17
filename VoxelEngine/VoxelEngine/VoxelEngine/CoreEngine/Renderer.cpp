@@ -11,8 +11,9 @@ using namespace Components;
 
 void Renderer::Render(Model& model, Mesh& mesh, Material& mat)
 {
-	auto& ShadershadersShaderMcShaderFuckFaceUse = Shader::shaders["ShaderMcShaderFuckFace"];
-	ShadershadersShaderMcShaderFuckFaceUse->Use();
+	auto& material = MaterialManager::materials[mat];
+	auto& shader = Shader::shaders[material.shaderID];
+	shader->Use();
 
 	glm::mat4 modelMatrix = model.model;
 	modelMatrix = glm::scale(modelMatrix, { 10, 10, 10 });
@@ -22,17 +23,17 @@ void Renderer::Render(Model& model, Mesh& mesh, Material& mat)
 	glm::mat4 MVP = Camera::ActiveCamera->GetProjView() * modelMatrix;
 
 	//ShadershadersShaderMcShaderFuckFaceUse->setMat4("InvTrModel", modelInv);
-	ShadershadersShaderMcShaderFuckFaceUse->setMat4("MVP", MVP);
+	shader->setMat4("MVP", MVP);
 	//ShadershadersShaderMcShaderFuckFaceUse->setMat4("Model", modelMatrix);
 
 	//glActiveTexture(GL_TEXTURE0);
 	//glBindTexture(GL_TEXTURE_2D, mat.texHandle);
 	int i = 0;
-	for (const auto& tex : MaterialManager::materials[mat].textures)
+	for (const auto& tex : material.textures)
 	{
 		tex.Bind(i++);
 	}
-	ShadershadersShaderMcShaderFuckFaceUse->setInt("albedoMap", 0);
+	shader->setInt("albedoMap", 0);
 
 	MeshHandle mHandle = mesh.meshHandle;
 
