@@ -84,13 +84,11 @@
     <ClInclude Include="Voxels\prefab.h" />
     <ClInclude Include="Voxels\Refactor\hud.h" />
     <ClInclude Include="Voxels\Refactor\Interface.h" />
-    <ClInclude Include="Voxels\Refactor\player.h" />
     <ClInclude Include="Voxels\Refactor\settings.h" />
     <ClInclude Include="Voxels\Refactor\sun.h" />
     <ClInclude Include="Voxels\Rendering\ChunkRenderer.h" />
     <ClInclude Include="Voxels\Rendering\Frustum.h" />
     <ClInclude Include="Voxels\Rendering\NuRenderer.h" />
-    <ClInclude Include="Voxels\Rendering\RenderOrder.h" />
     <ClInclude Include="Voxels\Rendering\TextureArray.h" />
     <ClInclude Include="Voxels\Utilities\BitArray.h" />
     <ClInclude Include="Voxels\Utilities\collision_check.h" />
@@ -106,6 +104,7 @@
     <ClInclude Include="Voxels\WorldGen\WorldGen2.h" />
     <ClInclude Include="Voxels\World\chunk_manager.h" />
     <ClInclude Include="Voxels\World\parallel_chunks.h" />
+    <ClInclude Include="Voxels\World\VoxelManager.h" />
     <ClInclude Include="Voxels\World\World.h" />
   </ItemGroup>
   <ItemGroup>
@@ -168,7 +167,6 @@
     <ClCompile Include="Voxels\Refactor\Editor.cpp" />
     <ClCompile Include="Voxels\Refactor\hud.cpp" />
     <ClCompile Include="Voxels\Refactor\Interface.cpp" />
-    <ClCompile Include="Voxels\Refactor\player.cpp" />
     <ClCompile Include="Voxels\Refactor\settings.cpp" />
     <ClCompile Include="Voxels\Refactor\sun.cpp" />
     <ClCompile Include="Voxels\Rendering\ChunkRenderer.cpp" />
@@ -180,6 +178,7 @@
     <ClCompile Include="Voxels\WorldGen\WorldGen2.cpp" />
     <ClCompile Include="Voxels\World\chunk_manager.cpp" />
     <ClCompile Include="Voxels\World\parallel_chunks.cpp" />
+    <ClCompile Include="Voxels\World\VoxelManager.cpp" />
     <ClCompile Include="Voxels\World\World.cpp" />
   </ItemGroup>
   <ItemGroup>

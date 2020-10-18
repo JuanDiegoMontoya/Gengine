@@ -103,9 +103,6 @@
     <ClInclude Include="Voxels\Refactor\Interface.h">
       <Filter>Voxel Engine\Refactor</Filter>
     </ClInclude>
-    <ClInclude Include="Voxels\Refactor\player.h">
-      <Filter>Voxel Engine\Refactor</Filter>
-    </ClInclude>
     <ClInclude Include="Voxels\Refactor\settings.h">
       <Filter>Voxel Engine\Refactor</Filter>
     </ClInclude>
@@ -116,9 +113,6 @@
       <Filter>Voxel Engine\Rendering</Filter>
     </ClInclude>
     <ClInclude Include="Voxels\Rendering\NuRenderer.h">
-      <Filter>Voxel Engine\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\Rendering\RenderOrder.h">
       <Filter>Voxel Engine\Rendering</Filter>
     </ClInclude>
     <ClInclude Include="Voxels\Rendering\TextureArray.h">
@@ -307,6 +301,9 @@
     <ClInclude Include="CoreEngine\Material.h">
       <Filter>CoreEngine</Filter>
     </ClInclude>
+    <ClInclude Include="Voxels\World\VoxelManager.h">
+      <Filter>Voxel Engine\World</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="3rdParty\imgui\imgui.cpp">
@@ -349,9 +346,6 @@
       <Filter>Voxel Engine\Refactor</Filter>
     </ClCompile>
     <ClCompile Include="Voxels\Refactor\Interface.cpp">
-      <Filter>Voxel Engine\Refactor</Filter>
-    </ClCompile>
-    <ClCompile Include="Voxels\Refactor\player.cpp">
       <Filter>Voxel Engine\Refactor</Filter>
     </ClCompile>
     <ClCompile Include="Voxels\Refactor\settings.cpp">
@@ -507,6 +501,9 @@
     </ClCompile>
     <ClCompile Include="CoreEngine\Material.cpp">
       <Filter>CoreEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="Voxels\World\VoxelManager.cpp">
+      <Filter>Voxel Engine\World</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

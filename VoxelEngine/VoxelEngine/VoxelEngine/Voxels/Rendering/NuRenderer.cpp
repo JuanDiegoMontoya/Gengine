@@ -11,7 +11,6 @@
 #include <Rendering/TextureArray.h>
 #include <Texture2D.h>
 #include <Refactor/sun.h>
-#include <Rendering/RenderOrder.h>
 
 #include <GraphicsSystem.h>
 #include <VoxelSystem.h>

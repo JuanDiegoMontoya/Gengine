@@ -55,6 +55,7 @@ public:
     {
       cnk->SetBlockTypeAt(w.block_pos, b.GetType());
       cnk->SetLightAt(w.block_pos, b.GetLight());
+      return true;
     }
     return false;
   }
@@ -66,6 +67,7 @@ public:
     if (cnk)
     {
       cnk->SetBlockTypeAt(w.block_pos, bt);
+      return true;
     }
     return false;
   }
@@ -77,6 +79,7 @@ public:
     if (cnk)
     {
       cnk->SetLightAt(w.block_pos, l);
+      return true;
     }
     return false;
   }
