@@ -78,7 +78,6 @@
     <ClInclude Include="Voxels\Chunks\ChunkMesh.h" />
     <ClInclude Include="Voxels\Chunks\ChunkSerialize.h" />
     <ClInclude Include="Voxels\light.h" />
-    <ClInclude Include="Voxels\pick.h" />
     <ClInclude Include="Voxels\prefab.h" />
     <ClInclude Include="Voxels\Refactor\hud.h" />
     <ClInclude Include="Voxels\Refactor\Interface.h" />
@@ -159,7 +158,6 @@
     <ClCompile Include="Voxels\Chunks\Chunk.cpp" />
     <ClCompile Include="Voxels\Chunks\ChunkMesh.cpp" />
     <ClCompile Include="Voxels\Chunks\ChunkSerialize.cpp" />
-    <ClCompile Include="Voxels\pick.cpp" />
     <ClCompile Include="Voxels\prefab.cpp" />
     <ClCompile Include="Voxels\Refactor\Editor.cpp" />
     <ClCompile Include="Voxels\Refactor\hud.cpp" />
