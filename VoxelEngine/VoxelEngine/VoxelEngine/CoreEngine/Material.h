@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include <memory>
 #include <entt/src/core/hashed_string.hpp>
-#include <Texture2D.h>
+#include <CoreEngine/Texture2D.h>
 
 class Shader;
 

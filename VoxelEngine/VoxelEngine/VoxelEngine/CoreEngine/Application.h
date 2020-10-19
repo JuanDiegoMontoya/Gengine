@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-#include <GAssert.h>
+#include <CoreEngine/GAssert.h>
 
 class Engine;
 class Scene;

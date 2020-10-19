@@ -1,11 +1,11 @@
 #include "Renderer.h"
 
-#include "WindowUtils.h"
-#include "Window.h"
-#include "../Graphics/shader.h"
-#include "Components.h"
-#include "Camera.h"
-#include "Texture2D.h"
+#include <CoreEngine/WindowUtils.h>
+#include <CoreEngine/Window.h>
+#include <CoreEngine/shader.h>
+#include <CoreEngine/Components.h>
+#include <CoreEngine/Camera.h>
+#include <CoreEngine/Texture2D.h>
 
 using namespace Components;
 

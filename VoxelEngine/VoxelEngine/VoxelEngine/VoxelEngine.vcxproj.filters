@@ -14,21 +14,6 @@
     <Filter Include="Voxel Engine">
       <UniqueIdentifier>{dc663184-9198-480c-b860-fe5e6cb9fc67}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Voxel Engine\Chunks">
-      <UniqueIdentifier>{43c32564-9adb-43dd-adf2-3a9f16609b64}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Voxel Engine\Rendering">
-      <UniqueIdentifier>{5083ba25-2eab-487a-9f5f-af3d554af47a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Voxel Engine\Utilities">
-      <UniqueIdentifier>{a6660f86-4ee0-4e38-ba32-81b7b89a1524}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Voxel Engine\World">
-      <UniqueIdentifier>{b356d275-2c01-4537-aac8-9d8a629a0cb7}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Voxel Engine\WorldGen">
-      <UniqueIdentifier>{facc1ed4-29ad-4e15-95d8-e9af860b332b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="3rd Party\FastNoiseSIMD">
       <UniqueIdentifier>{1973af87-01d3-4bc4-9d86-e5188afc5b26}</UniqueIdentifier>
     </Filter>
@@ -43,12 +28,6 @@
     </Filter>
     <Filter Include="CoreEngine\Systems">
       <UniqueIdentifier>{a424d2fa-a058-426a-b560-cefda8ce9e5a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="DeprecatedGraphics">
-      <UniqueIdentifier>{f59e9c6c-31b3-4410-901e-cdf5fcc755ed}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Voxel Engine\DeprecatedRefactor">
-      <UniqueIdentifier>{941b5f14-5b5d-4b0c-8826-b8e2eafb78fd}</UniqueIdentifier>
     </Filter>
     <Filter Include="CoreEngine\ECS">
       <UniqueIdentifier>{f1303919-b3eb-4052-9128-6a7141965576}</UniqueIdentifier>
@@ -91,149 +70,11 @@
     <ClInclude Include="Voxels\biome.h">
       <Filter>Voxel Engine</Filter>
     </ClInclude>
-    <ClInclude Include="Voxels\Chunks\BlockStorage.h">
-      <Filter>Voxel Engine\Chunks</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\Chunks\Chunk.h">
-      <Filter>Voxel Engine\Chunks</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\Chunks\ChunkHelpers.h">
-      <Filter>Voxel Engine\Chunks</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\Chunks\ChunkMesh.h">
-      <Filter>Voxel Engine\Chunks</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\Refactor\hud.h">
-      <Filter>Voxel Engine\DeprecatedRefactor</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\Refactor\Interface.h">
-      <Filter>Voxel Engine\DeprecatedRefactor</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\Refactor\settings.h">
-      <Filter>Voxel Engine\DeprecatedRefactor</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\Refactor\sun.h">
-      <Filter>Voxel Engine\DeprecatedRefactor</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\Rendering\ChunkRenderer.h">
-      <Filter>Voxel Engine\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\Rendering\NuRenderer.h">
-      <Filter>Voxel Engine\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\Rendering\TextureArray.h">
-      <Filter>Voxel Engine\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\Utilities\BitArray.h">
-      <Filter>Voxel Engine\Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\Utilities\collision_check.h">
-      <Filter>Voxel Engine\Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\Utilities\collision_shapes.h">
-      <Filter>Voxel Engine\Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\Utilities\FixedQueue.h">
-      <Filter>Voxel Engine\Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\Utilities\ImGuiBonus.h">
-      <Filter>Voxel Engine\Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\Utilities\Palette.h">
-      <Filter>Voxel Engine\Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\Utilities\serialize.h">
-      <Filter>Voxel Engine\Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\World\chunk_manager.h">
-      <Filter>Voxel Engine\World</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\World\parallel_chunks.h">
-      <Filter>Voxel Engine\World</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\World\World.h">
-      <Filter>Voxel Engine\World</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\Rendering\Frustum.h">
-      <Filter>Voxel Engine\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\Utilities\Timer.h">
-      <Filter>Voxel Engine\Utilities</Filter>
-    </ClInclude>
     <ClInclude Include="3rdParty\FastNoiseSIMD\FastNoiseSIMD.h">
       <Filter>3rd Party\FastNoiseSIMD</Filter>
     </ClInclude>
     <ClInclude Include="3rdParty\FastNoiseSIMD\FastNoiseSIMD_internal.h">
       <Filter>3rd Party\FastNoiseSIMD</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\abo.h">
-      <Filter>DeprecatedGraphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\Context.h">
-      <Filter>DeprecatedGraphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\dib.h">
-      <Filter>DeprecatedGraphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\GraphicsIncludes.h">
-      <Filter>DeprecatedGraphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\ibo.h">
-      <Filter>DeprecatedGraphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\math_utils.h">
-      <Filter>DeprecatedGraphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\misc_utils.h">
-      <Filter>DeprecatedGraphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\param_bo.h">
-      <Filter>DeprecatedGraphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\shader.h">
-      <Filter>DeprecatedGraphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\Shapes.h">
-      <Filter>DeprecatedGraphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\utilities.h">
-      <Filter>DeprecatedGraphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\vao.h">
-      <Filter>DeprecatedGraphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\vbo.h">
-      <Filter>DeprecatedGraphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\vbo_layout.h">
-      <Filter>DeprecatedGraphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\Vertices.h">
-      <Filter>DeprecatedGraphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\UBO.h">
-      <Filter>DeprecatedGraphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\GlobalRendererInfo.h">
-      <Filter>DeprecatedGraphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\StaticBuffer.h">
-      <Filter>DeprecatedGraphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\DynamicBuffer.h">
-      <Filter>DeprecatedGraphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\Chunks\ChunkSerialize.h">
-      <Filter>Voxel Engine\Chunks</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\Utilities\DeltaEncoder.h">
-      <Filter>Voxel Engine\Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\Utilities\RunLengthEncoder.h">
-      <Filter>Voxel Engine\Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\Utilities\CompressBuffer.h">
-      <Filter>Voxel Engine\Utilities</Filter>
     </ClInclude>
     <ClInclude Include="CoreEngine\Input.h">
       <Filter>CoreEngine</Filter>
@@ -246,12 +87,6 @@
     </ClInclude>
     <ClInclude Include="CoreEngine\Application.h">
       <Filter>CoreEngine</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\World\VoxelManager.h">
-      <Filter>Voxel Engine\World</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\WorldGen\WorldGen2.h">
-      <Filter>Voxel Engine\WorldGen</Filter>
     </ClInclude>
     <ClInclude Include="CoreEngine\GraphicsSystem.h">
       <Filter>CoreEngine\Systems</Filter>
@@ -307,6 +142,120 @@
     <ClInclude Include="CoreEngine\Engine.h">
       <Filter>CoreEngine</Filter>
     </ClInclude>
+    <ClInclude Include="Voxels\BlockStorage.h">
+      <Filter>Voxel Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\Chunk.h">
+      <Filter>Voxel Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\chunk_manager.h">
+      <Filter>Voxel Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\ChunkHelpers.h">
+      <Filter>Voxel Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\ChunkMesh.h">
+      <Filter>Voxel Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\ChunkRenderer.h">
+      <Filter>Voxel Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\ChunkSerialize.h">
+      <Filter>Voxel Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\EditorRefactor.h">
+      <Filter>Voxel Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\HUDRefactor.h">
+      <Filter>Voxel Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\NuRenderer.h">
+      <Filter>Voxel Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\parallel_chunks.h">
+      <Filter>Voxel Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\VoxelManager.h">
+      <Filter>Voxel Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\World.h">
+      <Filter>Voxel Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\WorldGen.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\collision_check.h">
+      <Filter>CoreEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\collision_shapes.h">
+      <Filter>CoreEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\Context.h">
+      <Filter>CoreEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\Debug.h">
+      <Filter>CoreEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\GlobalRendererInfo.h">
+      <Filter>CoreEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\GraphicsIncludes.h">
+      <Filter>CoreEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\math_utils.h">
+      <Filter>CoreEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\misc_utils.h">
+      <Filter>CoreEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\utilities.h">
+      <Filter>CoreEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\DynamicBuffer.h">
+      <Filter>CoreEngine\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\dib.h">
+      <Filter>CoreEngine\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\Frustum.h">
+      <Filter>CoreEngine\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\abo.h">
+      <Filter>CoreEngine\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\ibo.h">
+      <Filter>CoreEngine\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\param_bo.h">
+      <Filter>CoreEngine\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\Shapes.h">
+      <Filter>CoreEngine\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\StaticBuffer.h">
+      <Filter>CoreEngine\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\TextureArray.h">
+      <Filter>CoreEngine\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\UBO.h">
+      <Filter>CoreEngine\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\vao.h">
+      <Filter>CoreEngine\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\vbo.h">
+      <Filter>CoreEngine\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\vbo_layout.h">
+      <Filter>CoreEngine\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\Vertices.h">
+      <Filter>CoreEngine\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\Shader.h">
+      <Filter>CoreEngine\Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="3rdParty\imgui\imgui.cpp">
@@ -333,57 +282,6 @@
     <ClCompile Include="Voxels\biome.cpp">
       <Filter>Voxel Engine</Filter>
     </ClCompile>
-    <ClCompile Include="Voxels\Chunks\Chunk.cpp">
-      <Filter>Voxel Engine\Chunks</Filter>
-    </ClCompile>
-    <ClCompile Include="Voxels\Chunks\ChunkMesh.cpp">
-      <Filter>Voxel Engine\Chunks</Filter>
-    </ClCompile>
-    <ClCompile Include="Voxels\Refactor\Editor.cpp">
-      <Filter>Voxel Engine\DeprecatedRefactor</Filter>
-    </ClCompile>
-    <ClCompile Include="Voxels\Refactor\hud.cpp">
-      <Filter>Voxel Engine\DeprecatedRefactor</Filter>
-    </ClCompile>
-    <ClCompile Include="Voxels\Refactor\Interface.cpp">
-      <Filter>Voxel Engine\DeprecatedRefactor</Filter>
-    </ClCompile>
-    <ClCompile Include="Voxels\Refactor\settings.cpp">
-      <Filter>Voxel Engine\DeprecatedRefactor</Filter>
-    </ClCompile>
-    <ClCompile Include="Voxels\Refactor\sun.cpp">
-      <Filter>Voxel Engine\DeprecatedRefactor</Filter>
-    </ClCompile>
-    <ClCompile Include="Voxels\Rendering\ChunkRenderer.cpp">
-      <Filter>Voxel Engine\Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="Voxels\Rendering\NuRenderer.cpp">
-      <Filter>Voxel Engine\Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="Voxels\Rendering\TextureArray.cpp">
-      <Filter>Voxel Engine\Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="Voxels\Utilities\collision_check.cpp">
-      <Filter>Voxel Engine\Utilities</Filter>
-    </ClCompile>
-    <ClCompile Include="Voxels\Utilities\ImGuiBonus.cpp">
-      <Filter>Voxel Engine\Utilities</Filter>
-    </ClCompile>
-    <ClCompile Include="Voxels\World\chunk_manager.cpp">
-      <Filter>Voxel Engine\World</Filter>
-    </ClCompile>
-    <ClCompile Include="Voxels\World\parallel_chunks.cpp">
-      <Filter>Voxel Engine\World</Filter>
-    </ClCompile>
-    <ClCompile Include="Voxels\World\World.cpp">
-      <Filter>Voxel Engine\World</Filter>
-    </ClCompile>
-    <ClCompile Include="Voxels\WorldGen\WorldGen2.cpp">
-      <Filter>Voxel Engine\WorldGen</Filter>
-    </ClCompile>
-    <ClCompile Include="Voxels\Rendering\Frustum.cpp">
-      <Filter>Voxel Engine\Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="3rdParty\FastNoiseSIMD\FastNoiseSIMD.cpp">
       <Filter>3rd Party\FastNoiseSIMD</Filter>
     </ClCompile>
@@ -405,59 +303,11 @@
     <ClCompile Include="3rdParty\FastNoiseSIMD\FastNoiseSIMD_neon.cpp">
       <Filter>3rd Party\FastNoiseSIMD</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics\abo.cpp">
-      <Filter>DeprecatedGraphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics\Context.cpp">
-      <Filter>DeprecatedGraphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics\dib.cpp">
-      <Filter>DeprecatedGraphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics\ibo.cpp">
-      <Filter>DeprecatedGraphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics\math_utils.cpp">
-      <Filter>DeprecatedGraphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics\misc_utils.cpp">
-      <Filter>DeprecatedGraphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics\param_bo.cpp">
-      <Filter>DeprecatedGraphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics\shader.cpp">
-      <Filter>DeprecatedGraphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics\vao.cpp">
-      <Filter>DeprecatedGraphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics\vbo.cpp">
-      <Filter>DeprecatedGraphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics\UBO.cpp">
-      <Filter>DeprecatedGraphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics\GlobalRendererInfo.cpp">
-      <Filter>DeprecatedGraphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics\stbiImpl.cpp">
-      <Filter>DeprecatedGraphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics\StaticBuffer.cpp">
-      <Filter>DeprecatedGraphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Voxels\Chunks\ChunkSerialize.cpp">
-      <Filter>Voxel Engine\Chunks</Filter>
-    </ClCompile>
     <ClCompile Include="CoreEngine\Input.cpp">
       <Filter>CoreEngine</Filter>
     </ClCompile>
     <ClCompile Include="CoreEngine\GAssert.cpp">
       <Filter>CoreEngine</Filter>
-    </ClCompile>
-    <ClCompile Include="Voxels\World\VoxelManager.cpp">
-      <Filter>Voxel Engine\World</Filter>
     </ClCompile>
     <ClCompile Include="CoreEngine\Application.cpp">
       <Filter>CoreEngine</Filter>
@@ -492,9 +342,6 @@
     <ClCompile Include="CoreEngine\Camera.cpp">
       <Filter>CoreEngine\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="CoreEngine\main.cpp">
-      <Filter>Game</Filter>
-    </ClCompile>
     <ClCompile Include="CoreEngine\Entity.cpp">
       <Filter>CoreEngine\ECS</Filter>
     </ClCompile>
@@ -504,19 +351,109 @@
     <ClCompile Include="CoreEngine\Engine.cpp">
       <Filter>CoreEngine</Filter>
     </ClCompile>
+    <ClCompile Include="Voxels\Chunk.cpp">
+      <Filter>Voxel Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="Voxels\chunk_manager.cpp">
+      <Filter>Voxel Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="Voxels\ChunkMesh.cpp">
+      <Filter>Voxel Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="Voxels\ChunkRenderer.cpp">
+      <Filter>Voxel Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="Voxels\ChunkSerialize.cpp">
+      <Filter>Voxel Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="Voxels\EditorRefactor.cpp">
+      <Filter>Voxel Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="Voxels\HUDRefactor.cpp">
+      <Filter>Voxel Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="Voxels\NuRenderer.cpp">
+      <Filter>Voxel Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="Voxels\parallel_chunks.cpp">
+      <Filter>Voxel Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="Voxels\VoxelManager.cpp">
+      <Filter>Voxel Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="Voxels\World.cpp">
+      <Filter>Voxel Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\main.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\WorldGen.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreEngine\collision_check.cpp">
+      <Filter>CoreEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreEngine\Context.cpp">
+      <Filter>CoreEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreEngine\GlobalRendererInfo.cpp">
+      <Filter>CoreEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreEngine\math_utils.cpp">
+      <Filter>CoreEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreEngine\misc_utils.cpp">
+      <Filter>CoreEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreEngine\dib.cpp">
+      <Filter>CoreEngine\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreEngine\Frustum.cpp">
+      <Filter>CoreEngine\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreEngine\abo.cpp">
+      <Filter>CoreEngine\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreEngine\ibo.cpp">
+      <Filter>CoreEngine\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreEngine\param_bo.cpp">
+      <Filter>CoreEngine\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreEngine\StaticBuffer.cpp">
+      <Filter>CoreEngine\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreEngine\stbiImpl.cpp">
+      <Filter>CoreEngine\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreEngine\TextureArray.cpp">
+      <Filter>CoreEngine\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreEngine\UBO.cpp">
+      <Filter>CoreEngine\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreEngine\vao.cpp">
+      <Filter>CoreEngine\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreEngine\vbo.cpp">
+      <Filter>CoreEngine\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreEngine\Shader.cpp">
+      <Filter>CoreEngine\Graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Voxels\Chunks\BlockStorage.inl">
-      <Filter>Voxel Engine\Chunks</Filter>
+    <None Include="Voxels\BlockStorage.inl">
+      <Filter>Voxel Engine</Filter>
     </None>
-    <None Include="Voxels\Chunks\ChunkHelpers.inl">
-      <Filter>Voxel Engine\Chunks</Filter>
+    <None Include="Voxels\ChunkHelpers.inl">
+      <Filter>Voxel Engine</Filter>
     </None>
-    <None Include="Voxels\Utilities\Palette.inl">
-      <Filter>Voxel Engine\Utilities</Filter>
+    <None Include="Voxels\imgui.ini">
+      <Filter>Voxel Engine</Filter>
     </None>
-    <None Include="Graphics\DynamicBuffer.inl">
-      <Filter>DeprecatedGraphics</Filter>
+    <None Include="CoreEngine\DynamicBuffer.inl">
+      <Filter>CoreEngine\Graphics</Filter>
     </None>
   </ItemGroup>
 </Project>

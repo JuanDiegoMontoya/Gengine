@@ -1,7 +1,7 @@
 #pragma once
 #include "Scene.h"
 #include <entt.hpp>
-#include <GAssert.h>
+#include <CoreEngine/GAssert.h>
 
 // "lightweight object"
 class Entity

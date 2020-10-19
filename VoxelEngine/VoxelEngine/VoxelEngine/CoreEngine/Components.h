@@ -2,9 +2,9 @@
 #include <string>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
-#include "ScriptableEntity.h"
-#include "MeshUtils.h"
-#include <Material.h>
+#include <CoreEngine/ScriptableEntity.h>
+#include <CoreEngine/MeshUtils.h>
+#include <CoreEngine/Material.h>
 
 namespace Components
 {

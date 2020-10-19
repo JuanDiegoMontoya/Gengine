@@ -1,5 +1,5 @@
 #include "Material.h"
-#include <GAssert.h>
+#include <CoreEngine/GAssert.h>
 
 MaterialHandle MaterialManager::CreateMaterial(MaterialInfo materialData)
 {

@@ -1,6 +1,7 @@
 #include "Application.h"
 #include "Engine.h"
 #include "Scene.h"
+#include "GAssert.h"
 
 void Application::Start()
 {

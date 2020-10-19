@@ -29,80 +29,70 @@
     <ClInclude Include="3rdParty\imgui\imstb_rectpack.h" />
     <ClInclude Include="3rdParty\imgui\imstb_textedit.h" />
     <ClInclude Include="3rdParty\imgui\imstb_truetype.h" />
+    <ClInclude Include="CoreEngine\abo.h" />
     <ClInclude Include="CoreEngine\Application.h" />
     <ClInclude Include="CoreEngine\AssimpUtils.h" />
     <ClInclude Include="CoreEngine\Camera.h" />
+    <ClInclude Include="CoreEngine\collision_check.h" />
+    <ClInclude Include="CoreEngine\collision_shapes.h" />
     <ClInclude Include="CoreEngine\Components.h" />
+    <ClInclude Include="CoreEngine\Context.h" />
+    <ClInclude Include="CoreEngine\Debug.h" />
     <ClInclude Include="CoreEngine\DebugSystem.h" />
+    <ClInclude Include="CoreEngine\dib.h" />
+    <ClInclude Include="CoreEngine\DynamicBuffer.h" />
     <ClInclude Include="CoreEngine\Engine.h" />
     <ClInclude Include="CoreEngine\Entity.h" />
+    <ClInclude Include="CoreEngine\Frustum.h" />
     <ClInclude Include="CoreEngine\GAssert.h" />
+    <ClInclude Include="CoreEngine\GlobalRendererInfo.h" />
+    <ClInclude Include="CoreEngine\GraphicsIncludes.h" />
     <ClInclude Include="CoreEngine\GraphicsSystem.h" />
+    <ClInclude Include="CoreEngine\ibo.h" />
     <ClInclude Include="CoreEngine\Input.h" />
     <ClInclude Include="CoreEngine\Material.h" />
     <ClInclude Include="CoreEngine\MathIncludes.h" />
+    <ClInclude Include="CoreEngine\math_utils.h" />
     <ClInclude Include="CoreEngine\Mesh.h" />
     <ClInclude Include="CoreEngine\MeshUtils.h" />
+    <ClInclude Include="CoreEngine\misc_utils.h" />
+    <ClInclude Include="CoreEngine\param_bo.h" />
     <ClInclude Include="CoreEngine\PhysicsSystem.h" />
     <ClInclude Include="CoreEngine\Renderer.h" />
     <ClInclude Include="CoreEngine\Scene.h" />
     <ClInclude Include="CoreEngine\ScriptableEntity.h" />
+    <ClInclude Include="CoreEngine\Shader.h" />
+    <ClInclude Include="CoreEngine\Shapes.h" />
+    <ClInclude Include="CoreEngine\StaticBuffer.h" />
     <ClInclude Include="CoreEngine\Texture2D.h" />
+    <ClInclude Include="CoreEngine\TextureArray.h" />
+    <ClInclude Include="CoreEngine\UBO.h" />
+    <ClInclude Include="CoreEngine\utilities.h" />
+    <ClInclude Include="CoreEngine\vao.h" />
+    <ClInclude Include="CoreEngine\vbo.h" />
+    <ClInclude Include="CoreEngine\vbo_layout.h" />
+    <ClInclude Include="CoreEngine\Vertices.h" />
     <ClInclude Include="CoreEngine\Window.h" />
     <ClInclude Include="CoreEngine\WindowCB.h" />
     <ClInclude Include="CoreEngine\WindowUtils.h" />
-    <ClInclude Include="Graphics\abo.h" />
-    <ClInclude Include="Graphics\DynamicBuffer.h" />
-    <ClInclude Include="Graphics\Context.h" />
-    <ClInclude Include="Graphics\dib.h" />
-    <ClInclude Include="Graphics\GlobalRendererInfo.h" />
-    <ClInclude Include="Graphics\GraphicsIncludes.h" />
-    <ClInclude Include="Graphics\ibo.h" />
-    <ClInclude Include="Graphics\math_utils.h" />
-    <ClInclude Include="Graphics\misc_utils.h" />
-    <ClInclude Include="Graphics\param_bo.h" />
-    <ClInclude Include="Graphics\shader.h" />
-    <ClInclude Include="Graphics\Shapes.h" />
-    <ClInclude Include="Graphics\StaticBuffer.h" />
-    <ClInclude Include="Graphics\UBO.h" />
-    <ClInclude Include="Graphics\utilities.h" />
-    <ClInclude Include="Graphics\vao.h" />
-    <ClInclude Include="Graphics\vbo.h" />
-    <ClInclude Include="Graphics\vbo_layout.h" />
-    <ClInclude Include="Graphics\Vertices.h" />
+    <ClInclude Include="Game\WorldGen.h" />
     <ClInclude Include="Voxels\biome.h" />
     <ClInclude Include="Voxels\block.h" />
-    <ClInclude Include="Voxels\Chunks\BlockStorage.h" />
-    <ClInclude Include="Voxels\Chunks\Chunk.h" />
-    <ClInclude Include="Voxels\Chunks\ChunkHelpers.h" />
-    <ClInclude Include="Voxels\Chunks\ChunkMesh.h" />
-    <ClInclude Include="Voxels\Chunks\ChunkSerialize.h" />
+    <ClInclude Include="Voxels\BlockStorage.h" />
+    <ClInclude Include="Voxels\Chunk.h" />
+    <ClInclude Include="Voxels\ChunkHelpers.h" />
+    <ClInclude Include="Voxels\ChunkMesh.h" />
+    <ClInclude Include="Voxels\ChunkRenderer.h" />
+    <ClInclude Include="Voxels\ChunkSerialize.h" />
+    <ClInclude Include="Voxels\chunk_manager.h" />
+    <ClInclude Include="Voxels\EditorRefactor.h" />
+    <ClInclude Include="Voxels\HUDRefactor.h" />
     <ClInclude Include="Voxels\light.h" />
+    <ClInclude Include="Voxels\NuRenderer.h" />
+    <ClInclude Include="Voxels\parallel_chunks.h" />
     <ClInclude Include="Voxels\prefab.h" />
-    <ClInclude Include="Voxels\Refactor\hud.h" />
-    <ClInclude Include="Voxels\Refactor\Interface.h" />
-    <ClInclude Include="Voxels\Refactor\settings.h" />
-    <ClInclude Include="Voxels\Refactor\sun.h" />
-    <ClInclude Include="Voxels\Rendering\ChunkRenderer.h" />
-    <ClInclude Include="Voxels\Rendering\Frustum.h" />
-    <ClInclude Include="Voxels\Rendering\NuRenderer.h" />
-    <ClInclude Include="Voxels\Rendering\TextureArray.h" />
-    <ClInclude Include="Voxels\Utilities\BitArray.h" />
-    <ClInclude Include="Voxels\Utilities\collision_check.h" />
-    <ClInclude Include="Voxels\Utilities\collision_shapes.h" />
-    <ClInclude Include="Voxels\Utilities\CompressBuffer.h" />
-    <ClInclude Include="Voxels\Utilities\DeltaEncoder.h" />
-    <ClInclude Include="Voxels\Utilities\FixedQueue.h" />
-    <ClInclude Include="Voxels\Utilities\ImGuiBonus.h" />
-    <ClInclude Include="Voxels\Utilities\Palette.h" />
-    <ClInclude Include="Voxels\Utilities\RunLengthEncoder.h" />
-    <ClInclude Include="Voxels\Utilities\serialize.h" />
-    <ClInclude Include="Voxels\Utilities\Timer.h" />
-    <ClInclude Include="Voxels\WorldGen\WorldGen2.h" />
-    <ClInclude Include="Voxels\World\chunk_manager.h" />
-    <ClInclude Include="Voxels\World\parallel_chunks.h" />
-    <ClInclude Include="Voxels\World\VoxelManager.h" />
-    <ClInclude Include="Voxels\World\World.h" />
+    <ClInclude Include="Voxels\VoxelManager.h" />
+    <ClInclude Include="Voxels\World.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="3rdParty\FastNoiseSIMD\FastNoiseSIMD.cpp" />
@@ -120,67 +110,61 @@
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <ClCompile Include="3rdParty\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="CoreEngine\abo.cpp" />
     <ClCompile Include="CoreEngine\Application.cpp" />
     <ClCompile Include="CoreEngine\Camera.cpp" />
+    <ClCompile Include="CoreEngine\collision_check.cpp" />
+    <ClCompile Include="CoreEngine\Context.cpp" />
     <ClCompile Include="CoreEngine\DebugSystem.cpp" />
+    <ClCompile Include="CoreEngine\dib.cpp" />
     <ClCompile Include="CoreEngine\Engine.cpp" />
     <ClCompile Include="CoreEngine\Entity.cpp" />
+    <ClCompile Include="CoreEngine\Frustum.cpp" />
     <ClCompile Include="CoreEngine\GAssert.cpp" />
+    <ClCompile Include="CoreEngine\GlobalRendererInfo.cpp" />
     <ClCompile Include="CoreEngine\GraphicsSystem.cpp" />
+    <ClCompile Include="CoreEngine\ibo.cpp" />
     <ClCompile Include="CoreEngine\Input.cpp" />
-    <ClCompile Include="CoreEngine\main.cpp" />
     <ClCompile Include="CoreEngine\Material.cpp" />
+    <ClCompile Include="CoreEngine\math_utils.cpp" />
     <ClCompile Include="CoreEngine\Mesh.cpp" />
+    <ClCompile Include="CoreEngine\misc_utils.cpp" />
+    <ClCompile Include="CoreEngine\param_bo.cpp" />
     <ClCompile Include="CoreEngine\PhysicsSystem.cpp" />
     <ClCompile Include="CoreEngine\Renderer.cpp" />
     <ClCompile Include="CoreEngine\Scene.cpp" />
+    <ClCompile Include="CoreEngine\Shader.cpp" />
+    <ClCompile Include="CoreEngine\StaticBuffer.cpp" />
+    <ClCompile Include="CoreEngine\stbiImpl.cpp" />
     <ClCompile Include="CoreEngine\Texture2D.cpp" />
+    <ClCompile Include="CoreEngine\TextureArray.cpp" />
+    <ClCompile Include="CoreEngine\UBO.cpp" />
+    <ClCompile Include="CoreEngine\vao.cpp" />
+    <ClCompile Include="CoreEngine\vbo.cpp" />
     <ClCompile Include="CoreEngine\Window.cpp" />
     <ClCompile Include="CoreEngine\WindowCB.cpp" />
-    <ClCompile Include="Graphics\abo.cpp" />
-    <ClCompile Include="Graphics\Context.cpp" />
-    <ClCompile Include="Graphics\dib.cpp" />
-    <ClCompile Include="Graphics\GlobalRendererInfo.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/experimental:external /external:I "$(ProjectDir)3rdParty" %(AdditionalOptions)</AdditionalOptions>
-    </ClCompile>
-    <ClCompile Include="Graphics\ibo.cpp" />
-    <ClCompile Include="Graphics\math_utils.cpp" />
-    <ClCompile Include="Graphics\misc_utils.cpp" />
-    <ClCompile Include="Graphics\param_bo.cpp" />
-    <ClCompile Include="Graphics\shader.cpp" />
-    <ClCompile Include="Graphics\StaticBuffer.cpp" />
-    <ClCompile Include="Graphics\stbiImpl.cpp" />
-    <ClCompile Include="Graphics\UBO.cpp" />
-    <ClCompile Include="Graphics\vao.cpp" />
-    <ClCompile Include="Graphics\vbo.cpp" />
+    <ClCompile Include="Game\main.cpp" />
+    <ClCompile Include="Game\WorldGen.cpp" />
     <ClCompile Include="Voxels\biome.cpp" />
     <ClCompile Include="Voxels\block.cpp" />
-    <ClCompile Include="Voxels\Chunks\Chunk.cpp" />
-    <ClCompile Include="Voxels\Chunks\ChunkMesh.cpp" />
-    <ClCompile Include="Voxels\Chunks\ChunkSerialize.cpp" />
+    <ClCompile Include="Voxels\Chunk.cpp" />
+    <ClCompile Include="Voxels\ChunkMesh.cpp" />
+    <ClCompile Include="Voxels\ChunkRenderer.cpp" />
+    <ClCompile Include="Voxels\ChunkSerialize.cpp" />
+    <ClCompile Include="Voxels\chunk_manager.cpp" />
+    <ClCompile Include="Voxels\EditorRefactor.cpp" />
+    <ClCompile Include="Voxels\HUDRefactor.cpp" />
+    <ClCompile Include="Voxels\NuRenderer.cpp" />
+    <ClCompile Include="Voxels\parallel_chunks.cpp" />
     <ClCompile Include="Voxels\prefab.cpp" />
-    <ClCompile Include="Voxels\Refactor\Editor.cpp" />
-    <ClCompile Include="Voxels\Refactor\hud.cpp" />
-    <ClCompile Include="Voxels\Refactor\Interface.cpp" />
-    <ClCompile Include="Voxels\Refactor\settings.cpp" />
-    <ClCompile Include="Voxels\Refactor\sun.cpp" />
-    <ClCompile Include="Voxels\Rendering\ChunkRenderer.cpp" />
-    <ClCompile Include="Voxels\Rendering\Frustum.cpp" />
-    <ClCompile Include="Voxels\Rendering\NuRenderer.cpp" />
-    <ClCompile Include="Voxels\Rendering\TextureArray.cpp" />
-    <ClCompile Include="Voxels\Utilities\collision_check.cpp" />
-    <ClCompile Include="Voxels\Utilities\ImGuiBonus.cpp" />
-    <ClCompile Include="Voxels\WorldGen\WorldGen2.cpp" />
-    <ClCompile Include="Voxels\World\chunk_manager.cpp" />
-    <ClCompile Include="Voxels\World\parallel_chunks.cpp" />
-    <ClCompile Include="Voxels\World\VoxelManager.cpp" />
-    <ClCompile Include="Voxels\World\World.cpp" />
+    <ClCompile Include="Voxels\VoxelManager.cpp" />
+    <ClCompile Include="Voxels\World.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Graphics\DynamicBuffer.inl" />
-    <None Include="Voxels\Chunks\BlockStorage.inl" />
-    <None Include="Voxels\Chunks\ChunkHelpers.inl" />
-    <None Include="Voxels\Utilities\Palette.inl" />
+    <None Include="CoreEngine\DynamicBuffer.inl" />
+    <None Include="Voxels\BlockStorage.inl" />
+    <None Include="Voxels\ChunkHelpers.inl" />
+    <None Include="Voxels\imgui.ini" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
@@ -244,7 +228,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(ProjectDir)3rdParty\assimp-3.3.1\include;$(ProjectDir)3rdParty;$(ProjectDir)3rdParty\shaderc\include;$(ProjectDir)3rdParty\glew-2.1.0\include;$(ProjectDir);$(ProjectDir)3rdParty\entt\src;$(ProjectDir)3rdParty\stb;$(ProjectDir)3rdParty\glfw-3.3-win64\include;$(ProjectDir)Voxels;$(ProjectDir)3rdParty\cereal-1.2.2\include;$(ProjectDir)CoreEngine;$(ProjectDir)3rdParty\zlib-1.2.11;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)3rdParty\assimp-3.3.1\include;$(ProjectDir)3rdParty;$(ProjectDir)3rdParty\shaderc\include;$(ProjectDir)3rdParty\glew-2.1.0\include;$(ProjectDir);$(ProjectDir)3rdParty\entt\src;$(ProjectDir)3rdParty\stb;$(ProjectDir)3rdParty\glfw-3.3-win64\include;$(ProjectDir)3rdParty\cereal-1.2.2\include;$(ProjectDir)3rdParty\zlib-1.2.11;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
     <PreBuildEventUseInBuild>false</PreBuildEventUseInBuild>
     <CustomBuildBeforeTargets>
     </CustomBuildBeforeTargets>
@@ -261,7 +245,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(ProjectDir)3rdParty\assimp-3.3.1\include;$(ProjectDir)3rdParty;$(ProjectDir)3rdParty\shaderc\include;$(ProjectDir)3rdParty\glew-2.1.0\include;$(ProjectDir);$(ProjectDir)3rdParty\entt\src;$(ProjectDir)3rdParty\stb;$(ProjectDir)3rdParty\glfw-3.3-win64\include;$(ProjectDir)Voxels;$(ProjectDir)3rdParty\cereal-1.2.2\include;$(ProjectDir)CoreEngine;$(ProjectDir)3rdParty\zlib-1.2.11;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)3rdParty\assimp-3.3.1\include;$(ProjectDir)3rdParty;$(ProjectDir)3rdParty\shaderc\include;$(ProjectDir)3rdParty\glew-2.1.0\include;$(ProjectDir);$(ProjectDir)3rdParty\entt\src;$(ProjectDir)3rdParty\stb;$(ProjectDir)3rdParty\glfw-3.3-win64\include;$(ProjectDir)3rdParty\cereal-1.2.2\include;$(ProjectDir)3rdParty\zlib-1.2.11;$(IncludePath)</IncludePath>
     <PreBuildEventUseInBuild>false</PreBuildEventUseInBuild>
     <CustomBuildBeforeTargets>
     </CustomBuildBeforeTargets>

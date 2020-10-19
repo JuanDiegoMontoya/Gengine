@@ -1,8 +1,8 @@
 #pragma once
 #include <Utilities/serialize.h>
-#include <light.h>
+#include <Voxels/light.h>
 #include <vector>
-#include <Graphics/GraphicsIncludes.h>
+#include <CoreEngine/GraphicsIncludes.h>
 
 enum class Visibility
 {
