@@ -3,7 +3,6 @@
 #include <Utilities/Timer.h>
 
 class StaticBuffer;
-class VAO;
 
 // signifies no userdata specialization
 struct None_ {};
@@ -98,7 +97,7 @@ public:
   void GenDrawData();
 
 private:
-  std::unique_ptr<VAO> vao_;
+  GLuint vao_;
   std::unique_ptr<StaticBuffer> vbo_;
 };
 

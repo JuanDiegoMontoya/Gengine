@@ -1,5 +1,5 @@
-#include <Graphics/GraphicsIncludes.h>
-#include <Rendering/Frustum.h>
+#include <CoreEngine/GraphicsIncludes.h>
+#include <CoreEngine/Frustum.h>
 
 void Frustum::Transform(const glm::mat4& proj, const glm::mat4& view)
 {

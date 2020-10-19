@@ -232,7 +232,7 @@ inline void DebugDrawableBuffer<UserT>::GenDrawData()
     alternator = !alternator;
   }
 
-  vbo_ = std::make_unique<VBO>(&data[0][0], sizeof(glm::vec3) * data.size(), GL_STREAM_DRAW);
+  vbo_ = std::make_unique<StaticBuffer>(&data[0][0], sizeof(glm::vec3) * data.size(), GL_STREAM_DRAW);
   vao_->AddBuffer(*vbo_, layout);
 }
 

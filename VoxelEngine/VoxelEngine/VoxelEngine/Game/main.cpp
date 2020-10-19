@@ -26,7 +26,7 @@ void OnStart(Scene* scene)
   wg.InitializeSunlight();
   wg.InitMeshes();
   wg.InitBuffers();
-  auto compressed = CompressChunk(voxelManager->GetChunk(glm::ivec3(0))->GetStorage());
+  //auto compressed = CompressChunk(voxelManager->GetChunk(glm::ivec3(0))->GetStorage());
 
   MaterialInfo info;
   info.shaderID = "ShaderMcShaderFuckFace";
@@ -44,7 +44,7 @@ void OnStart(Scene* scene)
 
     bool l, o;
     Components::Mesh mesh;
-    mesh.meshHandle = MeshManager::CreateMesh("./Resources/Models/bunny.obj", l, o)[0];
+    mesh.meshHandle = MeshManager::CreateMesh("./Resources/Models/teapot.obj", l, o)[0];
     thing.AddComponent<Components::Mesh>(mesh);
 
     Components::Material material = userMaterial;
@@ -53,18 +53,18 @@ void OnStart(Scene* scene)
   }
 
   // make an entity for each object in the maya mesh
-  bool l, o;
-  auto mesh = MeshManager::CreateMesh("./Resources/Models/maya.fbx", l, o);
-  for (auto handle : mesh)
-  {
-    Entity newEnt = scene->CreateEntity("maya");
-    newEnt.AddComponent<Components::Transform>();
-    Components::Model model{ .model = glm::scale(glm::mat4(1), {.01, .01, .01}) };
-    newEnt.AddComponent<Components::Model>(model);
-    Components::Mesh mesh{ .meshHandle = handle };
-    newEnt.AddComponent<Components::Mesh>(mesh);
-    newEnt.AddComponent<Components::Material>(userMaterial);
-  }
+  //bool l, o;
+  //auto mesh = MeshManager::CreateMesh("./Resources/Models/maya.fbx", l, o);
+  //for (auto handle : mesh)
+  //{
+  //  Entity newEnt = scene->CreateEntity("maya");
+  //  newEnt.AddComponent<Components::Transform>();
+  //  Components::Model model{ .model = glm::scale(glm::mat4(1), {.01, .01, .01}) };
+  //  newEnt.AddComponent<Components::Model>(model);
+  //  Components::Mesh mesh{ .meshHandle = handle };
+  //  newEnt.AddComponent<Components::Mesh>(mesh);
+  //  newEnt.AddComponent<Components::Material>(userMaterial);
+  //}
 }
 
 void OnUpdate(float dt)

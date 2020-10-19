@@ -1,11 +1,11 @@
-#include <Graphics/Context.h>
+#include <CoreEngine/Context.h>
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
 
 // TODO: horrible
-#include <Input.h>
+#include <CoreEngine/Input.h>
 
 static void error_cb(int error, char const* description)
 {

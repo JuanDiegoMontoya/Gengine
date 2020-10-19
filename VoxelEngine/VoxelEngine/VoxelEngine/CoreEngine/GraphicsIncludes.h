@@ -1,15 +1,30 @@
+#pragma once
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <CoreEngine/MathIncludes.h>
 
-#include <CoreEngine/abo.h>
-#include <CoreEngine/dib.h>
-#include <CoreEngine/ibo.h>
 #include <CoreEngine/utilities.h>
 #include <CoreEngine/shader.h>
-#include <CoreEngine/vao.h>
-#include <CoreEngine/vbo.h>
-#include <CoreEngine/param_bo.h>
 #include <CoreEngine/Vertices.h>
 #include <CoreEngine/UBO.h>
 #include <CoreEngine/StaticBuffer.h>
+#include <CoreEngine/vao.h>
+
+struct DrawElementsIndirectCommand
+{
+  GLuint  count;
+  GLuint  instanceCount;
+  GLuint  firstIndex;
+  GLuint  baseVertex;
+  GLuint  baseInstance;
+  // note: baseInstance is for glMultiDraw*Indirect ONLY
+  // for any other purpose it must be zero
+};
+
+struct DrawArraysIndirectCommand
+{
+  GLuint  count;
+  GLuint  instanceCount;
+  GLuint  first;
+  GLuint  baseInstance;
+};

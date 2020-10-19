@@ -1,5 +1,5 @@
-#include <Graphics/GraphicsIncludes.h>
-#include <Rendering/TextureArray.h>
+#include <CoreEngine/GraphicsIncludes.h>
+#include <CoreEngine/TextureArray.h>
 #include <stb_image.h>
 #include <filesystem>
 #include <iostream>

@@ -2,10 +2,8 @@
 #include <Voxels/block.h>
 //#include <Chunks/Chunk.h>
 #include <Voxels/NuRenderer.h>
-#include <CoreEngine/dib.h>
-#include <CoreEngine/vbo.h>
-#include <CoreEngine/vao.h>
 #include <shared_mutex>
+#include <CoreEngine/StaticBuffer.h>
 
 //class VAO;
 //class VBO;
@@ -57,10 +55,9 @@ private:
   const Chunk* parent = nullptr;
   const Chunk* nearChunks[6]{ nullptr };
 
-  std::unique_ptr<VAO> vao_;
-  std::unique_ptr<VBO> encodedStuffVbo_;
-  std::unique_ptr<VBO> lightingVbo_;
-  std::unique_ptr<VBO> posVbo_;
+  std::unique_ptr<StaticBuffer> encodedStuffVbo_;
+  std::unique_ptr<StaticBuffer> lightingVbo_;
+  std::unique_ptr<StaticBuffer> posVbo_;
 
   // vertex data (held until buffers are sent to GPU)
   std::vector<GLint> encodedStuffArr;
@@ -72,9 +69,6 @@ private:
 
   GLsizei pointCount_ = 0;
   bool voxelReady_ = true; // hack to prevent same voxel from being added multiple times for splatting (I think)
-
-  // indirect drawing stuff
-  std::unique_ptr<DIB> dib_;
 
   std::shared_mutex mtx;
 };

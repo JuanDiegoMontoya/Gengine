@@ -1,16 +1,16 @@
 #include "GraphicsSystem.h"
 #include "Scene.h"
-#include <Graphics/GraphicsIncludes.h>
-#include "Input.h"
-#include "Application.h"
-#include "Camera.h"
-#include "Components.h"
-#include "Renderer.h"
-#include "Mesh.h"
+#include <CoreEngine/GraphicsIncludes.h>
+#include <CoreEngine/Input.h>
+#include <CoreEngine/Application.h>
+#include <CoreEngine/Camera.h>
+#include <CoreEngine/Components.h>
+#include <CoreEngine/Renderer.h>
+#include <CoreEngine/Mesh.h>
 
 // TODO: TEMP GARBAGE
-#include <Rendering/NuRenderer.h>
-#include <Graphics/Context.h>
+#include <Voxels/NuRenderer.h>
+#include <CoreEngine/Context.h>
 Camera* cam;
 
 

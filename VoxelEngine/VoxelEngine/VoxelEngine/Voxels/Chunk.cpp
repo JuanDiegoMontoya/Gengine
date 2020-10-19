@@ -1,4 +1,4 @@
-#include <Chunks/Chunk.h>
+#include <Voxels/Chunk.h>
 
 Chunk::Chunk(const Chunk& other) : mesh(this, other.mesh.voxelManager_)
 {

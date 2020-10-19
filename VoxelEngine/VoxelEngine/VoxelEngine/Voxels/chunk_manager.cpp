@@ -1,10 +1,10 @@
-#include <Chunks/Chunk.h>
-#include <block.h>
+#include <Voxels/Chunk.h>
+#include <Voxels/block.h>
 //#include "World.h"
 #include "chunk_manager.h"
-#include <Graphics/utilities.h>
-#include <Chunks/ChunkHelpers.h>
-#include <Graphics/GraphicsIncludes.h>
+#include <CoreEngine/utilities.h>
+#include <Voxels/ChunkHelpers.h>
+#include <CoreEngine/GraphicsIncludes.h>
 #include <Utilities/Timer.h>
 #include "VoxelManager.h"
 

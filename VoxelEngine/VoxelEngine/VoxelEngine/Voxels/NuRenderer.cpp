@@ -4,7 +4,6 @@
 #include <CoreEngine/shader.h>
 #include <CoreEngine/Camera.h>
 #include <CoreEngine/Input.h>
-#include <CoreEngine/dib.h>
 #include <Voxels/ChunkRenderer.h>
 #include <Voxels/block.h>
 #include <CoreEngine/TextureArray.h>
@@ -277,7 +276,7 @@ namespace NuRenderer
   void drawAxisIndicators()
   {
     static VAO* axisVAO;
-    static VBO* axisVBO;
+    static StaticBuffer* axisVBO;
     if (axisVAO == nullptr)
     {
       float indicatorVertices[] =
@@ -292,7 +291,7 @@ namespace NuRenderer
       };
 
       axisVAO = new VAO();
-      axisVBO = new VBO(indicatorVertices, sizeof(indicatorVertices), GL_STATIC_DRAW);
+      axisVBO = new StaticBuffer(indicatorVertices, sizeof(indicatorVertices));
       VBOlayout layout;
       layout.Push<float>(3);
       layout.Push<float>(3);
@@ -348,11 +347,11 @@ namespace NuRenderer
   void DrawCube()
   {
     static VAO* blockHoverVao = nullptr;
-    static VBO* blockHoverVbo = nullptr;
+    static StaticBuffer* blockHoverVbo = nullptr;
     if (blockHoverVao == nullptr)
     {
       blockHoverVao = new VAO();
-      blockHoverVbo = new VBO(Vertices::cube_norm_tex, sizeof(Vertices::cube_norm_tex));
+      blockHoverVbo = new StaticBuffer(Vertices::cube_norm_tex, sizeof(Vertices::cube_norm_tex));
       VBOlayout layout;
       layout.Push<float>(3);
       layout.Push<float>(3);

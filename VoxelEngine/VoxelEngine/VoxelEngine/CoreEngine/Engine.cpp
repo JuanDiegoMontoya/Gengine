@@ -1,7 +1,7 @@
 #include "Engine.h"
 #include <Utilities/Timer.h>
-#include "Input.h"
-#include <GAssert.h>
+#include <CoreEngine/Input.h>
+#include <CoreEngine/GAssert.h>
 
 #include "GraphicsSystem.h"
 #include "DebugSystem.h"

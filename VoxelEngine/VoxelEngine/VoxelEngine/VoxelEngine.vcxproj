@@ -29,7 +29,6 @@
     <ClInclude Include="3rdParty\imgui\imstb_rectpack.h" />
     <ClInclude Include="3rdParty\imgui\imstb_textedit.h" />
     <ClInclude Include="3rdParty\imgui\imstb_truetype.h" />
-    <ClInclude Include="CoreEngine\abo.h" />
     <ClInclude Include="CoreEngine\Application.h" />
     <ClInclude Include="CoreEngine\AssimpUtils.h" />
     <ClInclude Include="CoreEngine\Camera.h" />
@@ -39,7 +38,6 @@
     <ClInclude Include="CoreEngine\Context.h" />
     <ClInclude Include="CoreEngine\Debug.h" />
     <ClInclude Include="CoreEngine\DebugSystem.h" />
-    <ClInclude Include="CoreEngine\dib.h" />
     <ClInclude Include="CoreEngine\DynamicBuffer.h" />
     <ClInclude Include="CoreEngine\Engine.h" />
     <ClInclude Include="CoreEngine\Entity.h" />
@@ -48,7 +46,6 @@
     <ClInclude Include="CoreEngine\GlobalRendererInfo.h" />
     <ClInclude Include="CoreEngine\GraphicsIncludes.h" />
     <ClInclude Include="CoreEngine\GraphicsSystem.h" />
-    <ClInclude Include="CoreEngine\ibo.h" />
     <ClInclude Include="CoreEngine\Input.h" />
     <ClInclude Include="CoreEngine\Material.h" />
     <ClInclude Include="CoreEngine\MathIncludes.h" />
@@ -56,7 +53,6 @@
     <ClInclude Include="CoreEngine\Mesh.h" />
     <ClInclude Include="CoreEngine\MeshUtils.h" />
     <ClInclude Include="CoreEngine\misc_utils.h" />
-    <ClInclude Include="CoreEngine\param_bo.h" />
     <ClInclude Include="CoreEngine\PhysicsSystem.h" />
     <ClInclude Include="CoreEngine\Renderer.h" />
     <ClInclude Include="CoreEngine\Scene.h" />
@@ -68,8 +64,7 @@
     <ClInclude Include="CoreEngine\TextureArray.h" />
     <ClInclude Include="CoreEngine\UBO.h" />
     <ClInclude Include="CoreEngine\utilities.h" />
-    <ClInclude Include="CoreEngine\vao.h" />
-    <ClInclude Include="CoreEngine\vbo.h" />
+    <ClInclude Include="CoreEngine\VAO.h" />
     <ClInclude Include="CoreEngine\vbo_layout.h" />
     <ClInclude Include="CoreEngine\Vertices.h" />
     <ClInclude Include="CoreEngine\Window.h" />
@@ -110,26 +105,22 @@
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <ClCompile Include="3rdParty\imgui\imgui_widgets.cpp" />
-    <ClCompile Include="CoreEngine\abo.cpp" />
     <ClCompile Include="CoreEngine\Application.cpp" />
     <ClCompile Include="CoreEngine\Camera.cpp" />
     <ClCompile Include="CoreEngine\collision_check.cpp" />
     <ClCompile Include="CoreEngine\Context.cpp" />
     <ClCompile Include="CoreEngine\DebugSystem.cpp" />
-    <ClCompile Include="CoreEngine\dib.cpp" />
     <ClCompile Include="CoreEngine\Engine.cpp" />
     <ClCompile Include="CoreEngine\Entity.cpp" />
     <ClCompile Include="CoreEngine\Frustum.cpp" />
     <ClCompile Include="CoreEngine\GAssert.cpp" />
     <ClCompile Include="CoreEngine\GlobalRendererInfo.cpp" />
     <ClCompile Include="CoreEngine\GraphicsSystem.cpp" />
-    <ClCompile Include="CoreEngine\ibo.cpp" />
     <ClCompile Include="CoreEngine\Input.cpp" />
     <ClCompile Include="CoreEngine\Material.cpp" />
     <ClCompile Include="CoreEngine\math_utils.cpp" />
     <ClCompile Include="CoreEngine\Mesh.cpp" />
     <ClCompile Include="CoreEngine\misc_utils.cpp" />
-    <ClCompile Include="CoreEngine\param_bo.cpp" />
     <ClCompile Include="CoreEngine\PhysicsSystem.cpp" />
     <ClCompile Include="CoreEngine\Renderer.cpp" />
     <ClCompile Include="CoreEngine\Scene.cpp" />
@@ -139,8 +130,7 @@
     <ClCompile Include="CoreEngine\Texture2D.cpp" />
     <ClCompile Include="CoreEngine\TextureArray.cpp" />
     <ClCompile Include="CoreEngine\UBO.cpp" />
-    <ClCompile Include="CoreEngine\vao.cpp" />
-    <ClCompile Include="CoreEngine\vbo.cpp" />
+    <ClCompile Include="CoreEngine\VAO.cpp" />
     <ClCompile Include="CoreEngine\Window.cpp" />
     <ClCompile Include="CoreEngine\WindowCB.cpp" />
     <ClCompile Include="Game\main.cpp" />
@@ -294,7 +284,7 @@
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <AdditionalOptions>/experimental:external /external:I 3rdParty /external:W0 %(AdditionalOptions)</AdditionalOptions>
-      <Optimization>Full</Optimization>
+      <Optimization>MaxSpeed</Optimization>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

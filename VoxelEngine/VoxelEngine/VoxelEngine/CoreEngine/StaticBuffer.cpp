@@ -1,5 +1,5 @@
-#include <Graphics/GraphicsIncludes.h>
-#include <Graphics/StaticBuffer.h>
+#include <CoreEngine/GraphicsIncludes.h>
+#include <CoreEngine/StaticBuffer.h>
 
 StaticBuffer::StaticBuffer(const void* data, GLuint size, GLbitfield glflags)
 {

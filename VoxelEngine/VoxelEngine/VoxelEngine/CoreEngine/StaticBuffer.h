@@ -1,5 +1,14 @@
 #pragma once
 
+enum class Target
+{
+  VBO = GL_ARRAY_BUFFER,
+  SSBO = GL_SHADER_STORAGE_BUFFER,
+  ABO = GL_ATOMIC_COUNTER_BUFFER,
+  DIB = GL_DRAW_INDIRECT_BUFFER,
+  ParameterBuffer = GL_PARAMETER_BUFFER,
+};
+
 // general-purpose immutable buffer storage
 class StaticBuffer
 {
@@ -18,16 +27,16 @@ public:
   // updates a subset of the buffer's data store
   void SubData(const void* data, GLuint size, GLuint offset = 0);
 
-  template<GLuint Target> 
-  void Bind(GLuint index) const
+  template<Target T> 
+  void Bind() const
   {
-    glBindBuffer(Target, rendererID_);
+    glBindBuffer((GLenum)T, rendererID_);
   }
 
-  template<GLuint Target>
+  template<Target T>
   void Unbind() const
   {
-    glBindBuffer(Target, 0);
+    glBindBuffer((GLenum)T, 0);
   }
 
   // for when this class doesn't offer enough functionality

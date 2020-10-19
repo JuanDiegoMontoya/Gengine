@@ -1,14 +1,10 @@
-#include <Chunks/ChunkMesh.h>
-#include <Graphics/vao.h>
-#include <Graphics/vbo.h>
-#include <Graphics/dib.h>
-#include <Chunks/Chunk.h>
-#include <Chunks/ChunkHelpers.h>
-#include <Graphics/Vertices.h>
-#include <Refactor/settings.h>
-#include <Graphics/DynamicBuffer.h>
-#include <Rendering/ChunkRenderer.h>
-#include <World/VoxelManager.h>
+#include <Voxels/ChunkMesh.h>
+#include <Voxels/Chunk.h>
+#include <Voxels/ChunkHelpers.h>
+#include <CoreEngine/Vertices.h>
+#include <CoreEngine/DynamicBuffer.h>
+#include <Voxels/ChunkRenderer.h>
+#include <Voxels/VoxelManager.h>
 
 #include <iomanip>
 #include <mutex>
@@ -210,7 +206,7 @@ inline void ChunkMesh::addQuad(const glm::ivec3& lpos, BlockType block, int face
     encodeds[cindex] = encoded;
 
     int invOcclusion = 6;
-    if (Settings::Graphics.blockAO)
+    if (true) // TODO: make this an option in the future
       invOcclusion = 2 * vertexFaceAO(lpos, vert, faces[face]);
     
     aoValues[cindex] = invOcclusion;

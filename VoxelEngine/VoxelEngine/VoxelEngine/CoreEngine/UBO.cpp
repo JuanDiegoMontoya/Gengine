@@ -1,5 +1,5 @@
-#include <Graphics/GraphicsIncludes.h>
-#include <Graphics/UBO.h>
+#include <CoreEngine/GraphicsIncludes.h>
+#include <CoreEngine/UBO.h>
 
 UBO::UBO(const void* data, GLuint size)
 {

@@ -214,19 +214,7 @@
     <ClInclude Include="CoreEngine\DynamicBuffer.h">
       <Filter>CoreEngine\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="CoreEngine\dib.h">
-      <Filter>CoreEngine\Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="CoreEngine\Frustum.h">
-      <Filter>CoreEngine\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="CoreEngine\abo.h">
-      <Filter>CoreEngine\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="CoreEngine\ibo.h">
-      <Filter>CoreEngine\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="CoreEngine\param_bo.h">
       <Filter>CoreEngine\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="CoreEngine\Shapes.h">
@@ -241,19 +229,16 @@
     <ClInclude Include="CoreEngine\UBO.h">
       <Filter>CoreEngine\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="CoreEngine\vao.h">
+    <ClInclude Include="CoreEngine\Vertices.h">
       <Filter>CoreEngine\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="CoreEngine\vbo.h">
+    <ClInclude Include="CoreEngine\Shader.h">
       <Filter>CoreEngine\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="CoreEngine\vbo_layout.h">
       <Filter>CoreEngine\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="CoreEngine\Vertices.h">
-      <Filter>CoreEngine\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="CoreEngine\Shader.h">
+    <ClInclude Include="CoreEngine\VAO.h">
       <Filter>CoreEngine\Graphics</Filter>
     </ClInclude>
   </ItemGroup>
@@ -405,19 +390,7 @@
     <ClCompile Include="CoreEngine\misc_utils.cpp">
       <Filter>CoreEngine</Filter>
     </ClCompile>
-    <ClCompile Include="CoreEngine\dib.cpp">
-      <Filter>CoreEngine\Graphics</Filter>
-    </ClCompile>
     <ClCompile Include="CoreEngine\Frustum.cpp">
-      <Filter>CoreEngine\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="CoreEngine\abo.cpp">
-      <Filter>CoreEngine\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="CoreEngine\ibo.cpp">
-      <Filter>CoreEngine\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="CoreEngine\param_bo.cpp">
       <Filter>CoreEngine\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="CoreEngine\StaticBuffer.cpp">
@@ -432,13 +405,10 @@
     <ClCompile Include="CoreEngine\UBO.cpp">
       <Filter>CoreEngine\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="CoreEngine\vao.cpp">
-      <Filter>CoreEngine\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="CoreEngine\vbo.cpp">
-      <Filter>CoreEngine\Graphics</Filter>
-    </ClCompile>
     <ClCompile Include="CoreEngine\Shader.cpp">
+      <Filter>CoreEngine\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreEngine\VAO.cpp">
       <Filter>CoreEngine\Graphics</Filter>
     </ClCompile>
   </ItemGroup>
@@ -449,11 +419,11 @@
     <None Include="Voxels\ChunkHelpers.inl">
       <Filter>Voxel Engine</Filter>
     </None>
-    <None Include="Voxels\imgui.ini">
-      <Filter>Voxel Engine</Filter>
-    </None>
     <None Include="CoreEngine\DynamicBuffer.inl">
       <Filter>CoreEngine\Graphics</Filter>
+    </None>
+    <None Include="Voxels\imgui.ini">
+      <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>
 </Project>
