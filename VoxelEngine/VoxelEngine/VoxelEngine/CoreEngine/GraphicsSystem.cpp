@@ -9,6 +9,7 @@
 #include "Mesh.h"
 
 // TODO: TEMP GARBAGE
+#include <Rendering/NuRenderer.h>
 #include <Graphics/Context.h>
 Camera* cam;
 
@@ -45,6 +46,7 @@ void GraphicsSystem::Init()
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
   Renderer::Init();
+  NuRenderer::Init(); // TODO: poopy trash
 }
 
 void GraphicsSystem::Shutdown()

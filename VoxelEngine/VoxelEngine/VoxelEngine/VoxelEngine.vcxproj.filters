@@ -41,6 +41,9 @@
     <Filter Include="CoreEngine">
       <UniqueIdentifier>{6f5b3298-6999-4eeb-ad86-9dc0fe8c6a25}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Game">
+      <UniqueIdentifier>{ee2ca854-b4a5-4dd4-ae8c-05bf220960d8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="3rdParty\imgui\imconfig.h">
@@ -94,9 +97,6 @@
     <ClInclude Include="Voxels\Chunks\ChunkMesh.h">
       <Filter>Voxel Engine\Chunks</Filter>
     </ClInclude>
-    <ClInclude Include="Voxels\Chunks\ChunkStorage.h">
-      <Filter>Voxel Engine\Chunks</Filter>
-    </ClInclude>
     <ClInclude Include="Voxels\Refactor\hud.h">
       <Filter>Voxel Engine\Refactor</Filter>
     </ClInclude>
@@ -147,9 +147,6 @@
     </ClInclude>
     <ClInclude Include="Voxels\World\World.h">
       <Filter>Voxel Engine\World</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\WorldGen\WorldGen2.h">
-      <Filter>Voxel Engine\WorldGen</Filter>
     </ClInclude>
     <ClInclude Include="Voxels\Rendering\Frustum.h">
       <Filter>Voxel Engine\Rendering</Filter>
@@ -268,9 +265,6 @@
     <ClInclude Include="CoreEngine\Camera.h">
       <Filter>CoreEngine</Filter>
     </ClInclude>
-    <ClInclude Include="CoreEngine\VoxelSystem.h">
-      <Filter>CoreEngine</Filter>
-    </ClInclude>
     <ClInclude Include="CoreEngine\AssimpUtils.h">
       <Filter>CoreEngine</Filter>
     </ClInclude>
@@ -303,6 +297,9 @@
     </ClInclude>
     <ClInclude Include="Voxels\World\VoxelManager.h">
       <Filter>Voxel Engine\World</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\WorldGen\WorldGen2.h">
+      <Filter>Voxel Engine\WorldGen</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -478,9 +475,6 @@
       <Filter>CoreEngine</Filter>
     </ClCompile>
     <ClCompile Include="CoreEngine\Camera.cpp">
-      <Filter>CoreEngine</Filter>
-    </ClCompile>
-    <ClCompile Include="CoreEngine\VoxelSystem.cpp">
       <Filter>CoreEngine</Filter>
     </ClCompile>
     <ClCompile Include="CoreEngine\Mesh.cpp">

@@ -2,8 +2,8 @@
 #include "chunk_manager.h"
 #include <algorithm>
 #include <execution>
-#include <Chunks/ChunkStorage.h>
 #include <Camera.h>>
+#include "VoxelManager.h"
 
 // TODO: add a way to notify these threads to terminate when the program
 // does to prevent crash on exit
@@ -93,7 +93,7 @@ void ChunkManager::chunk_deferred_update_task()
   {
     //std::for_each(std::execution::seq, ChunkStorage::GetMapRaw().begin(), ChunkStorage::GetMapRaw().end()
     //[]()
-    for (auto [pos, chunk] : ChunkStorage::GetMapRaw())
+    for (auto [pos, chunk] : voxelManager.chunks_)
     {
       
     }

@@ -13,7 +13,7 @@
 
 #include <Camera.h>
 
-struct Chunk;
+class VoxelManager;
 //class ChunkLoadManager;
 
 
@@ -23,15 +23,10 @@ struct Chunk;
 // when that data is sent to the GPU.
 // Also manages updates to blocks and lighting in chunks to determine
 // when a chunk needs to be remeshed.
-
-// TODO: make this an abstract class, then send its current contents to a
-// new class called "InfiniteChunkManager" or something like that,
-// then create another called "FixedChunkManager", both derived from
-// this class.
 class ChunkManager
 {
 public:
-  ChunkManager();
+  ChunkManager(VoxelManager& manager);
   ~ChunkManager();
   void Init();
 
@@ -46,26 +41,15 @@ public:
 
   Chunk* GetChunk(const glm::ivec3& wpos);
 
-  // getters
-  float GetLoadDistance() const { return loadDistance_; }
-  float GetUnloadLeniency() const { return unloadLeniency_; }
 
-  // setters
-  //void SetCurrentLevel(LevelPtr level) { level_ = level; }
-  void SetLoadDistance(float d) { loadDistance_ = d; }
-  void SetUnloadLeniency(float d) { unloadLeniency_ = d; }
+  // TODO: move
+  //void SaveWorld(std::string fname);
+  //void LoadWorld(std::string fname);
 
-  void SaveWorld(std::string fname);
-  void LoadWorld(std::string fname);
-
-  friend class Level; // so level can display debug info
 private:
 public: // TODO: TEMPORARY
   // functions
   void checkUpdateChunkNearBlock(const glm::ivec3& pos, const glm::ivec3& near);
-
-  void removeFarChunks();
-  void createNearbyChunks();
 
   void chunk_deferred_update_task();
 
@@ -110,16 +94,11 @@ public: // TODO: TEMPORARY
   // SUNLIGHT STUFF
   
   // returns true if block at max sunlight level
-  bool checkDirectSunlight(glm::ivec3 wpos);
-  void initializeSunlight();
-  void sunlightPropagateOnce(const glm::ivec3& wpos);
-  std::queue<glm::ivec3> lightsToPropagate;
 
   // vars
-  float loadDistance_;
-  float unloadLeniency_;
   bool shutdownThreads = false;
   //std::vector<Chunk*> updatedChunks_;
   //std::vector<Chunk*> genChunkList_;
-  //LevelPtr level_ = nullptr;
+
+  VoxelManager& voxelManager;
 };

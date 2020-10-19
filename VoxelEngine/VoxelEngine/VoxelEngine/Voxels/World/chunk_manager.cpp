@@ -4,19 +4,18 @@
 #include "chunk_manager.h"
 #include <Graphics/utilities.h>
 #include <Chunks/ChunkHelpers.h>
-#include <Chunks/ChunkStorage.h>
 #include <Graphics/GraphicsIncludes.h>
 #include <Utilities/Timer.h>
+#include "VoxelManager.h"
 
 #include <algorithm>
 #include <execution>
 #include <mutex>
 
 
-ChunkManager::ChunkManager()
+ChunkManager::ChunkManager(VoxelManager& manager) 
+  : voxelManager(manager)
 {
-  loadDistance_ = 0;
-  unloadLeniency_ = 0;
   debug_cur_pool_left = 0;
 }
 
@@ -64,8 +63,8 @@ void ChunkManager::Update()
 
   //std::for_each(
   //  std::execution::par,
-  //  ChunkStorage::GetMapRaw().begin(),
-  //  ChunkStorage::GetMapRaw().end(),
+  //  voxelManager.chunks_.begin(),
+  //  voxelManager.chunks_.end(),
   //  [](auto& p)
   //{
   //  if (p.second)
@@ -101,7 +100,7 @@ void ChunkManager::UpdateChunk(const glm::ivec3 wpos)
 {
   auto cpos = ChunkHelpers::worldPosToLocalPos(wpos);
   //auto cptr = Chunk::chunks[cpos.chunk_pos];
-  auto cptr = ChunkStorage::GetChunk(cpos.chunk_pos);
+  auto cptr = voxelManager.GetChunk(cpos.chunk_pos);
   if (cptr)
   {
     //std::lock_guard<std::mutex> lock(chunk_mesher_mutex_);
@@ -114,14 +113,14 @@ void ChunkManager::UpdateBlock(const glm::ivec3& wpos, Block bl, bool indirect)
 {
   ChunkHelpers::localpos p = ChunkHelpers::worldPosToLocalPos(wpos);
   //BlockPtr block = Chunk::AtWorld(wpos);
-  Block remBlock = ChunkStorage::AtWorldD(p); // store state of removed block to update lighting
-  Chunk* chunk = ChunkStorage::GetChunk(p.chunk_pos);
+  Block remBlock = voxelManager.GetBlock(p); // store state of removed block to update lighting
+  Chunk* chunk = voxelManager.GetChunk(p.chunk_pos);
 
   // create empty chunk if it's null
   if (!chunk)
   {
     // make chunk, then modify changed block
-    ChunkStorage::GetMapRaw()[p.chunk_pos] = chunk = new Chunk(p.chunk_pos);
+    voxelManager.chunks_[p.chunk_pos] = chunk = new Chunk(p.chunk_pos, voxelManager);
     remBlock = chunk->BlockAt(p.block_pos); // remBlock would've been 0 block cuz null, so it's fix here
   }
 
@@ -165,7 +164,7 @@ void ChunkManager::UpdateBlock(const glm::ivec3& wpos, Block bl, bool indirect)
 void ChunkManager::UpdateBlockCheap(const glm::ivec3& wpos, Block block)
 {
   auto l = ChunkHelpers::worldPosToLocalPos(wpos);
-  ChunkStorage::GetChunk(l.chunk_pos)->SetBlockTypeAt(l.block_pos, block.GetType());
+  voxelManager.GetChunk(l.chunk_pos)->SetBlockTypeAt(l.block_pos, block.GetType());
   //*Chunk::AtWorld(wpos) = block;
   //UpdatedChunk(Chunk::chunks[Chunk::worldBlockToLocalPos(wpos).chunk_pos]);
 }
@@ -173,7 +172,7 @@ void ChunkManager::UpdateBlockCheap(const glm::ivec3& wpos, Block block)
 
 void ChunkManager::ReloadAllChunks()
 {
-  for (const auto& p : ChunkStorage::GetMapRaw())
+  for (const auto& p : voxelManager.chunks_)
   {
     if (p.second)
     {
@@ -189,51 +188,50 @@ void ChunkManager::ReloadAllChunks()
 Chunk* ChunkManager::GetChunk(const glm::ivec3& wpos)
 {
   auto l = ChunkHelpers::worldPosToLocalPos(wpos);
-  return ChunkStorage::GetChunk(l.chunk_pos);
+  return voxelManager.GetChunk(l.chunk_pos);
 }
 
 
-#include <cereal/types/vector.hpp>
-#include <cereal/types/utility.hpp>
-#include <cereal/archives/binary.hpp>
-#include <cereal/types/unordered_map.hpp>
-#include <fstream>
-void ChunkManager::SaveWorld(std::string fname)
-{
-  std::ofstream of("./resources/Maps/" + fname + ".bin", std::ios::binary);
-  cereal::BinaryOutputArchive archive(of);
-  std::vector<Chunk*> tempChunks;
-  for (const auto& [pos, chunk] : ChunkStorage::GetMapRaw())
-  {
-    if (chunk)
-      tempChunks.push_back(chunk);
-  }
-  archive(tempChunks);
-
-  std::cout << "Saved to " << fname << "!\n";
-}
-
-#pragma optimize("", off)
-void ChunkManager::LoadWorld(std::string fname)
-{
-  for (const auto& [pos, chunk] : ChunkStorage::GetMapRaw())
-  {
-    delete chunk;
-  }
-  ChunkStorage::GetMapRaw().clear();
-
-  std::ifstream is("./resources/Maps/" + fname + ".bin", std::ios::binary);
-  cereal::BinaryInputArchive archive(is);
-  std::vector<Chunk> tempChunks;
-  archive(tempChunks);
-  for (auto& chunk : tempChunks)
-  {
-    ChunkStorage::GetMapRaw()[chunk.GetPos()] = new Chunk(chunk);
-  }
-
-  ReloadAllChunks();
-  std::cout << "Loaded " << fname << "!\n";
-}
+//#include <cereal/types/vector.hpp>
+//#include <cereal/types/utility.hpp>
+//#include <cereal/archives/binary.hpp>
+//#include <cereal/types/unordered_map.hpp>
+//#include <fstream>
+//void ChunkManager::SaveWorld(std::string fname)
+//{
+//  std::ofstream of("./resources/Maps/" + fname + ".bin", std::ios::binary);
+//  cereal::BinaryOutputArchive archive(of);
+//  std::vector<Chunk*> tempChunks;
+//  for (const auto& [pos, chunk] : voxelManager.chunks_)
+//  {
+//    if (chunk)
+//      tempChunks.push_back(chunk);
+//  }
+//  archive(tempChunks);
+//
+//  std::cout << "Saved to " << fname << "!\n";
+//}
+//
+//void ChunkManager::LoadWorld(std::string fname)
+//{
+//  for (const auto& [pos, chunk] : voxelManager.chunks_)
+//  {
+//    delete chunk;
+//  }
+//  voxelManager.chunks_.clear();
+//
+//  std::ifstream is("./resources/Maps/" + fname + ".bin", std::ios::binary);
+//  cereal::BinaryInputArchive archive(is);
+//  std::vector<Chunk> tempChunks;
+//  archive(tempChunks);
+//  for (auto& chunk : tempChunks)
+//  {
+//    voxelManager.chunks_[chunk.GetPos()] = new Chunk(chunk);
+//  }
+//
+//  ReloadAllChunks();
+//  std::cout << "Loaded " << fname << "!\n";
+//}
 
 
 void ChunkManager::checkUpdateChunkNearBlock(const glm::ivec3& pos, const glm::ivec3& near)
@@ -248,7 +246,7 @@ void ChunkManager::checkUpdateChunkNearBlock(const glm::ivec3& pos, const glm::i
   //BlockPtr cb = Chunk::AtWorld(pos);
   //BlockPtr nb = Chunk::AtWorld(pos + near);
   //if (cb && nb && nb->GetType() != BlockType::bAir)
-  Chunk* cptr = ChunkStorage::GetChunk(p2.chunk_pos);
+  Chunk* cptr = voxelManager.GetChunk(p2.chunk_pos);
   if (cptr)
   {
     //std::lock_guard<std::mutex> lock(chunk_mesher_mutex_);
@@ -260,76 +258,6 @@ void ChunkManager::checkUpdateChunkNearBlock(const glm::ivec3& pos, const glm::i
 }
 
 
-// TODO: make this a Safe & Reliable Operation(tm)
-//   rather than having it cause crashes often
-void ChunkManager::removeFarChunks()
-{
-  // delete chunks far from the camera (past leniency range)
-  if (generation_queue_.size() == 0 && mesher_queue_.size() == 0 && debug_cur_pool_left == 0)
-  {
-    std::vector<Chunk*> deleteList;
-    // attempt at safety
-    //std::lock_guard<std::mutex> lock1(chunk_generation_mutex_);
-    //std::lock_guard<std::mutex> lock2(chunk_mesher_mutex_);
-    //std::lock_guard<std::mutex> lock3(chunk_buffer_mutex_);
-    Utils::erase_if(
-      ChunkStorage::GetMapRaw(),
-      [&](auto& p)->bool
-    {
-      // range is distance from camera to corner of chunk (corner is ok)
-      float dist = glm::distance(glm::vec3(p.first * Chunk::CHUNK_SIZE), Camera::ActiveCamera->GetPos());
-      if (p.second && dist > loadDistance_ + unloadLeniency_)
-      {
-        deleteList.push_back(p.second);
-        return true;
-      }
-      return false;
-    });
-
-    for (Chunk* p : deleteList)
-      delete p;
-  }
-
-  //std::for_each(
-  //  std::execution::par,
-  //  Chunk::chunks.begin(),
-  //  Chunk::chunks.end(),
-  //  [&](auto& p)
-  //{
-  //  float dist = glm::distance(glm::vec3(p.first * Chunk::CHUNK_SIZE), Renderer::GetPipeline()->GetCamera(0)->GetPos());
-  //  if (p.second)
-  //  {
-  //    if (dist > loadDistance_ + unloadLeniency_)
-  //      p.second->SetActive(false);
-  //    else
-  //      p.second->SetActive(true);
-  //  }
-  //});
-}
-
-
-void ChunkManager::createNearbyChunks()
-{
-  // generate new chunks that are close to the camera
-  std::for_each(
-    std::execution::par,
-    ChunkStorage::GetMapRaw().begin(),
-    ChunkStorage::GetMapRaw().end(),
-    [&](auto& p)
-  {
-    float dist = glm::distance(glm::vec3(p.first * Chunk::CHUNK_SIZE), Camera::ActiveCamera->GetPos());
-    // generate null chunks within distance
-    if (!p.second && dist <= loadDistance_)
-    {
-      p.second = new Chunk(p.first);
-//      p.second->generate_ = true;
-      //std::lock_guard<std::mutex> lock1(chunk_generation_mutex_);
-      generation_queue_.insert(p.second);
-    }
-  });
-}
-
-#pragma optimize("", on)
 // TODO: make lighting updates also check chunks around the cell 
 // (because lighting affects all neighboring blocks)
 // ref https://www.seedofandromeda.com/blogs/29-fast-flood-fill-lighting-in-a-blocky-voxel-game-pt-1
@@ -339,13 +267,13 @@ void ChunkManager::createNearbyChunks()
 void ChunkManager::lightPropagateAdd(glm::ivec3 wpos, Light nLight, bool skipself, bool sunlight, bool noqueue)
 {
   // get existing light at the position
-  auto optL = ChunkStorage::AtWorldE(wpos);
+  auto optL = voxelManager.TryGetBlock(wpos);
   if (optL.has_value())
   {
     // if there is already light in the spot,
     // combine the two by taking the max values only
     glm::u8vec4 t = glm::max(optL->GetLight().Get(), nLight.Get());
-    ChunkStorage::SetLight(wpos, t);
+    voxelManager.SetLight(wpos, t);
     //L.Set(t); //*L = t;
   }
   
@@ -357,7 +285,7 @@ void ChunkManager::lightPropagateAdd(glm::ivec3 wpos, Light nLight, bool skipsel
   {
     glm::ivec3 lightp = lightQueue.front(); // light position
     lightQueue.pop();
-    Light lightLevel = ChunkStorage::AtWorldC(lightp).GetLight(); // node that will be giving light to others
+    Light lightLevel = voxelManager.GetBlock(lightp).GetLight(); // node that will be giving light to others
     const glm::ivec3 dirs[] =
     {
       { 1, 0, 0 },
@@ -372,14 +300,14 @@ void ChunkManager::lightPropagateAdd(glm::ivec3 wpos, Light nLight, bool skipsel
     for (const auto& dir : dirs)
     {
       glm::ivec3 nlightPos = lightp + dir;
-      auto nblock = ChunkStorage::AtWorldE(nlightPos);
+      auto nblock = voxelManager.TryGetBlock(nlightPos);
       if (!nblock.has_value()) // skip if block invalid (outside of world)
         continue;
       Light nlight = nblock->GetLight();
 
       // add chunk to update queue if it exists
       if (!noqueue)
-        delayed_update_queue_.insert(ChunkStorage::GetChunk(ChunkHelpers::worldPosToLocalPos(nlightPos).chunk_pos));
+        delayed_update_queue_.insert(voxelManager.GetChunk(ChunkHelpers::worldPosToLocalPos(nlightPos).chunk_pos));
 
       // if neighbor is solid block, skip dat boi
       if (Block::PropertiesTable[nblock->GetTypei()].visibility == Visibility::Opaque)
@@ -398,14 +326,14 @@ void ChunkManager::lightPropagateAdd(glm::ivec3 wpos, Light nLight, bool skipsel
         // then push the position of that light into the queue
         //glm::u8vec4 val = light.Get();
         // this line can be optimized to reduce amount of global block getting
-        glm::u8vec4 val = ChunkStorage::AtWorldC(nlightPos).GetLight().Get();
+        glm::u8vec4 val = voxelManager.GetBlock(nlightPos).GetLight().Get();
         val[ci] = (lightLevel.Get()[ci] - 1);// *Block::PropertiesTable[block.GetTypei()].color[ci];
 
         // if sunlight, max light, and going down, then don't decrease power
         if (ci == 3 && lightLevel.Get()[3] == 0xF && dir == glm::ivec3(0, -1, 0))
           val[3] = 0xF;
 
-        ChunkStorage::SetLight(nlightPos, val);
+        voxelManager.SetLight(nlightPos, val);
         enqueue = true;
       }
       if (enqueue) // enqueue if any lighting system changed
@@ -415,16 +343,16 @@ void ChunkManager::lightPropagateAdd(glm::ivec3 wpos, Light nLight, bool skipsel
 
   // do not update this chunk again if it contained the placed light
   if (!noqueue && skipself)
-    delayed_update_queue_.erase(ChunkStorage::GetChunk(ChunkHelpers::worldPosToLocalPos(wpos).chunk_pos));
+    delayed_update_queue_.erase(voxelManager.GetChunk(ChunkHelpers::worldPosToLocalPos(wpos).chunk_pos));
 }
 
 
 void ChunkManager::lightPropagateRemove(glm::ivec3 wpos, bool noqueue)
 {
   std::queue<std::pair<glm::ivec3, Light>> lightRemovalQueue;
-  Light light = ChunkStorage::AtWorldC(wpos).GetLight();
+  Light light = voxelManager.GetBlock(wpos).GetLight();
   lightRemovalQueue.push({ wpos, light });
-  ChunkStorage::SetLight(wpos, Light({ 0, 0, 0, light.GetS() }));
+  voxelManager.SetLight(wpos, Light({ 0, 0, 0, light.GetS() }));
   //GetBlockPtr(wpos)->GetLightRef().Set({ 0, 0, 0, light.GetS() });
 
   std::queue<std::pair<glm::ivec3, Light>> lightReadditionQueue;
@@ -448,7 +376,7 @@ void ChunkManager::lightPropagateRemove(glm::ivec3 wpos, bool noqueue)
     for (const auto& dir : dirs)
     {
       glm::ivec3 blockPos = plight + dir;
-      auto optB = ChunkStorage::AtWorldE(blockPos);
+      auto optB = voxelManager.TryGetBlock(blockPos);
       //BlockPtr b = GetBlockPtr(plight + dir);
       if (!optB.has_value())
         continue;
@@ -469,13 +397,13 @@ void ChunkManager::lightPropagateRemove(glm::ivec3 wpos, bool noqueue)
           if (nlightv[ci] != 0 && nlightv[ci] == lightv[ci] - 1)
           {
             lightRemovalQueue.push({ blockPos, nearLight });
-            if (!noqueue && ChunkStorage::GetChunk(ChunkHelpers::worldPosToLocalPos(blockPos).chunk_pos))
-              delayed_update_queue_.insert(ChunkStorage::GetChunk(ChunkHelpers::worldPosToLocalPos(blockPos).chunk_pos));
+            if (!noqueue && voxelManager.GetChunk(ChunkHelpers::worldPosToLocalPos(blockPos).chunk_pos))
+              delayed_update_queue_.insert(voxelManager.GetChunk(ChunkHelpers::worldPosToLocalPos(blockPos).chunk_pos));
             auto tmp = nearLight.Get();
             tmp[ci] = 0;
             //nearLight.Set(tmp);
             optB->GetLightRef().Set(tmp);
-            ChunkStorage::SetLight(blockPos, tmp);
+            voxelManager.SetLight(blockPos, tmp);
           }
           // re-propagate near light that is equal to or brighter than this after setting it all to 0
           else if (nlightv[ci] > lightv[ci])
@@ -499,123 +427,9 @@ void ChunkManager::lightPropagateRemove(glm::ivec3 wpos, bool noqueue)
   }
 
   // do not update the removed block's chunk again since the act of removing will update it
-  delayed_update_queue_.erase(ChunkStorage::GetChunk(ChunkHelpers::worldPosToLocalPos(wpos).chunk_pos));
+  delayed_update_queue_.erase(voxelManager.GetChunk(ChunkHelpers::worldPosToLocalPos(wpos).chunk_pos));
 }
 
-
-bool ChunkManager::checkDirectSunlight(glm::ivec3 wpos)
-{
-  auto p = ChunkHelpers::worldPosToLocalPos(wpos);
-  Chunk* chunk = ChunkStorage::GetChunk(p.chunk_pos);
-  if (!chunk)
-    return false;
-  Block block = chunk->BlockAt(p.block_pos);
-
-  // find the highest valid chunk
-  const glm::ivec3 up(0, 1, 0);
-  glm::ivec3 cpos = p.chunk_pos + up;
-  Chunk* next = chunk;
-  while (next)
-  {
-    chunk = next;
-    cpos += up;
-    next = ChunkStorage::GetChunk(cpos);
-  }
-
-  // go down until we hit another solid block or this block
-  return false;
-}
-
-void ChunkManager::initializeSunlight()
-{
-  Timer timer;
-
-  // find the max chunk height (assumed world has flat top, so no column-local max height needed)
-  int maxY = std::numeric_limits<int>::min();
-  int minY = std::numeric_limits<int>::max();
-
-  for (const auto& [pos, chunk] : ChunkStorage::GetMapRaw())
-  {
-    minY = glm::min(minY, pos.y);
-    maxY = glm::max(maxY, pos.y);
-  }
-
-  // generates initial columns of sunlight in the world
-  for (auto [cpos, chunk] : ChunkStorage::GetMapRaw())
-  {
-    // propagate light only from the highest chunks
-    if (cpos.y != maxY || chunk == nullptr)
-      continue;
-
-    // for each block on top of the chunk
-    for (int x = 0; x < Chunk::CHUNK_SIZE; x++)
-    {
-      for (int z = 0; z < Chunk::CHUNK_SIZE; z++)
-      {
-        glm::ivec3 lpos(x, Chunk::CHUNK_SIZE - 1, z);
-        Block curBlock = chunk->BlockAt(lpos);
-        if (Block::PropertiesTable[curBlock.GetTypei()].visibility == Visibility::Opaque)
-          continue;
-
-        Light light = chunk->LightAt(lpos);
-        light.SetS(0xF);
-        chunk->SetLightAt(lpos, light);
-        glm::ivec3 wpos = ChunkHelpers::chunkPosToWorldPos(lpos, cpos);
-        lightsToPropagate.push(std::move(wpos));
-      }
-    }
-  }
-
-  while (!lightsToPropagate.empty())
-  {
-    glm::ivec3 wpos = lightsToPropagate.front();
-    lightsToPropagate.pop();
-    sunlightPropagateOnce(wpos);
-  }
-
-  printf("Sunlight propagation took %f seconds\n", timer.elapsed());
-}
-
-// updates the sunlight of a block at a given location
-void ChunkManager::sunlightPropagateOnce(const glm::ivec3& wpos)
-{
-  // do something
-  enum { left, right, up, down, front, back }; // +Z = front
-  const glm::ivec3 dirs[] =
-  {
-    { 1, 0, 0 },
-    {-1, 0, 0 },
-    { 0, 1, 0 },
-    { 0,-1, 0 },
-    { 0, 0, 1 },
-    { 0, 0,-1 },
-  };
-
-  Light curLight = ChunkStorage::AtWorldC(wpos).GetLight();
-
-  for (int dir = 0; dir < 6; dir++)
-  {
-    glm::ivec3 neighborPos = wpos + dirs[dir];
-    std::optional<Block> neighbor = ChunkStorage::AtWorldE(neighborPos);
-    if (!neighbor)
-      continue;
-
-    if (Block::PropertiesTable[neighbor->GetTypei()].visibility == Visibility::Opaque)
-      continue;
-
-    Light neighborLight = neighbor->GetLight();
-
-    if (neighborLight.GetS() + 2 > curLight.GetS())
-      continue;
-
-    if (curLight.GetS() == 0xF && dir == down)
-      neighborLight.SetS(0xF);
-    else
-      neighborLight.SetS(curLight.GetS() - 1);
-    ChunkStorage::SetLight(neighborPos, neighborLight);
-    lightsToPropagate.push(neighborPos);
-  }
-}
 
 //void ChunkManager::initializeSunlight()
 //{
@@ -624,7 +438,7 @@ void ChunkManager::sunlightPropagateOnce(const glm::ivec3& wpos)
 //  int maxY = std::numeric_limits<int>::min();
 //  int minY = std::numeric_limits<int>::max();
 //
-//  for (const auto& [pos, chunk] : ChunkStorage::GetMapRaw())
+//  for (const auto& [pos, chunk] : voxelManager.chunks_)
 //  {
 //    minY = glm::min(minY, pos.y);
 //    maxY = glm::max(maxY, pos.y);
@@ -642,7 +456,7 @@ void ChunkManager::sunlightPropagateOnce(const glm::ivec3& wpos)
 //      auto wpos = ChunkHelpers::chunkPosToWorldPos(lpos, c->GetPos());
 //
 //      // break the moment any block in the column is solid; not exposed to sunlight
-//      Block curBlock = ChunkStorage::AtWorldC(wpos);
+//      Block curBlock = voxelManager.GetBlock(wpos);
 //      if (Block::PropertiesTable[curBlock.GetTypei()].visibility == Visibility::Opaque)
 //      {
 //        broke = true;
@@ -658,12 +472,12 @@ void ChunkManager::sunlightPropagateOnce(const glm::ivec3& wpos)
 //    // if entire column was illuminated, continue to chunk below
 //    if (broke == false && c->GetPos().y > minY)
 //    {
-//      processColumn(x, z, ChunkStorage::GetChunk(c->GetPos() - glm::ivec3(0, 1, 0)));
+//      processColumn(x, z, voxelManager.GetChunk(c->GetPos() - glm::ivec3(0, 1, 0)));
 //    }
 //  };
 //
 //  // generates initial columns of sunlight in the world
-//  for (auto [cpos, chunk] : ChunkStorage::GetMapRaw())
+//  for (auto [cpos, chunk] : voxelManager.chunks_)
 //  {
 //    // propagate light only from the highest chunks
 //    if (cpos.y != maxY || chunk == nullptr)

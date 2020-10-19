@@ -28,12 +28,14 @@
   7: -x+y-z
 */
 
+class VoxelManager;
+
 struct Chunk
 {
 private:
 public:
-  Chunk() : pos_(0), mesh(this) { ASSERT(0); }
-  Chunk(const glm::ivec3& p) : pos_(p), mesh(this) {}
+  Chunk(const VoxelManager& vm) : pos_(0), mesh(this, vm) { ASSERT(0); }
+  Chunk(const glm::ivec3& p, const VoxelManager& vm) : pos_(p), mesh(this, vm) {}
   ~Chunk() {};
   Chunk(const Chunk& other);
   Chunk& operator=(const Chunk& rhs);
@@ -48,26 +50,26 @@ public:
 
 
   /*################################
-          Status Functions
+          Query Functions
   ################################*/
   inline const glm::ivec3& GetPos() const { return pos_; }
 
-  inline Block BlockAt(const glm::ivec3& p)
+  inline Block BlockAt(const glm::ivec3& p) const
   {
     return storage.GetBlock(ID3D(p.x, p.y, p.z, CHUNK_SIZE, CHUNK_SIZE));
   }
 
-  inline Block BlockAt(int index)
+  inline Block BlockAt(int index) const
   {
     return storage.GetBlock(index);
   }
 
-  inline BlockType BlockTypeAt(const glm::ivec3& p)
+  inline BlockType BlockTypeAt(const glm::ivec3& p) const
   {
     return storage.GetBlockType(ID3D(p.x, p.y, p.z, CHUNK_SIZE, CHUNK_SIZE));
   }
 
-  inline BlockType BlockTypeAt(int index)
+  inline BlockType BlockTypeAt(int index) const
   {
     return storage.GetBlockType(index);
   }
@@ -84,12 +86,12 @@ public:
     storage.SetLight(index, light);
   }
 
-  inline Light LightAt(const glm::ivec3& p)
+  inline Light LightAt(const glm::ivec3& p) const
   {
     return storage.GetLight(ID3D(p.x, p.y, p.z, CHUNK_SIZE, CHUNK_SIZE));
   }
 
-  inline Light LightAt(int index)
+  inline Light LightAt(int index) const
   {
     return storage.GetLight(index);
   }
@@ -111,7 +113,6 @@ public:
     updateQueue_.push_back({ index, Block(block, light) });
   }
 
-
   void BuildMesh()
   {
     mesh.BuildMesh();
@@ -120,12 +121,7 @@ public:
   void BuildBuffers()
   {
     //mesh.BuildBuffers();
-    mesh.BuildBuffers2();
-  }
-
-  void Render()
-  {
-    mesh.Render();
+    mesh.BuildBuffers();
   }
 
   ChunkMesh& GetMesh()
@@ -133,7 +129,7 @@ public:
     return mesh;
   }
 
-  AABB GetAABB()
+  AABB GetAABB() const
   {
     return {
       glm::vec3(pos_ * CHUNK_SIZE),
@@ -147,7 +143,7 @@ public:
     ar(pos_, storage);
   }
 
-  const PaletteBlockStorage<CHUNK_SIZE_CUBED>& GetStorage() { return storage; }
+  const PaletteBlockStorage<CHUNK_SIZE_CUBED>& GetStorage() const { return storage; }
 
 private:
   glm::ivec3 pos_;  // position relative to other chunks (1 chunk = 1 index)

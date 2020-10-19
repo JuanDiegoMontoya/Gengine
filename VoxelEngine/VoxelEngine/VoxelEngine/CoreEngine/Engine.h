@@ -4,7 +4,6 @@
 
 class GraphicsSystem;
 class DebugSystem;
-class VoxelSystem;
 class PhysicsSystem;
 
 class Engine
@@ -29,10 +28,12 @@ private:
   std::vector<std::unique_ptr<Scene>> scenes_;
   Scene* activeScene_ = nullptr;
 
+  void(*updateCallback)(float) = nullptr;
+  void(*drawCallback)(float) = nullptr;
+
   bool running_ = true;
 
   std::unique_ptr<GraphicsSystem> graphicsSystem;
   std::unique_ptr<DebugSystem> debugSystem;
-  std::unique_ptr<VoxelSystem> voxelSystem;
   std::unique_ptr<PhysicsSystem> physicsSystem;
 };

@@ -1,14 +1,9 @@
 #include <Chunks/Chunk.h>
-#include <Graphics/shader.h>
-#include <Chunks/ChunkStorage.h>
-#include <Chunks/ChunkMesh.h>
 
-
-Chunk::Chunk(const Chunk& other) : mesh(this)
+Chunk::Chunk(const Chunk& other) : mesh(this, other.mesh.voxelManager_)
 {
   *this = other;
 }
-
 
 // copy assignment operator for serialization
 Chunk& Chunk::operator=(const Chunk& rhs)

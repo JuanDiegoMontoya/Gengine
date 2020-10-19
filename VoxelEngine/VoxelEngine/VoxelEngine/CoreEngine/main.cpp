@@ -5,14 +5,28 @@
 #include "Renderer.h"
 #include "Mesh.h"
 #include "Material.h"
+#include <World/VoxelManager.h>
+#include <Chunks/ChunkSerialize.h>
+#include <WorldGen/WorldGen2.h>
+#include <Rendering/ChunkRenderer.h>
 
 #include <iostream>
 
 // main.cpp: this is where the user's code belongs
 static MaterialHandle userMaterial{};
+static std::unique_ptr<VoxelManager> voxelManager{};
 
 void OnStart(Scene* scene)
 {
+  voxelManager = std::make_unique<VoxelManager>();
+  WorldGen2 wg(*voxelManager);
+  wg.Init();
+  wg.GenerateWorld();
+  wg.InitializeSunlight();
+  wg.InitMeshes();
+  wg.InitBuffers();
+  auto compressed = CompressChunk(voxelManager->GetChunk(glm::ivec3(0))->GetStorage());
+
   MaterialInfo info;
   info.shaderID = "ShaderMcShaderFuckFace";
   info.tex2Dpaths.push_back("this is an invalid texture! (it should use a fallback)");
@@ -52,9 +66,22 @@ void OnStart(Scene* scene)
   }
 }
 
+void OnUpdate(float dt)
+{
+  voxelManager->Update();
+}
+
+void OnDraw(float dt)
+{
+  NuRenderer::DrawAll();
+}
+
 int main()
 {
   Application::SetStartCallback(OnStart);
+  Application::SetUpdateCallback(OnUpdate);
+  Application::SetDrawCallback(OnDraw);
+
   Application::Start();
   Application::Shutdown();
   return 0;

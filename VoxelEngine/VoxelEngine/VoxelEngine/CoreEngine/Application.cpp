@@ -9,6 +9,8 @@ void Application::Start()
   engine_->AddScene(new Scene("default scene", *engine_));
   engine_->SetActiveScene(0);
   start(engine_->GetScene(0));
+  engine_->updateCallback = update;
+  engine_->drawCallback = draw;
   engine_->Run();
 }
 

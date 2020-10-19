@@ -1,13 +1,22 @@
 #pragma once
+#include <queue>
+#include <glm/glm.hpp>
 
-struct Chunk;
+class VoxelManager;
 
-// https://github.com/tModLoader/tModLoader/wiki/Vanilla-World-Generation-Steps
-namespace WorldGen2
+class WorldGen2
 {
+public:
+  WorldGen2(VoxelManager& v) : vm(v) {}
   void Init();
   void GenerateWorld();
-  void InitSunlight();
   void InitMeshes();
   void InitBuffers();
+  void InitializeSunlight();
+private:
+  VoxelManager& vm;
+  std::queue<glm::ivec3> lightsToPropagate;
+
+  void sunlightPropagateOnce(const glm::ivec3& wpos);
+  bool checkDirectSunlight(glm::ivec3 wpos);
 };

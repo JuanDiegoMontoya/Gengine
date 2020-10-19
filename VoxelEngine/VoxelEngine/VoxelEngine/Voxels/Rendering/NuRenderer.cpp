@@ -4,7 +4,6 @@
 #include <Graphics/shader.h>
 #include <Camera.h>
 #include <Input.h>
-#include <Chunks/ChunkStorage.h>
 #include <Graphics/dib.h>
 #include <Rendering/ChunkRenderer.h>
 #include <block.h>
@@ -13,7 +12,6 @@
 #include <Refactor/sun.h>
 
 #include <GraphicsSystem.h>
-#include <VoxelSystem.h>
 
 namespace NuRenderer
 {

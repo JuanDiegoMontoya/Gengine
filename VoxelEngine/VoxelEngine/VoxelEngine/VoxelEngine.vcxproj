@@ -48,7 +48,6 @@
     <ClInclude Include="CoreEngine\Scene.h" />
     <ClInclude Include="CoreEngine\ScriptableEntity.h" />
     <ClInclude Include="CoreEngine\Texture2D.h" />
-    <ClInclude Include="CoreEngine\VoxelSystem.h" />
     <ClInclude Include="CoreEngine\Window.h" />
     <ClInclude Include="CoreEngine\WindowCB.h" />
     <ClInclude Include="CoreEngine\WindowUtils.h" />
@@ -78,7 +77,6 @@
     <ClInclude Include="Voxels\Chunks\ChunkHelpers.h" />
     <ClInclude Include="Voxels\Chunks\ChunkMesh.h" />
     <ClInclude Include="Voxels\Chunks\ChunkSerialize.h" />
-    <ClInclude Include="Voxels\Chunks\ChunkStorage.h" />
     <ClInclude Include="Voxels\light.h" />
     <ClInclude Include="Voxels\pick.h" />
     <ClInclude Include="Voxels\prefab.h" />
@@ -138,7 +136,6 @@
     <ClCompile Include="CoreEngine\Renderer.cpp" />
     <ClCompile Include="CoreEngine\Scene.cpp" />
     <ClCompile Include="CoreEngine\Texture2D.cpp" />
-    <ClCompile Include="CoreEngine\VoxelSystem.cpp" />
     <ClCompile Include="CoreEngine\Window.cpp" />
     <ClCompile Include="CoreEngine\WindowCB.cpp" />
     <ClCompile Include="Graphics\abo.cpp" />

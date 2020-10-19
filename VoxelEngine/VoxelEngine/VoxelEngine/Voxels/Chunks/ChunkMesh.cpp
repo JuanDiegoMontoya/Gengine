@@ -4,11 +4,11 @@
 #include <Graphics/dib.h>
 #include <Chunks/Chunk.h>
 #include <Chunks/ChunkHelpers.h>
-#include <Chunks/ChunkStorage.h>
 #include <Graphics/Vertices.h>
 #include <Refactor/settings.h>
 #include <Graphics/DynamicBuffer.h>
 #include <Rendering/ChunkRenderer.h>
+#include <World/VoxelManager.h>
 
 #include <iomanip>
 #include <mutex>
@@ -22,24 +22,8 @@ ChunkMesh::~ChunkMesh()
   ChunkRenderer::allocator->Free(bufferHandle);
 }
 
-void ChunkMesh::Render()
-{
-  if (vao_)
-  {
-    if (pointCount_ == 0) return;
-    vao_->Bind();
-    dib_->Bind();
-    //void* i[1] = { (void*)0 };
-    //glMultiDrawElements(GL_TRIANGLES, &indexCount_, GL_UNSIGNED_INT, i, 1);
-    //glDrawElementsInstanced(GL_TRIANGLES, indexCount_, GL_UNSIGNED_INT, (void*)0, 1);
-    //glDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, (void*)0);
-    glDrawArraysIndirect(GL_TRIANGLES, (void*)0);
-    //glDrawArraysInstanced(GL_TRIANGLES, 0, vertexCount_, 1);
-  }
-}
 
-
-void ChunkMesh::BuildBuffers2()
+void ChunkMesh::BuildBuffers()
 {
   std::lock_guard lk(mtx);
 
@@ -76,7 +60,7 @@ void ChunkMesh::BuildMesh()
 
   for (int i = 0; i < fCount; i++)
   {
-    nearChunks[i] = ChunkStorage::GetChunk(
+    nearChunks[i] = voxelManager_.GetChunk(
       parent->GetPos() + ChunkHelpers::faces[i]);
   }
 
@@ -150,7 +134,7 @@ inline void ChunkMesh::buildBlockFace(
 
   nearblock.block_pos = blockPos + faces[face];
 
-  Chunk* nearChunk = parent;
+  const Chunk* nearChunk = parent;
 
   // if neighbor is out of this chunk, find which chunk it is in
   if (any(lessThan(nearblock.block_pos, ivec3(0))) || any(greaterThanEqual(nearblock.block_pos, ivec3(Chunk::CHUNK_SIZE))))
@@ -194,7 +178,7 @@ inline void ChunkMesh::buildBlockFace(
 }
 
 //#pragma optimize("", off)
-inline void ChunkMesh::addQuad(const glm::ivec3& lpos, BlockType block, int face, Chunk* nearChunk, Light light)
+inline void ChunkMesh::addQuad(const glm::ivec3& lpos, BlockType block, int face, const Chunk* nearChunk, Light light)
 {
   if (voxelReady_)
   {

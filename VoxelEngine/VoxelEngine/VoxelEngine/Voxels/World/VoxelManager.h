@@ -18,20 +18,32 @@ public:
   VoxelManager& operator=(const VoxelManager&) = delete;
   VoxelManager& operator=(VoxelManager&&) = delete;
 
+  // Should be called regularly to ensure chunks are continuously meshed
+  void Update();
+
   // Get information about the voxel world
   Chunk* GetChunk(const glm::ivec3& cpos);
-  Block GetBlock(const glm::ivec3& wpos);
-  Block GetBlock(const ChunkHelpers::localpos& p);
-  std::optional<Block> TryGetBlock(const glm::ivec3& wpos);
+  const Chunk* GetChunk(const glm::ivec3& cpos) const;
+  Block GetBlock(const glm::ivec3& wpos) const;
+  Block GetBlock(const ChunkHelpers::localpos& p) const;
+  std::optional<Block> TryGetBlock(const glm::ivec3& wpos) const;
+
+  // Meshing-aware block-changing functions
+  void UpdateBlock(const glm::ivec3& wpos, Block block);
+  void UpdateBlockCheap(const glm::ivec3& wpos, Block block);
 
   // Change the state of the voxel world
   bool SetBlock(const glm::ivec3& wpos, Block block);
   bool SetBlockType(const glm::ivec3& wpos, BlockType type);
   bool SetLight(const glm::ivec3& wpos, Light light);
+  void MeshChunk(const glm::ivec3& cpos);
+
+  // Utility functions
+  void Raycast(glm::vec3 origin, glm::vec3 direction, float distance, std::function<bool(glm::vec3, Block, glm::vec3)> callback);
 
 private:
   friend class ChunkManager;
-  //friend class WorldGen;
+  friend class WorldGen2;
 
   std::unique_ptr<ChunkManager> chunkManager_{};
   Concurrency::concurrent_unordered_map<glm::ivec3, Chunk*, Utils::ivec3Hash> chunks_{};
@@ -43,7 +55,7 @@ private:
 
 
 
-Chunk* VoxelManager::GetChunk(const glm::ivec3& cpos)
+inline Chunk* VoxelManager::GetChunk(const glm::ivec3& cpos)
 {
   auto it = chunks_.find(cpos);
   if (it != chunks_.end())
@@ -51,31 +63,39 @@ Chunk* VoxelManager::GetChunk(const glm::ivec3& cpos)
   return nullptr;
 }
 
-Block VoxelManager::GetBlock(const glm::ivec3& wpos)
+inline const Chunk* VoxelManager::GetChunk(const glm::ivec3& cpos) const
 {
-  ChunkHelpers::localpos w = ChunkHelpers::worldPosToLocalPos(wpos);
-  Chunk* chunk = chunks_[w.chunk_pos];
-  ASSERT(chunk);
-  return chunk->BlockAt(w.block_pos);
+  auto it = chunks_.find(cpos);
+  if (it != chunks_.cend())
+    return it->second;
+  return nullptr;
 }
 
-Block VoxelManager::GetBlock(const ChunkHelpers::localpos& p)
+inline Block VoxelManager::GetBlock(const glm::ivec3& wpos) const
 {
-  Chunk* chunk = chunks_[p.chunk_pos];
-  ASSERT(chunk);
-  return chunk->BlockAt(p.block_pos);
+  ChunkHelpers::localpos wp = ChunkHelpers::worldPosToLocalPos(wpos);
+  auto it = chunks_.find(wp.chunk_pos);
+  ASSERT(it != chunks_.cend());
+  return it->second->BlockAt(wp.block_pos);
 }
 
-std::optional<Block> VoxelManager::TryGetBlock(const glm::ivec3& wpos)
+inline Block VoxelManager::GetBlock(const ChunkHelpers::localpos& wp) const
+{
+  auto it = chunks_.find(wp.chunk_pos);
+  ASSERT(it != chunks_.cend());
+  return it->second->BlockAt(wp.block_pos);
+}
+
+inline std::optional<Block> VoxelManager::TryGetBlock(const glm::ivec3& wpos) const
 {
   ChunkHelpers::localpos w = ChunkHelpers::worldPosToLocalPos(wpos);
-  Chunk* chunk = chunks_[w.chunk_pos];
-  if (chunk)
-    return chunk->BlockAt(w.block_pos);
+  auto it = chunks_.find(w.chunk_pos);
+  if (it != chunks_.cend())
+    return it->second->BlockAt(w.block_pos);
   return std::nullopt;
 }
 
-bool VoxelManager::SetBlock(const glm::ivec3& wpos, Block block)
+inline bool VoxelManager::SetBlock(const glm::ivec3& wpos, Block block)
 {
   ChunkHelpers::localpos w = ChunkHelpers::worldPosToLocalPos(wpos);
   Chunk* chunk = chunks_[w.chunk_pos];
@@ -88,7 +108,7 @@ bool VoxelManager::SetBlock(const glm::ivec3& wpos, Block block)
   return false;
 }
 
-bool VoxelManager::SetBlockType(const glm::ivec3& wpos, BlockType type)
+inline bool VoxelManager::SetBlockType(const glm::ivec3& wpos, BlockType type)
 {
   ChunkHelpers::localpos w = ChunkHelpers::worldPosToLocalPos(wpos);
   Chunk* chunk = chunks_[w.chunk_pos];
@@ -100,7 +120,7 @@ bool VoxelManager::SetBlockType(const glm::ivec3& wpos, BlockType type)
   return false;
 }
 
-bool VoxelManager::SetLight(const glm::ivec3& wpos, Light light)
+inline bool VoxelManager::SetLight(const glm::ivec3& wpos, Light light)
 {
   ChunkHelpers::localpos w = ChunkHelpers::worldPosToLocalPos(wpos);
   Chunk* chunk = chunks_[w.chunk_pos];

@@ -5,7 +5,6 @@
 
 #include "GraphicsSystem.h"
 #include "DebugSystem.h"
-#include "VoxelSystem.h"
 #include "PhysicsSystem.h"
 
 
@@ -13,12 +12,10 @@ Engine::Engine()
 {
   graphicsSystem = std::make_unique<GraphicsSystem>();
   debugSystem = std::make_unique<DebugSystem>();
-  voxelSystem = std::make_unique<VoxelSystem>();
   physicsSystem = std::make_unique<PhysicsSystem>();
 
   graphicsSystem->Init();
   debugSystem->Init(graphicsSystem->GetWindow());
-  voxelSystem->Init();
 }
 
 Engine::~Engine()
@@ -35,11 +32,15 @@ void Engine::Run()
 
     Input::Update();
 
+    if (updateCallback != nullptr)
+      updateCallback(dt_);
+
     graphicsSystem->StartFrame();
     debugSystem->StartFrame(*activeScene_, dt_);
 
     graphicsSystem->Update(*activeScene_, dt_);
-    voxelSystem->Draw();
+    if (drawCallback)
+      drawCallback(dt_);
 
     physicsSystem->Update(*activeScene_, dt_);
     debugSystem->Update(*activeScene_, dt_);

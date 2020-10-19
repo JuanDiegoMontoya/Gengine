@@ -11,15 +11,15 @@
 //class VBO;
 //class DIB;
 struct Chunk;
+class VoxelManager;
 
 class ChunkMesh
 {
 public:
-  ChunkMesh(Chunk* p) : parent(p) {}
+  ChunkMesh(Chunk* p, const VoxelManager& vm) : parent(p), voxelManager_(vm) {}
   ~ChunkMesh();
 
-  void Render();
-  void BuildBuffers2();
+  void BuildBuffers();
   void BuildMesh();
 
   GLsizei GetVertexCount() { return vertexCount_; }
@@ -31,12 +31,13 @@ public:
   static inline std::atomic<unsigned> accumcount = 0;
 
 private:
+  friend struct Chunk;
 
   void buildBlockFace(
     int face,
     const glm::ivec3& blockPos,
     BlockType block);
-  void addQuad(const glm::ivec3& lpos, BlockType block, int face, Chunk* nearChunk, Light light);
+  void addQuad(const glm::ivec3& lpos, BlockType block, int face, const Chunk* nearChunk, Light light);
   int vertexFaceAO(const glm::vec3& lpos, const glm::vec3& cornerDir, const glm::vec3& norm);
 
 
@@ -52,8 +53,9 @@ private:
     fCount
   };
 
-  Chunk* parent = nullptr;
-  Chunk* nearChunks[6]{ nullptr };
+  const VoxelManager& voxelManager_;
+  const Chunk* parent = nullptr;
+  const Chunk* nearChunks[6]{ nullptr };
 
   std::unique_ptr<VAO> vao_;
   std::unique_ptr<VBO> encodedStuffVbo_;
