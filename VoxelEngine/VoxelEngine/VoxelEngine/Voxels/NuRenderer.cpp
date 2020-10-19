@@ -10,6 +10,7 @@
 #include <CoreEngine/Texture2D.h>
 
 #include <CoreEngine/GraphicsSystem.h>
+#include <Voxels/VoxelManager.h>
 
 namespace NuRenderer
 {
@@ -179,7 +180,7 @@ namespace NuRenderer
   }
 
 
-  void DrawAll()
+  void DrawAll(VoxelManager& vm)
   {
     //PERF_BENCHMARK_START;
     //Clear();
@@ -198,7 +199,7 @@ namespace NuRenderer
     }
 
     {
-      auto& sett = ChunkRenderer::settings;
+      auto& sett = vm.chunkRenderer_->settings;
       if (Input::IsKeyPressed(GLFW_KEY_5))
       {
         sett.freezeCulling = !sett.freezeCulling;
@@ -212,21 +213,21 @@ namespace NuRenderer
       }
     }
 
-    drawChunks();
+    drawChunks(vm);
     //splatChunks();
     drawChunksWater();
     NuRenderer::drawAxisIndicators();
-    ChunkRenderer::DrawBuffers();
+    vm.chunkRenderer_->DrawBuffers();
     //Renderer::postProcess();
 
     glDisable(GL_FRAMEBUFFER_SRGB);
-    ChunkRenderer::Update();
+    vm.chunkRenderer_->Update();
 
     //PERF_BENCHMARK_END;
   }
 
 
-  void drawChunks()
+  void drawChunks(VoxelManager& vm)
   {
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK); // don't forget to reset original culling face
@@ -262,9 +263,9 @@ namespace NuRenderer
 
     currShader->Use();
     //ChunkRenderer::RenderNorm();
-    ChunkRenderer::Render();
-    ChunkRenderer::GenerateDIB();
-    ChunkRenderer::RenderOcclusion();
+    vm.chunkRenderer_->Render();
+    vm.chunkRenderer_->GenerateDIB();
+    vm.chunkRenderer_->RenderOcclusion();
     drawCalls++;
   }
 

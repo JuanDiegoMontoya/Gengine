@@ -5,6 +5,7 @@
 #include <Voxels/ChunkHelpers.h>
 
 class ChunkManager;
+class ChunkRenderer;
 
 class VoxelManager
 {
@@ -41,9 +42,12 @@ public:
   // Utility functions
   void Raycast(glm::vec3 origin, glm::vec3 direction, float distance, std::function<bool(glm::vec3, Block, glm::vec3)> callback);
 
+  // TODO: make private after NuRenderer finally dies
+  std::unique_ptr<ChunkRenderer> chunkRenderer_{};
 private:
   friend class ChunkManager;
   friend class WorldGen2;
+  friend class ChunkMesh;
 
   std::unique_ptr<ChunkManager> chunkManager_{};
   Concurrency::concurrent_unordered_map<glm::ivec3, Chunk*, Utils::ivec3Hash> chunks_{};

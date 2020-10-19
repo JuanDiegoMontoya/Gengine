@@ -74,7 +74,7 @@ void OnUpdate(float dt)
 
 void OnDraw(float dt)
 {
-  NuRenderer::DrawAll();
+  NuRenderer::DrawAll(*voxelManager);
 }
 
 int main()

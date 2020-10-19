@@ -6,7 +6,7 @@ VoxelManager::VoxelManager()
 {
   chunkManager_ = std::make_unique<ChunkManager>(*this);
   chunkManager_->Init();
-  ChunkRenderer::InitAllocator();
+  chunkRenderer_ = std::make_unique<ChunkRenderer>();
 }
 
 VoxelManager::~VoxelManager()

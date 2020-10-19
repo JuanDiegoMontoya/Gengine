@@ -2,8 +2,11 @@
 #include <CoreEngine/DynamicBuffer.h>
 #include <CoreEngine/Shapes.h>
 
-namespace ChunkRenderer
+class ChunkRenderer
 {
+public:
+  ChunkRenderer();
+  ~ChunkRenderer();
   void InitAllocator();
   void GenerateDrawCommandsGPU();
   void RenderNorm();
@@ -35,14 +38,35 @@ namespace ChunkRenderer
 
   void Update();
 
-  inline std::unique_ptr<DynamicBuffer<AABB16>> allocator;
-
+  // TODO: make private after NuRenderer no longer needs this
   struct Settings
   {
     // visibility
     float normalMin = 0;
-    float normalMax = 800;
+    float normalMax = 2000;
     bool freezeCulling = false;
     bool debug_drawOcclusionCulling = false;
-  }inline settings;
-}
+  }settings;
+
+private:
+  friend class ChunkMesh;
+
+  std::unique_ptr<DynamicBuffer<AABB16>> allocator;
+  std::unique_ptr<VAO> vao;
+  std::unique_ptr<StaticBuffer> dib;
+
+  std::unique_ptr<StaticBuffer> drawCountGPU;
+
+  // size of compute block  for the compute shader
+  const int blockSize = 64; // defined in compact_batch.cs
+
+  // resets each frame BEFORE the culling phase
+  //GLuint allocDataBuffer = 0;
+  std::unique_ptr<VAO> vaoCull;
+  std::unique_ptr<StaticBuffer> vboCull; // stores only cube vertices
+  std::unique_ptr<StaticBuffer> dibCull;
+  GLsizei activeAllocs;
+  std::pair<uint64_t, GLuint> stateInfo{ 0, 0 };
+  bool dirtyAlloc = true;
+  std::unique_ptr<StaticBuffer> allocBuffer;
+};

@@ -2,6 +2,7 @@
 #include <memory>
 
 class TextureArray;
+class VoxelManager;
 
 namespace NuRenderer
 {
@@ -10,9 +11,9 @@ namespace NuRenderer
   void Init();
   void CompileShaders();
   void Clear();
-  void DrawAll();
+  void DrawAll(VoxelManager& vm);
 
-  void drawChunks();
+  void drawChunks(VoxelManager& vm);
   void drawChunksWater();
 
   // generic drawing functions

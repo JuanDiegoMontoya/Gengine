@@ -15,7 +15,7 @@ using namespace std::chrono;
 
 ChunkMesh::~ChunkMesh()
 {
-  ChunkRenderer::allocator->Free(bufferHandle);
+  voxelManager_.chunkRenderer_->allocator->Free(bufferHandle);
 }
 
 
@@ -23,23 +23,21 @@ void ChunkMesh::BuildBuffers()
 {
   std::lock_guard lk(mtx);
 
-  namespace CR = ChunkRenderer;
-
   vertexCount_ = encodedStuffArr.size();
 
-  CR::allocator->Free(bufferHandle);
+  voxelManager_.chunkRenderer_->allocator->Free(bufferHandle);
 
   // nothing emitted, don't try to make buffers
   if (pointCount_ == 0)
     return;
   
   // free oldest allocations until there is enough space to allocate this buffer
-  while ((bufferHandle = CR::allocator->Allocate(
+  while ((bufferHandle = voxelManager_.chunkRenderer_->allocator->Allocate(
     interleavedArr.data(), 
     interleavedArr.size() * sizeof(GLint), 
     this->parent->GetAABB())) == NULL)
   {
-    CR::allocator->FreeOldest();
+    voxelManager_.chunkRenderer_->allocator->FreeOldest();
   }
 
   encodedStuffArr.clear();
