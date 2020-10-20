@@ -24,9 +24,14 @@ public:
   float GetFar() const { return far_; }
   glm::vec3 GetEuler() const { return { pitch_, yaw_, roll_ }; }
   auto GetFront() const { return front; }
+  auto GetUp() const { return up; }
 
-  void SetPos(const glm::vec3& v) { worldpos_ = v; UpdateViewMat(); }
-  void SetFar(float f) { far_ = f; GenProjection(); }
+  void SetPos(const glm::vec3& v) { worldpos_ = v; dirty_ = true; }
+  void SetFar(float f) { far_ = f; GenProjection(); dirty_ = true; }
+  void SetFront(const glm::vec3& f) { front = f; dirty_ = true; }
+  void SetDir(const glm::vec3& v) { dir_ = v; dirty_ = true; }
+  void SetYaw(float f) { yaw_ = f; dirty_ = true; }
+  void SetPitch(float f) { pitch_ = f; dirty_ = true; }
   void GenProjection(float fovDeg = 80.f);
 
   static inline Camera* ActiveCamera = nullptr;
@@ -54,4 +59,6 @@ private:
   float fovDeg_ = 80.f;
   float near_ = .1f;
   float far_ = 300.f;
+
+  bool dirty_ = true;
 };

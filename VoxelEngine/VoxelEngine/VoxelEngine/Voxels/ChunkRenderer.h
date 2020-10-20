@@ -2,6 +2,9 @@
 #include <CoreEngine/DynamicBuffer.h>
 #include <CoreEngine/Shapes.h>
 
+class TextureArray;
+class Texture2D;
+
 class ChunkRenderer
 {
 public:
@@ -13,6 +16,7 @@ public:
 
   // for debug
   void DrawBuffers();
+  void Draw();
 
 
   /* $$$$$$$$$$$$$$$   Culling pipeline stuff   $$$$$$$$$$$$$$$$
@@ -31,12 +35,6 @@ public:
 
   $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$*/
 
-  void Render();          // phase 1
-  void GenerateDIB();     // phase 2
-  void RenderOcclusion(); // phase 3
-  void RenderRest();      // phase 4
-
-  void Update();
 
   // TODO: make private after NuRenderer no longer needs this
   struct Settings
@@ -50,6 +48,13 @@ public:
 
 private:
   friend class ChunkMesh;
+  friend class VoxelManager;
+
+  void RenderVisible();   // phase 1
+  void GenerateDIB();     // phase 2
+  void RenderOcclusion(); // phase 3
+  void RenderRest();      // phase 4
+  void Update();
 
   std::unique_ptr<DynamicBuffer<AABB16>> allocator;
   std::unique_ptr<VAO> vao;
@@ -69,4 +74,8 @@ private:
   std::pair<uint64_t, GLuint> stateInfo{ 0, 0 };
   bool dirtyAlloc = true;
   std::unique_ptr<StaticBuffer> allocBuffer;
+
+  // resources
+  std::unique_ptr<TextureArray> textures;
+  std::unique_ptr<Texture2D> blueNoise64;
 };

@@ -1,7 +1,5 @@
 #pragma once
 #include <Voxels/block.h>
-//#include <Chunks/Chunk.h>
-#include <Voxels/NuRenderer.h>
 #include <shared_mutex>
 #include <CoreEngine/StaticBuffer.h>
 

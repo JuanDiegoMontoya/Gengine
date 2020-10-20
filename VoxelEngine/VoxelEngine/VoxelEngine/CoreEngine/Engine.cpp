@@ -6,13 +6,16 @@
 #include "GraphicsSystem.h"
 #include "DebugSystem.h"
 #include "PhysicsSystem.h"
+#include "ScriptSystem.h"
 
+#include <CoreEngine/Components.h>
 
 Engine::Engine()
 {
   graphicsSystem = std::make_unique<GraphicsSystem>();
   debugSystem = std::make_unique<DebugSystem>();
   physicsSystem = std::make_unique<PhysicsSystem>();
+  scriptSystem = std::make_unique<ScriptSystem>();
 
   graphicsSystem->Init();
   debugSystem->Init(graphicsSystem->GetWindow());
@@ -31,6 +34,10 @@ void Engine::Run()
     timer.reset();
 
     Input::Update();
+
+    // idk when this should be called tbh
+    scriptSystem->Update(*activeScene_, dt_);
+
 
     if (updateCallback != nullptr)
       updateCallback(dt_);

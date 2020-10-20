@@ -1,3 +1,4 @@
+#include <CoreEngine/GraphicsIncludes.h> // this needs to be first or everything breaks
 #include <CoreEngine/Application.h>
 #include <CoreEngine/Scene.h>
 #include <CoreEngine/Entity.h>
@@ -5,13 +6,18 @@
 #include <CoreEngine/Renderer.h>
 #include <CoreEngine/Mesh.h>
 #include <CoreEngine/Material.h>
+#include <CoreEngine/Input.h>
 #include <Voxels/VoxelManager.h>
 #include <Voxels/ChunkSerialize.h>
 #include <Voxels/ChunkRenderer.h>
-#include <Voxels/NuRenderer.h>
 #include "WorldGen.h"
 
+// eh
+#include <CoreEngine/Renderer.h>
+#include <CoreEngine/Camera.h>
+
 #include <iostream>
+#include <Game/PlayerController.h>
 
 // main.cpp: this is where the user's code belongs
 static MaterialHandle userMaterial{};
@@ -38,10 +44,7 @@ void OnStart(Scene* scene)
   {
     Entity thing = scene->CreateEntity("bun");
     thing.AddComponent<Components::Transform>();
-
-    thing.AddComponent<Components::Model>();
-    thing.GetComponent<Components::Model>().model = glm::mat4(1.0f);
-
+    
     bool l, o;
     Components::Mesh mesh;
     mesh.meshHandle = MeshManager::CreateMesh("./Resources/Models/teapot.obj", l, o)[0];
@@ -50,6 +53,13 @@ void OnStart(Scene* scene)
     Components::Material material = userMaterial;
     thing.AddComponent<Components::Material>(material);
     //thing.GetComponent<Components::Material>().texHandle = MeshManager::GetFuckingTexture("");
+  }
+
+  {
+    Entity player = scene->CreateEntity("player");
+    player.AddComponent<Components::Transform>();
+    player.AddComponent<Components::Camera>(Camera::ActiveCamera);
+    player.AddComponent<Components::NativeScriptComponent>().Bind<PlayerController>();
   }
 
   // make an entity for each object in the maya mesh
@@ -69,12 +79,37 @@ void OnStart(Scene* scene)
 
 void OnUpdate(float dt)
 {
+  if (Input::IsKeyDown(GLFW_KEY_LEFT_SHIFT))
+  {
+    if (Input::IsKeyDown(GLFW_KEY_1))
+      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    if (Input::IsKeyDown(GLFW_KEY_2))
+      glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    if (Input::IsKeyDown(GLFW_KEY_3))
+      glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
+  }
+
+  {
+    auto& sett = voxelManager->chunkRenderer_->settings;
+    if (Input::IsKeyPressed(GLFW_KEY_5))
+    {
+      sett.freezeCulling = !sett.freezeCulling;
+      std::cout << "Freeze culling " << std::boolalpha << sett.freezeCulling << '\n';
+    }
+    if (Input::IsKeyPressed(GLFW_KEY_6))
+    {
+      // TODO: shading/wireframe on this drawing mode
+      sett.debug_drawOcclusionCulling = !sett.debug_drawOcclusionCulling;
+      std::cout << "DbgDrawOccCulling " << std::boolalpha << sett.debug_drawOcclusionCulling << '\n';
+    }
+  }
   voxelManager->Update();
 }
 
 void OnDraw(float dt)
 {
-  NuRenderer::DrawAll(*voxelManager);
+  voxelManager->Draw();
+  Renderer::DrawAxisIndicator();
 }
 
 int main()

@@ -9,7 +9,6 @@
 #include <CoreEngine/Mesh.h>
 
 // TODO: TEMP GARBAGE
-#include <Voxels/NuRenderer.h>
 #include <CoreEngine/Context.h>
 Camera* cam;
 
@@ -46,7 +45,6 @@ void GraphicsSystem::Init()
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
   Renderer::Init();
-  NuRenderer::Init(); // TODO: poopy trash
 }
 
 void GraphicsSystem::Shutdown()
@@ -64,6 +62,7 @@ void GraphicsSystem::StartFrame()
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glEnable(GL_DEPTH_TEST);
   glDepthFunc(GL_GREATER);
+  glEnable(GL_FRAMEBUFFER_SRGB); // gamma correction
 }
 
 void GraphicsSystem::Update(Scene& scene, float dt)
@@ -76,17 +75,18 @@ void GraphicsSystem::Update(Scene& scene, float dt)
   // draw objects in the scene
   {
     using namespace Components;
-    auto group = scene.GetRegistry().group<Model>(entt::get<Mesh, Material, Tag>);
+    auto group = scene.GetRegistry().group<Transform>(entt::get<Mesh, Material, Tag>);
     for (auto entity : group)
     {
-      auto [model, mesh, material, tag] = group.get<Model, Mesh, Material, Tag>(entity);
-      Renderer::Render(model, mesh, material);
+      auto [transform, mesh, material, tag] = group.get<Transform, Mesh, Material, Tag>(entity);
+      Renderer::Render(transform, mesh, material);
     }
   }
 }
 
 void GraphicsSystem::EndFrame()
 {
+  glDisable(GL_FRAMEBUFFER_SRGB);
   glDepthFunc(GL_LESS);
   glDisable(GL_DEPTH_TEST);
   glBindFramebuffer(GL_FRAMEBUFFER, 0);

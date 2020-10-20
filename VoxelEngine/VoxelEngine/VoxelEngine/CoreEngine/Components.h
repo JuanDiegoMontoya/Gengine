@@ -6,6 +6,8 @@
 #include <CoreEngine/MeshUtils.h>
 #include <CoreEngine/Material.h>
 
+class Camera;
+
 namespace Components
 {
   /// <summary>
@@ -14,13 +16,6 @@ namespace Components
   struct Tag
   {
     std::string tag;
-  };
-
-  struct Transform
-  {
-    glm::vec3 translation;
-    glm::vec3 scale;
-    glm::quat rotation;
   };
 
   struct Physics
@@ -35,15 +30,31 @@ namespace Components
     glm::vec3 scale;
   };
 
+  struct Transform
+  {
+  public:
+    auto GetTranslation() const { return translation; }
+    auto GetRotation() const { return rotation; }
+    auto GetScale() const { return scale; }
+    auto GetModel() const { return model; }
+    auto IsDirty() const { return isDirty; }
+    void SetTranslation(const glm::vec3& vec) { translation = vec; isDirty = true; }
+    void SetRotation(const glm::mat4& mat) { rotation = mat; isDirty = true; }
+    void SetScale(const glm::vec3& vec) { scale = vec; isDirty = true; }
+    void SetModel(const glm::mat4& mat) { model = mat; isDirty = false; }
+
+  private:
+    glm::vec3	translation{ 0 };
+    glm::mat4 rotation{ 1 };
+    glm::vec3	scale{ 1, 1, 1 };
+
+    glm::mat4	model{ 1 };
+    bool isDirty = false;
+  };
 
   /// <summary>
   /// Graphics components
   /// </summary>
-  struct Model
-  {
-    glm::mat4 model;
-    bool isDrawn;
-  };
 
   // temp
   struct Mesh
@@ -53,17 +64,14 @@ namespace Components
 
   // temp
   using Material = ::MaterialHandle;
-  //struct Material
-  //{
-  //  ::Material matHandle;
-  //};
-
-  struct Camera2
+  
+  // TODO: temp cuz this is sucky
+  struct Camera
   {
-    glm::mat4 view;
-    bool isActive;
+    Camera(::Camera* c) : cam(c) {}
+    ::Camera* cam;
+    //bool isActive;
   };
-
 
   /// <summary>
   /// Scripting

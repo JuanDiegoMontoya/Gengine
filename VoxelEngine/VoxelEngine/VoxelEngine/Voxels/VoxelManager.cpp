@@ -16,6 +16,13 @@ VoxelManager::~VoxelManager()
 void VoxelManager::Update()
 {
   chunkManager_->Update();
+  chunkRenderer_->Update();
+}
+
+void VoxelManager::Draw()
+{
+  chunkRenderer_->Draw();
+  chunkRenderer_->DrawBuffers();
 }
 
 void VoxelManager::UpdateBlock(const glm::ivec3& wpos, Block block)

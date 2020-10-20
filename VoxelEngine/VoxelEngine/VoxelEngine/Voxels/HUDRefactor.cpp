@@ -2,7 +2,7 @@
 #include <CoreEngine/Input.h>
 #include <CoreEngine/Camera.h>
 #include <CoreEngine/Shader.h>
-#include <Voxels/NuRenderer.h>
+#include <CoreEngine/Renderer.h>
 #include <CoreEngine/TextureArray.h>
 #include <imgui/imgui.h>
 
@@ -38,10 +38,11 @@ void HUD::Update()
     curr->setMat4("u_proj", cam->GetProj());
     curr->setMat4("u_view", glm::mat4(1));
     //curr->setVec4("u_color", Block::PropertiesTable[int(selected_)].color);
-    NuRenderer::GetBlockTextures()->Bind(0);
+    ASSERT_MSG(false, "Do something to make next line work");
+    //Renderer::GetBlockTextures()->Bind(0);
     curr->setInt("u_textures", 0);
     curr->setInt("u_texIdx", int(selected_));
-    NuRenderer::DrawCube(); // block
+    Renderer::DrawCube(); // block
   }
 
   {

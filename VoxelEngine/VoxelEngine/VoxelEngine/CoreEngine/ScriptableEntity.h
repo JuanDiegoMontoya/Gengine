@@ -10,7 +10,7 @@ public:
 	template<typename T>
 	T& GetComponent()
 	{
-		return m_Entity.GetComponent<T>();
+		return entity_.GetComponent<T>();
 	}
 
 protected:
@@ -19,6 +19,6 @@ protected:
 	virtual void OnUpdate(float dt) {}
 
 private:
-	Entity m_Entity;
-	friend class Scene;
+	Entity entity_;
+	friend class ScriptSystem;
 };

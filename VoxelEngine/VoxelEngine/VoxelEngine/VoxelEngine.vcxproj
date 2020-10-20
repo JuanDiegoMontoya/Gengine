@@ -57,6 +57,7 @@
     <ClInclude Include="CoreEngine\Renderer.h" />
     <ClInclude Include="CoreEngine\Scene.h" />
     <ClInclude Include="CoreEngine\ScriptableEntity.h" />
+    <ClInclude Include="CoreEngine\ScriptSystem.h" />
     <ClInclude Include="CoreEngine\Shader.h" />
     <ClInclude Include="CoreEngine\Shapes.h" />
     <ClInclude Include="CoreEngine\StaticBuffer.h" />
@@ -70,6 +71,7 @@
     <ClInclude Include="CoreEngine\Window.h" />
     <ClInclude Include="CoreEngine\WindowCB.h" />
     <ClInclude Include="CoreEngine\WindowUtils.h" />
+    <ClInclude Include="Game\PlayerController.h" />
     <ClInclude Include="Game\WorldGen.h" />
     <ClInclude Include="Voxels\biome.h" />
     <ClInclude Include="Voxels\block.h" />
@@ -83,7 +85,6 @@
     <ClInclude Include="Voxels\EditorRefactor.h" />
     <ClInclude Include="Voxels\HUDRefactor.h" />
     <ClInclude Include="Voxels\light.h" />
-    <ClInclude Include="Voxels\NuRenderer.h" />
     <ClInclude Include="Voxels\parallel_chunks.h" />
     <ClInclude Include="Voxels\prefab.h" />
     <ClInclude Include="Voxels\VoxelManager.h" />
@@ -124,6 +125,7 @@
     <ClCompile Include="CoreEngine\PhysicsSystem.cpp" />
     <ClCompile Include="CoreEngine\Renderer.cpp" />
     <ClCompile Include="CoreEngine\Scene.cpp" />
+    <ClCompile Include="CoreEngine\ScriptSystem.cpp" />
     <ClCompile Include="CoreEngine\Shader.cpp" />
     <ClCompile Include="CoreEngine\StaticBuffer.cpp" />
     <ClCompile Include="CoreEngine\stbiImpl.cpp" />
@@ -144,7 +146,6 @@
     <ClCompile Include="Voxels\chunk_manager.cpp" />
     <ClCompile Include="Voxels\EditorRefactor.cpp" />
     <ClCompile Include="Voxels\HUDRefactor.cpp" />
-    <ClCompile Include="Voxels\NuRenderer.cpp" />
     <ClCompile Include="Voxels\parallel_chunks.cpp" />
     <ClCompile Include="Voxels\prefab.cpp" />
     <ClCompile Include="Voxels\VoxelManager.cpp" />

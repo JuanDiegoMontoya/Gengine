@@ -21,6 +21,7 @@ public:
 
   // Should be called regularly to ensure chunks are continuously meshed
   void Update();
+  void Draw();
 
   // Get information about the voxel world
   Chunk* GetChunk(const glm::ivec3& cpos);

@@ -169,9 +169,6 @@
     <ClInclude Include="Voxels\HUDRefactor.h">
       <Filter>Voxel Engine</Filter>
     </ClInclude>
-    <ClInclude Include="Voxels\NuRenderer.h">
-      <Filter>Voxel Engine</Filter>
-    </ClInclude>
     <ClInclude Include="Voxels\parallel_chunks.h">
       <Filter>Voxel Engine</Filter>
     </ClInclude>
@@ -240,6 +237,12 @@
     </ClInclude>
     <ClInclude Include="CoreEngine\VAO.h">
       <Filter>CoreEngine\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\ScriptSystem.h">
+      <Filter>CoreEngine\Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\PlayerController.h">
+      <Filter>Game</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -357,9 +360,6 @@
     <ClCompile Include="Voxels\HUDRefactor.cpp">
       <Filter>Voxel Engine</Filter>
     </ClCompile>
-    <ClCompile Include="Voxels\NuRenderer.cpp">
-      <Filter>Voxel Engine</Filter>
-    </ClCompile>
     <ClCompile Include="Voxels\parallel_chunks.cpp">
       <Filter>Voxel Engine</Filter>
     </ClCompile>
@@ -410,6 +410,9 @@
     </ClCompile>
     <ClCompile Include="CoreEngine\VAO.cpp">
       <Filter>CoreEngine\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreEngine\ScriptSystem.cpp">
+      <Filter>CoreEngine\Systems</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -9,7 +9,8 @@
 #include <CoreEngine/Vertices.h>
 #include <CoreEngine/vao.h>
 #include <memory>
-
+#include <CoreEngine/Texture2D.h>
+#include <CoreEngine/TextureArray.h>
 
 // call after all chunks are initialized
 ChunkRenderer::ChunkRenderer()
@@ -64,6 +65,17 @@ ChunkRenderer::ChunkRenderer()
   dibCull = std::make_unique<StaticBuffer>(&cmd, sizeof(cmd), GL_CLIENT_STORAGE_BIT);
 
   //dib = std::make_unique<StaticBuffer>(nullptr, 0);
+  // assets
+  std::vector<std::string> texs;
+  for (const auto& prop : Block::PropertiesTable)
+  {
+    texs.push_back(std::string(prop.name) + ".png");
+  }
+  textures = std::make_unique<TextureArray>(std::span(texs.data(), texs.size()), glm::ivec2(32));
+
+  //blueNoise64 = std::make_unique<Texture2D>("BlueNoise/64_64/LDR_LLL1_0.png");
+  blueNoise64 = std::make_unique<Texture2D>("BlueNoise/256_256/LDR_LLL1_0.png");
+
 }
 
 ChunkRenderer::~ChunkRenderer()
@@ -180,8 +192,44 @@ void ChunkRenderer::DrawBuffers()
 
   glEnable(GL_DEPTH_TEST);
 }
+
+void ChunkRenderer::Draw()
+{
+  glEnable(GL_CULL_FACE);
+  glCullFace(GL_BACK); // don't forget to reset original culling face
+
+  // render blocks in each active chunk
+  auto& currShader = Shader::shaders["chunk_optimized"];
+  currShader->Use();
+
+  Camera* cam = Camera::ActiveCamera;
+  //float angle = glm::max(glm::dot(-glm::normalize(NuRenderer::activeSun_->GetDir()), glm::vec3(0, 1, 0)), 0.f);
+  float angle = 1.0f;
+  currShader->setFloat("sunAngle", angle);
+
+  // undo gamma correction for sky color
+  static glm::vec3 skyColor(
+    glm::pow(.529f, 2.2f),
+    glm::pow(.808f, 2.2f),
+    glm::pow(.922f, 2.2f));
+  currShader->setVec3("viewPos", cam->GetPos());
+  currShader->setFloat("fogStart", 500.0f);
+  currShader->setFloat("fogEnd", 3000.0f);
+  currShader->setVec3("fogColor", skyColor);
+  currShader->setMat4("u_viewProj", cam->GetProj() * cam->GetView());
+
+  textures->Bind(0);
+  currShader->setInt("textures", 0);
+  blueNoise64->Bind(1);
+  currShader->setInt("blueNoise", 1);
+
+  currShader->Use();
+  RenderVisible();
+  GenerateDIB();
+  RenderOcclusion();
+}
   
-void ChunkRenderer::Render()
+void ChunkRenderer::RenderVisible()
 {
   if (!dib)
     return;

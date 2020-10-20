@@ -9,11 +9,17 @@ class Shader;
 
 class Renderer
 {
-	public:
-		static void Init();
+public:
+	static void Init();
+	static void CompileShaders();
 
-		static void Render(Components::Model& model, Components::Mesh& mesh, Components::Material& mat);
+	static void Render(Components::Transform& model, Components::Mesh& mesh, Components::Material& mat);
 
-	private:
-		static inline Shader* ShaderMcShaderFace = nullptr;
+	// generic drawing functions (TODO: move)
+	static void DrawAxisIndicator();
+	static void DrawQuad();
+	static void DrawCube();
+
+private:
+	static inline Shader* ShaderMcShaderFace = nullptr;
 };
