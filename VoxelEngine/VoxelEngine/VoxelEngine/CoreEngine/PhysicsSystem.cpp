@@ -13,6 +13,7 @@ void PhysicsSystem::Update(Scene& scene, float dt)
 {
 	// gravity + velocity stuff
 	{
+		// for some odd reason, making Transform first in this list causes an assertion failure!
 		auto group = scene.GetRegistry().group<Components::Physics>(entt::get<Components::Transform>);
 		for (auto entity : group)
 		{
@@ -25,6 +26,7 @@ void PhysicsSystem::Update(Scene& scene, float dt)
 
 	// AABB->world collision
 	{
+		// for some odd reason, making Transform first in this list causes an assertion failure!
 		auto group = scene.GetRegistry().group<Components::AABBCollider>(entt::get<Components::Physics, Components::Transform>);
 		for (auto entity : group)
 		{
