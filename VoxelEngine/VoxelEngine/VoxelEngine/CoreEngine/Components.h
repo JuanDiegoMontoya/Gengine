@@ -30,6 +30,7 @@ namespace Components
     glm::vec3 scale;
   };
 
+  // direct member access forbidden because of isDirty flag
   struct Transform
   {
   public:

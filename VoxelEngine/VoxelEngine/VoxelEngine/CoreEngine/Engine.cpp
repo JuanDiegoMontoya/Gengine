@@ -38,7 +38,6 @@ void Engine::Run()
     // idk when this should be called tbh
     scriptSystem->Update(*activeScene_, dt_);
 
-
     if (updateCallback != nullptr)
       updateCallback(dt_);
 

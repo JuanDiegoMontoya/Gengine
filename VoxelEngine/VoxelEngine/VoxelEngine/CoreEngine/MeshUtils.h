@@ -7,7 +7,6 @@
 struct MeshHandle
 {
 	unsigned VAO = 0;
-	unsigned Texture = 0;
 
 	int indexCount = 0;
 };
