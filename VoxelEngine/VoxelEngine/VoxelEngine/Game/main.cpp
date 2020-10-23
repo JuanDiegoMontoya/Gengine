@@ -60,11 +60,12 @@ void OnStart(Scene* scene)
     parent.AddComponent<Components::Mesh>().meshHandle = bunny;
     parent.AddComponent<Components::Material>(userMaterial);
 
-    for (int i = 0; i < 500; i++)
+    for (int i = 0; i < 50; i++)
     {
       Entity child = scene->CreateEntity("child");
       child.AddComponent<Components::Transform>();
       child.SetParent(parent);
+      child.AddComponent<Components::NativeScriptComponent>().Bind<TestObj>();
       child.AddComponent<Components::LocalTransform>().transform.SetTranslation({ 1, 1, 1 });
       child.GetComponent<Components::LocalTransform>().transform.SetScale({ .95, .95, .95 });
       child.AddComponent<Components::Mesh>().meshHandle = bunny;
