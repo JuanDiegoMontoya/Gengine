@@ -18,6 +18,7 @@
 
 #include <iostream>
 #include <Game/PlayerController.h>
+#include <Game/TestObj.h>
 
 // main.cpp: this is where the user's code belongs
 static MaterialHandle userMaterial{};
@@ -29,7 +30,7 @@ void OnStart(Scene* scene)
   WorldGen2 wg(*voxelManager);
   wg.Init();
   wg.GenerateWorld();
-  wg.InitializeSunlight();
+  //wg.InitializeSunlight();
   wg.InitMeshes();
   wg.InitBuffers();
   //auto compressed = CompressChunk(voxelManager->GetChunk(glm::ivec3(0))->GetStorage());
@@ -41,19 +42,6 @@ void OnStart(Scene* scene)
 
   std::cout << "User function, initial scene name: " << scene->GetName() << '\n';
 
-  {
-    Entity thing = scene->CreateEntity("bun");
-    thing.AddComponent<Components::Transform>();
-    
-    bool l, o;
-    Components::Mesh mesh;
-    mesh.meshHandle = MeshManager::CreateMesh("./Resources/Models/teapot.obj", l, o)[0];
-    thing.AddComponent<Components::Mesh>(mesh);
-
-    Components::Material material = userMaterial;
-    thing.AddComponent<Components::Material>(material);
-    //thing.GetComponent<Components::Material>().texHandle = MeshManager::GetFuckingTexture("");
-  }
 
   {
     Entity player = scene->CreateEntity("player");
@@ -62,15 +50,42 @@ void OnStart(Scene* scene)
     player.AddComponent<Components::NativeScriptComponent>().Bind<PlayerController>();
   }
 
+  {
+    bool l, o;
+    auto bunny = MeshManager::CreateMesh("./Resources/Models/bunny.obj", l, o)[0];
+
+    Entity parent = scene->CreateEntity("parent");
+    parent.AddComponent<Components::Transform>().SetTranslation({ -15, -10, 10 });
+    parent.AddComponent<Components::NativeScriptComponent>().Bind<TestObj>();
+    parent.AddComponent<Components::Mesh>().meshHandle = bunny;
+    parent.AddComponent<Components::Material>(userMaterial);
+
+    for (int i = 0; i < 500; i++)
+    {
+      Entity child = scene->CreateEntity("child");
+      child.AddComponent<Components::Transform>();
+      child.SetParent(parent);
+      child.AddComponent<Components::LocalTransform>().transform.SetTranslation({ 1, 1, 1 });
+      child.GetComponent<Components::LocalTransform>().transform.SetScale({ .95, .95, .95 });
+      child.AddComponent<Components::Mesh>().meshHandle = bunny;
+      child.AddComponent<Components::Material>(userMaterial);
+
+      parent = child;
+    }
+
+    // TODO: test more complex parenting relationships
+
+  }
+
   // make an entity for each object in the maya mesh
   //bool l, o;
-  //auto mesh = MeshManager::CreateMesh("./Resources/Models/maya.fbx", l, o);
+  //auto mesh = MeshManager::CreateMesh("./Resources/Models/Knuckles.fbx", l, o);
   //for (auto handle : mesh)
   //{
   //  Entity newEnt = scene->CreateEntity("maya");
-  //  newEnt.AddComponent<Components::Transform>();
-  //  Components::Model model{ .model = glm::scale(glm::mat4(1), {.01, .01, .01}) };
-  //  newEnt.AddComponent<Components::Model>(model);
+  //  Components::Transform model;// {.model = glm::scale(glm::mat4(1), { .01, .01, .01 }) };
+  //  model.SetScale({ .01, .01, .01 });
+  //  newEnt.AddComponent<Components::Transform>(model);
   //  Components::Mesh mesh{ .meshHandle = handle };
   //  newEnt.AddComponent<Components::Mesh>(mesh);
   //  newEnt.AddComponent<Components::Material>(userMaterial);

@@ -74,6 +74,40 @@ namespace Components
     //bool isActive;
   };
 
+  struct Parent
+  {
+    Entity entity{};
+  };
+
+  struct Children
+  {
+    void AddChild(Entity child) 
+    {
+      ASSERT_MSG(std::count(children.begin(), children.end(), child) == 0, "That entity is already a child of this!");
+      children.push_back(child);
+    }
+
+    void RemoveChild(Entity child)
+    {
+      ASSERT_MSG(std::count(children.begin(), children.end(), child) == 1, "That entity is not a child of this!");
+      std::erase(children, child);
+    }
+
+    size_t size() const { return children.size(); }
+
+    unsigned cachedHeight{};
+
+  private:
+    friend class Entity;
+    std::vector<Entity> children{};
+  };
+
+  // if entity has parent, controls transform w.r.t. the parent's
+  struct LocalTransform
+  {
+    Transform transform;
+  };
+
   /// <summary>
   /// Scripting
   /// </summary>

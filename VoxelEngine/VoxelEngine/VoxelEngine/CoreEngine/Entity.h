@@ -27,7 +27,14 @@ public:
   }
 
   template<typename T>
-  bool HasComponent()
+  const T& GetComponent() const
+  {
+    ASSERT_MSG(HasComponent<T>(), "Entity missing component!");
+    return scene_->registry_.get<T>(entityHandle_);
+  }
+
+  template<typename T>
+  bool HasComponent() const
   {
     return scene_->registry_.has<T>(entityHandle_);
   }
@@ -41,6 +48,8 @@ public:
 
   operator bool() const { return entityHandle_ != entt::null; }
   operator uint32_t() const { return static_cast<uint32_t>(entityHandle_); }
+  operator entt::entity() const { return entityHandle_; }
+
 
   bool operator==(const Entity& other) const
   {
@@ -52,7 +61,15 @@ public:
     return !(*this == other);
   }
 
+  // sets the parent entity of this entity
+  Entity SetParent(Entity parent);
+  // adds a child entity of this entity
+  Entity AddChild(Entity child);
+  unsigned GetHierarchyHeight() const;
+
 private:
   entt::entity entityHandle_ = entt::null;
   Scene* scene_ = nullptr;
+
+  unsigned HierarchyHeightHelper(unsigned curHeight = 0) const;
 };

@@ -75,10 +75,10 @@ void GraphicsSystem::Update(Scene& scene, float dt)
   // draw objects in the scene
   {
     using namespace Components;
-    auto group = scene.GetRegistry().group<Transform>(entt::get<Mesh, Material, Tag>);
-    for (auto entity : group)
+    auto view = scene.GetRegistry().view<Transform, Mesh, Material, Tag>();
+    for (auto entity : view)
     {
-      auto [transform, mesh, material, tag] = group.get<Transform, Mesh, Material, Tag>(entity);
+      auto [transform, mesh, material, tag] = view.get<Transform, Mesh, Material, Tag>(entity);
       Renderer::Render(transform, mesh, material);
     }
   }

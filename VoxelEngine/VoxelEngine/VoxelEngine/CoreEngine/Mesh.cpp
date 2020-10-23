@@ -7,7 +7,7 @@
 #include <iostream>
 
 static Assimp::Importer importer;
-
+#pragma optimize("", off)
 std::vector<MeshHandle> MeshManager::CreateMesh(std::string filename, bool& hasSkeleton, bool& hasAnimations)
 {
 	const aiScene* scene = importer.ReadFile(filename.c_str(), aiProcessPreset_TargetRealtime_Fast);

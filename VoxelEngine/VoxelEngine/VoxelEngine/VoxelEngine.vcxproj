@@ -72,6 +72,7 @@
     <ClInclude Include="CoreEngine\WindowCB.h" />
     <ClInclude Include="CoreEngine\WindowUtils.h" />
     <ClInclude Include="Game\PlayerController.h" />
+    <ClInclude Include="Game\TestObj.h" />
     <ClInclude Include="Game\WorldGen.h" />
     <ClInclude Include="Voxels\biome.h" />
     <ClInclude Include="Voxels\block.h" />
@@ -285,7 +286,7 @@
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <AdditionalOptions>/experimental:external /external:I 3rdParty /external:W0 %(AdditionalOptions)</AdditionalOptions>
-      <Optimization>MaxSpeed</Optimization>
+      <Optimization>Disabled</Optimization>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

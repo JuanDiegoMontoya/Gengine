@@ -244,6 +244,9 @@
     <ClInclude Include="Game\PlayerController.h">
       <Filter>Game</Filter>
     </ClInclude>
+    <ClInclude Include="Game\TestObj.h">
+      <Filter>Game</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="3rdParty\imgui\imgui.cpp">
