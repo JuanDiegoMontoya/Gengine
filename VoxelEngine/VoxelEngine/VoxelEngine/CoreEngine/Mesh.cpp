@@ -8,7 +8,7 @@
 #include <iostream>
 
 static Assimp::Importer importer;
-#pragma optimize("", off)
+
 std::vector<MeshHandle> MeshManager::CreateMesh(std::string filename, bool& hasSkeleton, bool& hasAnimations)
 {
 	const aiScene* scene = importer.ReadFile(filename.c_str(), aiProcessPreset_TargetRealtime_Fast);
@@ -31,6 +31,33 @@ std::vector<MeshHandle> MeshManager::CreateMesh(std::string filename, bool& hasS
 
 		LoadMesh(scene, scene->mMeshes[m], indices, vertices);
 		meshHandles.push_back(GenHandle_GL(indices, vertices));
+	}
+
+	return meshHandles;
+}
+
+std::vector<BatchedMeshHandle> MeshManager::CreateMeshBatched(std::string filename, bool& hasSkeleton, bool& hasAnimations)
+{
+	const aiScene* scene = importer.ReadFile(filename.c_str(), aiProcessPreset_TargetRealtime_Fast);
+
+	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
+	{
+		std::string rre = importer.GetErrorString();
+		std::cout << "ERROR::ASSIMP::" << rre << std::endl;
+	}
+
+	hasAnimations = scene->HasAnimations();
+	hasSkeleton = scene->mMeshes[0]->HasBones();
+
+	std::vector<BatchedMeshHandle> meshHandles;
+
+	for (unsigned m = 0; m < scene->mNumMeshes; m++)
+	{
+		std::vector<Vertex> vertices;
+		std::vector<unsigned> indices;
+
+		LoadMesh(scene, scene->mMeshes[m], indices, vertices);
+		meshHandles.push_back(GenBatchedHandle_GL(indices, vertices));
 	}
 
 	return meshHandles;
@@ -70,11 +97,24 @@ MeshHandle MeshManager::GenHandle_GL(std::vector<GLuint>& indices, std::vector<V
 	return mh;
 }
 
-void MeshManager::GenBatchedHandle_GL(const std::vector<GLuint>& indices, const std::vector<Vertex>& vertices)
+BatchedMeshHandle MeshManager::GenBatchedHandle_GL(const std::vector<GLuint>& indices, const std::vector<Vertex>& vertices)
 {
-	Renderer::vertexBuffer->Allocate(vertices.data(), vertices.size() * sizeof(Vertex));
-	Renderer::indexBuffer->Allocate(indices.data(), indices.size() * sizeof(GLuint));
-	Renderer::dirtyBuffers = true;
+	// never freed
+	auto vh = Renderer::vertexBuffer->Allocate(vertices.data(), vertices.size() * sizeof(Vertex));
+	auto ih = Renderer::indexBuffer->Allocate(indices.data(), indices.size() * sizeof(GLuint));
+	auto vinfo = Renderer::vertexBuffer->GetAlloc(vh);
+	auto iinfo = Renderer::indexBuffer->GetAlloc(ih);
+	BatchedMeshHandle handle{ .handle = Renderer::nextHandle++ };
+	
+	// generate an indirect draw command with most of the info needed to draw this mesh
+	DrawElementsIndirectCommand cmd{};
+	cmd.baseVertex = vinfo.offset / Renderer::vertexBuffer->align_;
+	cmd.instanceCount = 0;
+	cmd.count = indices.size();
+	cmd.firstIndex = iinfo.offset / Renderer::indexBuffer->align_;
+	//cmd.baseInstance = 0; // only knowable after all user draw calls are submitted
+	Renderer::meshBufferInfo[handle] = cmd;
+	return handle;
 }
 
 void MeshManager::LoadMesh(const aiScene* scene, aiMesh* mesh, std::vector<GLuint>& indices, std::vector<Vertex>& vertices)

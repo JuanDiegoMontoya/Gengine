@@ -7,7 +7,8 @@
 
 #include <stb_image.h>
 
-class MeshHandle;
+struct MeshHandle;
+struct BatchedMeshHandle;
 class Animation;
 
 struct aiMesh;
@@ -19,11 +20,12 @@ struct VertexAnim;
 class MeshManager
 {
 public:
-	static std::vector<MeshHandle> CreateMesh(std::string filename, bool&, bool&);
+	static std::vector<MeshHandle> CreateMesh(std::string filename, bool& hasSkeleton, bool& hasAnimations);
+	static std::vector<BatchedMeshHandle> CreateMeshBatched(std::string filename, bool& hasSkeleton, bool& hasAnimations);
 
 private:
 	static MeshHandle GenHandle_GL(std::vector<GLuint>&, std::vector<Vertex>&);
-	static void GenBatchedHandle_GL(const std::vector<GLuint>& indices, const std::vector<Vertex>& vertices);
+	static BatchedMeshHandle GenBatchedHandle_GL(const std::vector<GLuint>& indices, const std::vector<Vertex>& vertices);
 	static MeshHandle GenHandle_GL(std::vector<GLuint>&, std::vector<VertexAnim>&);
 
 	static void LoadMesh(const aiScene* scene, aiMesh* mesh, std::vector<unsigned>&, std::vector<Vertex>&);

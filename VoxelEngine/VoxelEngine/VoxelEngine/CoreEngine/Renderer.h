@@ -8,6 +8,17 @@
 
 class Shader;
 
+namespace std
+{
+	template<>
+	struct hash<BatchedMeshHandle>
+	{
+		std::size_t operator()(const BatchedMeshHandle& k) const
+		{
+			return std::hash<unsigned>()(k.handle);
+		}
+	};
+}
 
 class Renderer
 {
@@ -16,7 +27,7 @@ public:
 	static void CompileShaders();
 
 	static void Render(Components::Transform& model, Components::Mesh& mesh, Components::Material& mat);
-	static void Submit(Components::Transform& model, Components::Mesh& mesh, Components::Material& mat);
+	static void Submit(Components::Transform& model, Components::BatchedMesh& mesh, Components::Material& mat);
 	static void RenderBatch();
 
 	// generic drawing functions (TODO: move)
@@ -25,16 +36,34 @@ public:
 	static void DrawCube();
 
 private:
+	// std140
+	struct UniformData
+	{
+		glm::mat4 model;
+	};
+	static void RenderBatchHelper(MaterialHandle material, const std::vector<UniformData>& uniformBuffer);
+
 	// batched+instanced rendering stuff (ONE MATERIAL SUPPORTED ATM)
 	friend class MeshManager;
-	static inline std::vector<DrawElementsIndirectCommand> indirectCommands;
 	static inline std::unique_ptr<DynamicBuffer<>> vertexBuffer;
 	static inline std::unique_ptr<DynamicBuffer<>> indexBuffer;
-	static inline std::unique_ptr<StaticBuffer> uniformsUBO; // uniform per object instance
 
+	// per-vertex layout
 	static inline std::unique_ptr<VAO> batchVAO;
-	static inline std::unique_ptr<StaticBuffer> batchDIB;
 
-	// changes when a mesh is added, tells Renderer 
-	static inline bool dirtyBuffers;
+	// maps handles to VERTEX and INDEX information in the respective dynamic buffers
+	// used to retrieve important offset and size info for meshes
+	using DBaT = DynamicBuffer<>::allocationData<>;
+	static inline std::unordered_map<BatchedMeshHandle, DrawElementsIndirectCommand> meshBufferInfo;
+	static inline unsigned nextHandle = 1;
+
+	struct BatchDrawCommand
+	{
+		BatchedMeshHandle mesh;
+		MaterialHandle material;
+		glm::mat4 modelUniform;
+	};
+	static inline std::vector<BatchDrawCommand> userCommands;
+	//static inline std::vector<DrawElementsIndirectCommand> indirectCommands;
+
 };

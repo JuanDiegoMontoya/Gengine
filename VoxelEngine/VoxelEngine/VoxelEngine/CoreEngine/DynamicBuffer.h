@@ -30,6 +30,7 @@ public:
   uint64_t FreeOldest();
 
   // query information about the allocator
+  const auto& GetAlloc(uint64_t handle) { return *std::find_if(allocs_.begin(), allocs_.end(), [=](const auto& alloc) { return alloc.handle == handle; }); }
   const auto& GetAllocs() { return allocs_; }
   GLuint ActiveAllocs() { return numActiveAllocs_; }
   GLuint GetGPUHandle() { return buffer->GetID(); }
@@ -39,18 +40,18 @@ public:
 
   const GLsizei align_; // allocation alignment
 
-  template<typename UT>
+  template<typename UT = UserT>
   struct allocationData
   {
     allocationData() = default;
     allocationData(UT u) : userdata(u) {}
 
     uint64_t handle{}; // "pointer"
-    double time{};   // time of allocation
+    double time{};     // time of allocation
     uint32_t flags{};  // GPU flags
     uint32_t _pad{};   // GPU padding
-    uint32_t offset{};   // offset from beginning of this memory
-    uint32_t size{};     // allocation size
+    uint32_t offset{}; // offset from beginning of this memory
+    uint32_t size{};   // allocation size
     UT userdata{};     // user-defined data
   };
 
@@ -58,14 +59,14 @@ public:
   struct allocationData<None_>
   {
     allocationData() = default;
-    allocationData(None_) {}
+    allocationData(None_) {}; // semicolon to make intellisense stop complaining
 
     uint64_t handle{}; // "pointer"
     double time{};     // time of allocation
     uint32_t flags{};  // GPU flags
     uint32_t _pad{};   // GPU padding
-    uint32_t offset{};   // offset from beginning of this memory
-    uint32_t size{};     // allocation size
+    uint32_t offset{}; // offset from beginning of this memory
+    uint32_t size{};   // allocation size
   };
 
   size_t AllocSize() const { return sizeof(allocationData<UserT>); }

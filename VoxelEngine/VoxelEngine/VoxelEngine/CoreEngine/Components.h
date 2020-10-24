@@ -60,7 +60,12 @@ namespace Components
   // temp
   struct Mesh
   {
-      MeshHandle meshHandle;
+    MeshHandle meshHandle;
+  };
+
+  struct BatchedMesh
+  {
+    BatchedMeshHandle handle;
   };
 
   // temp

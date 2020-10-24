@@ -7,6 +7,8 @@
 #include <CoreEngine/Camera.h>
 #include <CoreEngine/Texture2D.h>
 
+#include <execution>
+
 static void GLAPIENTRY
 GLerrorCB(GLenum source,
 	GLenum type,
@@ -66,7 +68,7 @@ void Renderer::Render(Components::Transform& model, Components::Mesh& mesh, Comp
 	shader->Use();
 
 	glm::mat4 modelMatrix = model.GetModel();
-	modelMatrix = glm::scale(modelMatrix, { 10, 10, 10 });
+	//modelMatrix = glm::scale(modelMatrix, { 10, 10, 10 });
 	glm::mat4 modelInv = glm::inverse(modelMatrix);
 	modelInv = glm::transpose(modelInv);
 
@@ -91,12 +93,75 @@ void Renderer::Render(Components::Transform& model, Components::Mesh& mesh, Comp
 	glDrawElements(GL_TRIANGLES, (int)mHandle.indexCount, GL_UNSIGNED_INT, 0);
 }
 
-void Renderer::Submit(Components::Transform& model, Components::Mesh& mesh, Components::Material& mat)
+void Renderer::Submit(Components::Transform& model, Components::BatchedMesh& mesh, Components::Material& mat)
 {
+	BatchDrawCommand cmd{ .mesh = mesh.handle, .material = mat, .modelUniform = model.GetModel() };
+	userCommands.push_back(std::move(cmd));
 }
 
 void Renderer::RenderBatch()
 {
+	if (userCommands.empty())
+		return;
+
+	std::sort(std::execution::par_unseq, userCommands.begin(), userCommands.end(),
+		[](const auto& lhs, const auto& rhs)
+		{
+			return lhs.material < rhs.material;
+		});
+
+	// accumulate per-material draws and uniforms
+	std::vector<UniformData> uniforms;
+	MaterialHandle curMat = userCommands[0].material;
+	for (size_t i = 0; i < userCommands.size(); i++)
+	{
+		const auto& draw = userCommands[i];
+		if (draw.material != curMat)
+		{
+			RenderBatchHelper(curMat, uniforms); // submit draw when material is done
+			uniforms.clear();
+		}
+
+		meshBufferInfo[draw.mesh].instanceCount++;
+		uniforms.push_back(UniformData{ .model = draw.modelUniform });
+	}
+	if (uniforms.size() > 0)
+		RenderBatchHelper(curMat, uniforms);
+
+	userCommands.clear();
+}
+
+void Renderer::RenderBatchHelper(MaterialHandle mat, const std::vector<UniformData>& uniformBuffer)
+{
+	// generate SSBO w/ uniforms
+	auto uniforms = std::make_unique<StaticBuffer>(uniformBuffer.data(), uniformBuffer.size() * sizeof(UniformData));
+	uniforms->Bind<Target::SSBO>(0);
+
+	// generate DIB (one indirect command per mesh)
+	std::vector<DrawElementsIndirectCommand> commands;
+	std::for_each(meshBufferInfo.begin(), meshBufferInfo.end(),
+		[&commands](const auto& cmd)
+		{
+			if (cmd.second.instanceCount != 0)
+				commands.push_back(cmd.second);
+		});
+	StaticBuffer dib(commands.data(), commands.size() * sizeof(DrawElementsIndirectCommand));
+	dib.Bind<Target::DIB>();
+
+	// clear instance count for next GL draw command
+	for (auto& info : meshBufferInfo)
+		info.second.instanceCount = 0;
+
+	// do the actual draw
+	auto& material = MaterialManager::materials[mat];
+	auto& shader = Shader::shaders[material.shaderID];
+	shader->Use();
+
+	shader->setMat4("u_viewProj", Camera::ActiveCamera->GetViewProj());
+
+	batchVAO->Bind();
+	glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, (void*)0, commands.size(), 0);
+	batchVAO->Unbind();
 }
 
 void Renderer::Init()
@@ -120,8 +185,26 @@ void Renderer::Init()
 	CompileShaders();
 
 	// TODO: use dynamically sized buffer
-	//vertexBuffer = std::make_unique<DynamicBuffer<>>(100'000'000, sizeof(Vertex));
-	//indexBuffer = std::make_unique<DynamicBuffer<>>(100'000'000, sizeof(GLuint));
+	vertexBuffer = std::make_unique<DynamicBuffer<>>(100'000'000, sizeof(Vertex));
+	indexBuffer = std::make_unique<DynamicBuffer<>>(100'000'000, sizeof(GLuint));
+
+	// setup VAO for batched drawing (ONE VERTEX LAYOUT ATM)
+	batchVAO = std::make_unique<VAO>();
+	glEnableVertexArrayAttrib(batchVAO->GetID(), 0); // pos
+	glEnableVertexArrayAttrib(batchVAO->GetID(), 1); // normal
+	glEnableVertexArrayAttrib(batchVAO->GetID(), 2); // uv
+
+	glVertexArrayAttribFormat(batchVAO->GetID(), 0, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex, position));
+	glVertexArrayAttribFormat(batchVAO->GetID(), 1, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex, normal));
+	glVertexArrayAttribFormat(batchVAO->GetID(), 2, 2, GL_FLOAT, GL_FALSE, offsetof(Vertex, texCoord));
+
+	glVertexArrayAttribBinding(batchVAO->GetID(), 0, 0);
+	glVertexArrayAttribBinding(batchVAO->GetID(), 1, 0);
+	glVertexArrayAttribBinding(batchVAO->GetID(), 2, 0);
+
+	glVertexArrayVertexBuffer(batchVAO->GetID(), 0, vertexBuffer->GetGPUHandle(), 0, sizeof(Vertex));
+	glVertexArrayElementBuffer(batchVAO->GetID(), indexBuffer->GetGPUHandle());
+
 
 	/*Layout layout = Window::layout;
 
@@ -149,9 +232,14 @@ void Renderer::Init()
 
 void Renderer::CompileShaders()
 {
-	Shader::shaders["ShaderMcShaderFuckFace"].emplace(Shader(
+	Shader::shaders["ShaderMcShaderFace"].emplace(Shader(
 		{
 			{ "TexturedMesh.vs", GL_VERTEX_SHADER },
+			{ "TexturedMesh.fs", GL_FRAGMENT_SHADER }
+		}));
+	Shader::shaders["batched"].emplace(Shader(
+		{
+			{ "TexturedMeshBatched.vs", GL_VERTEX_SHADER },
 			{ "TexturedMesh.fs", GL_FRAGMENT_SHADER }
 		}));
 

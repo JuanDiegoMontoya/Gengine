@@ -11,6 +11,12 @@ struct MeshHandle
 	int indexCount = 0;
 };
 
+struct BatchedMeshHandle
+{
+	bool operator==(const BatchedMeshHandle&) const = default;
+	unsigned handle;
+};
+
 struct Vertex
 {
 	Vertex(glm::vec3 pVertex = glm::vec3(), glm::vec3 pNormal = glm::vec3(), glm::vec2 pTexCoords = glm::vec2()) :

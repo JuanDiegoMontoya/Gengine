@@ -11,6 +11,7 @@
 #include <memory>
 #include <CoreEngine/Texture2D.h>
 #include <CoreEngine/TextureArray.h>
+#include <CoreEngine/MeshUtils.h>
 
 // call after all chunks are initialized
 ChunkRenderer::ChunkRenderer()

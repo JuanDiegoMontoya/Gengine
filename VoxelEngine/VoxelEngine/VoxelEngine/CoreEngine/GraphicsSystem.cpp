@@ -72,15 +72,28 @@ void GraphicsSystem::Update(Scene& scene, float dt)
     Application::Quit();
   Camera::ActiveCamera->Update(dt);
 
-  // draw objects in the scene
+  // draw non-batched objects in the scene
   {
     using namespace Components;
-    auto view = scene.GetRegistry().view<Transform, Mesh, Material, Tag>();
+    auto view = scene.GetRegistry().view<Transform, Mesh, Material>();
     for (auto entity : view)
     {
-      auto [transform, mesh, material, tag] = view.get<Transform, Mesh, Material, Tag>(entity);
+      auto [transform, mesh, material] = view.get<Transform, Mesh, Material>(entity);
       Renderer::Render(transform, mesh, material);
     }
+  }
+
+  // draw batched objects in the scene
+  {
+    using namespace Components;
+    auto view = scene.GetRegistry().view<Transform, BatchedMesh, Material>();
+    for (auto entity : view)
+    {
+      auto [transform, mesh, material] = view.get<Transform, BatchedMesh, Material>(entity);
+      Renderer::Submit(transform, mesh, material);
+    }
+
+    Renderer::RenderBatch();
   }
 }
 

@@ -22,6 +22,7 @@
 
 // main.cpp: this is where the user's code belongs
 static MaterialHandle userMaterial{};
+static MaterialHandle batchMaterial{};
 static std::unique_ptr<VoxelManager> voxelManager{};
 
 void OnStart(Scene* scene)
@@ -35,10 +36,18 @@ void OnStart(Scene* scene)
   wg.InitBuffers();
   //auto compressed = CompressChunk(voxelManager->GetChunk(glm::ivec3(0))->GetStorage());
 
-  MaterialInfo info;
-  info.shaderID = "ShaderMcShaderFuckFace";
-  info.tex2Dpaths.push_back("this is an invalid texture! (it should use a fallback)");
-  userMaterial = MaterialManager::CreateMaterial(info);
+  {
+    MaterialInfo info;
+    info.shaderID = "ShaderMcShaderFace";
+    info.tex2Dpaths.push_back("==intentionally invalid texture==");
+    userMaterial = MaterialManager::CreateMaterial(info);
+  }
+  {
+    MaterialInfo info;
+    info.shaderID = "batched";
+    info.tex2Dpaths.push_back("==intentionally invalid texture==");
+    batchMaterial = MaterialManager::CreateMaterial(info);
+  }
 
   std::cout << "User function, initial scene name: " << scene->GetName() << '\n';
 
@@ -53,14 +62,17 @@ void OnStart(Scene* scene)
   {
     bool l, o;
     auto bunny = MeshManager::CreateMesh("./Resources/Models/bunny.obj", l, o)[0];
+    auto bunnyBatched = MeshManager::CreateMeshBatched("./Resources/Models/teapot.obj", l, o)[0];
 
     Entity parent = scene->CreateEntity("parent");
     parent.AddComponent<Components::Transform>().SetTranslation({ -15, -10, 10 });
+    parent.GetComponent<Components::Transform>().SetScale({ 1, 1, 1 });
     parent.AddComponent<Components::NativeScriptComponent>().Bind<TestObj>();
-    parent.AddComponent<Components::Mesh>().meshHandle = bunny;
-    parent.AddComponent<Components::Material>(userMaterial);
+    //parent.AddComponent<Components::Mesh>().meshHandle = bunny;
+    parent.AddComponent<Components::BatchedMesh>().handle = bunnyBatched;
+    parent.AddComponent<Components::Material>(batchMaterial);
 
-    for (int i = 0; i < 50; i++)
+    for (int i = 0; i < 2500; i++)
     {
       Entity child = scene->CreateEntity("child");
       child.AddComponent<Components::Transform>();
@@ -68,8 +80,9 @@ void OnStart(Scene* scene)
       child.AddComponent<Components::NativeScriptComponent>().Bind<TestObj>();
       child.AddComponent<Components::LocalTransform>().transform.SetTranslation({ 1, 1, 1 });
       child.GetComponent<Components::LocalTransform>().transform.SetScale({ .95, .95, .95 });
-      child.AddComponent<Components::Mesh>().meshHandle = bunny;
-      child.AddComponent<Components::Material>(userMaterial);
+      //child.AddComponent<Components::Mesh>().meshHandle = bunny;
+      child.AddComponent<Components::BatchedMesh>().handle = bunnyBatched;
+      child.AddComponent<Components::Material>(batchMaterial);
 
       parent = child;
     }

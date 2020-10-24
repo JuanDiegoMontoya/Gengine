@@ -12,6 +12,8 @@ public:
   void Bind() const;
   void Unbind() const;
 
+  GLuint GetID() const { return rendererID_; }
+
 private:
   GLuint rendererID_;
 };

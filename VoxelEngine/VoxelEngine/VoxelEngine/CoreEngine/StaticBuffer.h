@@ -28,7 +28,7 @@ public:
   // updates a subset of the buffer's data store
   void SubData(const void* data, GLuint size, GLuint offset = 0);
 
-  // binding everything EXCEPT SSBOs and UBOs
+  // for binding everything EXCEPT SSBOs and UBOs
   template<Target T> 
   void Bind() const
   {
@@ -36,7 +36,7 @@ public:
     glBindBuffer((GLenum)T, rendererID_);
   }
  
-  // binding SSBOs and UBOs
+  // for binding SSBOs and UBOs
   template<Target T>
   void Bind(GLuint index) const
   {
