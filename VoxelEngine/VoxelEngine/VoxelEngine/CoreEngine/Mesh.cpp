@@ -102,8 +102,8 @@ BatchedMeshHandle MeshManager::GenBatchedHandle_GL(const std::vector<GLuint>& in
 	// never freed
 	auto vh = Renderer::vertexBuffer->Allocate(vertices.data(), vertices.size() * sizeof(Vertex));
 	auto ih = Renderer::indexBuffer->Allocate(indices.data(), indices.size() * sizeof(GLuint));
-	auto vinfo = Renderer::vertexBuffer->GetAlloc(vh);
-	auto iinfo = Renderer::indexBuffer->GetAlloc(ih);
+	const auto& vinfo = Renderer::vertexBuffer->GetAlloc(vh);
+	const auto& iinfo = Renderer::indexBuffer->GetAlloc(ih);
 	BatchedMeshHandle handle{ .handle = Renderer::nextHandle++ };
 	
 	// generate an indirect draw command with most of the info needed to draw this mesh

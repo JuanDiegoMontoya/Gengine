@@ -61,7 +61,7 @@ void OnStart(Scene* scene)
 
   {
     bool l, o;
-    auto bunny = MeshManager::CreateMesh("./Resources/Models/bunny.obj", l, o)[0];
+    auto bunny = MeshManager::CreateMesh("./Resources/Models/teapot.obj", l, o)[0];
     auto bunnyBatched = MeshManager::CreateMeshBatched("./Resources/Models/teapot.obj", l, o)[0];
 
     Entity parent = scene->CreateEntity("parent");
@@ -69,10 +69,11 @@ void OnStart(Scene* scene)
     parent.GetComponent<Components::Transform>().SetScale({ 1, 1, 1 });
     parent.AddComponent<Components::NativeScriptComponent>().Bind<TestObj>();
     //parent.AddComponent<Components::Mesh>().meshHandle = bunny;
+    //parent.AddComponent<Components::Material>(userMaterial);
     parent.AddComponent<Components::BatchedMesh>().handle = bunnyBatched;
     parent.AddComponent<Components::Material>(batchMaterial);
 
-    for (int i = 0; i < 2500; i++)
+    for (int i = 0; i < 5000; i++)
     {
       Entity child = scene->CreateEntity("child");
       child.AddComponent<Components::Transform>();
@@ -81,6 +82,7 @@ void OnStart(Scene* scene)
       child.AddComponent<Components::LocalTransform>().transform.SetTranslation({ 1, 1, 1 });
       child.GetComponent<Components::LocalTransform>().transform.SetScale({ .95, .95, .95 });
       //child.AddComponent<Components::Mesh>().meshHandle = bunny;
+      //child.AddComponent<Components::Material>(userMaterial);
       child.AddComponent<Components::BatchedMesh>().handle = bunnyBatched;
       child.AddComponent<Components::Material>(batchMaterial);
 
