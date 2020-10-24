@@ -54,6 +54,7 @@ void Camera::Update(float dt)
 void Camera::UpdateViewMat()
 {
   view_ = glm::lookAt(worldpos_, worldpos_ + front, up);
+  viewProj_ = proj_ * view_;
   frustum_->Transform(proj_, view_);
   dirty_ = false;
 }

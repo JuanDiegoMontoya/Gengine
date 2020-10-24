@@ -15,7 +15,7 @@ public:
   void UpdateViewMat();
   const glm::mat4& GetView() const { return view_; }
   const glm::mat4& GetProj() const { return proj_; }
-  glm::mat4 GetProjView() { return proj_ * view_; }
+  const glm::mat4& GetViewProj() { return viewProj_; }
   const glm::vec3& GetPos() const { return worldpos_; }
   const glm::vec3& GetDir() const { return dir_; }
   const Frustum* GetFrustum() const { return frustum_.get(); }
@@ -59,7 +59,8 @@ private:
   float far_ = 300.f;
 
   glm::mat4 view_ = glm::mat4(1);
-  glm::mat4 proj_;
+  glm::mat4 proj_{};
+  glm::mat4 viewProj_{}; // cached
   std::unique_ptr<Frustum> frustum_;
 
   bool dirty_ = true;

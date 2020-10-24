@@ -9,5 +9,5 @@ layout(location = 2) in vec2 TexCoord;
 void main()
 {
   color = texture(albedoMap, TexCoord);
-  color.rgb = (color.rgb * .01) + Normal * .5 + .5;
+  color.rgb = mix(color.rgb, Normal * .5 + .5, .5);
 }
