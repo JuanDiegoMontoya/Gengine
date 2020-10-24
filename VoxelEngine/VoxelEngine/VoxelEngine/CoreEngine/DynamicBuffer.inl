@@ -31,7 +31,7 @@ DynamicBuffer<UserT>::DynamicBuffer(uint32_t size, uint32_t alignment)
 
 
 template<typename UserT>
-uint64_t DynamicBuffer<UserT>::Allocate(void* data, uint32_t size, UserT userdata)
+uint64_t DynamicBuffer<UserT>::Allocate(const void* data, uint32_t size, UserT userdata)
 {
   size += (align_ - (size % align_)) % align_;
   // find smallest NULL allocation that will fit

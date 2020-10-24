@@ -70,7 +70,7 @@ void Renderer::Render(Components::Transform& model, Components::Mesh& mesh, Comp
 	glm::mat4 modelInv = glm::inverse(modelMatrix);
 	modelInv = glm::transpose(modelInv);
 
-	glm::mat4 MVP = Camera::ActiveCamera->GetProjView() * modelMatrix;
+	glm::mat4 MVP = Camera::ActiveCamera->GetViewProj() * modelMatrix;
 
 	//ShadershadersShaderMcShaderFuckFaceUse->setMat4("InvTrModel", modelInv);
 	shader->setMat4("MVP", MVP);
@@ -89,6 +89,14 @@ void Renderer::Render(Components::Transform& model, Components::Mesh& mesh, Comp
 
 	glBindVertexArray(mHandle.VAO);
 	glDrawElements(GL_TRIANGLES, (int)mHandle.indexCount, GL_UNSIGNED_INT, 0);
+}
+
+void Renderer::Submit(Components::Transform& model, Components::Mesh& mesh, Components::Material& mat)
+{
+}
+
+void Renderer::RenderBatch()
+{
 }
 
 void Renderer::Init()
@@ -111,6 +119,9 @@ void Renderer::Init()
 
 	CompileShaders();
 
+	// TODO: use dynamically sized buffer
+	//vertexBuffer = std::make_unique<DynamicBuffer<>>(100'000'000, sizeof(Vertex));
+	//indexBuffer = std::make_unique<DynamicBuffer<>>(100'000'000, sizeof(GLuint));
 
 	/*Layout layout = Window::layout;
 

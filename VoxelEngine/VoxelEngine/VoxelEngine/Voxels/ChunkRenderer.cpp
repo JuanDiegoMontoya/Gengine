@@ -129,19 +129,21 @@ void ChunkRenderer::GenerateDrawCommandsGPU()
     dib = std::make_unique<StaticBuffer>(
       nullptr,
       allocator->ActiveAllocs() * sizeof(DrawArraysIndirectCommand));
+    //dirtyAlloc = false;
   }
 
-  glBindBuffer(GL_SHADER_STORAGE_BUFFER, allocBuffer->GetID());
-  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, allocBuffer->GetID());
+  allocBuffer->Bind<Target::SSBO>(0);
+  //glBindBuffer(GL_SHADER_STORAGE_BUFFER, allocBuffer->GetID());
+  //glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, allocBuffer->GetID());
 
   // make DIB output SSBO (binding 1) for the shader
   //glBindBuffer(GL_SHADER_STORAGE_BUFFER, dib->GetID());
-  dib->Bind<Target::SSBO>();
-  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, dib->GetID());
+  dib->Bind<Target::SSBO>(1);
+  //glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, dib->GetID());
 
   //glBindBuffer(GL_SHADER_STORAGE_BUFFER, drawCountGPU->GetID());
-  drawCountGPU->Bind<Target::SSBO>();
-  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, drawCountGPU->GetID());
+  drawCountGPU->Bind<Target::SSBO>(2);
+  //glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, drawCountGPU->GetID());
     
   {
     int numBlocks = (allocs.size() + blockSize - 1) / blockSize;

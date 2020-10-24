@@ -10,6 +10,9 @@
 #include <CoreEngine/StaticBuffer.h>
 #include <CoreEngine/vao.h>
 
+// note: baseInstance is for glMultiDraw*Indirect ONLY
+// for any other purpose it must be zero
+
 struct DrawElementsIndirectCommand
 {
   GLuint  count;
@@ -17,8 +20,6 @@ struct DrawElementsIndirectCommand
   GLuint  firstIndex;
   GLuint  baseVertex;
   GLuint  baseInstance;
-  // note: baseInstance is for glMultiDraw*Indirect ONLY
-  // for any other purpose it must be zero
 };
 
 struct DrawArraysIndirectCommand

@@ -2,6 +2,7 @@
 
 #include "Mesh.h"
 #include "AssimpUtils.h"
+#include <CoreEngine/Renderer.h>
 
 #include <algorithm>
 #include <iostream>
@@ -35,7 +36,7 @@ std::vector<MeshHandle> MeshManager::CreateMesh(std::string filename, bool& hasS
 	return meshHandles;
 }
 
-MeshHandle MeshManager::GenHandle_GL(std::vector<unsigned>& indices, std::vector<Vertex>& vertices)
+MeshHandle MeshManager::GenHandle_GL(std::vector<GLuint>& indices, std::vector<Vertex>& vertices)
 {
 	MeshHandle mh;
 
@@ -52,7 +53,7 @@ MeshHandle MeshManager::GenHandle_GL(std::vector<unsigned>& indices, std::vector
 	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned), &indices[0], GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(GLuint), &indices[0], GL_STATIC_DRAW);
 
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
@@ -69,7 +70,14 @@ MeshHandle MeshManager::GenHandle_GL(std::vector<unsigned>& indices, std::vector
 	return mh;
 }
 
-void MeshManager::LoadMesh(const aiScene* scene, aiMesh* mesh, std::vector<unsigned>& indices, std::vector<Vertex>& vertices)
+void MeshManager::GenBatchedHandle_GL(const std::vector<GLuint>& indices, const std::vector<Vertex>& vertices)
+{
+	Renderer::vertexBuffer->Allocate(vertices.data(), vertices.size() * sizeof(Vertex));
+	Renderer::indexBuffer->Allocate(indices.data(), indices.size() * sizeof(GLuint));
+	Renderer::dirtyBuffers = true;
+}
+
+void MeshManager::LoadMesh(const aiScene* scene, aiMesh* mesh, std::vector<GLuint>& indices, std::vector<Vertex>& vertices)
 {
 	for (unsigned i = 0; i < mesh->mNumVertices; i++)
 	{
