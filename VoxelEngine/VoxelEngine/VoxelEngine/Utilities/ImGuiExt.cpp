@@ -1,8 +1,8 @@
-#include <Utilities/ImGuiBonus.h>
+#include <Utilities/ImGuiExt.h>
 #include <map>
 #include <vector>
-#include <GAssert.h>
-#include <Graphics/GraphicsIncludes.h>
+#include <CoreEngine/GAssert.h>
+#include <CoreEngine/GraphicsIncludes.h>
 
 //https://github.com/ocornut/imgui/wiki/plot_var_example
 struct PlotVarData

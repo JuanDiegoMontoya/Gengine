@@ -74,6 +74,15 @@
     <ClInclude Include="Game\PlayerController.h" />
     <ClInclude Include="Game\TestObj.h" />
     <ClInclude Include="Game\WorldGen.h" />
+    <ClInclude Include="Utilities\BitArray.h" />
+    <ClInclude Include="Utilities\CompressBuffer.h" />
+    <ClInclude Include="Utilities\DeltaEncoder.h" />
+    <ClInclude Include="Utilities\FixedQueue.h" />
+    <ClInclude Include="Utilities\ImGuiExt.h" />
+    <ClInclude Include="Utilities\Palette.h" />
+    <ClInclude Include="Utilities\RunLengthEncoder.h" />
+    <ClInclude Include="Utilities\Serialize.h" />
+    <ClInclude Include="Utilities\Timer.h" />
     <ClInclude Include="Voxels\biome.h" />
     <ClInclude Include="Voxels\block.h" />
     <ClInclude Include="Voxels\BlockStorage.h" />
@@ -138,6 +147,7 @@
     <ClCompile Include="CoreEngine\WindowCB.cpp" />
     <ClCompile Include="Game\main.cpp" />
     <ClCompile Include="Game\WorldGen.cpp" />
+    <ClCompile Include="Utilities\ImGuiExt.cpp" />
     <ClCompile Include="Voxels\biome.cpp" />
     <ClCompile Include="Voxels\block.cpp" />
     <ClCompile Include="Voxels\Chunk.cpp" />
@@ -154,6 +164,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="CoreEngine\DynamicBuffer.inl" />
+    <None Include="Utilities\Palette.inl" />
     <None Include="Voxels\BlockStorage.inl" />
     <None Include="Voxels\ChunkHelpers.inl" />
     <None Include="Voxels\imgui.ini" />
@@ -286,7 +297,7 @@
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <AdditionalOptions>/experimental:external /external:I 3rdParty /external:W0 %(AdditionalOptions)</AdditionalOptions>
-      <Optimization>MaxSpeed</Optimization>
+      <Optimization>Disabled</Optimization>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

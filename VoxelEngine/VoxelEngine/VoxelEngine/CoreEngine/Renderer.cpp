@@ -112,6 +112,7 @@ void Renderer::RenderBatch()
 
 	// accumulate per-material draws and uniforms
 	std::vector<UniformData> uniforms;
+	uniforms.reserve(userCommands.size());
 	MaterialHandle curMat = userCommands[0].material;
 	for (size_t i = 0; i < userCommands.size(); i++)
 	{

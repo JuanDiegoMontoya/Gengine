@@ -6,7 +6,7 @@ struct GLFWwindow;
 class DebugSystem
 {
 public:
-  void Init(GLFWwindow* window);
+  void Init(GLFWwindow* win);
   void End();
 
   void StartFrame(Scene& scene, float dt);
@@ -14,5 +14,6 @@ public:
   void EndFrame(Scene& scene, float dt);
 
 private:
-
+  bool activeCursor = false;
+  GLFWwindow* window;
 };

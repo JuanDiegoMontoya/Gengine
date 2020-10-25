@@ -86,12 +86,12 @@ void GraphicsSystem::Update(Scene& scene, float dt)
   // draw batched objects in the scene
   {
     using namespace Components;
-    auto view = scene.GetRegistry().view<Transform, BatchedMesh, Material>();
-    for (auto entity : view)
-    {
-      auto [transform, mesh, material] = view.get<Transform, BatchedMesh, Material>(entity);
-      Renderer::Submit(transform, mesh, material);
-    }
+    auto group = scene.GetRegistry().group<BatchedMesh>(entt::get<Transform, Material>);
+    group.each([](entt::entity entity, BatchedMesh& mesh, Transform& transform, Material& material)
+      {
+        //auto [mesh, transform, material] = group.get<BatchedMesh, Transform, Material>(entity);
+        Renderer::Submit(transform, mesh, material);
+      });
 
     Renderer::RenderBatch();
   }
