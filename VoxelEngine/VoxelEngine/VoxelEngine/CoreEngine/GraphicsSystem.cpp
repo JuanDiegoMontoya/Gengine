@@ -7,6 +7,7 @@
 #include <CoreEngine/Components.h>
 #include <CoreEngine/Renderer.h>
 #include <CoreEngine/Mesh.h>
+#include <execution>
 
 // TODO: TEMP GARBAGE
 #include <CoreEngine/Context.h>
@@ -67,9 +68,6 @@ void GraphicsSystem::StartFrame()
 
 void GraphicsSystem::Update(Scene& scene, float dt)
 {
-  // TODO: put in game manager script
-  if (Input::IsKeyDown(GLFW_KEY_ESCAPE))
-    Application::Quit();
   Camera::ActiveCamera->Update(dt);
 
   // draw non-batched objects in the scene
@@ -87,9 +85,11 @@ void GraphicsSystem::Update(Scene& scene, float dt)
   {
     using namespace Components;
     auto group = scene.GetRegistry().group<BatchedMesh>(entt::get<Transform, Material>);
-    group.each([](entt::entity entity, BatchedMesh& mesh, Transform& transform, Material& material)
+    Renderer::BeginBatch(group.size());
+    std::for_each(std::execution::par_unseq, group.begin(), group.end(),
+      [&group](entt::entity entity)
       {
-        //auto [mesh, transform, material] = group.get<BatchedMesh, Transform, Material>(entity);
+        auto [mesh, transform, material] = group.get<BatchedMesh, Transform, Material>(entity);
         Renderer::Submit(transform, mesh, material);
       });
 

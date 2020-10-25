@@ -19,6 +19,10 @@ public:
 
   virtual void OnUpdate(float dt) override
   {
+    // TODO: put in game manager script
+    if (Input::IsKeyDown(GLFW_KEY_ESCAPE))
+      Application::Quit();
+
     auto translation = GetComponent<Components::Transform>().GetTranslation();
     auto& cam = *GetComponent<Components::Camera>().cam;
 

@@ -93,21 +93,32 @@ void Renderer::Render(Components::Transform& model, Components::Mesh& mesh, Comp
 	glDrawElements(GL_TRIANGLES, (int)mHandle.indexCount, GL_UNSIGNED_INT, 0);
 }
 
+void Renderer::BeginBatch(uint32_t size)
+{
+	//userCommands.reserve(size);
+	userCommands.resize(size);
+}
+
 void Renderer::Submit(Components::Transform& model, Components::BatchedMesh& mesh, Components::Material& mat)
 {
-	BatchDrawCommand cmd{ .mesh = mesh.handle, .material = mat, .modelUniform = model.GetModel() };
-	userCommands.push_back(std::move(cmd));
+	auto index = cmdIndex++;
+	//userCommands.emplace(userCommands.begin() + index, BatchDrawCommand { .mesh = mesh.handle, .material = mat, .modelUniform = model.GetModel() });
+	userCommands[index] = BatchDrawCommand { .mesh = mesh.handle, .material = mat, .modelUniform = model.GetModel() };
 }
 
 void Renderer::RenderBatch()
 {
+	cmdIndex = 0;
 	if (userCommands.empty())
 		return;
 
 	std::sort(std::execution::par_unseq, userCommands.begin(), userCommands.end(),
 		[](const auto& lhs, const auto& rhs)
 		{
-			return lhs.material < rhs.material;
+			if (lhs.material != rhs.material)
+				return lhs.material < rhs.material;
+			else
+				return lhs.mesh < rhs.mesh;
 		});
 
 	// accumulate per-material draws and uniforms
@@ -140,11 +151,17 @@ void Renderer::RenderBatchHelper(MaterialHandle mat, const std::vector<UniformDa
 
 	// generate DIB (one indirect command per mesh)
 	std::vector<DrawElementsIndirectCommand> commands;
+	GLuint baseInstance = 0;
 	std::for_each(meshBufferInfo.begin(), meshBufferInfo.end(),
-		[&commands](const auto& cmd)
+		[&commands, &baseInstance](auto cmd)
 		{
 			if (cmd.second.instanceCount != 0)
+			{
+				cmd.second.baseInstance = baseInstance;
+				//cmd.second.instanceCount += baseInstance;
 				commands.push_back(cmd.second);
+				baseInstance += cmd.second.instanceCount;
+			}
 		});
 	StaticBuffer dib(commands.data(), commands.size() * sizeof(DrawElementsIndirectCommand));
 	dib.Bind<Target::DIB>();

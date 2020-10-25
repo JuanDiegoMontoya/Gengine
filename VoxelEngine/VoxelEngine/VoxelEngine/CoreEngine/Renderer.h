@@ -5,6 +5,7 @@
 #include "MeshUtils.h"
 #include "Components.h"
 #include <CoreEngine/DynamicBuffer.h>
+#include <shared_mutex>
 
 class Shader;
 
@@ -27,6 +28,7 @@ public:
 	static void CompileShaders();
 
 	static void Render(Components::Transform& model, Components::Mesh& mesh, Components::Material& mat);
+	static void BeginBatch(uint32_t size);
 	static void Submit(Components::Transform& model, Components::BatchedMesh& mesh, Components::Material& mat);
 	static void RenderBatch();
 
@@ -64,6 +66,7 @@ private:
 		glm::mat4 modelUniform;
 	};
 	static inline std::vector<BatchDrawCommand> userCommands;
-	//static inline std::vector<DrawElementsIndirectCommand> indirectCommands;
 
+	static inline std::atomic_uint32_t cmdIndex{ 0 };
+	//static inline std::vector<DrawElementsIndirectCommand> indirectCommands;
 };

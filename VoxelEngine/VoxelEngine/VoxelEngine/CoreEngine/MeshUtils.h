@@ -13,7 +13,7 @@ struct MeshHandle
 
 struct BatchedMeshHandle
 {
-	bool operator==(const BatchedMeshHandle&) const = default;
+	auto operator<=>(const BatchedMeshHandle&) const = default;
 	unsigned handle;
 };
 

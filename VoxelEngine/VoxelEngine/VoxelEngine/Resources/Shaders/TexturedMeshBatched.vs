@@ -21,7 +21,7 @@ layout (std430, binding = 0) buffer data
 
 void main()
 {
-	mat4 model = uniforms[gl_DrawID + gl_InstanceID].model;
+	mat4 model = uniforms[gl_BaseInstance + gl_InstanceID].model;
 	vTexCoord = aTexCoord;
 
 	vNormal = aNormal;

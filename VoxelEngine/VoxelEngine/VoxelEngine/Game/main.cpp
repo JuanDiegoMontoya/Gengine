@@ -19,6 +19,7 @@
 #include <iostream>
 #include <Game/PlayerController.h>
 #include <Game/TestObj.h>
+#include <Game/TestObj2.h>
 
 // main.cpp: this is where the user's code belongs
 static MaterialHandle userMaterial{};
@@ -61,47 +62,67 @@ void OnStart(Scene* scene)
 
   {
     bool l, o;
-    auto bunnyBatched = MeshManager::CreateMeshBatched("./Resources/Models/teapot.obj", l, o)[0];
-    auto bunny = MeshManager::CreateMesh("./Resources/Models/teapot.obj", l, o)[0];
+    std::vector<BatchedMeshHandle> meshes;
+    meshes.push_back(MeshManager::CreateMeshBatched("./Resources/Models/big_cube.obj", l, o)[0]);
+    meshes.push_back(MeshManager::CreateMeshBatched("./Resources/Models/bunny.obj", l, o)[0]);
+    meshes.push_back(MeshManager::CreateMeshBatched("./Resources/Models/sphere.obj", l, o)[0]);
+    meshes.push_back(MeshManager::CreateMeshBatched("./Resources/Models/teapot.obj", l, o)[0]);
 
-  //  Entity parent = scene->CreateEntity("parent");
-  //  parent.AddComponent<Components::Transform>().SetTranslation({ -15, -10, 10 });
-  //  parent.GetComponent<Components::Transform>().SetScale({ 1, 1, 1 });
-  //  parent.AddComponent<Components::NativeScriptComponent>().Bind<TestObj>();
-  //  //parent.AddComponent<Components::Mesh>().meshHandle = bunny;
-  //  //parent.AddComponent<Components::Material>(userMaterial);
-  //  parent.AddComponent<Components::BatchedMesh>().handle = bunnyBatched;
-  //  parent.AddComponent<Components::Material>(batchMaterial);
-
-  //  for (int i = 0; i < 5000; i++)
-  //  {
-  //    Entity child = scene->CreateEntity("child");
-  //    child.AddComponent<Components::Transform>();
-  //    child.SetParent(parent);
-  //    child.AddComponent<Components::NativeScriptComponent>().Bind<TestObj>();
-  //    child.AddComponent<Components::LocalTransform>().transform.SetTranslation({ 1, 1, 1 });
-  //    child.GetComponent<Components::LocalTransform>().transform.SetScale({ .95, .95, .95 });
-  //    //child.AddComponent<Components::Mesh>().meshHandle = bunny;
-  //    //child.AddComponent<Components::Material>(userMaterial);
-  //    child.AddComponent<Components::BatchedMesh>().handle = bunnyBatched;
-  //    child.AddComponent<Components::Material>(batchMaterial);
-
-  //    parent = child;
-  //  }
-
-    // TODO: test more complex parenting relationships
-    for (int x = 0; x < 50; x++)
+    auto notbatch = MeshManager::CreateMesh("./Resources/Models/sphere.obj", l, o)[0];
+    if (1)
     {
-      for (int y = 0; y < 50; y++)
+      Entity parent = scene->CreateEntity("parent");
+      parent.AddComponent<Components::Transform>().SetTranslation({ -15, -10, 10 });
+      parent.GetComponent<Components::Transform>().SetScale({ 1, 1, 1 });
+      parent.AddComponent<Components::NativeScriptComponent>().Bind<TestObj>();
+      //parent.AddComponent<Components::Mesh>().meshHandle = bunny;
+      //parent.AddComponent<Components::Material>(userMaterial);
+      parent.AddComponent<Components::BatchedMesh>().handle = meshes[0];
+      parent.AddComponent<Components::Material>(batchMaterial);
+
+      for (int i = 0; i < 5000; i++)
       {
-        Entity parent = scene->CreateEntity("parent");
-        parent.AddComponent<Components::Transform>().SetTranslation({ x * 3, 0, y * 3 });
-        parent.GetComponent<Components::Transform>().SetScale({ 1, 1, 1 });
-        parent.AddComponent<Components::NativeScriptComponent>().Bind<TestObj>();
-        parent.AddComponent<Components::BatchedMesh>().handle = bunnyBatched;
-        parent.AddComponent<Components::Material>(batchMaterial);
-        //parent.AddComponent<Components::Mesh>().meshHandle = bunny;
-        //parent.AddComponent<Components::Material>(userMaterial);
+        Entity child = scene->CreateEntity("child");
+        child.AddComponent<Components::Transform>();
+        child.SetParent(parent);
+        child.AddComponent<Components::NativeScriptComponent>().Bind<TestObj>();
+        child.AddComponent<Components::LocalTransform>().transform.SetTranslation({ 1, 1, 1 });
+        child.GetComponent<Components::LocalTransform>().transform.SetScale({ .95, .95, .95 });
+        //child.AddComponent<Components::Mesh>().meshHandle = bunny;
+        //child.AddComponent<Components::Material>(userMaterial);
+        child.AddComponent<Components::BatchedMesh>().handle = meshes[0];
+        child.AddComponent<Components::Material>(batchMaterial);
+        parent = child;
+      }
+    }
+    if (1)
+    {
+      srand(0);
+      // TODO: test more complex parenting relationships
+      Entity parent{};
+      for (int x = 0; x < 100; x++)
+      {
+        for (int y = 0; y < 100; y++)
+        {
+          Entity entity = scene->CreateEntity("parent");
+          if (!parent)
+          {
+            entity.AddComponent<Components::NativeScriptComponent>().Bind<TestObj>();
+            parent = entity;
+          }
+          else
+          {
+            entity.SetParent(parent);
+            entity.AddComponent<Components::LocalTransform>().transform.SetTranslation({ x * 3, 0, y * 3 });
+            entity.AddComponent<Components::NativeScriptComponent>().Bind<TestObj2>();
+          }
+          entity.AddComponent<Components::Transform>().SetTranslation({ x * 3, 0, y * 3 });
+          entity.GetComponent<Components::Transform>().SetScale({ 1, 1, 1 });
+          entity.AddComponent<Components::BatchedMesh>().handle = meshes[rand() % meshes.size()];
+          entity.AddComponent<Components::Material>(batchMaterial);
+          //entity.AddComponent<Components::Mesh>().meshHandle = notbatch;
+          //entity.AddComponent<Components::Material>(userMaterial);
+        }
       }
     }
   }

@@ -73,6 +73,7 @@
     <ClInclude Include="CoreEngine\WindowUtils.h" />
     <ClInclude Include="Game\PlayerController.h" />
     <ClInclude Include="Game\TestObj.h" />
+    <ClInclude Include="Game\TestObj2.h" />
     <ClInclude Include="Game\WorldGen.h" />
     <ClInclude Include="Utilities\BitArray.h" />
     <ClInclude Include="Utilities\CompressBuffer.h" />
@@ -297,7 +298,7 @@
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <AdditionalOptions>/experimental:external /external:I 3rdParty /external:W0 %(AdditionalOptions)</AdditionalOptions>
-      <Optimization>Disabled</Optimization>
+      <Optimization>MaxSpeed</Optimization>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

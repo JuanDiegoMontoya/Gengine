@@ -34,10 +34,10 @@ namespace Components
   struct Transform
   {
   public:
-    auto GetTranslation() const { return translation; }
-    auto GetRotation() const { return rotation; }
-    auto GetScale() const { return scale; }
-    auto GetModel() const { return model; }
+    const auto& GetTranslation() const { return translation; }
+    const auto& GetRotation() const { return rotation; }
+    const auto& GetScale() const { return scale; }
+    const auto& GetModel() const { return model; }
     auto IsDirty() const { return isDirty; }
     void SetTranslation(const glm::vec3& vec) { translation = vec; isDirty = true; }
     void SetRotation(const glm::mat4& mat) { rotation = mat; isDirty = true; }

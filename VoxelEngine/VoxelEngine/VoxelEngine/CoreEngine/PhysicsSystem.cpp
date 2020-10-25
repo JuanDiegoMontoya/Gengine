@@ -45,22 +45,19 @@ void PhysicsSystem::Update(Scene& scene, float dt)
 	// update local transforms
 	{
 		using namespace Components;
-		auto view = scene.GetRegistry().group<Transform>(entt::get<LocalTransform, Parent>);
-		view.sort(
+		auto group = scene.GetRegistry().group<Transform>(entt::get<LocalTransform, Parent>);
+		group.sort(
 			[&scene](const entt::entity lhs, const entt::entity rhs)
 		{
 			return Entity(lhs, &scene).GetHierarchyHeight() > Entity(rhs, &scene).GetHierarchyHeight();
 		}, entt::insertion_sort());
 
 		//printf("\n");
-		for (auto entity : view)
+		for (auto entity : group)
 		{
-			{
-				//printf("height: %d\n", Entity(entity, &scene).GetHierarchyHeight());
-			}
-			auto [worldTransform, localTransform, parent] = view.get<Transform, LocalTransform, Parent>(entity);
+			auto [worldTransform, localTransform, parent] = group.get<Transform, LocalTransform, Parent>(entity);
 			auto& ltransform = localTransform.transform;
-			bool localDirty = worldTransform.IsDirty();
+			bool localDirty = ltransform.IsDirty();
 			if (ltransform.IsDirty())
 			{
 				auto model = glm::mat4(1);

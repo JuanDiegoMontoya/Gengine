@@ -32,7 +32,7 @@
     <Filter Include="CoreEngine\ECS">
       <UniqueIdentifier>{f1303919-b3eb-4052-9128-6a7141965576}</UniqueIdentifier>
     </Filter>
-    <Filter Include="CoreEngine\Utilities">
+    <Filter Include="Utilities">
       <UniqueIdentifier>{acd11cba-910f-4db3-bf05-1edc13b873eb}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -251,31 +251,34 @@
       <Filter>Game</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\BitArray.h">
-      <Filter>CoreEngine\Utilities</Filter>
+      <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\CompressBuffer.h">
-      <Filter>CoreEngine\Utilities</Filter>
+      <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\DeltaEncoder.h">
-      <Filter>CoreEngine\Utilities</Filter>
+      <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\FixedQueue.h">
-      <Filter>CoreEngine\Utilities</Filter>
+      <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\ImGuiExt.h">
-      <Filter>CoreEngine\Utilities</Filter>
+      <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\Palette.h">
-      <Filter>CoreEngine\Utilities</Filter>
+      <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\RunLengthEncoder.h">
-      <Filter>CoreEngine\Utilities</Filter>
+      <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\Serialize.h">
-      <Filter>CoreEngine\Utilities</Filter>
+      <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\Timer.h">
-      <Filter>CoreEngine\Utilities</Filter>
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\TestObj2.h">
+      <Filter>Game</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -448,7 +451,7 @@
       <Filter>CoreEngine\Systems</Filter>
     </ClCompile>
     <ClCompile Include="Utilities\ImGuiExt.cpp">
-      <Filter>CoreEngine\Utilities</Filter>
+      <Filter>Utilities</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -465,7 +468,7 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="Utilities\Palette.inl">
-      <Filter>CoreEngine\Utilities</Filter>
+      <Filter>Utilities</Filter>
     </None>
   </ItemGroup>
 </Project>
