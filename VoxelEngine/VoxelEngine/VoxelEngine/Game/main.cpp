@@ -32,7 +32,7 @@ void OnStart(Scene* scene)
   WorldGen2 wg(*voxelManager);
   wg.Init();
   wg.GenerateWorld();
-  //wg.InitializeSunlight();
+  wg.InitializeSunlight();
   wg.InitMeshes();
   wg.InitBuffers();
   //auto compressed = CompressChunk(voxelManager->GetChunk(glm::ivec3(0))->GetStorage());
@@ -57,7 +57,7 @@ void OnStart(Scene* scene)
     Entity player = scene->CreateEntity("player");
     player.AddComponent<Components::Transform>();
     player.AddComponent<Components::Camera>(Camera::ActiveCamera);
-    player.AddComponent<Components::NativeScriptComponent>().Bind<PlayerController>();
+    player.AddComponent<Components::NativeScriptComponent>().Bind<PlayerController>(voxelManager.get());
   }
 
   {
@@ -69,7 +69,7 @@ void OnStart(Scene* scene)
     meshes.push_back(MeshManager::CreateMeshBatched("./Resources/Models/teapot.obj", l, o)[0]);
 
     auto notbatch = MeshManager::CreateMesh("./Resources/Models/sphere.obj", l, o)[0];
-    if (1)
+    if (0)
     {
       Entity parent = scene->CreateEntity("parent");
       parent.AddComponent<Components::Transform>().SetTranslation({ -15, -10, 10 });
@@ -95,7 +95,7 @@ void OnStart(Scene* scene)
         parent = child;
       }
     }
-    if (1)
+    if (0)
     {
       srand(0);
       // TODO: test more complex parenting relationships
@@ -124,6 +124,10 @@ void OnStart(Scene* scene)
           //entity.AddComponent<Components::Material>(userMaterial);
         }
       }
+    }
+    if (1)
+    {
+
     }
   }
 

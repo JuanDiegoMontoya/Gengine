@@ -3,24 +3,27 @@
 #include <glm/glm.hpp>
 #include <functional>
 
-constexpr int MOUSE_OFFSET = GLFW_KEY_MENU;
-constexpr int MOUSE_COUNT = GLFW_MOUSE_BUTTON_LAST;
+//constexpr int MOUSE_OFFSET = GLFW_KEY_MENU;
+//constexpr int MOUSE_COUNT = GLFW_MOUSE_BUTTON_LAST;
 
-constexpr int GAMEPAD_OFFSET = MOUSE_OFFSET + MOUSE_COUNT;
-constexpr int GAMEPAD_COUNT = GLFW_GAMEPAD_BUTTON_LAST;
-
-constexpr int BUTTON_COUNT = GAMEPAD_OFFSET + GAMEPAD_COUNT;
+//constexpr int GAMEPAD_OFFSET = MOUSE_OFFSET + MOUSE_COUNT;
+//constexpr int GAMEPAD_COUNT = GLFW_GAMEPAD_BUTTON_LAST;
+//
+//constexpr int BUTTON_COUNT = GAMEPAD_OFFSET + GAMEPAD_COUNT;
+constexpr int BUTTON_COUNT = GLFW_KEY_LAST;
+constexpr int MOUSE_BUTTON_STATES = GLFW_MOUSE_BUTTON_LAST;
 
 class UpdateEvent;
 struct GLFWwindow;
 
 // keycodes can be negative in case of an error
 using Key = int;
+using MouseButton = int;
 
 class Input
 {
 public:
-  enum KeyState
+  enum KeyState // applicable to keyboard keys and mouse buttons
   {
     down     = 0b00001,
     pressed  = 0b00011,
@@ -42,6 +45,10 @@ public:
   static bool IsKeyUp(Key key);
   static bool IsKeyPressed(Key key);
   static bool IsKeyReleased(Key key);
+  static bool IsMouseDown(MouseButton key);
+  static bool IsMouseUp(MouseButton key);
+  static bool IsMousePressed(MouseButton key);
+  static bool IsMouseReleased(MouseButton key);
 
   static void init_glfw_input_cbs(GLFWwindow* window);
 
@@ -60,4 +67,5 @@ private:
   static void mouse_button_cb(GLFWwindow* window, int button, int action, int mods);
 
   static inline KeyState keyStates[BUTTON_COUNT] = { KeyState(0) };
+  static inline KeyState mouseButtonStates[MOUSE_BUTTON_STATES] = { KeyState(0) };
 };

@@ -14,7 +14,7 @@ struct UniformData
 {
 	mat4 model;
 };
-layout (std430, binding = 0) buffer data
+layout (std430, binding = 0) readonly buffer data
 {
 	UniformData uniforms[];
 };

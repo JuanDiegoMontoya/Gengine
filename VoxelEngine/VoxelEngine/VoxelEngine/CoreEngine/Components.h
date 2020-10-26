@@ -120,14 +120,22 @@ namespace Components
   {
     ScriptableEntity* Instance = nullptr;
 
-    ScriptableEntity* (*InstantiateScript)();
+    //ScriptableEntity* (*InstantiateScript)();
+    std::function<ScriptableEntity* ()> InstantiateScript;
     void (*DestroyScript)(NativeScriptComponent*);
 
-    template<typename T>
-    void Bind()
+    template<typename T, typename ...Args>
+    void Bind(Args&&... args)
     {
-      InstantiateScript = []() { return static_cast<ScriptableEntity*>(new T()); };
+      // perfectly forwards arguments to function object with which to instantiate this script
+      InstantiateScript =
+        [... args = std::forward<Args>(args)] () mutable
+        {
+            return static_cast<ScriptableEntity*>(new T(std::forward<Args>(args)...));
+        };
       DestroyScript = [](NativeScriptComponent* nsc) { delete nsc->Instance; nsc->Instance = nullptr; };
     }
+
+  private:
   };
 }

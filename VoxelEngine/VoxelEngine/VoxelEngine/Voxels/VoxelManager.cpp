@@ -131,7 +131,8 @@ void VoxelManager::Raycast(glm::vec3 origin, glm::vec3 direction, float distance
 
     // Invoke the callback, unless we are not *yet* within the bounds of the
     // world.
-    if (callback(p, GetBlock(p), face))
+    auto block = TryGetBlock(p);
+    if (callback(p, block ? *block : Block{}, face))
       break;
 
     // tMax.x stores the t-value at which we cross a cube boundary along the

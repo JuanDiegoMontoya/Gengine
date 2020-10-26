@@ -95,7 +95,7 @@ inline std::optional<Block> VoxelManager::TryGetBlock(const glm::ivec3& wpos) co
 {
   ChunkHelpers::localpos w = ChunkHelpers::worldPosToLocalPos(wpos);
   auto it = chunks_.find(w.chunk_pos);
-  if (it != chunks_.cend())
+  if (it != chunks_.end())
     return it->second->BlockAt(w.block_pos);
   return std::nullopt;
 }
