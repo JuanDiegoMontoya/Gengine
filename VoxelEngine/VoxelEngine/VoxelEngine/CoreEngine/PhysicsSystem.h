@@ -9,5 +9,5 @@ public:
   void Update(Scene& scene, float dt);
 
 private:
-  const float gravity = 9.8f;
+  const float gravity = .4f;
 };

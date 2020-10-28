@@ -81,6 +81,8 @@ void ChunkManager::chunk_mesher_thread_task()
       //std::lock_guard<std::mutex> lock2(chunk_buffer_mutex_);
       buffer_queue_.insert(chunk);
     });
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(0));
   }
   //std::shared_ptr<void> fdsa;
   //fdsa.use_count();

@@ -58,18 +58,4 @@ Entity Entity::AddChild(Entity child)
 unsigned Entity::GetHierarchyHeight() const
 {
   return HasComponent<Children>() ? GetComponent<Children>().cachedHeight : 0;
-  //return HierarchyHeightHelper(0);
-}
-
-unsigned Entity::HierarchyHeightHelper(unsigned curHeight) const
-{
-  ASSERT_MSG(curHeight < 1000, "Cycle detected! Unless you intended to have a 1000+ long hierarchy?");
-  if (!HasComponent<Children>())
-    return curHeight;
-  unsigned maxx = curHeight;
-  for (auto child : GetComponent<Children>().children)
-  {
-    maxx = std::max(maxx, child.HierarchyHeightHelper(1 + curHeight));
-  }
-  return maxx;
 }

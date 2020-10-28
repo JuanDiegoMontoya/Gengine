@@ -65,11 +65,10 @@ public:
   Entity SetParent(Entity parent);
   // adds a child entity of this entity
   Entity AddChild(Entity child);
+
   unsigned GetHierarchyHeight() const;
 
 private:
   entt::entity entityHandle_ = entt::null;
   Scene* scene_ = nullptr;
-
-  unsigned HierarchyHeightHelper(unsigned curHeight = 0) const;
 };

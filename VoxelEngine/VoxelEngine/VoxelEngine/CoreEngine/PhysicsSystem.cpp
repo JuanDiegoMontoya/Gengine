@@ -20,6 +20,7 @@ void PhysicsSystem::Update(Scene& scene, float dt)
 			auto [physics, transform] = view.get<Components::Physics, Components::Transform>(entity);
 
 			physics.velocity.y -= gravity * dt;
+			physics.velocity += physics.acceleration;
 			transform.SetTranslation(transform.GetTranslation() + physics.velocity);
 		}
 	}
@@ -45,6 +46,7 @@ void PhysicsSystem::Update(Scene& scene, float dt)
 	// update local transforms
 	{
 		using namespace Components;
+		// create a PARTIALLY OWNING group, OWNING TRANSFORM
 		auto group = scene.GetRegistry().group<Transform>(entt::get<LocalTransform, Parent>);
 		group.sort(
 			[&scene](const entt::entity lhs, const entt::entity rhs)
@@ -52,7 +54,6 @@ void PhysicsSystem::Update(Scene& scene, float dt)
 			return Entity(lhs, &scene).GetHierarchyHeight() > Entity(rhs, &scene).GetHierarchyHeight();
 		}, entt::insertion_sort());
 
-		//printf("\n");
 		for (auto entity : group)
 		{
 			auto [worldTransform, localTransform, parent] = group.get<Transform, LocalTransform, Parent>(entity);
@@ -70,7 +71,6 @@ void PhysicsSystem::Update(Scene& scene, float dt)
 			const auto& parentTransform = scene.GetRegistry().get<Components::Transform>(parent.entity);
 			if (parentTransform.IsDirty() || localDirty)
 			{
-				//printf("YE\n");
 				worldTransform.SetTranslation(parentTransform.GetTranslation() + ltransform.GetTranslation() * parentTransform.GetScale());
 
 				worldTransform.SetScale(ltransform.GetScale() * parentTransform.GetScale());

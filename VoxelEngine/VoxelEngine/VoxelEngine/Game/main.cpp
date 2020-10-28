@@ -17,9 +17,12 @@
 #include <CoreEngine/Camera.h>
 
 #include <iostream>
-#include <Game/PlayerController.h>
+#include <Game/FlyingPlayerController.h>
+#include <Game/PhysicsPlayerController.h>
+#include <Game/PlayerActions.h>
 #include <Game/TestObj.h>
 #include <Game/TestObj2.h>
+#include <Game/GameManager.h>
 
 // main.cpp: this is where the user's code belongs
 static MaterialHandle userMaterial{};
@@ -50,6 +53,12 @@ void OnStart(Scene* scene)
     batchMaterial = MaterialManager::CreateMaterial(info);
   }
 
+  // add game manager entity
+  {
+    Entity gameManager = scene->CreateEntity("Game Manager");
+    gameManager.AddComponent<Components::NativeScriptComponent>().Bind<GameManager>();
+  }
+
   std::cout << "User function, initial scene name: " << scene->GetName() << '\n';
 
 
@@ -57,7 +66,14 @@ void OnStart(Scene* scene)
     Entity player = scene->CreateEntity("player");
     player.AddComponent<Components::Transform>();
     player.AddComponent<Components::Camera>(Camera::ActiveCamera);
-    player.AddComponent<Components::NativeScriptComponent>().Bind<PlayerController>(voxelManager.get());
+    //player.AddComponent<Components::NativeScriptComponent>().Bind<FlyingPlayerController>();
+    player.AddComponent<Components::NativeScriptComponent>().Bind<PhysicsPlayerController>();
+    player.AddComponent<Components::Physics>();
+
+    Entity playerSub = scene->CreateEntity("PlayerSub");
+    playerSub.AddComponent<Components::NativeScriptComponent>().Bind<PlayerActions>(voxelManager.get());
+
+    player.AddChild(playerSub);
   }
 
   {
@@ -95,14 +111,14 @@ void OnStart(Scene* scene)
         parent = child;
       }
     }
-    if (0)
+    if (1)
     {
       srand(0);
       // TODO: test more complex parenting relationships
       Entity parent{};
       for (int x = 0; x < 100; x++)
       {
-        for (int y = 0; y < 100; y++)
+        for (int y = 0; y < 10; y++)
         {
           Entity entity = scene->CreateEntity("parent");
           if (!parent)

@@ -244,9 +244,6 @@
     <ClInclude Include="CoreEngine\ScriptSystem.h">
       <Filter>CoreEngine\Systems</Filter>
     </ClInclude>
-    <ClInclude Include="Game\PlayerController.h">
-      <Filter>Game</Filter>
-    </ClInclude>
     <ClInclude Include="Game\TestObj.h">
       <Filter>Game</Filter>
     </ClInclude>
@@ -278,6 +275,18 @@
       <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Game\TestObj2.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\GameManager.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\FlyingPlayerController.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\PlayerActions.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\PhysicsPlayerController.h">
       <Filter>Game</Filter>
     </ClInclude>
   </ItemGroup>
