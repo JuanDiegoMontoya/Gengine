@@ -69,6 +69,6 @@ public:
   unsigned GetHierarchyHeight() const;
 
 private:
-  entt::entity entityHandle_ = entt::null;
   Scene* scene_ = nullptr;
+  entt::entity entityHandle_ = entt::null;
 };

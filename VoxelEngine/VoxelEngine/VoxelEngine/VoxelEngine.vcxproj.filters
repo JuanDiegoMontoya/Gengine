@@ -64,12 +64,6 @@
     <ClInclude Include="Voxels\prefab.h">
       <Filter>Voxel Engine</Filter>
     </ClInclude>
-    <ClInclude Include="Voxels\light.h">
-      <Filter>Voxel Engine</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\block.h">
-      <Filter>Voxel Engine</Filter>
-    </ClInclude>
     <ClInclude Include="Voxels\biome.h">
       <Filter>Voxel Engine</Filter>
     </ClInclude>
@@ -289,6 +283,12 @@
     <ClInclude Include="Game\PhysicsPlayerController.h">
       <Filter>Game</Filter>
     </ClInclude>
+    <ClInclude Include="Voxels\Block.h">
+      <Filter>Voxel Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\Light.h">
+      <Filter>Voxel Engine</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="3rdParty\imgui\imgui.cpp">
@@ -307,9 +307,6 @@
       <Filter>3rd Party\imgui</Filter>
     </ClCompile>
     <ClCompile Include="Voxels\prefab.cpp">
-      <Filter>Voxel Engine</Filter>
-    </ClCompile>
-    <ClCompile Include="Voxels\block.cpp">
       <Filter>Voxel Engine</Filter>
     </ClCompile>
     <ClCompile Include="Voxels\biome.cpp">
@@ -461,6 +458,9 @@
     </ClCompile>
     <ClCompile Include="Utilities\ImGuiExt.cpp">
       <Filter>Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="Voxels\Block.cpp">
+      <Filter>Voxel Engine</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

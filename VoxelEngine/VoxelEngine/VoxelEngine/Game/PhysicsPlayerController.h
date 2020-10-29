@@ -49,7 +49,6 @@ public:
       physics.velocity.y = jumpForce; // TODO: should be +=, but can only trigger when player is on ground
     if (auto len = glm::length(xzVel); len > maxSpeed)
       xzVel = (xzVel / len) * maxSpeed;
-    printf("LENGTH = %f\n", glm::length(xzVel));
     physics.velocity.x = xzVel[0];
     physics.velocity.z = xzVel[1];
 

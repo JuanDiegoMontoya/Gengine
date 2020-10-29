@@ -88,7 +88,7 @@
     <ClInclude Include="Utilities\Serialize.h" />
     <ClInclude Include="Utilities\Timer.h" />
     <ClInclude Include="Voxels\biome.h" />
-    <ClInclude Include="Voxels\block.h" />
+    <ClInclude Include="Voxels\Block.h" />
     <ClInclude Include="Voxels\BlockStorage.h" />
     <ClInclude Include="Voxels\Chunk.h" />
     <ClInclude Include="Voxels\ChunkHelpers.h" />
@@ -98,7 +98,7 @@
     <ClInclude Include="Voxels\chunk_manager.h" />
     <ClInclude Include="Voxels\EditorRefactor.h" />
     <ClInclude Include="Voxels\HUDRefactor.h" />
-    <ClInclude Include="Voxels\light.h" />
+    <ClInclude Include="Voxels\Light.h" />
     <ClInclude Include="Voxels\parallel_chunks.h" />
     <ClInclude Include="Voxels\prefab.h" />
     <ClInclude Include="Voxels\VoxelManager.h" />
@@ -153,7 +153,7 @@
     <ClCompile Include="Game\WorldGen.cpp" />
     <ClCompile Include="Utilities\ImGuiExt.cpp" />
     <ClCompile Include="Voxels\biome.cpp" />
-    <ClCompile Include="Voxels\block.cpp" />
+    <ClCompile Include="Voxels\Block.cpp" />
     <ClCompile Include="Voxels\Chunk.cpp" />
     <ClCompile Include="Voxels\ChunkMesh.cpp" />
     <ClCompile Include="Voxels\ChunkRenderer.cpp" />

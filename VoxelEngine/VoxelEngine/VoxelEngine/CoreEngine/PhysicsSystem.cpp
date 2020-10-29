@@ -20,7 +20,7 @@ void PhysicsSystem::Update(Scene& scene, float dt)
 			auto [physics, transform] = view.get<Components::Physics, Components::Transform>(entity);
 
 			physics.velocity.y -= gravity * dt;
-			physics.velocity += physics.acceleration;
+			physics.velocity += physics.acceleration * dt;
 			transform.SetTranslation(transform.GetTranslation() + physics.velocity);
 		}
 	}
