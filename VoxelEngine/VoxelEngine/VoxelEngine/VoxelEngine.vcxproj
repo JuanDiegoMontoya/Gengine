@@ -53,6 +53,7 @@
     <ClInclude Include="CoreEngine\Mesh.h" />
     <ClInclude Include="CoreEngine\MeshUtils.h" />
     <ClInclude Include="CoreEngine\misc_utils.h" />
+    <ClInclude Include="CoreEngine\Physics.h" />
     <ClInclude Include="CoreEngine\PhysicsSystem.h" />
     <ClInclude Include="CoreEngine\Renderer.h" />
     <ClInclude Include="CoreEngine\Scene.h" />
@@ -136,6 +137,7 @@
     <ClCompile Include="CoreEngine\math_utils.cpp" />
     <ClCompile Include="CoreEngine\Mesh.cpp" />
     <ClCompile Include="CoreEngine\misc_utils.cpp" />
+    <ClCompile Include="CoreEngine\Physics.cpp" />
     <ClCompile Include="CoreEngine\PhysicsSystem.cpp" />
     <ClCompile Include="CoreEngine\Renderer.cpp" />
     <ClCompile Include="CoreEngine\Scene.cpp" />

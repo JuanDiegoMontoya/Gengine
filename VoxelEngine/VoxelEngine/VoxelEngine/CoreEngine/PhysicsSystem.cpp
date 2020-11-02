@@ -120,6 +120,15 @@ namespace
 	PxScene* gScene = NULL;
 	PxMaterial* gMaterial = NULL;
 	PxPvd* gPvd = NULL;
+
+	PxRigidDynamic* createDynamic(const PxTransform& t, const PxGeometry& geometry, const PxVec3& velocity = PxVec3(0))
+	{
+		PxRigidDynamic* dynamic = PxCreateDynamic(*gPhysics, t, geometry, *gMaterial, 10.0f);
+		dynamic->setAngularDamping(0.5f);
+		dynamic->setLinearVelocity(velocity);
+		gScene->addActor(*dynamic);
+		return dynamic;
+	}
 }
 
 PhysicsSystem::PhysicsSystem()
@@ -254,6 +263,27 @@ void PhysicsSystem::Update(Scene& scene, float dt)
 				model *= glm::scale(glm::mat4(1), transform.GetScale());
 				transform.SetModel(model);
 			}
+		}
+	}
+
+	{
+		static float accumulator = 0;
+		static const float step = 1.0f / 60.0f;
+		accumulator += dt;
+		while (accumulator > step)
+		{
+			accumulator -= step;
+			gScene->simulate(step);
+			gScene->fetchResults(true);
+		}
+
+		// update all entity transforms whose actor counterpart was updated
+		const auto actorTypes = PxActorTypeFlag::eRIGID_DYNAMIC | PxActorTypeFlag::eRIGID_STATIC;
+		const auto numActors = gScene->getNbActors(actorTypes);
+		if (numActors > 0)
+		{
+			std::vector<PxRigidActor*> actors(numActors);
+			gScene->getActors(actorTypes, reinterpret_cast<PxActor**>(actors.data()), numActors);
 		}
 	}
 }

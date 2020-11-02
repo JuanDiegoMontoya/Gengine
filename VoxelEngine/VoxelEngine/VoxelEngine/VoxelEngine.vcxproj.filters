@@ -289,6 +289,9 @@
     <ClInclude Include="Voxels\Light.h">
       <Filter>Voxel Engine</Filter>
     </ClInclude>
+    <ClInclude Include="CoreEngine\Physics.h">
+      <Filter>CoreEngine</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="3rdParty\imgui\imgui.cpp">
@@ -461,6 +464,9 @@
     </ClCompile>
     <ClCompile Include="Voxels\Block.cpp">
       <Filter>Voxel Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreEngine\Physics.cpp">
+      <Filter>CoreEngine</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

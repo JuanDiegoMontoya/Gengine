@@ -5,8 +5,14 @@
 #include <CoreEngine/ScriptableEntity.h>
 #include <CoreEngine/MeshUtils.h>
 #include <CoreEngine/Material.h>
+#include <CoreEngine/Physics.h>
 
 class Camera;
+
+namespace physx
+{
+  class PxRigidActor;
+}
 
 namespace Components
 {
@@ -20,8 +26,15 @@ namespace Components
 
   struct Physics
   {
-    glm::vec3 velocity;
-    glm::vec3 acceleration;
+    Physics(const ::Physics::BoxCollider& bc)
+    {
+      ::Physics::PhysicsManager
+    }
+
+    ~Physics() { printf("PHYSICS %p DELETED\n", this); }
+
+  private:
+    physx::PxRigidActor* internalActor;
   };
 
   struct AABBCollider

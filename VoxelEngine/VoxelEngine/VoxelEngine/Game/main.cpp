@@ -68,7 +68,8 @@ void OnStart(Scene* scene)
     player.AddComponent<Components::Camera>(Camera::ActiveCamera);
     player.AddComponent<Components::NativeScriptComponent>().Bind<FlyingPlayerController>();
     //player.AddComponent<Components::NativeScriptComponent>().Bind<PhysicsPlayerController>();
-    //player.AddComponent<Components::Physics>();
+    player.AddComponent<Components::Physics>();
+    player.RemoveComponent<Components::Physics>();
 
     Entity playerSub = scene->CreateEntity("PlayerSub");
     playerSub.AddComponent<Components::NativeScriptComponent>().Bind<PlayerActions>(voxelManager.get());
