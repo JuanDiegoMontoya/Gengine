@@ -23,6 +23,8 @@ Engine::Engine()
 
 Engine::~Engine()
 {
+  scenes_.~vector();
+  physicsSystem.reset();
 }
 
 void Engine::Run()

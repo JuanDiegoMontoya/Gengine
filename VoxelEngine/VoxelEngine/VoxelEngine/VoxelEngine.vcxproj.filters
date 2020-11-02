@@ -292,6 +292,9 @@
     <ClInclude Include="CoreEngine\Physics.h">
       <Filter>CoreEngine</Filter>
     </ClInclude>
+    <ClInclude Include="Game\PhysicsTest2.h">
+      <Filter>Game</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="3rdParty\imgui\imgui.cpp">

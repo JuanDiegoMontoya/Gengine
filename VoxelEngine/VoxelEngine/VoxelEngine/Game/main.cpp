@@ -23,6 +23,7 @@
 #include <Game/TestObj.h>
 #include <Game/TestObj2.h>
 #include <Game/GameManager.h>
+#include <Game/PhysicsTest2.h>
 
 // main.cpp: this is where the user's code belongs
 static MaterialHandle userMaterial{};
@@ -66,10 +67,10 @@ void OnStart(Scene* scene)
     Entity player = scene->CreateEntity("player");
     player.AddComponent<Components::Transform>();
     player.AddComponent<Components::Camera>(Camera::ActiveCamera);
-    player.AddComponent<Components::NativeScriptComponent>().Bind<FlyingPlayerController>();
-    //player.AddComponent<Components::NativeScriptComponent>().Bind<PhysicsPlayerController>();
-    player.AddComponent<Components::Physics>();
-    player.RemoveComponent<Components::Physics>();
+    //player.AddComponent<Components::NativeScriptComponent>().Bind<FlyingPlayerController>();
+    player.AddComponent<Components::NativeScriptComponent>().Bind<PhysicsPlayerController>();
+    Physics::CapsuleCollider collider(1, .01);
+    player.AddComponent<Components::Physics>(player, Physics::MaterialType::Player, collider);
 
     Entity playerSub = scene->CreateEntity("PlayerSub");
     playerSub.AddComponent<Components::NativeScriptComponent>().Bind<PlayerActions>(voxelManager.get());
@@ -86,7 +87,7 @@ void OnStart(Scene* scene)
     meshes.push_back(MeshManager::CreateMeshBatched("./Resources/Models/teapot.obj", l, o)[0]);
 
     auto notbatch = MeshManager::CreateMesh("./Resources/Models/sphere.obj", l, o)[0];
-    if (0)
+    if (0) // creating a really tall parenting chain of objects
     {
       Entity parent = scene->CreateEntity("parent");
       parent.AddComponent<Components::Transform>().SetTranslation({ -15, -10, 10 });
@@ -112,14 +113,13 @@ void OnStart(Scene* scene)
         parent = child;
       }
     }
-    if (1)
+    if (0) // instancing many objects
     {
       srand(0);
-      // TODO: test more complex parenting relationships
       Entity parent{};
       for (int x = 0; x < 100; x++)
       {
-        for (int y = 0; y < 10; y++)
+        for (int y = 0; y < 100; y++)
         {
           Entity entity = scene->CreateEntity("parent");
           if (!parent)
@@ -137,14 +137,37 @@ void OnStart(Scene* scene)
           entity.GetComponent<Components::Transform>().SetScale({ 1, 1, 1 });
           entity.AddComponent<Components::BatchedMesh>().handle = meshes[rand() % meshes.size()];
           entity.AddComponent<Components::Material>(batchMaterial);
+          //Components::Physics phys(entity, Physics::MaterialType::Terrain, Physics::BoxCollider(glm::vec3(1)));
+          //entity.AddComponent<Components::Physics>(std::move(phys));
           //entity.AddComponent<Components::Mesh>().meshHandle = notbatch;
           //entity.AddComponent<Components::Material>(userMaterial);
         }
       }
     }
-    if (1)
+    if (0) // physics test
     {
-
+      for (int i = 0; i < 5000; i++)
+      {
+        Entity entity = scene->CreateEntity("physics entity" + std::to_string(i));
+        entity.AddComponent<Components::Transform>().SetTranslation({ -15, 50 + i, 10 + (float(i)/50.f) });
+        //entity.AddComponent<Components::Transform>().SetTranslation({ -15, 50, 10 });
+        entity.GetComponent<Components::Transform>().SetScale({ 1, .4f, 1 });
+        entity.AddComponent<Components::BatchedMesh>().handle = meshes[0];
+        entity.AddComponent<Components::Material>(batchMaterial);
+        Components::Physics phys(entity, Physics::MaterialType::Terrain, Physics::BoxCollider(glm::vec3(.5)));
+        entity.AddComponent<Components::Physics>(std::move(phys));
+      }
+    }
+    if (1) // interactive physics test
+    {
+      Entity entity = scene->CreateEntity("controlled physics entity");
+      entity.AddComponent<Components::Transform>().SetTranslation({ -15, 5, 10 });
+      entity.GetComponent<Components::Transform>().SetScale({ 1, 1, 1 });
+      entity.AddComponent<Components::BatchedMesh>().handle = meshes[0];
+      entity.AddComponent<Components::Material>(batchMaterial);
+      Components::Physics phys(entity, Physics::MaterialType::Terrain, Physics::BoxCollider(glm::vec3(.5)));
+      entity.AddComponent<Components::Physics>(std::move(phys));
+      entity.AddComponent<Components::NativeScriptComponent>().Bind<PhysicsTest2>();
     }
   }
 

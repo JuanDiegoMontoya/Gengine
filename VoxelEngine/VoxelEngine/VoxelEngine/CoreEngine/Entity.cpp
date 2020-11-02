@@ -3,7 +3,7 @@
 
 using namespace Components;
 
-Entity Entity::SetParent(Entity parent)
+void Entity::SetParent(Entity parent)
 {
   ASSERT(parent != *this);
   if (HasComponent<Parent>())
@@ -49,7 +49,7 @@ Entity Entity::SetParent(Entity parent)
   }
 }
 
-Entity Entity::AddChild(Entity child)
+void Entity::AddChild(Entity child)
 {
   ASSERT(child != *this);
   child.SetParent(*this);

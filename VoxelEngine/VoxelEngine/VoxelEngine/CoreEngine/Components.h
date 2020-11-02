@@ -12,6 +12,7 @@ class Camera;
 namespace physx
 {
   class PxRigidActor;
+  class PxRigidDynamic;
 }
 
 namespace Components
@@ -26,21 +27,41 @@ namespace Components
 
   struct Physics
   {
-    Physics(const ::Physics::BoxCollider& bc)
+    Physics(Entity ent, ::Physics::MaterialType mat, const ::Physics::BoxCollider& c)
     {
-      ::Physics::PhysicsManager
+      internalActor = ::Physics::PhysicsManager::AddActor(ent, mat, c);
+    }
+    Physics(Entity ent, ::Physics::MaterialType mat, const ::Physics::CapsuleCollider& c)
+    {
+      internalActor = ::Physics::PhysicsManager::AddActor(ent, mat, c);
     }
 
-    ~Physics() { printf("PHYSICS %p DELETED\n", this); }
+    Physics(Physics&& rhs) noexcept { *this = std::move(rhs); }
+    Physics& operator=(Physics&& rhs) noexcept
+    {
+      internalActor = rhs.internalActor;
+      rhs.internalActor = nullptr;
+      return *this;
+    }
+    Physics(const Physics&) = delete;
+    Physics& operator=(const Physics&) = delete;
+
+    ::Physics::DynamicActorInterface Interface()
+    {
+      return internalActor;
+    }
+
+    ~Physics()
+    {
+      if (internalActor)
+      {
+        //printf("PHYSICS %p really DELETED\n", this);
+        ::Physics::PhysicsManager::RemoveActor(internalActor);
+      }
+    }
 
   private:
-    physx::PxRigidActor* internalActor;
-  };
-
-  struct AABBCollider
-  {
-    glm::vec3 center; // relative to transform
-    glm::vec3 scale;
+    physx::PxRigidDynamic* internalActor;
   };
 
   // direct member access forbidden because of isDirty flag
