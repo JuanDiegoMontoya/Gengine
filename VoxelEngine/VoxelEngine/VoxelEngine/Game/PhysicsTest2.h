@@ -37,7 +37,7 @@ public:
     if (Input::IsKeyPressed(GLFW_KEY_F))
     {
       auto dir = Camera::ActiveCamera->GetDir();
-      GetComponent<Components::Physics>().Interface().AddForce(dir * 5000.f);
+      GetComponent<Components::Physics>().Interface().AddForce(dir * 50.f);
     }
     
   }

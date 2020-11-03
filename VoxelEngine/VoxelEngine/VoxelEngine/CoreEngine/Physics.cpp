@@ -12,7 +12,8 @@
 #include <foundation/PxErrorCallback.h>
 
 #define PX_RELEASE(x)	if(x)	{ x->release(); x = NULL;	}
-#define PVD_DEBUG 0
+#define PVD_DEBUG 1
+#define FIXED_STEP 1
 
 #pragma optimize("", off)
 
@@ -121,7 +122,7 @@ void Physics::PhysicsManager::Init()
   gDispatcher = PxDefaultCpuDispatcherCreate(0);
   PxSceneDesc sceneDesc(gPhysics->getTolerancesScale());
   sceneDesc.cpuDispatcher = gDispatcher;
-  sceneDesc.gravity = PxVec3(0, -9.81f, 0);
+  sceneDesc.gravity = PxVec3(0, -15.81f, 0);
   sceneDesc.filterShader = contactReportFilterShader;
   sceneDesc.simulationEventCallback = &gContactReportCallback;
   gScene = gPhysics->createScene(sceneDesc);
@@ -133,7 +134,7 @@ void Physics::PhysicsManager::Init()
   }
 
   gMaterials = std::vector<PxMaterial*>(2);
-  gMaterials[(int)MaterialType::Player] = gPhysics->createMaterial(0.2f, 0.2f, 0.0f);
+  gMaterials[(int)MaterialType::Player] = gPhysics->createMaterial(0.9f, 0.9f, -1.0f);
   gMaterials[(int)MaterialType::Terrain] = gPhysics->createMaterial(0.4f, 0.4f, .5f);
 
   PxRigidStatic* groundPlane = PxCreatePlane(*gPhysics, PxPlane(0, 1, 0, 0), *gMaterials[(int)MaterialType::Terrain]);
@@ -158,38 +159,41 @@ void Physics::PhysicsManager::Shutdown()
 
 void Physics::PhysicsManager::Simulate(float dt)
 {
+#if FIXED_STEP
+  static float accumulator = 0;
+  static const float step = 1.0f / 60.0f;
+  accumulator += dt;
+  while (accumulator > step)
   {
-    static float accumulator = 0;
-    static const float step = 1.0f / 60.0f;
-    accumulator += dt;
-    while (accumulator > step)
-    {
-      accumulator -= step;
-      gScene->simulate(step);
-      gScene->fetchResults(true);
-    }
+    accumulator -= step;
+    gScene->simulate(step);
+    gScene->fetchResults(true);
+  }
+#else
+  gScene->simulate(dt);
+  gScene->fetchResults(true);
+#endif
 
-    // update all entity transforms whose actor counterpart was updated
-    const auto actorTypes = PxActorTypeFlag::eRIGID_DYNAMIC | PxActorTypeFlag::eRIGID_STATIC;
-    const auto numActors = gScene->getNbActors(actorTypes);
-    if (numActors > 0)
+  // update all entity transforms whose actor counterpart was updated
+  const auto actorTypes = PxActorTypeFlag::eRIGID_DYNAMIC | PxActorTypeFlag::eRIGID_STATIC;
+  const auto numActors = gScene->getNbActors(actorTypes);
+  if (numActors > 0)
+  {
+    std::vector<PxRigidDynamic*> actors(numActors);
+    gScene->getActors(actorTypes, reinterpret_cast<PxActor**>(actors.data()), numActors);
+    for (auto actor : actors)
     {
-      std::vector<PxRigidDynamic*> actors(numActors);
-      gScene->getActors(actorTypes, reinterpret_cast<PxActor**>(actors.data()), numActors);
-      for (auto actor : actors)
+      const bool sleeping = actor->is<PxRigidDynamic>() ? actor->is<PxRigidDynamic>()->isSleeping() : false;
+      if (sleeping)
+        continue;
+      const auto& pose = actor->getGlobalPose();
+      Entity entity = gActors[actor];
+      if (entity)
       {
-        const bool sleeping = actor->is<PxRigidDynamic>() ? actor->is<PxRigidDynamic>()->isSleeping() : false;
-        if (sleeping)
-          continue;
-        const auto& pose = actor->getGlobalPose();
-        Entity entity = gActors[actor];
-        if (entity)
-        {
-          auto& tr = entity.GetComponent<Components::Transform>();
-          tr.SetTranslation(*(glm::vec3*) & pose.p);
-          glm::quat q(*(glm::quat*) & pose.q);
-          tr.SetRotation(glm::toMat4(q));
-        }
+        auto& tr = entity.GetComponent<Components::Transform>();
+        tr.SetTranslation(*(glm::vec3*) & pose.p);
+        glm::quat q(*(glm::quat*) & pose.q);
+        tr.SetRotation(glm::toMat4(q));
       }
     }
   }
@@ -232,9 +236,9 @@ void Physics::PhysicsManager::RemoveActor(physx::PxRigidDynamic* actor)
   }
 }
 
-void Physics::DynamicActorInterface::AddForce(const glm::vec3& force)
+void Physics::DynamicActorInterface::AddForce(const glm::vec3& force, ForceMode mode)
 {
-  actor->addForce(toPxVec3(force));
+  actor->addForce(toPxVec3(force), (PxForceMode::Enum)mode);
 }
 
 void Physics::DynamicActorInterface::SetPosition(const glm::vec3& pos)
@@ -262,4 +266,9 @@ void Physics::DynamicActorInterface::SetMaxVelocity(float vel)
 void Physics::DynamicActorInterface::SetLockFlags(LockFlags flags)
 {
   actor->setRigidDynamicLockFlags((PxRigidDynamicLockFlag::Enum)flags);
+}
+
+void Physics::DynamicActorInterface::SetActorFlags(ActorFlags flags)
+{
+  actor->setActorFlags((PxActorFlags)flags);
 }
