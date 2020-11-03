@@ -88,7 +88,7 @@ void OnStart(Scene* scene)
     meshes.push_back(MeshManager::CreateMeshBatched("./Resources/Models/teapot.obj", l, o)[0]);
 
     auto notbatch = MeshManager::CreateMesh("./Resources/Models/sphere.obj", l, o)[0];
-    if (0) // creating a really tall parenting chain of objects
+    if (1) // creating a really tall parenting chain of objects
     {
       Entity parent = scene->CreateEntity("parent");
       parent.AddComponent<Components::Transform>().SetTranslation({ -15, -10, 10 });

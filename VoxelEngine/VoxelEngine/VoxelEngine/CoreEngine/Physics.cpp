@@ -190,7 +190,7 @@ void Physics::PhysicsManager::Simulate(float dt)
   const auto numActors = gScene->getNbActors(actorTypes);
   if (numActors > 0)
   {
-    std::vector<PxRigidDynamic*> actors(numActors);
+    std::vector<PxRigidActor*> actors(numActors);
     gScene->getActors(actorTypes, reinterpret_cast<PxActor**>(actors.data()), numActors);
     for (auto actor : actors)
     {

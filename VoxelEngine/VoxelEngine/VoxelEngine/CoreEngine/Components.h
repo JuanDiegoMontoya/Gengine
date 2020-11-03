@@ -111,20 +111,27 @@ namespace Components
     const auto& GetTranslation() const { return translation; }
     const auto& GetRotation() const { return rotation; }
     const auto& GetScale() const { return scale; }
-    const auto& GetModel() const { return model; }
+    const auto& GetModel() const
+    {
+      /*return model;*/
+      return glm::translate(glm::mat4(1), translation) * glm::mat4_cast(rotation) * glm::scale(glm::mat4(1), scale);
+    }
     auto IsDirty() const { return isDirty; }
     void SetTranslation(const glm::vec3& vec) { translation = vec; isDirty = true; }
-    void SetRotation(const glm::mat4& mat) { rotation = mat; isDirty = true; }
+    void SetRotation(const glm::mat4& mat) { rotation = glm::quat_cast(mat); isDirty = true; }
+    void SetRotation(const glm::quat& q) { rotation = q; isDirty = true; }
     void SetScale(const glm::vec3& vec) { scale = vec; isDirty = true; }
-    void SetModel(const glm::mat4& mat) { model = mat; isDirty = false; }
+    //void SetModel(const glm::mat4& mat) { model = mat; isDirty = false; }
+    void SetModel() { isDirty = false; }
 
   private:
     glm::vec3	translation{ 0 };
-    glm::mat4 rotation{ 1 };
+    //glm::mat4 rotation{ 1 };
+    glm::quat rotation{};
     glm::vec3	scale{ 1, 1, 1 };
 
-    glm::mat4	model{ 1 };
     bool isDirty = false;
+    //glm::mat4	model{ 1 };
   };
 
   /// <summary>

@@ -114,11 +114,11 @@ void PhysicsSystem::Update(Scene& scene, float dt)
 			bool localDirty = ltransform.IsDirty();
 			if (ltransform.IsDirty())
 			{
-				auto model = glm::mat4(1);
-				model *= glm::translate(glm::mat4(1), ltransform.GetTranslation());
-				model *= ltransform.GetRotation();
-				model *= glm::scale(glm::mat4(1), ltransform.GetScale());
-				ltransform.SetModel(model);
+				//auto model = glm::mat4(1);
+				//model *= glm::translate(glm::mat4(1), ltransform.GetTranslation());
+				//model *= glm::mat4_cast(ltransform.GetRotation());
+				//model *= glm::scale(glm::mat4(1), ltransform.GetScale());
+				ltransform.SetModel();
 			}
 
 			const auto& parentTransform = scene.GetRegistry().get<Components::Transform>(parent.entity);
@@ -129,7 +129,7 @@ void PhysicsSystem::Update(Scene& scene, float dt)
 				worldTransform.SetScale(ltransform.GetScale() * parentTransform.GetScale());
 
 				worldTransform.SetTranslation(worldTransform.GetTranslation() - parentTransform.GetTranslation());
-				worldTransform.SetTranslation(glm::mat3(parentTransform.GetRotation()) * worldTransform.GetTranslation());
+				worldTransform.SetTranslation(glm::mat3(glm::mat4_cast(parentTransform.GetRotation())) * worldTransform.GetTranslation());
 				worldTransform.SetTranslation(worldTransform.GetTranslation() + parentTransform.GetTranslation());
 
 				worldTransform.SetRotation(ltransform.GetRotation() * parentTransform.GetRotation());
@@ -145,11 +145,11 @@ void PhysicsSystem::Update(Scene& scene, float dt)
 			auto& transform = view.get<Components::Transform>(entity);
 			if (transform.IsDirty())
 			{
-				auto model = glm::mat4(1);
-				model *= glm::translate(glm::mat4(1), transform.GetTranslation());
-				model *= transform.GetRotation();
-				model *= glm::scale(glm::mat4(1), transform.GetScale());
-				transform.SetModel(model);
+				//auto model = glm::mat4(1);
+				//model *= glm::translate(glm::mat4(1), transform.GetTranslation());
+				//model *= glm::mat4_cast(transform.GetRotation());
+				//model *= glm::scale(glm::mat4(1), transform.GetScale());
+				transform.SetModel();
 			}
 		}
 	}
