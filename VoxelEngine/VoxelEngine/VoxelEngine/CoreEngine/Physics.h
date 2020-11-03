@@ -14,6 +14,7 @@ namespace physx
 
   class PxRigidActor;
   class PxRigidDynamic;
+  class PxRigidStatic;
 }
 
 namespace Components
@@ -74,9 +75,11 @@ namespace Physics
     static void Shutdown();
     static void Simulate(float dt);
 
-    static physx::PxRigidDynamic* AddActor(Entity entity, MaterialType material, BoxCollider collider);
-    static physx::PxRigidDynamic* AddActor(Entity entity, MaterialType material, CapsuleCollider collider);
-    static void RemoveActor(physx::PxRigidDynamic* actor);
+    static physx::PxRigidDynamic* AddDynamicActorEntity(Entity entity, MaterialType material, BoxCollider collider);
+    static physx::PxRigidDynamic* AddDynamicActorEntity(Entity entity, MaterialType material, CapsuleCollider collider);
+    static physx::PxRigidStatic* AddStaticActorEntity(Entity entity, MaterialType material, BoxCollider collider);
+    static physx::PxRigidStatic* AddStaticActorEntity(Entity entity, MaterialType material, CapsuleCollider collider);
+    static void RemoveActorEntity(physx::PxRigidActor* actor);
 
   private:
     static inline physx::PxFoundation* gFoundation = nullptr;
@@ -87,10 +90,10 @@ namespace Physics
     static inline std::vector<physx::PxMaterial*> gMaterials;
     static inline physx::PxPvd* gPvd = nullptr;
 
-    static inline std::unordered_map<physx::PxRigidDynamic*, Entity> gActors;
+    static inline std::unordered_map<physx::PxRigidActor*, Entity> gActors;
   };
 
-  // allows public access to methods of doing stuff with actors
+  // allows public access to methods for doing stuff with dynamic actors (non-owning)
   class DynamicActorInterface
   {
   public:
@@ -102,8 +105,19 @@ namespace Physics
     void SetMaxVelocity(float vel);
     void SetLockFlags(LockFlags flags);
     void SetActorFlags(ActorFlags flags);
+    void SetMass(float mass);
 
   private:
     physx::PxRigidDynamic* actor;
+  };
+
+  // allows public access to methods for doing stuff with static actors (non-owning)
+  class StaticActorInterface
+  {
+  public:
+    StaticActorInterface(physx::PxRigidStatic* atr) : actor(atr) {}
+
+  private:
+    physx::PxRigidStatic* actor;
   };
 }

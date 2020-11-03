@@ -125,6 +125,7 @@ void Physics::PhysicsManager::Init()
   sceneDesc.gravity = PxVec3(0, -15.81f, 0);
   sceneDesc.filterShader = contactReportFilterShader;
   sceneDesc.simulationEventCallback = &gContactReportCallback;
+  sceneDesc.solverType = PxSolverType::eTGS;
   gScene = gPhysics->createScene(sceneDesc);
 
   PxPvdSceneClient* pvdClient = gScene->getScenePvdClient();
@@ -134,7 +135,7 @@ void Physics::PhysicsManager::Init()
   }
 
   gMaterials = std::vector<PxMaterial*>(2);
-  gMaterials[(int)MaterialType::Player] = gPhysics->createMaterial(0.9f, 0.9f, -1.0f);
+  gMaterials[(int)MaterialType::Player] = gPhysics->createMaterial(0.2f, 0.2f, -1.0f);
   gMaterials[(int)MaterialType::Terrain] = gPhysics->createMaterial(0.4f, 0.4f, .5f);
 
   PxRigidStatic* groundPlane = PxCreatePlane(*gPhysics, PxPlane(0, 1, 0, 0), *gMaterials[(int)MaterialType::Terrain]);
@@ -163,17 +164,27 @@ void Physics::PhysicsManager::Simulate(float dt)
   static float accumulator = 0;
   static const float step = 1.0f / 60.0f;
   accumulator += dt;
-  while (accumulator > step)
+  static bool resultsReady = true;
+  if (accumulator > step) // NOTE: not while loop, because we want to avoid the Well of Despair
   {
-    accumulator -= step;
-    gScene->simulate(step);
-    gScene->fetchResults(true);
+    if (resultsReady)
+    {
+      gScene->simulate(step);
+      resultsReady = false;
+    }
+    if (gScene->fetchResults(false))
+    {
+      resultsReady = true;
+      accumulator -= step;
+    }
+
   }
 #else
   gScene->simulate(dt);
   gScene->fetchResults(true);
 #endif
-
+  if (!resultsReady)
+    return;
   // update all entity transforms whose actor counterpart was updated
   const auto actorTypes = PxActorTypeFlag::eRIGID_DYNAMIC | PxActorTypeFlag::eRIGID_STATIC;
   const auto numActors = gScene->getNbActors(actorTypes);
@@ -199,7 +210,7 @@ void Physics::PhysicsManager::Simulate(float dt)
   }
 }
 
-physx::PxRigidDynamic* Physics::PhysicsManager::AddActor(Entity entity, MaterialType material, BoxCollider collider)
+physx::PxRigidDynamic* Physics::PhysicsManager::AddDynamicActorEntity(Entity entity, MaterialType material, BoxCollider collider)
 {
   const auto& tr = entity.GetComponent<Components::Transform>();
   //collider.halfExtents *= tr.GetScale();
@@ -214,7 +225,7 @@ physx::PxRigidDynamic* Physics::PhysicsManager::AddActor(Entity entity, Material
   return dynamic;
 }
 
-physx::PxRigidDynamic* Physics::PhysicsManager::AddActor(Entity entity, MaterialType material, CapsuleCollider collider)
+physx::PxRigidDynamic* Physics::PhysicsManager::AddDynamicActorEntity(Entity entity, MaterialType material, CapsuleCollider collider)
 {
   const auto& tr = entity.GetComponent<Components::Transform>();
   glm::quat q(tr.GetRotation());
@@ -228,7 +239,33 @@ physx::PxRigidDynamic* Physics::PhysicsManager::AddActor(Entity entity, Material
   return dynamic;
 }
 
-void Physics::PhysicsManager::RemoveActor(physx::PxRigidDynamic* actor)
+physx::PxRigidStatic* Physics::PhysicsManager::AddStaticActorEntity(Entity entity, MaterialType material, BoxCollider collider)
+{
+  const auto& tr = entity.GetComponent<Components::Transform>();
+  glm::quat q(tr.GetRotation());
+  glm::vec3 pos(tr.GetTranslation());
+  PxTransform tr2(toPxVec3(pos), toPxQuat(q));
+  PxBoxGeometry geom(toPxVec3(collider.halfExtents));
+  PxRigidStatic* pStatic = PxCreateStatic(*gPhysics, tr2, geom, *gMaterials[(int)material]);
+  gActors[pStatic] = entity;
+  gScene->addActor(*pStatic);
+  return pStatic;
+}
+
+physx::PxRigidStatic* Physics::PhysicsManager::AddStaticActorEntity(Entity entity, MaterialType material, CapsuleCollider collider)
+{
+  const auto& tr = entity.GetComponent<Components::Transform>();
+  glm::quat q(tr.GetRotation());
+  glm::vec3 pos(tr.GetTranslation());
+  PxTransform tr2(toPxVec3(pos), toPxQuat(q));
+  PxCapsuleGeometry geom(collider.radius, collider.halfHeight);
+  PxRigidStatic* pStatic = PxCreateStatic(*gPhysics, tr2, geom, *gMaterials[(int)material]);
+  gActors[pStatic] = entity;
+  gScene->addActor(*pStatic);
+  return pStatic;
+}
+
+void Physics::PhysicsManager::RemoveActorEntity(physx::PxRigidActor* actor)
 {
   if (actor)
   {
@@ -271,4 +308,9 @@ void Physics::DynamicActorInterface::SetLockFlags(LockFlags flags)
 void Physics::DynamicActorInterface::SetActorFlags(ActorFlags flags)
 {
   actor->setActorFlags((PxActorFlags)flags);
+}
+
+void Physics::DynamicActorInterface::SetMass(float mass)
+{
+  actor->setMass(mass);
 }

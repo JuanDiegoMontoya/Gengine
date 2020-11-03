@@ -71,7 +71,7 @@ void OnStart(Scene* scene)
     player.AddComponent<Components::Camera>(Camera::ActiveCamera);
     Physics::CapsuleCollider collider(0.3, 0.5);
     //Physics::BoxCollider collider({ 1, 1, 1 });
-    player.AddComponent<Components::Physics>(player, Physics::MaterialType::Player, collider);
+    player.AddComponent<Components::DynamicPhysics>(player, Physics::MaterialType::Player, collider);
 
     Entity playerSub = scene->CreateEntity("PlayerSub");
     playerSub.AddComponent<Components::NativeScriptComponent>().Bind<PlayerActions>(voxelManager.get());
@@ -145,7 +145,7 @@ void OnStart(Scene* scene)
         }
       }
     }
-    if (0) // boxes physics test
+    if (1) // boxes physics test
     {
       for (int i = 0; i < 500; i++)
       {
@@ -157,8 +157,8 @@ void OnStart(Scene* scene)
         entity.AddComponent<Components::BatchedMesh>().handle = meshes[0];
         entity.AddComponent<Components::Material>(batchMaterial);
         auto collider = Physics::BoxCollider(scale * .5f);
-        Components::Physics phys(entity, Physics::MaterialType::Terrain, collider);
-        entity.AddComponent<Components::Physics>(std::move(phys));
+        Components::DynamicPhysics phys(entity, Physics::MaterialType::Terrain, collider);
+        entity.AddComponent<Components::DynamicPhysics>(std::move(phys));
       }
     }
     if (1) // spheres physics test
@@ -173,20 +173,38 @@ void OnStart(Scene* scene)
         entity.AddComponent<Components::BatchedMesh>().handle = meshes[2];
         entity.AddComponent<Components::Material>(batchMaterial);
         auto collider = Physics::CapsuleCollider(.5, .01);
-        Components::Physics phys(entity, Physics::MaterialType::Terrain, collider);
-        entity.AddComponent<Components::Physics>(std::move(phys));
+        Components::DynamicPhysics phys(entity, Physics::MaterialType::Terrain, collider);
+        entity.AddComponent<Components::DynamicPhysics>(std::move(phys));
       }
     }
-    if (1) // interactive physics test
+    if (0) // interactive physics test
     {
       Entity entity = scene->CreateEntity("controlled physics entity");
       entity.AddComponent<Components::Transform>().SetTranslation({ -15, 5, 10 });
       entity.GetComponent<Components::Transform>().SetScale({ 1, 1, 1 });
       entity.AddComponent<Components::BatchedMesh>().handle = meshes[0];
       entity.AddComponent<Components::Material>(batchMaterial);
-      Components::Physics phys(entity, Physics::MaterialType::Terrain, Physics::BoxCollider(glm::vec3(.5)));
-      entity.AddComponent<Components::Physics>(std::move(phys));
+      Components::DynamicPhysics phys(entity, Physics::MaterialType::Terrain, Physics::BoxCollider(glm::vec3(.5)));
+      entity.AddComponent<Components::DynamicPhysics>(std::move(phys));
       entity.AddComponent<Components::NativeScriptComponent>().Bind<PhysicsTest2>();
+    }
+    if (1) // add static entities
+    {
+      for (int i = 0; i < 10; i++)
+      {
+        for (int j = i; j < 10; j++)
+        {
+          Entity entity = scene->CreateEntity("physics entity" + std::to_string(i));
+          entity.AddComponent<Components::Transform>().SetTranslation({ -15, 0 + i, (float(i)/2.f + j-i) });
+          glm::vec3 scale{ 1, 1, 1 };
+          entity.GetComponent<Components::Transform>().SetScale(scale);
+          entity.AddComponent<Components::BatchedMesh>().handle = meshes[0];
+          entity.AddComponent<Components::Material>(batchMaterial);
+          auto collider = Physics::BoxCollider({ .5, .5, .5 });
+          Components::StaticPhysics phys(entity, Physics::MaterialType::Terrain, collider);
+          entity.AddComponent<Components::StaticPhysics>(std::move(phys));
+        }
+      }
     }
   }
 

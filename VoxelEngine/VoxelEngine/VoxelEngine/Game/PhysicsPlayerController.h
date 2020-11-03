@@ -11,9 +11,10 @@ class PhysicsPlayerController : public ScriptableEntity
 public:
   virtual void OnCreate() override
   {
-    auto& physics = GetComponent<Components::Physics>();
+    auto& physics = GetComponent<Components::DynamicPhysics>();
     //physics.Interface().SetMaxVelocity(maxSpeed);
     physics.Interface().SetLockFlags(Physics::LockFlag::LOCK_ANGULAR_X | Physics::LockFlag::LOCK_ANGULAR_Y | Physics::LockFlag::LOCK_ANGULAR_Z);
+    physics.Interface().SetMass(5);
   }
 
   virtual void OnDestroy() override
@@ -26,7 +27,7 @@ public:
     auto& cam = *GetComponent<Components::Camera>().cam;
     const auto& transform = GetComponent<Components::Transform>();
     cam.SetPos(transform.GetTranslation()); // TODO: TEMP BULLSHIT
-    auto& physics = GetComponent<Components::Physics>();
+    auto& physics = GetComponent<Components::DynamicPhysics>();
 
     glm::vec2 xzForce{0};
     const glm::vec2 xzForward = glm::normalize(glm::vec2(cam.GetDir().x, cam.GetDir().z));
@@ -78,13 +79,13 @@ public:
     cam.SetDir(cam.GetFront());
   }
 
-  const float jumpVel = 5.0f;
+  const float jumpVel = 8.0f;
 
   const float slowSpeed = 2.f;
   const float fastSpeed = 10.f;
   const float normalSpeed = 5.f;
   
-  const float slowForce = 200.f;
-  const float fastForce = 1200.f;
-  const float normalForce = 600.f;
+  const float slowForce = 60.f;
+  const float fastForce = 400.f;
+  const float normalForce = 200.f;
 };

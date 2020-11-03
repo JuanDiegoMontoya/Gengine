@@ -13,6 +13,7 @@ namespace physx
 {
   class PxRigidActor;
   class PxRigidDynamic;
+  class PxRigidStatic;
 }
 
 namespace Components
@@ -25,43 +26,82 @@ namespace Components
     std::string tag;
   };
 
-  struct Physics
+  struct DynamicPhysics
   {
-    Physics(Entity ent, ::Physics::MaterialType mat, const ::Physics::BoxCollider& c)
+    DynamicPhysics(Entity ent, ::Physics::MaterialType mat, const ::Physics::BoxCollider& c)
     {
-      internalActor = ::Physics::PhysicsManager::AddActor(ent, mat, c);
+      internalActor = ::Physics::PhysicsManager::AddDynamicActorEntity(ent, mat, c);
     }
-    Physics(Entity ent, ::Physics::MaterialType mat, const ::Physics::CapsuleCollider& c)
+    DynamicPhysics(Entity ent, ::Physics::MaterialType mat, const ::Physics::CapsuleCollider& c)
     {
-      internalActor = ::Physics::PhysicsManager::AddActor(ent, mat, c);
+      internalActor = ::Physics::PhysicsManager::AddDynamicActorEntity(ent, mat, c);
     }
 
-    Physics(Physics&& rhs) noexcept { *this = std::move(rhs); }
-    Physics& operator=(Physics&& rhs) noexcept
+    DynamicPhysics(DynamicPhysics&& rhs) noexcept { *this = std::move(rhs); }
+    DynamicPhysics& operator=(DynamicPhysics&& rhs) noexcept
     {
       internalActor = rhs.internalActor;
       rhs.internalActor = nullptr;
       return *this;
     }
-    Physics(const Physics&) = delete;
-    Physics& operator=(const Physics&) = delete;
+    DynamicPhysics(const DynamicPhysics&) = delete;
+    DynamicPhysics& operator=(const DynamicPhysics&) = delete;
 
     ::Physics::DynamicActorInterface Interface()
     {
       return internalActor;
     }
 
-    ~Physics()
+    ~DynamicPhysics()
     {
       if (internalActor)
       {
         //printf("PHYSICS %p really DELETED\n", this);
-        ::Physics::PhysicsManager::RemoveActor(internalActor);
+        ::Physics::PhysicsManager::RemoveActorEntity(reinterpret_cast<physx::PxRigidActor*>(internalActor));
       }
     }
 
   private:
     physx::PxRigidDynamic* internalActor;
+  };
+
+  struct StaticPhysics
+  {
+    StaticPhysics(Entity ent, ::Physics::MaterialType mat, const ::Physics::BoxCollider& c)
+    {
+      internalActor = ::Physics::PhysicsManager::AddStaticActorEntity(ent, mat, c);
+    }
+    StaticPhysics(Entity ent, ::Physics::MaterialType mat, const ::Physics::CapsuleCollider& c)
+    {
+      internalActor = ::Physics::PhysicsManager::AddStaticActorEntity(ent, mat, c);
+    }
+
+    StaticPhysics(StaticPhysics&& rhs) noexcept { *this = std::move(rhs); }
+    StaticPhysics& operator=(StaticPhysics&& rhs) noexcept
+    {
+      internalActor = rhs.internalActor;
+      rhs.internalActor = nullptr;
+      return *this;
+    }
+    StaticPhysics(const StaticPhysics&) = delete;
+    StaticPhysics& operator=(const StaticPhysics&) = delete;
+
+    ::Physics::StaticActorInterface Interface()
+    {
+      return internalActor;
+    }
+
+    ~StaticPhysics()
+    {
+      if (internalActor)
+      {
+        //printf("PHYSICS %p really DELETED\n", this);
+        ::Physics::PhysicsManager::RemoveActorEntity(reinterpret_cast<physx::PxRigidActor*>(internalActor));
+      }
+    }
+
+  private:
+    physx::PxRigidStatic* internalActor;
   };
 
   // direct member access forbidden because of isDirty flag
