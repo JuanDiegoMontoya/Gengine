@@ -88,7 +88,7 @@ void OnStart(Scene* scene)
     meshes.push_back(MeshManager::CreateMeshBatched("./Resources/Models/teapot.obj", l, o)[0]);
 
     auto notbatch = MeshManager::CreateMesh("./Resources/Models/sphere.obj", l, o)[0];
-    if (1) // creating a really tall parenting chain of objects
+    if (0) // creating a really tall parenting chain of objects
     {
       Entity parent = scene->CreateEntity("parent");
       parent.AddComponent<Components::Transform>().SetTranslation({ -15, -10, 10 });
@@ -177,7 +177,7 @@ void OnStart(Scene* scene)
         entity.AddComponent<Components::DynamicPhysics>(std::move(phys));
       }
     }
-    if (0) // interactive physics test
+    if (1) // interactive physics test
     {
       Entity entity = scene->CreateEntity("controlled physics entity");
       entity.AddComponent<Components::Transform>().SetTranslation({ -15, 5, 10 });
@@ -206,7 +206,16 @@ void OnStart(Scene* scene)
         }
       }
     }
+    if (1) // static mesh physics test
+    {
+      Physics::MeshCollider collider;
+      collider.vertices = { {-.5, -.5, -.5}, {-.5, -.5, .5}, {.5, -.5, .5}, {.5, -.5, -.5}, {0, .5, 0} };
+      collider.indices = { 0, 1, 3, 3, 1, 2, 0, 4, 3, 3, 4, 2, 2, 4, 1, 1, 4, 0 };
+      auto* actor = Physics::PhysicsManager::AddStaticActorGeneric(Physics::MaterialType::Terrain, collider, glm::mat4(1));
+      ASSERT(actor);
+    }
   }
+
 
   // make an entity for each object in the maya mesh
   //bool l, o;

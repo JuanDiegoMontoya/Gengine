@@ -2,6 +2,7 @@
 #include <Voxels/block.h>
 #include <shared_mutex>
 #include <CoreEngine/StaticBuffer.h>
+#include <CoreEngine/Physics.h>
 
 //class VAO;
 //class VBO;
@@ -61,6 +62,9 @@ private:
   std::vector<GLint> encodedStuffArr;
   std::vector<GLint> lightingArr;
   std::vector<GLint> interleavedArr;
+
+  Physics::MeshCollider tCollider{};
+  physx::PxRigidActor* tActor = nullptr;
 
   GLsizei vertexCount_ = 0; // number of block vertices
   uint64_t bufferHandle = NULL;

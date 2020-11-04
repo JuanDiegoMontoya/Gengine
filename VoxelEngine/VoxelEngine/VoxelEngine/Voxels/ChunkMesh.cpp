@@ -6,12 +6,12 @@
 #include <Voxels/ChunkRenderer.h>
 #include <Voxels/VoxelManager.h>
 
+
 #include <iomanip>
 #include <mutex>
 #include <shared_mutex>
 #include <chrono>
 using namespace std::chrono;
-
 
 ChunkMesh::~ChunkMesh()
 {
@@ -40,10 +40,16 @@ void ChunkMesh::BuildBuffers()
     voxelManager_.chunkRenderer_->allocator->FreeOldest();
   }
 
+
+  Physics::PhysicsManager::RemoveActorGeneric(tActor);
+  tActor = reinterpret_cast<physx::PxRigidActor*>(Physics::PhysicsManager::AddStaticActorGeneric(Physics::MaterialType::Terrain, tCollider, glm::translate(glm::mat4(1), glm::vec3(parent->GetPos() * Chunk::CHUNK_SIZE))));
+
   encodedStuffArr.clear();
   lightingArr.clear();
   interleavedArr.clear();
 
+  //tCollider.vertices.clear();
+  //tCollider.indices.clear();
   //printf("%f: Buffered\n", glfwGetTime());
 }
 
@@ -65,7 +71,7 @@ void ChunkMesh::BuildMesh()
     interleavedArr.push_back(ap.x);
     interleavedArr.push_back(ap.y);
     interleavedArr.push_back(ap.z);
-    interleavedArr.push_back(12345); // necessary padding
+    interleavedArr.push_back(0xDEADBEEF); // necessary padding
     // no padding necessary
 
     glm::ivec3 pos;
@@ -199,6 +205,8 @@ inline void ChunkMesh::addQuad(const glm::ivec3& lpos, BlockType block, int face
     glm::vec3 vert(data[i + 0], data[i + 1], data[i + 2]);
     glm::uvec3 finalVert = glm::ceil(vert) + glm::vec3(lpos);// +0.5f;
 
+    tCollider.vertices.push_back(glm::vec3(finalVert));
+
     // compress attributes into 32 bits
     GLuint encoded = Encode(finalVert, normalIdx, texIdx, cindex);
     encodeds[cindex] = encoded;
@@ -229,6 +237,8 @@ inline void ChunkMesh::addQuad(const glm::ivec3& lpos, BlockType block, int face
     lightingArr.push_back(lightdeds[indices[i]]);
     interleavedArr.push_back(encodeds[indices[i]]);
     interleavedArr.push_back(lightdeds[indices[i]]);
+
+    tCollider.indices.push_back(indicesA[i] + tCollider.vertices.size() - (tCollider.vertices.size() % 4) - 4);
   }
 }
 

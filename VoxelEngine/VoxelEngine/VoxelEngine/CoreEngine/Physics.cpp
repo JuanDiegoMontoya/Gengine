@@ -8,6 +8,7 @@
 #define _DEBUG
 #endif
 #include <PxPhysicsAPI.h>
+#include <cooking/PxCooking.h>
 #include <foundation/PxAllocatorCallback.h>
 #include <foundation/PxErrorCallback.h>
 
@@ -38,6 +39,28 @@ namespace
   glm::quat toGlmQuat(const PxQuat& q)
   {
     return { q.x, q.y, q.z, q.w };
+  }
+
+  PxMat44 toPxMat4(const glm::mat4& m)
+  {
+    return
+    {
+      { m[0][0], m[0][1], m[0][2], m[0][3] },
+      { m[1][0], m[1][1], m[1][2], m[1][3] },
+      { m[2][0], m[2][1], m[2][2], m[2][3] },
+      { m[3][0], m[3][1], m[3][2], m[3][3] }
+    };
+  }
+
+  glm::mat4 toGlmMat4(const PxMat44& m)
+  {
+    return
+    {
+      { m[0][0], m[0][1], m[0][2], m[0][3] },
+      { m[1][0], m[1][1], m[1][2], m[1][3] },
+      { m[2][0], m[2][1], m[2][2], m[2][3] },
+      { m[3][0], m[3][1], m[3][2], m[3][3] }
+    };
   }
 
   PxFilterFlags contactReportFilterShader(
@@ -118,6 +141,7 @@ void Physics::PhysicsManager::Init()
   tolerances.length = 1;
   tolerances.speed = 9.81;
   gPhysics = PxCreatePhysics(PX_PHYSICS_VERSION, *gFoundation, tolerances, true, gPvd);
+  gCooking = PxCreateCooking(PX_PHYSICS_VERSION, *gFoundation, PxCookingParams(tolerances));
   PxInitExtensions(*gPhysics, gPvd);
   gDispatcher = PxDefaultCpuDispatcherCreate(0);
   PxSceneDesc sceneDesc(gPhysics->getTolerancesScale());
@@ -164,6 +188,7 @@ void Physics::PhysicsManager::Simulate(float dt)
   static float accumulator = 0;
   static const float step = 1.0f / 60.0f;
   accumulator += dt;
+  accumulator = glm::min(accumulator, step * 20);
   static bool resultsReady = true;
   if (accumulator > step) // NOTE: not while loop, because we want to avoid the Well of Despair
   {
@@ -198,7 +223,7 @@ void Physics::PhysicsManager::Simulate(float dt)
       if (sleeping)
         continue;
       const auto& pose = actor->getGlobalPose();
-      Entity entity = gActors[actor];
+      Entity entity = gEntityActors[actor];
       if (entity)
       {
         auto& tr = entity.GetComponent<Components::Transform>();
@@ -220,7 +245,7 @@ physx::PxRigidDynamic* Physics::PhysicsManager::AddDynamicActorEntity(Entity ent
   PxBoxGeometry geom(toPxVec3(collider.halfExtents));
   PxRigidDynamic* dynamic = PxCreateDynamic(*gPhysics, tr2, geom, *gMaterials[(int)material], 10.0f);
   dynamic->setAngularDamping(0.5f);
-  gActors[dynamic] = entity;
+  gEntityActors[dynamic] = entity;
   gScene->addActor(*dynamic);
   return dynamic;
 }
@@ -234,7 +259,7 @@ physx::PxRigidDynamic* Physics::PhysicsManager::AddDynamicActorEntity(Entity ent
   PxCapsuleGeometry geom(collider.radius, collider.halfHeight);
   PxRigidDynamic* dynamic = PxCreateDynamic(*gPhysics, tr2, geom, *gMaterials[(int)material], 10.0f);
   dynamic->setAngularDamping(0.5f);
-  gActors[dynamic] = entity;
+  gEntityActors[dynamic] = entity;
   gScene->addActor(*dynamic);
   return dynamic;
 }
@@ -247,7 +272,7 @@ physx::PxRigidStatic* Physics::PhysicsManager::AddStaticActorEntity(Entity entit
   PxTransform tr2(toPxVec3(pos), toPxQuat(q));
   PxBoxGeometry geom(toPxVec3(collider.halfExtents));
   PxRigidStatic* pStatic = PxCreateStatic(*gPhysics, tr2, geom, *gMaterials[(int)material]);
-  gActors[pStatic] = entity;
+  gEntityActors[pStatic] = entity;
   gScene->addActor(*pStatic);
   return pStatic;
 }
@@ -260,7 +285,7 @@ physx::PxRigidStatic* Physics::PhysicsManager::AddStaticActorEntity(Entity entit
   PxTransform tr2(toPxVec3(pos), toPxQuat(q));
   PxCapsuleGeometry geom(collider.radius, collider.halfHeight);
   PxRigidStatic* pStatic = PxCreateStatic(*gPhysics, tr2, geom, *gMaterials[(int)material]);
-  gActors[pStatic] = entity;
+  gEntityActors[pStatic] = entity;
   gScene->addActor(*pStatic);
   return pStatic;
 }
@@ -271,6 +296,52 @@ void Physics::PhysicsManager::RemoveActorEntity(physx::PxRigidActor* actor)
   {
     gScene->removeActor(*actor);
   }
+}
+
+physx::PxRigidStatic* Physics::PhysicsManager::AddStaticActorGeneric(MaterialType material, const MeshCollider& collider, glm::mat4 transform)
+{
+  ASSERT(collider.indices.size() % 3 == 0);
+  if (collider.indices.size() == 0)
+    return nullptr;
+
+  PxTolerancesScale scale;
+  PxCookingParams params(scale);
+  // disable mesh cleaning - perform mesh validation on development configurations
+  params.meshPreprocessParams |= PxMeshPreprocessingFlag::eDISABLE_CLEAN_MESH;
+  // disable edge precompute, edges are set for each triangle, slows contact generation
+  params.meshPreprocessParams |= PxMeshPreprocessingFlag::eDISABLE_ACTIVE_EDGES_PRECOMPUTE;
+  // lower hierarchy for internal mesh
+  //params.meshCookingHint = PxMeshCookingHint::eCOOKING_PERFORMANCE;
+  
+  gCooking->setParams(params);
+
+  PxTriangleMeshDesc meshDesc;
+  meshDesc.points.count = collider.vertices.size();
+  meshDesc.points.stride = sizeof(glm::vec3);
+  meshDesc.points.data = collider.vertices.data();
+
+  meshDesc.triangles.count = collider.indices.size() / 3;
+  meshDesc.triangles.stride = 3 * sizeof(uint32_t);
+  meshDesc.triangles.data = collider.indices.data();
+
+#ifdef _DEBUG
+  // mesh should be validated before cooked without the mesh cleaning
+  //bool res = gCooking->validateTriangleMesh(meshDesc);
+  //ASSERT(res);
+#endif
+
+  PxTriangleMesh* aTriangleMesh = gCooking->createTriangleMesh(meshDesc,
+    gPhysics->getPhysicsInsertionCallback());
+  PxTriangleMeshGeometry geom(aTriangleMesh);
+  PxRigidStatic* pStatic = PxCreateStatic(*gPhysics, PxTransform(toPxMat4(transform)), geom, *gMaterials[(int)material]);
+  gGenericActors.insert(pStatic);
+  gScene->addActor(*pStatic);
+  return pStatic;
+}
+
+void Physics::PhysicsManager::RemoveActorGeneric(physx::PxRigidActor* actor)
+{
+  gGenericActors.erase(actor);
 }
 
 void Physics::DynamicActorInterface::AddForce(const glm::vec3& force, ForceMode mode)
