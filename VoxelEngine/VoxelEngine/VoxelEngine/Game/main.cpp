@@ -71,7 +71,7 @@ void OnStart(Scene* scene)
     player.AddComponent<Components::Camera>(Camera::ActiveCamera);
     Physics::CapsuleCollider collider(0.3, 0.5);
     //Physics::BoxCollider collider({ 1, 1, 1 });
-    player.AddComponent<Components::DynamicPhysics>(player, Physics::MaterialType::Player, collider);
+    player.AddComponent<Components::DynamicPhysics>(player, Physics::MaterialType::Player, collider, Physics::DynamicActorFlag::EnableCCD);
 
     Entity playerSub = scene->CreateEntity("PlayerSub");
     playerSub.AddComponent<Components::NativeScriptComponent>().Bind<PlayerActions>(voxelManager.get());
@@ -145,7 +145,7 @@ void OnStart(Scene* scene)
         }
       }
     }
-    if (1) // boxes physics test
+    if (0) // boxes physics test
     {
       for (int i = 0; i < 500; i++)
       {
@@ -161,12 +161,12 @@ void OnStart(Scene* scene)
         entity.AddComponent<Components::DynamicPhysics>(std::move(phys));
       }
     }
-    if (1) // spheres physics test
+    if (0) // spheres physics test
     {
       for (int i = 0; i < 500; i++)
       {
         Entity entity = scene->CreateEntity("physics entity" + std::to_string(i));
-        entity.AddComponent<Components::Transform>().SetTranslation({ -15, 50 + i, 10 + (float(i) / 50.f) });
+        entity.AddComponent<Components::Transform>().SetTranslation({ -10, 50 + i, 10 + (float(i) / 50.f) });
         //entity.AddComponent<Components::Transform>().SetTranslation({ -15, 50, 10 });
         glm::vec3 scale{ 1, 1, 1 };
         entity.GetComponent<Components::Transform>().SetScale(scale * .5f);
@@ -177,7 +177,7 @@ void OnStart(Scene* scene)
         entity.AddComponent<Components::DynamicPhysics>(std::move(phys));
       }
     }
-    if (1) // interactive physics test
+    if (0) // interactive physics test
     {
       Entity entity = scene->CreateEntity("controlled physics entity");
       entity.AddComponent<Components::Transform>().SetTranslation({ -15, 5, 10 });
@@ -188,7 +188,7 @@ void OnStart(Scene* scene)
       entity.AddComponent<Components::DynamicPhysics>(std::move(phys));
       entity.AddComponent<Components::NativeScriptComponent>().Bind<PhysicsTest2>();
     }
-    if (1) // add static entities
+    if (0) // stack of static entities test
     {
       for (int i = 0; i < 10; i++)
       {
@@ -206,7 +206,7 @@ void OnStart(Scene* scene)
         }
       }
     }
-    if (1) // static mesh physics test
+    if (0) // static mesh physics test
     {
       Physics::MeshCollider collider;
       collider.vertices = { {-.5, -.5, -.5}, {-.5, -.5, .5}, {.5, -.5, .5}, {.5, -.5, -.5}, {0, .5, 0} };

@@ -56,6 +56,14 @@ namespace Physics
     Acceleration,
   };
 
+  enum DynamicActorFlag
+  {
+    Kinematic = (1 << 0),
+    EnableCCD = (1 << 2),
+
+  };
+  using DynamicActorFlags = int;
+
   enum ActorFlag
   {
     DisableGravity = (1 << 1),
@@ -81,8 +89,8 @@ namespace Physics
     static void Shutdown();
     static void Simulate(float dt);
 
-    static physx::PxRigidDynamic* AddDynamicActorEntity(Entity entity, MaterialType material, BoxCollider collider);
-    static physx::PxRigidDynamic* AddDynamicActorEntity(Entity entity, MaterialType material, CapsuleCollider collider);
+    static physx::PxRigidDynamic* AddDynamicActorEntity(Entity entity, MaterialType material, BoxCollider collider, DynamicActorFlags flags);
+    static physx::PxRigidDynamic* AddDynamicActorEntity(Entity entity, MaterialType material, CapsuleCollider collider, DynamicActorFlags flags);
     static physx::PxRigidStatic* AddStaticActorEntity(Entity entity, MaterialType material, BoxCollider collider);
     static physx::PxRigidStatic* AddStaticActorEntity(Entity entity, MaterialType material, CapsuleCollider collider);
     static void RemoveActorEntity(physx::PxRigidActor* actor);

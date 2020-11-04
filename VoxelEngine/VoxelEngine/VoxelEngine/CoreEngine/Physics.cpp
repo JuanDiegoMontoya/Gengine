@@ -76,10 +76,12 @@ namespace
     PX_UNUSED(constantBlock);
 
     // all initial and persisting reports for everything, with per-point data
-    pairFlags = PxPairFlag::eSOLVE_CONTACT | PxPairFlag::eDETECT_DISCRETE_CONTACT
+    pairFlags = PxPairFlag::eSOLVE_CONTACT
+      | PxPairFlag::eDETECT_DISCRETE_CONTACT
       | PxPairFlag::eNOTIFY_TOUCH_FOUND
       | PxPairFlag::eNOTIFY_TOUCH_PERSISTS
-      | PxPairFlag::eNOTIFY_CONTACT_POINTS;
+      | PxPairFlag::eNOTIFY_CONTACT_POINTS
+      | PxPairFlag::eDETECT_CCD_CONTACT;
     return PxFilterFlag::eDEFAULT;
 }
 
@@ -139,7 +141,7 @@ void Physics::PhysicsManager::Init()
 #endif
   PxTolerancesScale tolerances;
   tolerances.length = 1;
-  tolerances.speed = 9.81;
+  tolerances.speed = 15.81;
   gPhysics = PxCreatePhysics(PX_PHYSICS_VERSION, *gFoundation, tolerances, true, gPvd);
   gCooking = PxCreateCooking(PX_PHYSICS_VERSION, *gFoundation, PxCookingParams(tolerances));
   PxInitExtensions(*gPhysics, gPvd);
@@ -150,6 +152,7 @@ void Physics::PhysicsManager::Init()
   sceneDesc.filterShader = contactReportFilterShader;
   sceneDesc.simulationEventCallback = &gContactReportCallback;
   sceneDesc.solverType = PxSolverType::eTGS;
+  sceneDesc.flags |= PxSceneFlag::eENABLE_CCD;
   gScene = gPhysics->createScene(sceneDesc);
 
   PxPvdSceneClient* pvdClient = gScene->getScenePvdClient();
@@ -168,9 +171,17 @@ void Physics::PhysicsManager::Init()
 
 void Physics::PhysicsManager::Shutdown()
 {
+  //for (auto [actor, Entity] : gEntityActors)
+  //  actor->release();
+  //for (auto actor : gGenericActors)
+  //  actor->release();
+  //for (auto* mat : gMaterials)
+  //  mat->release();
+
   PX_RELEASE(gScene);
   PX_RELEASE(gDispatcher);
   PxCloseExtensions();
+  PX_RELEASE(gCooking);
   PX_RELEASE(gPhysics);
   if (gPvd)
   {
@@ -235,7 +246,7 @@ void Physics::PhysicsManager::Simulate(float dt)
   }
 }
 
-physx::PxRigidDynamic* Physics::PhysicsManager::AddDynamicActorEntity(Entity entity, MaterialType material, BoxCollider collider)
+physx::PxRigidDynamic* Physics::PhysicsManager::AddDynamicActorEntity(Entity entity, MaterialType material, BoxCollider collider, DynamicActorFlags flags)
 {
   const auto& tr = entity.GetComponent<Components::Transform>();
   //collider.halfExtents *= tr.GetScale();
@@ -245,12 +256,13 @@ physx::PxRigidDynamic* Physics::PhysicsManager::AddDynamicActorEntity(Entity ent
   PxBoxGeometry geom(toPxVec3(collider.halfExtents));
   PxRigidDynamic* dynamic = PxCreateDynamic(*gPhysics, tr2, geom, *gMaterials[(int)material], 10.0f);
   dynamic->setAngularDamping(0.5f);
+  dynamic->setRigidBodyFlags((PxRigidBodyFlags)flags);
   gEntityActors[dynamic] = entity;
   gScene->addActor(*dynamic);
   return dynamic;
 }
 
-physx::PxRigidDynamic* Physics::PhysicsManager::AddDynamicActorEntity(Entity entity, MaterialType material, CapsuleCollider collider)
+physx::PxRigidDynamic* Physics::PhysicsManager::AddDynamicActorEntity(Entity entity, MaterialType material, CapsuleCollider collider, DynamicActorFlags flags)
 {
   const auto& tr = entity.GetComponent<Components::Transform>();
   glm::quat q(tr.GetRotation());
@@ -259,6 +271,7 @@ physx::PxRigidDynamic* Physics::PhysicsManager::AddDynamicActorEntity(Entity ent
   PxCapsuleGeometry geom(collider.radius, collider.halfHeight);
   PxRigidDynamic* dynamic = PxCreateDynamic(*gPhysics, tr2, geom, *gMaterials[(int)material], 10.0f);
   dynamic->setAngularDamping(0.5f);
+  dynamic->setRigidBodyFlags((PxRigidBodyFlags)flags);
   gEntityActors[dynamic] = entity;
   gScene->addActor(*dynamic);
   return dynamic;
@@ -295,6 +308,7 @@ void Physics::PhysicsManager::RemoveActorEntity(physx::PxRigidActor* actor)
   if (actor)
   {
     gScene->removeActor(*actor);
+    gEntityActors.erase(actor);
   }
 }
 
@@ -307,9 +321,11 @@ physx::PxRigidStatic* Physics::PhysicsManager::AddStaticActorGeneric(MaterialTyp
   PxTolerancesScale scale;
   PxCookingParams params(scale);
   // disable mesh cleaning - perform mesh validation on development configurations
-  params.meshPreprocessParams |= PxMeshPreprocessingFlag::eDISABLE_CLEAN_MESH;
+  //params.meshPreprocessParams |= PxMeshPreprocessingFlag::eDISABLE_CLEAN_MESH;
   // disable edge precompute, edges are set for each triangle, slows contact generation
-  params.meshPreprocessParams |= PxMeshPreprocessingFlag::eDISABLE_ACTIVE_EDGES_PRECOMPUTE;
+  //params.meshPreprocessParams |= PxMeshPreprocessingFlag::eDISABLE_ACTIVE_EDGES_PRECOMPUTE;
+  params.meshPreprocessParams |= PxMeshPreprocessingFlag::eWELD_VERTICES;
+  params.meshWeldTolerance = .1f;
   // lower hierarchy for internal mesh
   //params.meshCookingHint = PxMeshCookingHint::eCOOKING_PERFORMANCE;
   
@@ -329,7 +345,6 @@ physx::PxRigidStatic* Physics::PhysicsManager::AddStaticActorGeneric(MaterialTyp
   //bool res = gCooking->validateTriangleMesh(meshDesc);
   //ASSERT(res);
 #endif
-
   PxTriangleMesh* aTriangleMesh = gCooking->createTriangleMesh(meshDesc,
     gPhysics->getPhysicsInsertionCallback());
   PxTriangleMeshGeometry geom(aTriangleMesh);
@@ -341,7 +356,11 @@ physx::PxRigidStatic* Physics::PhysicsManager::AddStaticActorGeneric(MaterialTyp
 
 void Physics::PhysicsManager::RemoveActorGeneric(physx::PxRigidActor* actor)
 {
-  gGenericActors.erase(actor);
+  if (actor)
+  {
+    gGenericActors.erase(actor);
+    gScene->removeActor(*actor);
+  }
 }
 
 void Physics::DynamicActorInterface::AddForce(const glm::vec3& force, ForceMode mode)

@@ -28,13 +28,13 @@ namespace Components
 
   struct DynamicPhysics
   {
-    DynamicPhysics(Entity ent, ::Physics::MaterialType mat, const ::Physics::BoxCollider& c)
+    DynamicPhysics(Entity ent, ::Physics::MaterialType mat, const ::Physics::BoxCollider& c, ::Physics::DynamicActorFlags flags = 0)
     {
-      internalActor = ::Physics::PhysicsManager::AddDynamicActorEntity(ent, mat, c);
+      internalActor = ::Physics::PhysicsManager::AddDynamicActorEntity(ent, mat, c, flags);
     }
-    DynamicPhysics(Entity ent, ::Physics::MaterialType mat, const ::Physics::CapsuleCollider& c)
+    DynamicPhysics(Entity ent, ::Physics::MaterialType mat, const ::Physics::CapsuleCollider& c, ::Physics::DynamicActorFlags flags = 0)
     {
-      internalActor = ::Physics::PhysicsManager::AddDynamicActorEntity(ent, mat, c);
+      internalActor = ::Physics::PhysicsManager::AddDynamicActorEntity(ent, mat, c, flags);
     }
 
     DynamicPhysics(DynamicPhysics&& rhs) noexcept { *this = std::move(rhs); }

@@ -16,6 +16,8 @@ using namespace std::chrono;
 ChunkMesh::~ChunkMesh()
 {
   voxelManager_.chunkRenderer_->allocator->Free(bufferHandle);
+  if (tActor)
+    Physics::PhysicsManager::RemoveActorGeneric(tActor);
 }
 
 
@@ -42,14 +44,18 @@ void ChunkMesh::BuildBuffers()
 
 
   Physics::PhysicsManager::RemoveActorGeneric(tActor);
-  tActor = reinterpret_cast<physx::PxRigidActor*>(Physics::PhysicsManager::AddStaticActorGeneric(Physics::MaterialType::Terrain, tCollider, glm::translate(glm::mat4(1), glm::vec3(parent->GetPos() * Chunk::CHUNK_SIZE))));
+
+  tActor = reinterpret_cast<physx::PxRigidActor*>(
+    Physics::PhysicsManager::AddStaticActorGeneric(
+      Physics::MaterialType::Terrain, tCollider, 
+      glm::translate(glm::mat4(1), glm::vec3(parent->GetPos() * Chunk::CHUNK_SIZE))));
 
   encodedStuffArr.clear();
   lightingArr.clear();
   interleavedArr.clear();
 
-  //tCollider.vertices.clear();
-  //tCollider.indices.clear();
+  tCollider.vertices.clear();
+  tCollider.indices.clear();
   //printf("%f: Buffered\n", glfwGetTime());
 }
 
