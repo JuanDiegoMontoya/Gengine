@@ -145,7 +145,7 @@ void OnStart(Scene* scene)
         }
       }
     }
-    if (0) // boxes physics test
+    if (1) // boxes physics test
     {
       for (int i = 0; i < 500; i++)
       {
@@ -161,7 +161,7 @@ void OnStart(Scene* scene)
         entity.AddComponent<Components::DynamicPhysics>(std::move(phys));
       }
     }
-    if (0) // spheres physics test
+    if (1) // spheres physics test
     {
       for (int i = 0; i < 500; i++)
       {

@@ -12,6 +12,8 @@ namespace physx
   class PxMaterial;
   class PxPvd;
   class PxCooking;
+  class PxControllerManager;
+  class PxController;
 
   class PxRigidActor;
   class PxRigidDynamic;
@@ -95,8 +97,11 @@ namespace Physics
     static physx::PxRigidStatic* AddStaticActorEntity(Entity entity, MaterialType material, CapsuleCollider collider);
     static void RemoveActorEntity(physx::PxRigidActor* actor);
 
-    static physx::PxRigidStatic* AddStaticActorGeneric(MaterialType material, const MeshCollider& collider, glm::mat4 transform);
+    static physx::PxRigidStatic* AddStaticActorGeneric(MaterialType material, const MeshCollider& collider, const glm::mat4& transform);
     static void RemoveActorGeneric(physx::PxRigidActor* actor);
+
+    static physx::PxController* AddCharacterControllerEntity(Entity entity, MaterialType material, CapsuleCollider collider);
+    static void RemoveCharacterControllerEntity(physx::PxController* controller);
 
   private:
     static inline physx::PxFoundation* gFoundation = nullptr;
@@ -107,8 +112,10 @@ namespace Physics
     static inline std::vector<physx::PxMaterial*> gMaterials;
     static inline physx::PxPvd* gPvd = nullptr;
     static inline physx::PxCooking* gCooking = nullptr;
+    static inline physx::PxControllerManager* gCManager = nullptr;
 
     static inline std::unordered_map<physx::PxRigidActor*, Entity> gEntityActors;
+    static inline std::unordered_map<physx::PxController*, Entity> gEntityControllers;
     static inline std::unordered_set<physx::PxRigidActor*> gGenericActors;
   };
 

@@ -154,6 +154,7 @@ void Physics::PhysicsManager::Init()
   sceneDesc.solverType = PxSolverType::eTGS;
   sceneDesc.flags |= PxSceneFlag::eENABLE_CCD;
   gScene = gPhysics->createScene(sceneDesc);
+  gCManager = PxCreateControllerManager(*gScene);
 
   PxPvdSceneClient* pvdClient = gScene->getScenePvdClient();
   if (pvdClient)
@@ -178,6 +179,7 @@ void Physics::PhysicsManager::Shutdown()
   //for (auto* mat : gMaterials)
   //  mat->release();
 
+  PX_RELEASE(gCManager);
   PX_RELEASE(gScene);
   PX_RELEASE(gDispatcher);
   PxCloseExtensions();
@@ -186,8 +188,7 @@ void Physics::PhysicsManager::Shutdown()
   if (gPvd)
   {
     PxPvdTransport* transport = gPvd->getTransport();
-    gPvd->release();
-    gPvd = NULL;
+    PX_RELEASE(gPvd);
     PX_RELEASE(transport);
   }
   PX_RELEASE(gFoundation);
@@ -195,12 +196,12 @@ void Physics::PhysicsManager::Shutdown()
 
 void Physics::PhysicsManager::Simulate(float dt)
 {
+  static bool resultsReady = true;
 #if FIXED_STEP
   static float accumulator = 0;
   static const float step = 1.0f / 60.0f;
   accumulator += dt;
-  accumulator = glm::min(accumulator, step * 20);
-  static bool resultsReady = true;
+  accumulator = glm::min(accumulator, step * 20); // accumulate 20 steps of backlog
   if (accumulator > step) // NOTE: not while loop, because we want to avoid the Well of Despair
   {
     if (resultsReady)
@@ -213,11 +214,11 @@ void Physics::PhysicsManager::Simulate(float dt)
       resultsReady = true;
       accumulator -= step;
     }
-
   }
 #else
   gScene->simulate(dt);
   gScene->fetchResults(true);
+  resultsReady = true;
 #endif
   if (!resultsReady)
     return;
@@ -237,6 +238,7 @@ void Physics::PhysicsManager::Simulate(float dt)
       Entity entity = gEntityActors[actor];
       if (entity)
       {
+        // an entity with physics must have a transform
         auto& tr = entity.GetComponent<Components::Transform>();
         tr.SetTranslation(*(glm::vec3*) & pose.p);
         glm::quat q(*(glm::quat*) & pose.q);
@@ -312,7 +314,7 @@ void Physics::PhysicsManager::RemoveActorEntity(physx::PxRigidActor* actor)
   }
 }
 
-physx::PxRigidStatic* Physics::PhysicsManager::AddStaticActorGeneric(MaterialType material, const MeshCollider& collider, glm::mat4 transform)
+physx::PxRigidStatic* Physics::PhysicsManager::AddStaticActorGeneric(MaterialType material, const MeshCollider& collider, const glm::mat4& transform)
 {
   ASSERT(collider.indices.size() % 3 == 0);
   if (collider.indices.size() == 0)
@@ -360,6 +362,30 @@ void Physics::PhysicsManager::RemoveActorGeneric(physx::PxRigidActor* actor)
   {
     gGenericActors.erase(actor);
     gScene->removeActor(*actor);
+  }
+}
+
+physx::PxController* Physics::PhysicsManager::AddCharacterControllerEntity(Entity entity, MaterialType material, CapsuleCollider collider)
+{
+  PxCapsuleControllerDesc desc;
+  desc.upDirection = { 0, 1, 0 };
+  desc.density = 10.f;
+  desc.stepOffset = .5f;
+  desc.material = gMaterials[(int)material];
+  desc.height = 2.f * collider.halfHeight;
+  desc.radius = collider.radius;
+
+
+  ASSERT_MSG(false, "not yet implemented");
+  return nullptr;
+}
+
+void Physics::PhysicsManager::RemoveCharacterControllerEntity(physx::PxController* controller)
+{
+  if (controller)
+  {
+    gEntityControllers.erase(controller);
+    controller->release();
   }
 }
 
