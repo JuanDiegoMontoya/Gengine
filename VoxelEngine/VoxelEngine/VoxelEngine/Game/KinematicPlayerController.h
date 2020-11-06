@@ -37,18 +37,22 @@ public:
     const glm::vec2 xzForward = glm::normalize(glm::vec2(cam.GetDir().x, cam.GetDir().z));
     const glm::vec2 xzRight = glm::normalize(glm::vec2(xzForward.y, -xzForward.x));
 
+    float maxXZSpeed = normalSpeed;
+
     // speed modifiers
     float acceleration = flags & Physics::COLLISION_DOWN ? accelerationGround : accelerationAir;
-    float currSpeed = acceleration * dt;
-    float maxXZSpeed = normalSpeed;
     if (Input::IsKeyDown(GLFW_KEY_LEFT_SHIFT))
     {
       maxXZSpeed = fastSpeed;
     }
     if (Input::IsKeyDown(GLFW_KEY_LEFT_CONTROL))
     {
+      if (acceleration == accelerationGround)
+        acceleration = accelerationGroundSlow;
       maxXZSpeed = slowSpeed;
     }
+
+    float currSpeed = acceleration * dt;
 
     glm::vec2 xzForce{ 0 };
     if (Input::IsKeyDown(GLFW_KEY_W))
@@ -151,6 +155,7 @@ public:
 
   // amount of velocity to gain/lose per second when moving/not moving
   const float accelerationGround = 40.0f;
+  const float accelerationGroundSlow = 6.0f;
   const float accelerationAir = 6.0f;
   const float decelerationGround = 20.0f;
   const float decelerationAir = 2.0f;
