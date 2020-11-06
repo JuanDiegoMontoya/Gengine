@@ -24,6 +24,7 @@
 #include <Game/TestObj2.h>
 #include <Game/GameManager.h>
 #include <Game/PhysicsTest2.h>
+#include <Game/KinematicPlayerController.h>
 
 // main.cpp: this is where the user's code belongs
 static MaterialHandle userMaterial{};
@@ -66,13 +67,16 @@ void OnStart(Scene* scene)
   {
     Entity player = scene->CreateEntity("player");
     player.AddComponent<Components::Transform>().SetRotation(glm::rotate(glm::mat4(1), glm::pi<float>() / 2.f, { 0, 0, 1 }));
+    player.GetComponent<Components::Transform>().SetTranslation({ -5, 2, -5 });
     //player.AddComponent<Components::NativeScriptComponent>().Bind<FlyingPlayerController>();
-    player.AddComponent<Components::NativeScriptComponent>().Bind<PhysicsPlayerController>();
+    //player.AddComponent<Components::NativeScriptComponent>().Bind<PhysicsPlayerController>();
+    player.AddComponent<Components::NativeScriptComponent>().Bind<KinematicPlayerController>();
     player.AddComponent<Components::Camera>(Camera::ActiveCamera);
     Physics::CapsuleCollider collider(0.3, 0.5);
     //Physics::BoxCollider collider({ 1, 1, 1 });
-    player.AddComponent<Components::DynamicPhysics>(player, Physics::MaterialType::Player, collider, Physics::DynamicActorFlag::EnableCCD);
+    player.AddComponent<Components::CharacterController>(player, Physics::MaterialType::Player, collider);
 
+    // extra stuff attached to the player
     Entity playerSub = scene->CreateEntity("PlayerSub");
     playerSub.AddComponent<Components::NativeScriptComponent>().Bind<PlayerActions>(voxelManager.get());
     player.AddChild(playerSub);
@@ -145,7 +149,7 @@ void OnStart(Scene* scene)
         }
       }
     }
-    if (1) // boxes physics test
+    if (0) // boxes physics test
     {
       for (int i = 0; i < 500; i++)
       {
@@ -161,7 +165,7 @@ void OnStart(Scene* scene)
         entity.AddComponent<Components::DynamicPhysics>(std::move(phys));
       }
     }
-    if (1) // spheres physics test
+    if (0) // spheres physics test
     {
       for (int i = 0; i < 500; i++)
       {

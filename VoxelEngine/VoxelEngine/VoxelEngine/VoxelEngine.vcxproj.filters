@@ -295,6 +295,9 @@
     <ClInclude Include="Game\PhysicsTest2.h">
       <Filter>Game</Filter>
     </ClInclude>
+    <ClInclude Include="Game\KinematicPlayerController.h">
+      <Filter>Game</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="3rdParty\imgui\imgui.cpp">

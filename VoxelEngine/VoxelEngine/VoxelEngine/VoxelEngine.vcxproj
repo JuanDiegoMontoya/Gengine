@@ -74,6 +74,7 @@
     <ClInclude Include="CoreEngine\WindowUtils.h" />
     <ClInclude Include="Game\FlyingPlayerController.h" />
     <ClInclude Include="Game\GameManager.h" />
+    <ClInclude Include="Game\KinematicPlayerController.h" />
     <ClInclude Include="Game\PhysicsPlayerController.h" />
     <ClInclude Include="Game\PhysicsTest2.h" />
     <ClInclude Include="Game\PlayerActions.h" />

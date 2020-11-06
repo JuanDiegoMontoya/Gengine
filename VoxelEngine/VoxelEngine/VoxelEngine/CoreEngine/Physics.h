@@ -64,14 +64,14 @@ namespace Physics
     EnableCCD = (1 << 2),
 
   };
-  using DynamicActorFlags = int;
+  using DynamicActorFlags = uint32_t;
 
   enum ActorFlag
   {
     DisableGravity = (1 << 1),
     DisableSimulation = (1 << 3),
   };
-  using ActorFlags = int;
+  using ActorFlags = uint32_t;
 
   enum LockFlag
   {
@@ -82,7 +82,15 @@ namespace Physics
     LOCK_ANGULAR_Y = (1 << 4),
     LOCK_ANGULAR_Z = (1 << 5)
   };
-  using LockFlags = int;
+  using LockFlags = uint32_t;
+
+  enum ControllerCollisionFlag
+  {
+    COLLISION_SIDES = (1 << 0),
+    COLLISION_UP = (1 << 1),
+    COLLISION_DOWN = (1 << 2)
+  };
+  using ControllerCollisionFlags = uint32_t;
 
   class PhysicsManager
   {
@@ -145,5 +153,16 @@ namespace Physics
 
   private:
     physx::PxRigidStatic* actor;
+  };
+
+  class CharacterControllerInterface
+  {
+  public:
+    CharacterControllerInterface(physx::PxController* cont) : controller(cont) {}
+    ControllerCollisionFlags Move(const glm::vec3& disp, float dt);
+    glm::vec3 GetPosition();
+
+  private:
+    physx::PxController* controller;
   };
 }

@@ -9,13 +9,6 @@
 
 class Camera;
 
-namespace physx
-{
-  class PxRigidActor;
-  class PxRigidDynamic;
-  class PxRigidStatic;
-}
-
 namespace Components
 {
   /// <summary>
@@ -104,40 +97,40 @@ namespace Components
 
   struct CharacterController
   {
-    CharacterController(Entity ent, ::Physics::MaterialType mat, const ::Physics::BoxCollider& c)
-    {
-      internalActor = ::Physics::PhysicsManager::AddStaticActorEntity(ent, mat, c);
-    }
+    //CharacterController(Entity ent, ::Physics::MaterialType mat, const ::Physics::BoxCollider& c)
+    //{
+    //  internalController = ::Physics::PhysicsManager::AddCharacterControllerEntity(ent, mat, c);
+    //}
     CharacterController(Entity ent, ::Physics::MaterialType mat, const ::Physics::CapsuleCollider& c)
     {
-      internalActor = ::Physics::PhysicsManager::AddStaticActorEntity(ent, mat, c);
+      internalController = ::Physics::PhysicsManager::AddCharacterControllerEntity(ent, mat, c);
     }
 
     CharacterController(CharacterController&& rhs) noexcept { *this = std::move(rhs); }
     CharacterController& operator=(CharacterController&& rhs) noexcept
     {
-      internalActor = std::exchange(rhs.internalActor, nullptr);
+      internalController = std::exchange(rhs.internalController, nullptr);
       return *this;
     }
     CharacterController(const CharacterController&) = delete;
     CharacterController& operator=(const CharacterController&) = delete;
 
-    ::Physics::StaticActorInterface Interface()
+    ::Physics::CharacterControllerInterface Interface()
     {
-      return internalActor;
+      return internalController;
     }
 
     ~CharacterController()
     {
-      if (internalActor)
+      if (internalController)
       {
         //printf("PHYSICS %p really DELETED\n", this);
-        ::Physics::PhysicsManager::RemoveActorEntity(reinterpret_cast<physx::PxRigidActor*>(internalActor));
+        ::Physics::PhysicsManager::RemoveCharacterControllerEntity(internalController);
       }
     }
 
   private:
-    physx::PxRigidStatic* internalActor;
+    physx::PxController* internalController;
   };
 
   // direct member access forbidden because of isDirty flag

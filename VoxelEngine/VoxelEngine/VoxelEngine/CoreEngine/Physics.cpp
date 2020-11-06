@@ -196,6 +196,13 @@ void Physics::PhysicsManager::Shutdown()
 
 void Physics::PhysicsManager::Simulate(float dt)
 {
+  // update character controllers every frame
+  for (auto [controller, entity] : gEntityControllers)
+  {
+    auto p = controller->getPosition();
+    entity.GetComponent<Components::Transform>().SetTranslation({ p.x, p.y, p.z });
+  }
+
   static bool resultsReady = true;
 #if FIXED_STEP
   static float accumulator = 0;
@@ -370,14 +377,16 @@ physx::PxController* Physics::PhysicsManager::AddCharacterControllerEntity(Entit
   PxCapsuleControllerDesc desc;
   desc.upDirection = { 0, 1, 0 };
   desc.density = 10.f;
-  desc.stepOffset = .5f;
+  desc.stepOffset = .0f;
   desc.material = gMaterials[(int)material];
   desc.height = 2.f * collider.halfHeight;
   desc.radius = collider.radius;
 
-
-  ASSERT_MSG(false, "not yet implemented");
-  return nullptr;
+  PxController* controller = gCManager->createController(desc);
+  auto p = entity.GetComponent<Components::Transform>().GetTranslation();
+  controller->setPosition({ p.x, p.y, p.z });
+  gEntityControllers[controller] = entity;
+  return controller;
 }
 
 void Physics::PhysicsManager::RemoveCharacterControllerEntity(physx::PxController* controller)
@@ -429,4 +438,17 @@ void Physics::DynamicActorInterface::SetActorFlags(ActorFlags flags)
 void Physics::DynamicActorInterface::SetMass(float mass)
 {
   actor->setMass(mass);
+}
+
+Physics::ControllerCollisionFlags Physics::CharacterControllerInterface::Move(const glm::vec3& disp, float dt)
+{
+  PxControllerFilters filters;
+  return (ControllerCollisionFlags)controller->move(toPxVec3(disp), .0001f, dt, filters);
+}
+
+glm::vec3 Physics::CharacterControllerInterface::GetPosition()
+{
+  // physx has to make it a PITA so it returns a dvec3 instead of a vec3 like a normal person would
+  const auto& p = controller->getPosition();
+  return { p.x, p.y, p.z };
 }
