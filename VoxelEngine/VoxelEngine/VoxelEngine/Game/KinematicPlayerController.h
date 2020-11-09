@@ -53,7 +53,7 @@ public:
     }
 
     float currSpeed = acceleration * dt;
-
+    bool speeding = false;
     glm::vec2 xzForce{ 0 };
     if (Input::IsKeyDown(GLFW_KEY_W))
       xzForce += xzForward;
@@ -65,13 +65,18 @@ public:
       xzForce -= xzRight;
     if (xzForce != glm::vec2(0))
       xzForce = glm::normalize(xzForce) * currSpeed;
+    if (Input::IsKeyDown(GLFW_KEY_T))
+    {
+      velocity += cam.GetDir() * dt * 100.f;
+      speeding = true;
+    }
 
     // limit XZ speed
     glm::vec2 tempXZvel{ velocity.x + xzForce[0], velocity.z + xzForce[1] };
     float curSpeed = glm::length(glm::vec2(velocity.x, velocity.z));
     //velocity.x += xzForce[0];
     //velocity.z += xzForce[1];
-    if (auto len = glm::length(tempXZvel); len > curSpeed && len > maxXZSpeed)
+    if (auto len = glm::length(tempXZvel); (len > curSpeed && len > maxXZSpeed) && !speeding)
     {
       tempXZvel = tempXZvel / len * curSpeed;
     }
@@ -130,7 +135,7 @@ public:
         velocity.x = actualVelocity.x;
         velocity.z = actualVelocity.z;
       }
-      printf("%f, %f, %f\n", velocity.x, velocity.y, velocity.z);
+      //printf("%f, %f, %f\n", velocity.x, velocity.y, velocity.z);
     }
 
     // mouse look controls
@@ -154,22 +159,22 @@ public:
   const float gravity = -15.f;
 
   // amount of velocity to gain/lose per second when moving/not moving
-  const float accelerationGround = 40.0f;
-  const float accelerationGroundSlow = 6.0f;
-  const float accelerationAir = 6.0f;
-  const float decelerationGround = 20.0f;
-  const float decelerationAir = 2.0f;
+  const float accelerationGround = 60.0f;
+  const float accelerationGroundSlow = 30.0f;
+  const float accelerationAir = 20.0f;
+  const float decelerationGround = 60.0f;
+  const float decelerationAir = 3.0f;
   
   // max speed on the XZ plane when moving
-  const float slowSpeed = 3.0f;
-  const float normalSpeed = 6.0f;
-  const float fastSpeed = 12.0f;
+  const float slowSpeed = 2.0f;
+  const float normalSpeed = 4.0f;
+  const float fastSpeed = 6.0f;
 
   // displacement after one second
   glm::vec3 velocity{ 0, 0, 0 };
 
   // fix step bookkeeping
-  const float tick = 1.0f / 144.0f;
+  const float tick = 1.0f / 200.0f;
   float accumulator = 0;
   Physics::ControllerCollisionFlags flags{};
 };

@@ -377,7 +377,7 @@ physx::PxController* Physics::PhysicsManager::AddCharacterControllerEntity(Entit
   PxCapsuleControllerDesc desc;
   desc.upDirection = { 0, 1, 0 };
   desc.density = 10.f;
-  desc.stepOffset = .0f;
+  desc.stepOffset = .1f;
   desc.material = gMaterials[(int)material];
   desc.height = 2.f * collider.halfHeight;
   desc.radius = collider.radius;

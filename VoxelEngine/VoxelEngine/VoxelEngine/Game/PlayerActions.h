@@ -2,6 +2,7 @@
 #include <CoreEngine/ScriptableEntity.h>
 #include <CoreEngine/Input.h>
 #include <Voxels/VoxelManager.h>
+#include <imgui/imgui.h>
 
 class PlayerActions : public ScriptableEntity
 {
@@ -23,6 +24,12 @@ public:
     checkBlockPick();
     checkBlockDestruction();
     checkBlockPlacement();
+
+    selected = (BlockType)glm::clamp((int)selected + (int)Input::GetScrollOffset().y, 0, (int)Block::PropertiesTable.size() - 1);
+    
+    ImGui::Begin("Held Block");
+    ImGui::Text("%s", Block::PropertiesTable[(int)selected].name);
+    ImGui::End();
   }
 
 
@@ -43,7 +50,7 @@ public:
 
             voxels->UpdateBlock(pos + side, selected);
             //chunkManager_.UpdateBlock(pos + side, selected, 0);
-
+            
             return true;
           }
       ));

@@ -65,6 +65,12 @@ class ConcurrentPalette : public Palette<T, Size>
 {
 public:
 
+  ConcurrentPalette() {};
+
+  ConcurrentPalette(const ConcurrentPalette& other) { *this = other; }
+
+  ~ConcurrentPalette() {}
+
   ConcurrentPalette<T, Size>& operator=(const ConcurrentPalette<T, Size>& other)
   {
     std::lock_guard w(mtx);

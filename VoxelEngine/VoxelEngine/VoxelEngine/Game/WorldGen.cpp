@@ -13,7 +13,7 @@ namespace
   glm::ivec3 highChunkDim{ 70, 10, 70 };
 #else
   glm::ivec3 lowChunkDim{ 0, 0, 0 };
-  glm::ivec3 highChunkDim{ 5, 3, 5 };
+  glm::ivec3 highChunkDim{ 6, 6, 6 };
 #endif
 }
 

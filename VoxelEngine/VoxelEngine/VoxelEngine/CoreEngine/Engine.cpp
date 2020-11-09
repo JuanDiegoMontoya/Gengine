@@ -36,6 +36,7 @@ void Engine::Run()
     timer.reset();
 
     Input::Update();
+    debugSystem->StartFrame(*activeScene_, dt_);
 
     // idk when this should be called tbh
     scriptSystem->Update(*activeScene_, dt_);
@@ -44,7 +45,6 @@ void Engine::Run()
       updateCallback(dt_);
 
     graphicsSystem->StartFrame();
-    debugSystem->StartFrame(*activeScene_, dt_);
 
     graphicsSystem->Update(*activeScene_, dt_);
     if (drawCallback)
