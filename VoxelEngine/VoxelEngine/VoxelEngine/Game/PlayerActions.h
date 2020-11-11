@@ -27,9 +27,16 @@ public:
 
     selected = (BlockType)glm::clamp((int)selected + (int)Input::GetScrollOffset().y, 0, (int)Block::PropertiesTable.size() - 1);
     
-    ImGui::Begin("Held Block");
+    float size = 100.0f;
+    ImGui::SetNextWindowBgAlpha(0.0f);
+    ImGui::SetNextWindowSize(ImVec2(size * 1.25f, size * 1.7f));
+    ImGui::SetNextWindowPos(ImVec2(32.0f, 1017 - size * 1.55f - 32.0f));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+    ImGui::Begin("Held Block", 0, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove);
+    //ImGui::Begin("Held Block");
     ImGui::Text("%s", Block::PropertiesTable[(int)selected].name);
     ImGui::End();
+    ImGui::PopStyleVar();
   }
 
 

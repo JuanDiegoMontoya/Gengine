@@ -33,12 +33,12 @@ namespace
 
   PxQuat toPxQuat(const glm::quat& q)
   {
-    return { q.x, q.y, q.z, q.w };
+    return { q.x, q.y, q.z, q.w }; // px quat constructor takes x, y, z, w
   }
 
   glm::quat toGlmQuat(const PxQuat& q)
   {
-    return { q.x, q.y, q.z, q.w };
+    return { q.w, q.x, q.y, q.z }; // glm quat constructor takes w, x, y, z
   }
 
   PxMat44 toPxMat4(const glm::mat4& m)
@@ -247,9 +247,10 @@ void Physics::PhysicsManager::Simulate(float dt)
       {
         // an entity with physics must have a transform
         auto& tr = entity.GetComponent<Components::Transform>();
-        tr.SetTranslation(*(glm::vec3*) & pose.p);
-        glm::quat q(*(glm::quat*) & pose.q);
-        tr.SetRotation(glm::toMat4(q));
+        tr.SetTranslation(toGlmVec3(pose.p));
+        glm::quat q(toGlmQuat(pose.q));
+        //tr.SetRotation(*(glm::quat*)&pose.q);
+        tr.SetRotation(q);
       }
     }
   }
@@ -381,6 +382,7 @@ physx::PxController* Physics::PhysicsManager::AddCharacterControllerEntity(Entit
   desc.material = gMaterials[(int)material];
   desc.height = 2.f * collider.halfHeight;
   desc.radius = collider.radius;
+  desc.contactOffset = .01;
 
   PxController* controller = gCManager->createController(desc);
   auto p = entity.GetComponent<Components::Transform>().GetTranslation();

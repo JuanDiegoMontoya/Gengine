@@ -124,10 +124,10 @@ public:
 
       if (flags & Physics::COLLISION_SIDES)
       {
-        // TODO: make dis good friction
-        //velocity.x = 0;
-        //velocity.y = 0;
       }
+
+      // if the actual position is less than if you added velocity to previous position (i.e. you collided with something),
+      // then lower the velocity correspondingly
       glm::vec3 actualPosition = controller.Interface().GetPosition();
       glm::vec3 actualVelocity = (actualPosition - startPosition) / dt;
       if (glm::length(glm::vec2(actualVelocity.x, actualVelocity.z)) < glm::length(glm::vec2(velocity.x, velocity.z)))
