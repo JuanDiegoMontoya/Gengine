@@ -15,6 +15,7 @@
 #define PX_RELEASE(x)	if(x)	{ x->release(); x = NULL;	}
 #define PVD_DEBUG 1
 #define FIXED_STEP 1
+#define ENABLE_GPU 1 // PhysX will automatically disable GPU simulation for non CUDA-compatible devices; this is just for debugging
 
 #pragma optimize("", off)
 
@@ -136,16 +137,24 @@ void Physics::PhysicsManager::Init()
   gCooking = PxCreateCooking(PX_PHYSICS_VERSION, *gFoundation, PxCookingParams(tolerances));
   PxInitExtensions(*gPhysics, gPvd);
   gDispatcher = PxDefaultCpuDispatcherCreate(0);
+
+
   PxSceneDesc sceneDesc(gPhysics->getTolerancesScale());
   sceneDesc.cpuDispatcher = gDispatcher;
   sceneDesc.gravity = PxVec3(0, -15.81f, 0);
   sceneDesc.filterShader = contactReportFilterShader;
   sceneDesc.simulationEventCallback = &gContactReportCallback;
-  sceneDesc.solverType = PxSolverType::ePGS;
-  sceneDesc.flags |= PxSceneFlag::eENABLE_CCD;
+  sceneDesc.solverType = PxSolverType::ePGS; // faster than eTGS
+
+#if ENABLE_GPU
+  PxCudaContextManagerDesc cudaContextManagerDesc;
+  gCudaContextManager = PxCreateCudaContextManager(*gFoundation, cudaContextManagerDesc, PxGetProfilerCallback());
+  sceneDesc.cudaContextManager = gCudaContextManager;
+  sceneDesc.flags |= PxSceneFlag::eENABLE_GPU_DYNAMICS;
+#endif
+
   gScene = gPhysics->createScene(sceneDesc);
   gCManager = PxCreateControllerManager(*gScene);
-
   PxPvdSceneClient* pvdClient = gScene->getScenePvdClient();
   if (pvdClient)
   {
@@ -171,6 +180,7 @@ void Physics::PhysicsManager::Shutdown()
 
   PX_RELEASE(gCManager);
   PX_RELEASE(gScene);
+  PX_RELEASE(gCudaContextManager);
   PX_RELEASE(gDispatcher);
   PxCloseExtensions();
   PX_RELEASE(gCooking);
@@ -189,7 +199,7 @@ void Physics::PhysicsManager::Simulate(float dt)
   // update character controllers every frame
   for (auto [controller, entity] : gEntityControllers)
   {
-    auto p = controller->getPosition();
+    const auto& p = controller->getPosition();
     entity.GetComponent<Components::Transform>().SetTranslation({ p.x, p.y, p.z });
   }
 

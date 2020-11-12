@@ -18,6 +18,8 @@ namespace physx
   class PxRigidActor;
   class PxRigidDynamic;
   class PxRigidStatic;
+
+  class PxCudaContextManager;
 }
 
 namespace Components
@@ -156,6 +158,8 @@ namespace Physics
     static inline physx::PxPvd* gPvd = nullptr;
     static inline physx::PxCooking* gCooking = nullptr;
     static inline physx::PxControllerManager* gCManager = nullptr;
+
+    static inline physx::PxCudaContextManager* gCudaContextManager = nullptr;
 
     static inline std::unordered_map<physx::PxRigidActor*, Entity> gEntityActors;
     static inline std::unordered_map<physx::PxController*, Entity> gEntityControllers;

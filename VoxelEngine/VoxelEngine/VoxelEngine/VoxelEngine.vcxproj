@@ -334,7 +334,8 @@ copy "$(ProjectDir)3rdParty\PhysX\bin\x64\debug\PhysX_64.dll" "$(TargetDir)PhysX
 copy "$(ProjectDir)3rdParty\PhysX\bin\x64\debug\PhysXCommon_64.dll" "$(TargetDir)PhysXCommon_64.dll" /Y
 copy "$(ProjectDir)3rdParty\PhysX\bin\x64\debug\PhysXCooking_64.dll" "$(TargetDir)PhysXCooking_64.dll" /Y
 copy "$(ProjectDir)3rdParty\PhysX\bin\x64\debug\PhysXFoundation_64.dll" "$(TargetDir)PhysXFoundation_64.dll" /Y
-copy "$(ProjectDir)3rdParty\PhysX\bin\x64\debug\PhysXGpu_64.dll" "$(TargetDir)PhysXGpu_64.dll" /Y</Command>
+copy "$(ProjectDir)3rdParty\PhysX\bin\x64\debug\PhysXGpu_64.dll" "$(TargetDir)PhysXGpu_64.dll" /Y
+copy "$(ProjectDir)3rdParty\PhysX\bin\x64\debug\PhysXDevice64.dll" "$(TargetDir)PhysXDevice64.dll" /Y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -416,7 +417,8 @@ copy "$(ProjectDir)3rdParty\PhysX\bin\x64\debug\PhysX_64.dll" "$(TargetDir)PhysX
 copy "$(ProjectDir)3rdParty\PhysX\bin\x64\debug\PhysXCommon_64.dll" "$(TargetDir)PhysXCommon_64.dll" /Y
 copy "$(ProjectDir)3rdParty\PhysX\bin\x64\debug\PhysXCooking_64.dll" "$(TargetDir)PhysXCooking_64.dll" /Y
 copy "$(ProjectDir)3rdParty\PhysX\bin\x64\debug\PhysXFoundation_64.dll" "$(TargetDir)PhysXFoundation_64.dll" /Y
-copy "$(ProjectDir)3rdParty\PhysX\bin\x64\debug\PhysXGpu_64.dll" "$(TargetDir)PhysXGpu_64.dll" /Y</Command>
+copy "$(ProjectDir)3rdParty\PhysX\bin\x64\debug\PhysXGpu_64.dll" "$(TargetDir)PhysXGpu_64.dll" /Y
+copy "$(ProjectDir)3rdParty\PhysX\bin\x64\debug\PhysXDevice64.dll" "$(TargetDir)PhysXDevice64.dll" /Y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
