@@ -94,24 +94,24 @@ namespace
     void onAdvance(const PxRigidBody* const*, const PxTransform*, const PxU32) {}
     void onContact(const PxContactPairHeader& pairHeader, const PxContactPair* pairs, PxU32 nbPairs)
     {
-      PX_UNUSED((pairHeader));
-      std::vector<PxContactPairPoint> contactPoints;
+    //  PX_UNUSED((pairHeader));
+    //  std::vector<PxContactPairPoint> contactPoints;
 
-      for (PxU32 i = 0; i < nbPairs; i++)
-      {
-        PxU32 contactCount = pairs[i].contactCount;
-        if (contactCount)
-        {
-          contactPoints.resize(contactCount);
-          pairs[i].extractContacts(&contactPoints[0], contactCount);
+    //  for (PxU32 i = 0; i < nbPairs; i++)
+    //  {
+    //    PxU32 contactCount = pairs[i].contactCount;
+    //    if (contactCount)
+    //    {
+    //      contactPoints.resize(contactCount);
+    //      pairs[i].extractContacts(&contactPoints[0], contactCount);
 
-          for (PxU32 j = 0; j < contactCount; j++)
-          {
-            //gContactPositions.push_back(contactPoints[j].position);
-            //gContactImpulses.push_back(contactPoints[j].impulse);
-          }
-        }
-      }
+    //      for (PxU32 j = 0; j < contactCount; j++)
+    //      {
+    //        //gContactPositions.push_back(contactPoints[j].position);
+    //        //gContactImpulses.push_back(contactPoints[j].impulse);
+    //      }
+    //    }
+    //  }
     }
   };
 
@@ -119,16 +119,6 @@ namespace
 
   static PxDefaultAllocator gAllocator;
   static PxDefaultErrorCallback gErrorCallback;
-
-
-  //PxRigidDynamic* createDynamic(const PxTransform& t, const PxGeometry& geometry, const PxVec3& velocity = PxVec3(0))
-  //{
-  //	PxRigidDynamic* dynamic = PxCreateDynamic(*gPhysics, t, geometry, *gMaterial, 10.0f);
-  //	dynamic->setAngularDamping(0.5f);
-  //	dynamic->setLinearVelocity(velocity);
-  //	gScene->addActor(*dynamic);
-  //	return dynamic;
-  //}
 }
 
 void Physics::PhysicsManager::Init()
@@ -151,7 +141,7 @@ void Physics::PhysicsManager::Init()
   sceneDesc.gravity = PxVec3(0, -15.81f, 0);
   sceneDesc.filterShader = contactReportFilterShader;
   sceneDesc.simulationEventCallback = &gContactReportCallback;
-  sceneDesc.solverType = PxSolverType::eTGS;
+  sceneDesc.solverType = PxSolverType::ePGS;
   sceneDesc.flags |= PxSceneFlag::eENABLE_CCD;
   gScene = gPhysics->createScene(sceneDesc);
   gCManager = PxCreateControllerManager(*gScene);
@@ -383,11 +373,14 @@ physx::PxController* Physics::PhysicsManager::AddCharacterControllerEntity(Entit
   desc.height = 2.f * collider.halfHeight;
   desc.radius = collider.radius;
   desc.contactOffset = .01;
-
+  
   PxController* controller = gCManager->createController(desc);
   auto p = entity.GetComponent<Components::Transform>().GetTranslation();
   controller->setPosition({ p.x, p.y, p.z });
   gEntityControllers[controller] = entity;
+  //PxShape* sh = nullptr;
+  //controller->getActor()->getShapes(&sh, 1);
+  //sh->setSimulationFilterData(PxFilterData());
   return controller;
 }
 

@@ -92,6 +92,41 @@ namespace Physics
   };
   using ControllerCollisionFlags = uint32_t;
 
+  enum class CollisionType : uint8_t
+  {
+    // trace types (no object can actually be one of these types)
+    Visibility,
+    Camera,
+
+    // object types
+    WorldStatic,
+    WorldDynamic,
+    Player,
+    PhysicsBody,
+    Destructible,
+
+    OTCount, // don't actually use this pls
+  };
+
+  enum class CollisionResponse : uint8_t
+  {
+    Ignore,
+    Overlap,
+    Block
+  };
+
+  //using CollisionResponseFlags = uint16_t;
+  struct CollisionResponseFlags
+  {
+
+  private:
+    uint16_t flags;
+  };
+
+  static_assert(sizeof(CollisionResponseFlags) * 8 >= (uint16_t)CollisionType::OTCount * 2,
+    "Too many object types to fit within the size of CollisionResponseFlags. Consider \
+    increasing the width of the underlying type.");
+
   class PhysicsManager
   {
   public:

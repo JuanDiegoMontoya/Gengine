@@ -55,6 +55,7 @@ namespace Components
 
   private:
     physx::PxRigidDynamic* internalActor;
+
   };
 
   struct StaticPhysics

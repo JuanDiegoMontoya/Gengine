@@ -156,7 +156,7 @@ void OnStart(Scene* scene)
         Entity entity = scene->CreateEntity("physics entity" + std::to_string(i));
         entity.AddComponent<Components::Transform>().SetTranslation({ -15, 50 + i, 10 + (float(i)/50.f) });
         //entity.AddComponent<Components::Transform>().SetTranslation({ -15, 50, 10 });
-        glm::vec3 scale{ 1, .4f, 1 + i * (.02f) };
+        glm::vec3 scale{ 1, .4f, glm::clamp(1 + i * (.02f), .1f, 10.f) };
         entity.GetComponent<Components::Transform>().SetScale(scale);
         entity.AddComponent<Components::BatchedMesh>().handle = meshes[0];
         entity.AddComponent<Components::Material>(batchMaterial);
