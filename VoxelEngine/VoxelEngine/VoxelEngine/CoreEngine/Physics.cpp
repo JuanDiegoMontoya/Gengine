@@ -368,8 +368,10 @@ void Physics::PhysicsManager::RemoveActorGeneric(physx::PxRigidActor* actor)
 {
   if (actor)
   {
+    // TODO: figure out how to actually free the thingy because this makes a memory leak
     gGenericActors.erase(actor);
     gScene->removeActor(*actor);
+    PX_RELEASE(actor);
   }
 }
 

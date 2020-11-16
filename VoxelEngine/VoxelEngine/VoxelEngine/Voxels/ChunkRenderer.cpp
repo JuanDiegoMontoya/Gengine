@@ -91,10 +91,10 @@ void ChunkRenderer::GenerateDrawCommandsGPU()
 #endif
 
   Camera* cam = Camera::ActiveCamera;
-  // make buffer sized as if every allocation was non-null
   auto& sdr = Shader::shaders["compact_batch"];
   sdr->Use();
-#if 1
+
+  // set uniforms for chunk rendering
   sdr->setVec3("u_viewpos", cam->GetPos());
   Frustum fr = *cam->GetFrustum();
   for (int i = 0; i < 5; i++) // ignore near plane
@@ -104,24 +104,13 @@ void ChunkRenderer::GenerateDrawCommandsGPU()
   }
   sdr->setFloat("u_cullMinDist", settings.normalMin);
   sdr->setFloat("u_cullMaxDist", settings.normalMax);
-#endif
   sdr->setUInt("u_reservedVertices", 2);
   sdr->setUInt("u_vertexSize", sizeof(GLuint) * 2);
 
-  //drawCounter->Bind(0);
-  //drawCounter->Reset();
-  //drawCountGPU->Reset();
   GLint zero = 0;
   drawCountGPU->SubData(&zero, sizeof(GLint));
 
-  // copy input data to buffer at binding 0
-  //GLuint indata;
-  //glGenBuffers(1, &indata);
-  //glBindBuffer(GL_SHADER_STORAGE_BUFFER, indata);
-  //glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, indata);
   const auto& allocs = allocator->GetAllocs();
-    
-  //glBufferData(GL_SHADER_STORAGE_BUFFER, allocator->AllocSize() * allocs.size(), allocs.data(), GL_STATIC_COPY);
 
   // only re-construct if allocator has been modified
   if (dirtyAlloc)
@@ -130,30 +119,18 @@ void ChunkRenderer::GenerateDrawCommandsGPU()
     dib = std::make_unique<StaticBuffer>(
       nullptr,
       allocator->ActiveAllocs() * sizeof(DrawArraysIndirectCommand));
-    //dirtyAlloc = false;
+    dirtyAlloc = false;
   }
 
   allocBuffer->Bind<Target::SSBO>(0);
-  //glBindBuffer(GL_SHADER_STORAGE_BUFFER, allocBuffer->GetID());
-  //glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, allocBuffer->GetID());
-
-  // make DIB output SSBO (binding 1) for the shader
-  //glBindBuffer(GL_SHADER_STORAGE_BUFFER, dib->GetID());
   dib->Bind<Target::SSBO>(1);
-  //glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, dib->GetID());
-
-  //glBindBuffer(GL_SHADER_STORAGE_BUFFER, drawCountGPU->GetID());
   drawCountGPU->Bind<Target::SSBO>(2);
-  //glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, drawCountGPU->GetID());
     
   {
     int numBlocks = (allocs.size() + blockSize - 1) / blockSize;
     glDispatchCompute(numBlocks, 1, 1);
-    //glMemoryBarrier(GL_ATOMIC_COUNTER_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT);
+    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT); // make SSBO writes visible to subsequent execution
   }
-  //renderCount = drawCounter->Get(0); // sync point
-  //ASSERT(renderCount <= allocator->ActiveAllocs());
-  //glDeleteBuffers(1, &indata);
 
   drawCountGPU->Unbind<Target::SSBO>();
   dib->Unbind<Target::SSBO>();
@@ -172,8 +149,6 @@ void ChunkRenderer::RenderNorm()
 
   vao->Bind();
   dib->Bind<Target::DIB>();
-  //glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-  //glMultiDrawArraysIndirect(GL_TRIANGLES, (void*)0, renderCount, 0);
   drawCountGPU->Bind<Target::ParameterBuffer>();
   glMultiDrawArraysIndirectCount(GL_TRIANGLES, (void*)0, (GLintptr)0, allocator->ActiveAllocs(), 0);
 }
@@ -211,7 +186,7 @@ void ChunkRenderer::Draw()
   currShader->setFloat("sunAngle", angle);
 
   // undo gamma correction for sky color
-  static glm::vec3 skyColor(
+  static const glm::vec3 skyColor(
     glm::pow(.529f, 2.2f),
     glm::pow(.808f, 2.2f),
     glm::pow(.922f, 2.2f));
@@ -226,7 +201,6 @@ void ChunkRenderer::Draw()
   blueNoise64->Bind(1);
   currShader->setInt("blueNoise", 1);
 
-  currShader->Use();
   RenderVisible();
   GenerateDIB();
   RenderOcclusion();
@@ -293,8 +267,8 @@ void ChunkRenderer::RenderOcclusion()
   vaoCull->Bind();
   constexpr GLint offset = offsetof(DrawArraysIndirectCommand, instanceCount);
   glCopyNamedBufferSubData(drawCountGPU->GetID(), dibCull->GetID(), 0, offset, sizeof(GLuint));
-  glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
   glMultiDrawArraysIndirect(GL_TRIANGLES, (void*)0, 1, 0);
+  glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
   glEnable(GL_CULL_FACE);
   glDepthMask(true);
