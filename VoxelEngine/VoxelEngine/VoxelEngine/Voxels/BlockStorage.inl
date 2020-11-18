@@ -20,7 +20,7 @@ inline ArrayBlockStorage<Size>::ArrayBlockStorage(const ArrayBlockStorage& other
 template<unsigned Size>
 inline ArrayBlockStorage<Size>& ArrayBlockStorage<Size>::operator=(const ArrayBlockStorage& other)
 {
-  this->blocks = other.blocks;
+  this->blocks_ = other.blocks_;
   return *this;
 }
 

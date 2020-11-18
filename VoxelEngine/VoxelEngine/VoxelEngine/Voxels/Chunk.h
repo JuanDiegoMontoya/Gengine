@@ -143,7 +143,7 @@ public:
     ar(pos_, storage);
   }
 
-  const PaletteBlockStorage<CHUNK_SIZE_CUBED>& GetStorage() const { return storage; }
+  const auto& GetStorage() const { return storage; }
 
 private:
   glm::ivec3 pos_;  // position relative to other chunks (1 chunk = 1 index)
