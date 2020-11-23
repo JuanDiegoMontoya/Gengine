@@ -1,9 +1,7 @@
 #include "ChunkSerialize.h"
 #include <zlib.h>
 #include <cereal/cereal.hpp>
-#include <Utilities/DeltaEncoder.h>
-#include <Utilities/RunLengthEncoder.h>
-#include <Utilities/CompressBuffer.h>
+#include <Utilities/Compression.h>
 #include <Utilities/serialize.h>
 
 #include <cereal/types/vector.hpp>
@@ -69,22 +67,22 @@ CompressedChunkData CompressChunk(PaletteBlockStorage<Chunk::CHUNK_SIZE_CUBED> d
   lightData.RemoveEmptyPaletteData(Light{});
   auto bytesA = blockData.palette.GetData().ByteRepresentation();
 
-  auto deltaA = Compression::EncodeDelta(std::span(blockData.indices.data(), blockData.indices.size()));
-  auto deltaB = Compression::EncodeDelta(std::span(lightData.indices.data(), lightData.indices.size()));
+  auto deltaA = Compression::EncodeDelta<uint16_t>(blockData.indices);
+  auto deltaB = Compression::EncodeDelta<uint16_t>(lightData.indices);
 
-  auto rleA = Compression::EncodeRLE(std::span(deltaA.data(), deltaA.size()));
-  auto rleB = Compression::EncodeRLE(std::span(deltaB.data(), deltaB.size()));
-
-  auto compressedA = Compression::Compress(std::span(rleA.data(), rleA.size()));
-  auto compressedB = Compression::Compress(std::span(rleB.data(), rleB.size()));
+  auto rleA = Compression::EncodeRLE<uint16_t>(deltaA);
+  auto rleB = Compression::EncodeRLE<uint16_t>(deltaB);
+  
+  auto compressedA = Compression::Compress<Compression::RLEelement<uint16_t>>(rleA);
+  auto compressedB = Compression::Compress<Compression::RLEelement<uint16_t>>(rleB);
 
 #if 1
   // tests
   auto bitsA = BitArray(bytesA);
   ASSERT(bitsA == blockData.palette.GetData());
-  auto ddataA = Compression::DecodeDelta(std::span(deltaA.data(), deltaA.size()));
+  auto ddataA = Compression::DecodeDelta<uint16_t>(deltaA);
   ASSERT(ddataA == blockData.indices);
-  auto rdataA = Compression::DecodeRLE(std::span(rleA.data(), rleA.size()));
+  auto rdataA = Compression::DecodeRLE<uint16_t>(rleA);
   ASSERT(deltaA == rdataA);
   auto uncompressA = Compression::Uncompress(compressedA);
   ASSERT(uncompressA == rleA);
@@ -93,7 +91,27 @@ CompressedChunkData CompressChunk(PaletteBlockStorage<Chunk::CHUNK_SIZE_CUBED> d
   std::stringstream binaryData;
   cereal::BinaryOutputArchive archive(binaryData);
   archive(compressedA, compressedB);
-
+  
   CompressedChunkData ret;
+  std::string outStr = binaryData.str();
+  ret.data.reserve(outStr.size());
+  std::for_each(outStr.begin(), outStr.end(), [&ret](char c) { ret.data.push_back((std::byte)c); });
   return ret;
+}
+
+PaletteBlockStorage<Chunk::CHUNK_SIZE_CUBED> DecompressChunk(CompressedChunkData data)
+{
+  std::stringstream inStr;
+  for (auto b : data.data)
+  {
+    inStr << (char)b;
+  }
+  cereal::BinaryInputArchive archive(inStr);
+  Compression::CompressionResult<Compression::RLEelement<uint16_t>> resA;
+  Compression::CompressionResult<Compression::RLEelement<uint16_t>> resB;
+  archive(resA, resB);
+
+  ASSERT(false);
+  PaletteBlockStorage<Chunk::CHUNK_SIZE_CUBED> bb;
+  return bb;
 }

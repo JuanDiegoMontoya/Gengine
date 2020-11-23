@@ -4,7 +4,7 @@
 StaticBuffer::StaticBuffer(const void* data, GLuint size, GLbitfield glflags)
 {
   glCreateBuffers(1, &rendererID_);
-  glNamedBufferStorage(rendererID_, size, data, glflags);
+  glNamedBufferStorage(rendererID_, std::max(size, 1u), data, glflags);
 }
 
 StaticBuffer::StaticBuffer(const StaticBuffer& other)
