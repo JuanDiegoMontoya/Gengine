@@ -244,12 +244,6 @@
     <ClInclude Include="Utilities\BitArray.h">
       <Filter>Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="Utilities\CompressBuffer.h">
-      <Filter>Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="Utilities\DeltaEncoder.h">
-      <Filter>Utilities</Filter>
-    </ClInclude>
     <ClInclude Include="Utilities\FixedQueue.h">
       <Filter>Utilities</Filter>
     </ClInclude>
@@ -257,9 +251,6 @@
       <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\Palette.h">
-      <Filter>Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="Utilities\RunLengthEncoder.h">
       <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\Serialize.h">
@@ -297,6 +288,9 @@
     </ClInclude>
     <ClInclude Include="Game\KinematicPlayerController.h">
       <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\Compression.h">
+      <Filter>Utilities</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

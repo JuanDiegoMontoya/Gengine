@@ -21,6 +21,7 @@ public:
 
   virtual void OnUpdate(float dt) override
   {
+    checkTestButton();
     checkBlockPick();
     checkBlockDestruction();
     checkBlockPlacement();
@@ -37,6 +38,19 @@ public:
     ImGui::Text("%s", Block::PropertiesTable[(int)selected].name);
     ImGui::End();
     ImGui::PopStyleVar();
+  }
+
+
+  void checkTestButton()
+  {
+    if (Input::IsKeyDown(GLFW_KEY_G))
+    {
+      for (int i = 0; i < 1; i++)
+      {
+        voxels->MeshChunk({ rand() % 5, rand() % 5, rand() % 5 });
+        //voxels->UpdateBlock({ rand() % 100, rand() % 100, rand() % 100 }, Block(BlockType::bStone));
+      }
+    }
   }
 
 

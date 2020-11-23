@@ -13,7 +13,7 @@
 #include <foundation/PxErrorCallback.h>
 
 #define PX_RELEASE(x)	if(x)	{ x->release(); x = NULL;	}
-#define PVD_DEBUG 1
+#define PVD_DEBUG 0
 #define FIXED_STEP 1
 #define ENABLE_GPU 1 // PhysX will automatically disable GPU simulation for non CUDA-compatible devices; this is just for debugging
 
@@ -22,6 +22,25 @@
 using namespace physx;
 namespace
 {
+  class PxLockRead
+  {
+  public:
+    PxLockRead(PxScene* scn) : scene(scn) { scene->lockRead(); }
+    ~PxLockRead() { scene->unlockRead(); }
+
+  private:
+    PxScene* scene;
+  };
+  class PxLockWrite
+  {
+  public:
+    PxLockWrite(PxScene* scn) : scene(scn) { scene->lockWrite(); }
+    ~PxLockWrite() { scene->unlockWrite(); }
+
+  private:
+    PxScene* scene;
+  };
+
   PxVec3 toPxVec3(const glm::vec3& v)
   {
     return { v.x, v.y, v.z };
@@ -145,6 +164,7 @@ void Physics::PhysicsManager::Init()
   sceneDesc.filterShader = contactReportFilterShader;
   sceneDesc.simulationEventCallback = &gContactReportCallback;
   sceneDesc.solverType = PxSolverType::ePGS; // faster than eTGS
+  sceneDesc.flags |= PxSceneFlag::eREQUIRE_RW_LOCK;
 
 #if ENABLE_GPU
   PxCudaContextManagerDesc cudaContextManagerDesc;
@@ -154,6 +174,7 @@ void Physics::PhysicsManager::Init()
 #endif
 
   gScene = gPhysics->createScene(sceneDesc);
+  PxLockWrite lkw(gScene);
   gCManager = PxCreateControllerManager(*gScene);
   PxPvdSceneClient* pvdClient = gScene->getScenePvdClient();
   if (pvdClient)
@@ -211,6 +232,7 @@ void Physics::PhysicsManager::Simulate(float dt)
   accumulator = glm::min(accumulator, step * 20); // accumulate 20 steps of backlog
   if (accumulator > step) // NOTE: not while loop, because we want to avoid the Well of Despair
   {
+    PxLockWrite lkw(gScene);
     if (resultsReady)
     {
       gScene->simulate(step);
@@ -229,6 +251,12 @@ void Physics::PhysicsManager::Simulate(float dt)
 #endif
   if (!resultsReady)
     return;
+
+  gScene->lockRead();
+  const int numstatic = gScene->getNbActors(PxActorTypeFlag::eRIGID_STATIC);
+  //gScene->
+  //printf("Static: %d\n", numstatic);
+
   // update all entity transforms whose actor counterpart was updated
   const auto actorTypes = PxActorTypeFlag::eRIGID_DYNAMIC | PxActorTypeFlag::eRIGID_STATIC;
   const auto numActors = gScene->getNbActors(actorTypes);
@@ -254,6 +282,7 @@ void Physics::PhysicsManager::Simulate(float dt)
       }
     }
   }
+  gScene->unlockRead();
 }
 
 physx::PxRigidDynamic* Physics::PhysicsManager::AddDynamicActorEntity(Entity entity, MaterialType material, BoxCollider collider, DynamicActorFlags flags)
@@ -268,6 +297,7 @@ physx::PxRigidDynamic* Physics::PhysicsManager::AddDynamicActorEntity(Entity ent
   dynamic->setAngularDamping(0.5f);
   dynamic->setRigidBodyFlags((PxRigidBodyFlags)flags);
   gEntityActors[dynamic] = entity;
+  PxLockWrite lkw(gScene);
   gScene->addActor(*dynamic);
   return dynamic;
 }
@@ -283,6 +313,7 @@ physx::PxRigidDynamic* Physics::PhysicsManager::AddDynamicActorEntity(Entity ent
   dynamic->setAngularDamping(0.5f);
   dynamic->setRigidBodyFlags((PxRigidBodyFlags)flags);
   gEntityActors[dynamic] = entity;
+  PxLockWrite lkw(gScene);
   gScene->addActor(*dynamic);
   return dynamic;
 }
@@ -296,6 +327,7 @@ physx::PxRigidStatic* Physics::PhysicsManager::AddStaticActorEntity(Entity entit
   PxBoxGeometry geom(toPxVec3(collider.halfExtents));
   PxRigidStatic* pStatic = PxCreateStatic(*gPhysics, tr2, geom, *gMaterials[(int)material]);
   gEntityActors[pStatic] = entity;
+  PxLockWrite lkw(gScene);
   gScene->addActor(*pStatic);
   return pStatic;
 }
@@ -309,6 +341,7 @@ physx::PxRigidStatic* Physics::PhysicsManager::AddStaticActorEntity(Entity entit
   PxCapsuleGeometry geom(collider.radius, collider.halfHeight);
   PxRigidStatic* pStatic = PxCreateStatic(*gPhysics, tr2, geom, *gMaterials[(int)material]);
   gEntityActors[pStatic] = entity;
+  PxLockWrite lkw(gScene);
   gScene->addActor(*pStatic);
   return pStatic;
 }
@@ -317,8 +350,9 @@ void Physics::PhysicsManager::RemoveActorEntity(physx::PxRigidActor* actor)
 {
   if (actor)
   {
-    gScene->removeActor(*actor);
     gEntityActors.erase(actor);
+    PxLockWrite lkw(gScene);
+    gScene->removeActor(*actor);
   }
 }
 
@@ -359,8 +393,11 @@ physx::PxRigidStatic* Physics::PhysicsManager::AddStaticActorGeneric(MaterialTyp
     gPhysics->getPhysicsInsertionCallback());
   PxTriangleMeshGeometry geom(aTriangleMesh);
   PxRigidStatic* pStatic = PxCreateStatic(*gPhysics, PxTransform(toPxMat4(transform)), geom, *gMaterials[(int)material]);
+
   gGenericActors.insert(pStatic);
+  PxLockWrite lkw(gScene);
   gScene->addActor(*pStatic);
+  aTriangleMesh->release();
   return pStatic;
 }
 
@@ -370,6 +407,7 @@ void Physics::PhysicsManager::RemoveActorGeneric(physx::PxRigidActor* actor)
   {
     // TODO: figure out how to actually free the thingy because this makes a memory leak
     gGenericActors.erase(actor);
+    PxLockWrite lkw(gScene);
     gScene->removeActor(*actor);
     PX_RELEASE(actor);
   }
@@ -386,6 +424,7 @@ physx::PxController* Physics::PhysicsManager::AddCharacterControllerEntity(Entit
   desc.radius = collider.radius;
   desc.contactOffset = .01;
   
+  PxLockWrite lkw(&gCManager->getScene());
   PxController* controller = gCManager->createController(desc);
   auto p = entity.GetComponent<Components::Transform>().GetTranslation();
   controller->setPosition({ p.x, p.y, p.z });
@@ -400,6 +439,7 @@ void Physics::PhysicsManager::RemoveCharacterControllerEntity(physx::PxControlle
 {
   if (controller)
   {
+    PxLockWrite lkw(controller->getScene());
     gEntityControllers.erase(controller);
     controller->release();
   }
@@ -407,6 +447,7 @@ void Physics::PhysicsManager::RemoveCharacterControllerEntity(physx::PxControlle
 
 void Physics::DynamicActorInterface::AddForce(const glm::vec3& force, ForceMode mode)
 {
+  PxLockWrite lkw(actor->getScene());
   actor->addForce(toPxVec3(force), (PxForceMode::Enum)mode);
 }
 
@@ -414,47 +455,56 @@ void Physics::DynamicActorInterface::SetPosition(const glm::vec3& pos)
 {
   auto pose = actor->getGlobalPose();
   pose.p = toPxVec3(pos);
+  PxLockWrite lkw(actor->getScene());
   actor->setGlobalPose(pose);
 }
 
 glm::vec3 Physics::DynamicActorInterface::GetVelocity()
 {
+  PxLockRead lkr(actor->getScene());
   return toGlmVec3(actor->getLinearVelocity());
 }
 
 void Physics::DynamicActorInterface::SetVelocity(const glm::vec3& vel)
 {
+  PxLockWrite lkw(actor->getScene());
   actor->setLinearVelocity(toPxVec3(vel));
 }
 
 void Physics::DynamicActorInterface::SetMaxVelocity(float vel)
 {
+  PxLockWrite lkw(actor->getScene());
   actor->setMaxLinearVelocity(vel);
 }
 
 void Physics::DynamicActorInterface::SetLockFlags(LockFlags flags)
 {
+  PxLockWrite lkw(actor->getScene());
   actor->setRigidDynamicLockFlags((PxRigidDynamicLockFlag::Enum)flags);
 }
 
 void Physics::DynamicActorInterface::SetActorFlags(ActorFlags flags)
 {
+  PxLockWrite lkw(actor->getScene());
   actor->setActorFlags((PxActorFlags)flags);
 }
 
 void Physics::DynamicActorInterface::SetMass(float mass)
 {
+  PxLockWrite lkw(actor->getScene());
   actor->setMass(mass);
 }
 
 Physics::ControllerCollisionFlags Physics::CharacterControllerInterface::Move(const glm::vec3& disp, float dt)
 {
+  PxLockWrite lkw(controller->getScene());
   PxControllerFilters filters;
   return (ControllerCollisionFlags)controller->move(toPxVec3(disp), .0001f, dt, filters);
 }
 
 glm::vec3 Physics::CharacterControllerInterface::GetPosition()
 {
+  PxLockRead lkr(controller->getScene());
   // physx has to make it a PITA so it returns a dvec3 instead of a vec3 like a normal person would
   const auto& p = controller->getPosition();
   return { p.x, p.y, p.z };

@@ -13,6 +13,7 @@
 #include <chrono>
 using namespace std::chrono;
 
+
 ChunkMesh::~ChunkMesh()
 {
   voxelManager_.chunkRenderer_->allocator->Free(bufferHandle);
@@ -26,7 +27,6 @@ void ChunkMesh::BuildBuffers()
   std::lock_guard lk(mtx);
 
   vertexCount_ = encodedStuffArr.size();
-
   voxelManager_.chunkRenderer_->allocator->Free(bufferHandle);
 
   // nothing emitted, don't try to make buffers
@@ -42,21 +42,18 @@ void ChunkMesh::BuildBuffers()
     voxelManager_.chunkRenderer_->allocator->FreeOldest();
   }
 
-
-  Physics::PhysicsManager::RemoveActorGeneric(tActor);
-
-  tActor = reinterpret_cast<physx::PxRigidActor*>(
-    Physics::PhysicsManager::AddStaticActorGeneric(
-      Physics::MaterialType::Terrain, tCollider, 
-      glm::translate(glm::mat4(1), glm::vec3(parent->GetPos() * Chunk::CHUNK_SIZE))));
-
   encodedStuffArr.clear();
   lightingArr.clear();
   interleavedArr.clear();
 
   tCollider.vertices.clear();
   tCollider.indices.clear();
-  //printf("%f: Buffered\n", glfwGetTime());
+
+  encodedStuffArr.shrink_to_fit();
+  lightingArr.shrink_to_fit();
+  interleavedArr.shrink_to_fit();
+  tCollider.vertices.shrink_to_fit();
+  tCollider.indices.shrink_to_fit();
 }
 
 
@@ -78,7 +75,6 @@ void ChunkMesh::BuildMesh()
     interleavedArr.push_back(ap.y);
     interleavedArr.push_back(ap.z);
     interleavedArr.push_back(0xDEADBEEF); // necessary padding
-    // no padding necessary
 
     glm::ivec3 pos;
     for (pos.z = 0; pos.z < Chunk::CHUNK_SIZE; pos.z++)
@@ -108,6 +104,14 @@ void ChunkMesh::BuildMesh()
         }
       }
     }
+
+
+    Physics::PhysicsManager::RemoveActorGeneric(tActor);
+
+    tActor = reinterpret_cast<physx::PxRigidActor*>(
+      Physics::PhysicsManager::AddStaticActorGeneric(
+        Physics::MaterialType::Terrain, tCollider, 
+        glm::translate(glm::mat4(1), glm::vec3(parent->GetPos() * Chunk::CHUNK_SIZE))));
 
     //printf("%f: Meshed\n", glfwGetTime());
   }
@@ -227,7 +231,6 @@ inline void ChunkMesh::addQuad(const glm::ivec3& lpos, BlockType block, int face
     tLight.Set(tLight.Get() - glm::min(tLight.Get(), glm::u8vec4(invOcclusion)));
     lighting = tLight.Raw();
     glm::ivec3 dirCent = glm::vec3(lpos) - glm::vec3(finalVert);
-    //printf("(%d, %d, %d)\n", dirCent.x, dirCent.y, dirCent.z);
     lightdeds[cindex] = EncodeLight(lighting, dirCent);
   }
 
