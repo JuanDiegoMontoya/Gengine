@@ -71,4 +71,5 @@ public:
 private:
   Scene* scene_ = nullptr;
   entt::entity entityHandle_ = entt::null;
+  friend class ScriptableEntity;
 };

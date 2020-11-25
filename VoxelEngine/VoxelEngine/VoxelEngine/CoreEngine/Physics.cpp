@@ -13,7 +13,7 @@
 #include <foundation/PxErrorCallback.h>
 
 #define PX_RELEASE(x)	if(x)	{ x->release(); x = NULL;	}
-#define PVD_DEBUG 0
+#define PVD_DEBUG 1
 #define FIXED_STEP 1
 #define ENABLE_GPU 1 // PhysX will automatically disable GPU simulation for non CUDA-compatible devices; this is just for debugging
 
@@ -94,7 +94,7 @@ namespace
     PX_UNUSED(filterData1);
     PX_UNUSED(constantBlockSize);
     PX_UNUSED(constantBlock);
-
+    
     // all initial and persisting reports for everything, with per-point data
     pairFlags = PxPairFlag::eSOLVE_CONTACT
       | PxPairFlag::eDETECT_DISCRETE_CONTACT
@@ -103,46 +103,46 @@ namespace
       | PxPairFlag::eNOTIFY_CONTACT_POINTS
       | PxPairFlag::eDETECT_CCD_CONTACT;
     return PxFilterFlag::eDEFAULT;
-}
+  }
 
-  class ContactReportCallback : public PxSimulationEventCallback
-  {
-    void onConstraintBreak(PxConstraintInfo* constraints, PxU32 count) { PX_UNUSED(constraints); PX_UNUSED(count); }
-    void onWake(PxActor** actors, PxU32 count) { PX_UNUSED(actors); PX_UNUSED(count); }
-    void onSleep(PxActor** actors, PxU32 count) { PX_UNUSED(actors); PX_UNUSED(count); }
-    void onTrigger(PxTriggerPair* pairs, PxU32 count) { PX_UNUSED(pairs); PX_UNUSED(count); }
-    void onAdvance(const PxRigidBody* const*, const PxTransform*, const PxU32) {}
-    void onContact(const PxContactPairHeader& pairHeader, const PxContactPair* pairs, PxU32 nbPairs)
-    {
-    //  PX_UNUSED((pairHeader));
-    //  std::vector<PxContactPairPoint> contactPoints;
-
-    //  for (PxU32 i = 0; i < nbPairs; i++)
-    //  {
-    //    PxU32 contactCount = pairs[i].contactCount;
-    //    if (contactCount)
-    //    {
-    //      contactPoints.resize(contactCount);
-    //      pairs[i].extractContacts(&contactPoints[0], contactCount);
-
-    //      for (PxU32 j = 0; j < contactCount; j++)
-    //      {
-    //        //gContactPositions.push_back(contactPoints[j].position);
-    //        //gContactImpulses.push_back(contactPoints[j].impulse);
-    //      }
-    //    }
-    //  }
-    }
-  };
-
-  static ContactReportCallback gContactReportCallback;
 
   static PxDefaultAllocator gAllocator;
   static PxDefaultErrorCallback gErrorCallback;
 }
 
+
+class ContactReportCallback : public PxSimulationEventCallback
+{
+public:
+  ContactReportCallback(std::unordered_map<physx::PxRigidActor*, Entity>& ea) : gEntityActors(ea) {}
+
+private:
+  std::unordered_map<physx::PxRigidActor*, Entity>& gEntityActors;
+
+  void onConstraintBreak(PxConstraintInfo* constraints, PxU32 count) { PX_UNUSED(constraints); PX_UNUSED(count); }
+  void onWake(PxActor** actors, PxU32 count) { PX_UNUSED(actors); PX_UNUSED(count); }
+  void onSleep(PxActor** actors, PxU32 count) { PX_UNUSED(actors); PX_UNUSED(count); }
+  void onTrigger(PxTriggerPair* pairs, PxU32 count) { PX_UNUSED(pairs); PX_UNUSED(count); }
+  void onAdvance(const PxRigidBody* const*, const PxTransform*, const PxU32) {}
+  void onContact(const PxContactPairHeader& pairHeader, const PxContactPair* pairs, PxU32 nbPairs)
+  {
+    auto it1 = gEntityActors.find(pairHeader.actors[0]);
+    auto it2 = gEntityActors.find(pairHeader.actors[1]);
+    if (it1 != gEntityActors.end())
+    {
+      printf("%s", it1->second.GetComponent<Components::Tag>().tag.c_str());
+    }
+    if (it2 != gEntityActors.end())
+    {
+      printf("%s", it2->second.GetComponent<Components::Tag>().tag.c_str());
+    }
+  }
+};
+
 void Physics::PhysicsManager::Init()
 {
+  gContactReportCallback = new ContactReportCallback(gEntityActors);
+
   gFoundation = PxCreateFoundation(PX_PHYSICS_VERSION, gAllocator, gErrorCallback);
 #if PVD_DEBUG
   gPvd = PxCreatePvd(*gFoundation);
@@ -162,7 +162,7 @@ void Physics::PhysicsManager::Init()
   sceneDesc.cpuDispatcher = gDispatcher;
   sceneDesc.gravity = PxVec3(0, -15.81f, 0);
   sceneDesc.filterShader = contactReportFilterShader;
-  sceneDesc.simulationEventCallback = &gContactReportCallback;
+  sceneDesc.simulationEventCallback = gContactReportCallback;
   sceneDesc.solverType = PxSolverType::ePGS; // faster than eTGS
   sceneDesc.flags |= PxSceneFlag::eREQUIRE_RW_LOCK;
 
@@ -192,13 +192,6 @@ void Physics::PhysicsManager::Init()
 
 void Physics::PhysicsManager::Shutdown()
 {
-  //for (auto [actor, Entity] : gEntityActors)
-  //  actor->release();
-  //for (auto actor : gGenericActors)
-  //  actor->release();
-  //for (auto* mat : gMaterials)
-  //  mat->release();
-
   PX_RELEASE(gCManager);
   PX_RELEASE(gScene);
   PX_RELEASE(gCudaContextManager);
@@ -213,6 +206,8 @@ void Physics::PhysicsManager::Shutdown()
     PX_RELEASE(transport);
   }
   PX_RELEASE(gFoundation);
+
+  delete gContactReportCallback;
 }
 
 void Physics::PhysicsManager::Simulate(float dt)
@@ -270,11 +265,11 @@ void Physics::PhysicsManager::Simulate(float dt)
       if (sleeping)
         continue;
       const auto& pose = actor->getGlobalPose();
-      Entity entity = gEntityActors[actor];
-      if (entity)
+      auto entityit = gEntityActors.find(actor);
+      if (entityit != gEntityActors.end())
       {
         // an entity with physics must have a transform
-        auto& tr = entity.GetComponent<Components::Transform>();
+        auto& tr = entityit->second.GetComponent<Components::Transform>();
         tr.SetTranslation(toGlmVec3(pose.p));
         glm::quat q(toGlmQuat(pose.q));
         //tr.SetRotation(*(glm::quat*)&pose.q);

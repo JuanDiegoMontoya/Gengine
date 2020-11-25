@@ -153,7 +153,7 @@ void OnStart(Scene* scene)
     }
     if (1) // boxes physics test
     {
-      for (int i = 0; i < 500; i++)
+      for (int i = 0; i < 5; i++)
       {
         Entity entity = scene->CreateEntity("physics entity" + std::to_string(i));
         entity.AddComponent<Components::Transform>().SetTranslation({ -15, 50 + i, 10 + (float(i)/50.f) });

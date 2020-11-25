@@ -21,6 +21,7 @@ namespace physx
 
   class PxCudaContextManager;
 }
+class ContactReportCallback;
 
 namespace Components
 {
@@ -151,7 +152,9 @@ namespace Physics
   private:
     static inline physx::PxFoundation* gFoundation = nullptr;
     static inline physx::PxPhysics* gPhysics = nullptr;
-    
+
+    static inline ContactReportCallback* gContactReportCallback;
+
     static inline physx::PxDefaultCpuDispatcher* gDispatcher = nullptr;
     static inline physx::PxScene* gScene = nullptr;
     static inline std::vector<physx::PxMaterial*> gMaterials;

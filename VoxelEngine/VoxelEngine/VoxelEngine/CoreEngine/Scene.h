@@ -19,10 +19,10 @@ public:
   std::string_view GetName() { return name_; }
   entt::registry& GetRegistry() { return registry_; }
 
-  Scene(Scene&&) = delete;
+  Scene(Scene&&) noexcept = delete;
   Scene(Scene&) = delete;
   Scene& operator=(const Scene&) = delete;
-  Scene& operator=(const Scene&&) = delete;
+  Scene& operator=(const Scene&&) noexcept = delete;
   bool operator==(const Scene&) const = delete;
 
 private:
