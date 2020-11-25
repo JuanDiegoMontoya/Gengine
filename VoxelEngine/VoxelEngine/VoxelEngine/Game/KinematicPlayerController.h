@@ -116,7 +116,11 @@ public:
       if (deceleration != 0 && (xzForce == glm::vec2(0) || glm::length(velXZ) > maxXZSpeed))
       {
         //glm::vec2 dV = velXZ * glm::clamp((1.0f - decceleration) * dt, 0.001f, 1.0f); // exponential friction
-        glm::vec2 dV = glm::clamp(glm::abs(glm::normalize(velXZ)) * deceleration * dt, 0.001f, 1.0f);// linear friction
+        glm::vec2 dV;
+        if (glm::all(glm::epsilonEqual(velXZ, glm::vec2(0), .001f)))
+          dV = { 0,0 };
+        else
+          dV = glm::clamp(glm::abs(glm::normalize(velXZ)) * deceleration * dt, 0.001f, 1.0f);// linear friction
         velXZ -= glm::min(glm::abs(dV), glm::abs(velXZ)) * glm::sign(velXZ);
       }
       velocity.x = velXZ.x;

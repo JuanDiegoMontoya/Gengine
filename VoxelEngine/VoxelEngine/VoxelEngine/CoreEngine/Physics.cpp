@@ -106,8 +106,17 @@ namespace
   }
 
 
+  class ErrorCallback : public PxDefaultErrorCallback
+  {
+  public:
+    virtual void reportError(PxErrorCode::Enum code, const char* message, const char* file, int line)
+    {
+      PxDefaultErrorCallback::reportError(code, message, file, line);
+    }
+  };
+
   static PxDefaultAllocator gAllocator;
-  static PxDefaultErrorCallback gErrorCallback;
+  static ErrorCallback gErrorCallback;
 }
 
 
@@ -272,7 +281,6 @@ void Physics::PhysicsManager::Simulate(float dt)
         auto& tr = entityit->second.GetComponent<Components::Transform>();
         tr.SetTranslation(toGlmVec3(pose.p));
         glm::quat q(toGlmQuat(pose.q));
-        //tr.SetRotation(*(glm::quat*)&pose.q);
         tr.SetRotation(q);
       }
     }
@@ -287,6 +295,7 @@ physx::PxRigidDynamic* Physics::PhysicsManager::AddDynamicActorEntity(Entity ent
   glm::quat q(tr.GetRotation());
   glm::vec3 pos(tr.GetTranslation());
   PxTransform tr2(toPxVec3(pos), toPxQuat(q));
+  tr2.isValid();
   PxBoxGeometry geom(toPxVec3(collider.halfExtents));
   PxRigidDynamic* dynamic = PxCreateDynamic(*gPhysics, tr2, geom, *gMaterials[(int)material], 10.0f);
   dynamic->setAngularDamping(0.5f);

@@ -45,10 +45,10 @@ public:
   {
     if (Input::IsKeyDown(GLFW_KEY_G))
     {
-      for (int i = 0; i < 1; i++)
+      for (int i = 0; i < 100; i++)
       {
-        voxels->MeshChunk({ rand() % 5, rand() % 5, rand() % 5 });
-        //voxels->UpdateBlock({ rand() % 100, rand() % 100, rand() % 100 }, Block(BlockType::bStone));
+        //voxels->MeshChunk({ rand() % 5, rand() % 5, rand() % 5 });
+        voxels->UpdateBlock({ rand() % 100, rand() % 100, rand() % 100 }, Block(BlockType::bStone));
       }
     }
   }

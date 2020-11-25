@@ -157,7 +157,7 @@ namespace Components
   private:
     glm::vec3	translation{ 0 };
     //glm::mat4 rotation{ 1 };
-    glm::quat rotation{};
+    glm::quat rotation{ 1, 0, 0, 0 };
     glm::vec3	scale{ 1, 1, 1 };
 
     bool isDirty = false;
