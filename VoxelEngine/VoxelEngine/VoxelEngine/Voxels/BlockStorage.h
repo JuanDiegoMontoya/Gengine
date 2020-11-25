@@ -67,8 +67,8 @@ public:
     ar(pblock_);
   }
 
-  ConcurrentPalette<BlockType, Size> pblock_;
-  ConcurrentPalette<Light, Size> plight_;
+  Palette<BlockType, Size> pblock_;
+  Palette<Light, Size> plight_;
 };
 
 #include "BlockStorage.inl"

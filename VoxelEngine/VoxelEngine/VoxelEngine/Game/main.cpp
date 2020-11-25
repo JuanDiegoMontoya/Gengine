@@ -39,7 +39,7 @@ void OnStart(Scene* scene)
   WorldGen2 wg(*voxelManager);
   wg.Init();
   wg.GenerateWorld();
-  wg.InitializeSunlight();
+  //wg.InitializeSunlight();
   wg.InitMeshes();
   wg.InitBuffers();
   //auto compressed = CompressChunk(voxelManager->GetChunk(glm::ivec3(0))->GetStorage());

@@ -120,7 +120,7 @@ void ChunkManager::UpdateBlock(const glm::ivec3& wpos, Block bl, bool indirect)
   if (!chunk)
   {
     // make chunk, then modify changed block
-    voxelManager.chunks_[p.chunk_pos] = chunk = new Chunk(p.chunk_pos, voxelManager);
+    voxelManager.chunks_[voxelManager.flatten(p.chunk_pos)] = chunk = new Chunk(p.chunk_pos, voxelManager);
     remBlock = chunk->BlockAt(p.block_pos); // remBlock would've been 0 block cuz null, so it's fix here
   }
 
@@ -174,10 +174,10 @@ void ChunkManager::ReloadAllChunks()
 {
   for (const auto& p : voxelManager.chunks_)
   {
-    if (p.second)
+    if (p)
     {
       //std::lock_guard<std::mutex> lock(chunk_mesher_mutex_);
-      UpdateChunk(p.second);
+      UpdateChunk(p);
     }
       //if (!isChunkInUpdateList(p.second))
       //  updatedChunks_.push_back(p.second);

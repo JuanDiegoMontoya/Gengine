@@ -37,9 +37,10 @@ void VoxelManager::UpdateBlockCheap(const glm::ivec3& wpos, Block block)
 
 void VoxelManager::MeshChunk(const glm::ivec3& cpos)
 {
-  auto it = chunks_.find(cpos);
-  ASSERT(it != chunks_.end());
-  chunkManager_->UpdateChunk(it->second);
+  //auto it = chunks_.find(cpos);
+  //ASSERT(it != chunks_.end());
+  //chunkManager_->UpdateChunk(it->second);
+  chunkManager_->UpdateChunk(chunks_[flatten(cpos)]);
 }
 
 

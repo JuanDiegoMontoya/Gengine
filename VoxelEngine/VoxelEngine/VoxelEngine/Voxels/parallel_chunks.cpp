@@ -95,10 +95,10 @@ void ChunkManager::chunk_deferred_update_task()
   {
     //std::for_each(std::execution::seq, ChunkStorage::GetMapRaw().begin(), ChunkStorage::GetMapRaw().end()
     //[]()
-    for (auto [pos, chunk] : voxelManager.chunks_)
-    {
-      
-    }
+    //for (auto [pos, chunk] : voxelManager.chunks_)
+    //{
+    //  
+    //}
   }
 }
 

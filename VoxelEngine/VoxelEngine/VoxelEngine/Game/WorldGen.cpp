@@ -13,13 +13,14 @@ namespace
   glm::ivec3 highChunkDim{ 70, 10, 70 };
 #else
   glm::ivec3 lowChunkDim{ 0, 0, 0 };
-  glm::ivec3 highChunkDim{ 7, 7, 7 };
+  glm::ivec3 highChunkDim{ 4, 4, 4 };
 #endif
 }
 
 // init chunks that we finna modify
 void WorldGen2::Init()
 {
+  vm.SetDim(highChunkDim);
   Timer timer;
   for (int x = lowChunkDim.x; x < highChunkDim.x; x++)
   {
@@ -30,7 +31,7 @@ void WorldGen2::Init()
       for (int z = lowChunkDim.z; z < highChunkDim.z; z++)
       {
         Chunk* newChunk = new Chunk({ x, y, z }, vm);
-        vm.chunks_[{ x, y, z }] = newChunk;
+        vm.chunks_[vm.flatten({ x, y, z })] = newChunk;
       }
     }
   }
@@ -58,11 +59,11 @@ void WorldGen2::GenerateWorld()
 
   auto& chunks = vm.chunks_;
   std::for_each(std::execution::par, chunks.begin(), chunks.end(),
-    [&](auto pair)
+    [&](Chunk* pair)
   {
-    if (pair.second)
+    if (pair)
     {
-      glm::ivec3 st = pair.first * Chunk::CHUNK_SIZE;
+      glm::ivec3 st = pair->GetPos() * Chunk::CHUNK_SIZE;
       float* noiseSet = noisey->GetCubicFractalSet(st.z, st.y, st.x, 
         Chunk::CHUNK_SIZE, Chunk::CHUNK_SIZE, Chunk::CHUNK_SIZE, 1);
       int idx = 0;
@@ -78,7 +79,7 @@ void WorldGen2::GenerateWorld()
           for (pos.x = 0; pos.x < Chunk::CHUNK_SIZE; pos.x++)
           {
             //int index = pos.x + yczcsq;
-            wpos = ChunkHelpers::chunkPosToWorldPos(pos, pair.first);
+            wpos = ChunkHelpers::chunkPosToWorldPos(pos, pair->GetPos());
 
             //double density = noise.GetValue(wpos.x, wpos.y, wpos.z); // chunks are different
             //double density = noise.GetValue(pos.x, pos.y, pos.z); // same chunk every time
@@ -111,7 +112,7 @@ void WorldGen2::GenerateWorld()
     }
     else
     {
-      printf("null chunk doe\n");
+      //printf("null chunk doe\n");
     }
   });
 
@@ -127,8 +128,8 @@ void WorldGen2::InitMeshes()
   std::for_each(std::execution::par,
     chunks.begin(), chunks.end(), [](auto& p)
   {
-    if (p.second)
-      p.second->BuildMesh();
+    if (p)
+      p->BuildMesh();
   });
   printf("Generating meshes took %f seconds\n", timer.elapsed());
 }
@@ -141,8 +142,8 @@ void WorldGen2::InitBuffers()
   std::for_each(std::execution::seq,
     chunks.begin(), chunks.end(), [](auto& p)
   {
-    if (p.second)
-      p.second->BuildBuffers();
+    if (p)
+      p->BuildBuffers();
   });
   printf("Buffering meshes took %f seconds\n", timer.elapsed());
 }
@@ -181,18 +182,22 @@ void WorldGen2::InitializeSunlight()
   int maxY = std::numeric_limits<int>::min();
   int minY = std::numeric_limits<int>::max();
 
-  for (const auto& [pos, chunk] : vm.chunks_)
+  for (const auto& chunk : vm.chunks_)
   {
-    minY = glm::min(minY, pos.y);
-    maxY = glm::max(maxY, pos.y);
+    if (chunk)
+    {
+      minY = glm::min(minY, chunk->GetPos().y);
+      maxY = glm::max(maxY, chunk->GetPos().y);
+    }
   }
 
   // generates initial columns of sunlight in the world
-  for (auto [cpos, chunk] : vm.chunks_)
+  for (auto chunk : vm.chunks_)
   {
     // propagate light only from the highest chunks
-    if (cpos.y != maxY || chunk == nullptr)
+    if (chunk == nullptr || chunk->GetPos().y != maxY)
       continue;
+    auto cpos = chunk->GetPos();
 
     // for each block on top of the chunk
     for (int x = 0; x < Chunk::CHUNK_SIZE; x++)
