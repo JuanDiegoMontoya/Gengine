@@ -41,6 +41,7 @@
     <ClInclude Include="CoreEngine\DynamicBuffer.h" />
     <ClInclude Include="CoreEngine\Engine.h" />
     <ClInclude Include="CoreEngine\Entity.h" />
+    <ClInclude Include="CoreEngine\Fence.h" />
     <ClInclude Include="CoreEngine\Frustum.h" />
     <ClInclude Include="CoreEngine\GAssert.h" />
     <ClInclude Include="CoreEngine\GlobalRendererInfo.h" />
@@ -128,6 +129,7 @@
     <ClCompile Include="CoreEngine\DebugSystem.cpp" />
     <ClCompile Include="CoreEngine\Engine.cpp" />
     <ClCompile Include="CoreEngine\Entity.cpp" />
+    <ClCompile Include="CoreEngine\Fence.cpp" />
     <ClCompile Include="CoreEngine\Frustum.cpp" />
     <ClCompile Include="CoreEngine\GAssert.cpp" />
     <ClCompile Include="CoreEngine\GlobalRendererInfo.cpp" />

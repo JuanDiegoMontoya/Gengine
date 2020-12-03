@@ -26,7 +26,7 @@ out vec3 vTexCoord;
 out vec4 vLighting; // RGBSun
 out flat vec3 vBlockPos;
 
-out vec4 vColor;
+//out vec4 vColor;
 
 const vec3 normals[] =
 {

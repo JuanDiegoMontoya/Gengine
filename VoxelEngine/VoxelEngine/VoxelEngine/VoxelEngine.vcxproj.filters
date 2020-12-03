@@ -292,6 +292,9 @@
     <ClInclude Include="Utilities\Compression.h">
       <Filter>Utilities</Filter>
     </ClInclude>
+    <ClInclude Include="CoreEngine\Fence.h">
+      <Filter>CoreEngine\Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="3rdParty\imgui\imgui.cpp">
@@ -467,6 +470,9 @@
     </ClCompile>
     <ClCompile Include="CoreEngine\Physics.cpp">
       <Filter>CoreEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreEngine\Fence.cpp">
+      <Filter>CoreEngine\Graphics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
