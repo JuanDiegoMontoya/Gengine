@@ -65,7 +65,6 @@
     <ClInclude Include="CoreEngine\StaticBuffer.h" />
     <ClInclude Include="CoreEngine\Texture2D.h" />
     <ClInclude Include="CoreEngine\TextureArray.h" />
-    <ClInclude Include="CoreEngine\UBO.h" />
     <ClInclude Include="CoreEngine\utilities.h" />
     <ClInclude Include="CoreEngine\VAO.h" />
     <ClInclude Include="CoreEngine\vbo_layout.h" />
@@ -149,7 +148,6 @@
     <ClCompile Include="CoreEngine\stbiImpl.cpp" />
     <ClCompile Include="CoreEngine\Texture2D.cpp" />
     <ClCompile Include="CoreEngine\TextureArray.cpp" />
-    <ClCompile Include="CoreEngine\UBO.cpp" />
     <ClCompile Include="CoreEngine\VAO.cpp" />
     <ClCompile Include="CoreEngine\Window.cpp" />
     <ClCompile Include="CoreEngine\WindowCB.cpp" />

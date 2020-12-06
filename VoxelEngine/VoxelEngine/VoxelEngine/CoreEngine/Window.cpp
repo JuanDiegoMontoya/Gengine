@@ -34,8 +34,10 @@ void Window::MakeWindow()
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	glfwWindowHint(GLFW_CONTEXT_NO_ERROR, GLFW_TRUE);
-	//glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
 	glfwWindowHint(GLFW_CONTEXT_RELEASE_BEHAVIOR, GLFW_RELEASE_BEHAVIOR_FLUSH);
+#ifdef DEBUG
+	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
+#endif
 
 	int numberOfMonitors = 0;
 	GLFWmonitor** monitors = glfwGetMonitors(&numberOfMonitors);
@@ -109,8 +111,7 @@ void Window::MakeWindow()
 	{
 		glfwMaximizeWindow(window);
 	}
-	GLenum e;
-	if ((e = glGetError()) != GL_NO_ERROR)
+	if (GLenum e = glGetError(); e != GL_NO_ERROR)
 	{
 		printf("Error in Window.h: %s\n", glewGetErrorString(e));
 	}

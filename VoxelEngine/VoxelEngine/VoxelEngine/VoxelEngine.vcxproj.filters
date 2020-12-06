@@ -220,9 +220,6 @@
     <ClInclude Include="CoreEngine\TextureArray.h">
       <Filter>CoreEngine\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="CoreEngine\UBO.h">
-      <Filter>CoreEngine\Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="CoreEngine\Vertices.h">
       <Filter>CoreEngine\Graphics</Filter>
     </ClInclude>
@@ -448,9 +445,6 @@
       <Filter>CoreEngine\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="CoreEngine\TextureArray.cpp">
-      <Filter>CoreEngine\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="CoreEngine\UBO.cpp">
       <Filter>CoreEngine\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="CoreEngine\Shader.cpp">

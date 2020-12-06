@@ -6,7 +6,6 @@
 #include <CoreEngine/utilities.h>
 #include <CoreEngine/shader.h>
 #include <CoreEngine/Vertices.h>
-#include <CoreEngine/UBO.h>
 #include <CoreEngine/StaticBuffer.h>
 #include <CoreEngine/vao.h>
 

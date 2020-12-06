@@ -16,11 +16,11 @@
 // call after all chunks are initialized
 ChunkRenderer::ChunkRenderer()
 {
-  drawCountGPU = std::make_unique<StaticBuffer>(nullptr, sizeof(GLint));
+  drawCountGPU = std::make_unique<GPU::StaticBuffer>(nullptr, sizeof(GLint));
 
   // allocate big buffer
   // TODO: vary the allocation size based on some user setting
-  allocator = std::make_unique<DynamicBuffer<AABB16>>(100'000'000, 2 * sizeof(GLint));
+  allocator = std::make_unique<GPU::DynamicBuffer<AABB16>>(100'000'000, 2 * sizeof(GLint));
     
   /* :::::::::::BUFFER FORMAT:::::::::::
                           CHUNK 1                                    CHUNK 2                   NULL                   CHUNK 3
@@ -29,7 +29,7 @@ ChunkRenderer::ChunkRenderer()
   Draw commands will specify where in memory the draw call starts. This will account for variable offsets.
 
       :::::::::::BUFFER FORMAT:::::::::::*/
-  vao = std::make_unique<VAO>();
+  vao = std::make_unique<GPU::VAO>();
   vao->Bind();
   // bind big data buffer (interleaved)
   glBindBuffer(GL_ARRAY_BUFFER, allocator->GetGPUHandle());
@@ -49,13 +49,13 @@ ChunkRenderer::ChunkRenderer()
   vao->Unbind();
 
   // setup vertex buffer for cube that will be used for culling
-  vaoCull = std::make_unique<VAO>();
+  vaoCull = std::make_unique<GPU::VAO>();
   vaoCull->Bind();
-  vboCull = std::make_unique<StaticBuffer>(Vertices::cube, sizeof(Vertices::cube));
-  vboCull->Bind<Target::VBO>();
+  vboCull = std::make_unique<GPU::StaticBuffer>(Vertices::cube, sizeof(Vertices::cube));
+  vboCull->Bind<GPU::Target::VBO>();
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
   glEnableVertexAttribArray(0);
-  vboCull->Unbind<Target::VBO>();
+  vboCull->Unbind<GPU::Target::VBO>();
   vaoCull->Unbind();
 
   DrawArraysIndirectCommand cmd;
@@ -63,7 +63,7 @@ ChunkRenderer::ChunkRenderer()
   cmd.instanceCount = 0; // will be incremented - reset every frame
   cmd.first = 0;
   cmd.baseInstance = 0;
-  dibCull = std::make_unique<StaticBuffer>(&cmd, sizeof(cmd), GL_CLIENT_STORAGE_BIT);
+  dibCull = std::make_unique<GPU::StaticBuffer>(&cmd, sizeof(cmd), GL_CLIENT_STORAGE_BIT);
 
   //dib = std::make_unique<StaticBuffer>(nullptr, 0);
   // assets
@@ -115,16 +115,16 @@ void ChunkRenderer::GenerateDrawCommandsGPU()
   // only re-construct if allocator has been modified
   if (dirtyAlloc)
   {
-    allocBuffer = std::make_unique<StaticBuffer>(allocs.data(), allocator->AllocSize() * allocs.size());
-    dib = std::make_unique<StaticBuffer>(
+    allocBuffer = std::make_unique<GPU::StaticBuffer>(allocs.data(), allocator->AllocSize() * allocs.size());
+    dib = std::make_unique<GPU::StaticBuffer>(
       nullptr,
       allocator->ActiveAllocs() * sizeof(DrawArraysIndirectCommand));
     dirtyAlloc = false;
   }
 
-  allocBuffer->Bind<Target::SSBO>(0);
-  dib->Bind<Target::SSBO>(1);
-  drawCountGPU->Bind<Target::SSBO>(2);
+  allocBuffer->Bind<GPU::Target::SSBO>(0);
+  dib->Bind<GPU::Target::SSBO>(1);
+  drawCountGPU->Bind<GPU::Target::SSBO>(2);
     
   {
     int numBlocks = (allocs.size() + blockSize - 1) / blockSize;
@@ -132,8 +132,8 @@ void ChunkRenderer::GenerateDrawCommandsGPU()
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT); // make SSBO writes visible to subsequent execution
   }
 
-  drawCountGPU->Unbind<Target::SSBO>();
-  dib->Unbind<Target::SSBO>();
+  drawCountGPU->Unbind<GPU::Target::SSBO>();
+  dib->Unbind<GPU::Target::SSBO>();
   activeAllocs = allocator->ActiveAllocs();
 
   //PERF_BENCHMARK_END;
@@ -148,8 +148,8 @@ void ChunkRenderer::RenderNorm()
   //  return;
 
   vao->Bind();
-  dib->Bind<Target::DIB>();
-  drawCountGPU->Bind<Target::ParameterBuffer>();
+  dib->Bind<GPU::Target::DIB>();
+  drawCountGPU->Bind<GPU::Target::ParameterBuffer>();
   glMultiDrawArraysIndirectCount(GL_TRIANGLES, (void*)0, (GLintptr)0, allocator->ActiveAllocs(), 0);
 }
 
@@ -216,10 +216,10 @@ void ChunkRenderer::RenderVisible()
 #endif
 
   vao->Bind();
-  dib->Bind<Target::DIB>();
+  dib->Bind<GPU::Target::DIB>();
   //glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
   //glMultiDrawArraysIndirect(GL_TRIANGLES, (void*)0, renderCount, 0);
-  drawCountGPU->Bind<Target::ParameterBuffer>();
+  drawCountGPU->Bind<GPU::Target::ParameterBuffer>();
   glMultiDrawArraysIndirectCount(GL_TRIANGLES, (void*)0, (GLintptr)0, activeAllocs, 0);
 }
 
@@ -263,7 +263,7 @@ void ChunkRenderer::RenderOcclusion()
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, dib->GetID());
     
   // copy # of chunks being drawn (parameter buffer) to instance count (DIB)
-  dibCull->Bind<Target::DIB>();
+  dibCull->Bind<GPU::Target::DIB>();
   vaoCull->Bind();
   constexpr GLint offset = offsetof(DrawArraysIndirectCommand, instanceCount);
   glCopyNamedBufferSubData(drawCountGPU->GetID(), dibCull->GetID(), 0, offset, sizeof(GLuint));

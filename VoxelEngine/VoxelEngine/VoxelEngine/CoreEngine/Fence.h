@@ -22,19 +22,22 @@ typedef struct __GLsync* GLsync;
   Use this class primarily for ensuring persistently mapped buffers do not write 
   while the GPU is using them.
 */
-class Fence
+namespace GPU
 {
-public:
-  Fence();
-  ~Fence();
-  Fence(const Fence&) = delete;
-  Fence& operator=(const Fence&) = delete;
-  Fence(Fence&&) noexcept = delete;
-  Fence& operator=(Fence&&) noexcept = delete;
+  class Fence
+  {
+  public:
+    Fence();
+    ~Fence();
+    Fence(const Fence&) = delete;
+    Fence& operator=(const Fence&) = delete;
+    Fence(Fence&&) noexcept = delete;
+    Fence& operator=(Fence&&) noexcept = delete;
 
-  // returns how long (in ns) we were blocked for
-  uint64_t Sync();
+    // returns how long (in ns) we were blocked for
+    uint64_t Sync();
 
-private:
-  GLsync sync_;
-};
+  private:
+    GLsync sync_;
+  };
+}
