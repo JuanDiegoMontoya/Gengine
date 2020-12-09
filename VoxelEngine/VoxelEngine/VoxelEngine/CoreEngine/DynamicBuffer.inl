@@ -9,17 +9,11 @@ namespace GPU
   DynamicBuffer<UserT>::DynamicBuffer(uint32_t size, uint32_t alignment)
     : align_(alignment), capacity_(size)
   {
-    // add to size the distance to next aligned boundary
-    // TODO: simplify (use align_ - 1 thing)
+    // align
     size += (align_ - (size % align_)) % align_;
 
     // allocate uninitialized memory in VRAM
-    // TODO: use immutable buffer storage for this (unless dynamic resizing is a thing)
     buffer = std::make_unique<StaticBuffer>(nullptr, size);
-    /*glCreateBuffers(1, &gpuHandle);
-    glNamedBufferData(gpuHandle, size, NULL, GL_STATIC_DRAW);*/
-
-    //glCreateBuffers(1, &allocDataGpuHandle_);
 
     // make one big null allocation
     allocationData<UserT> phalloc;

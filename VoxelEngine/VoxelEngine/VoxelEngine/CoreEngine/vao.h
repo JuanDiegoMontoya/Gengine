@@ -9,7 +9,7 @@ namespace GPU
     VAO();
     ~VAO();
 
-    void AddBuffer(const StaticBuffer& vbo, const VBOlayout& layout);
+    void AddBuffer(StaticBuffer& vbo, const VBOlayout& layout);
 
     void Bind() const;
     void Unbind() const;

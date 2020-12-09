@@ -63,7 +63,7 @@ ChunkRenderer::ChunkRenderer()
   cmd.instanceCount = 0; // will be incremented - reset every frame
   cmd.first = 0;
   cmd.baseInstance = 0;
-  dibCull = std::make_unique<GPU::StaticBuffer>(&cmd, sizeof(cmd), GL_CLIENT_STORAGE_BIT);
+  dibCull = std::make_unique<GPU::StaticBuffer>(&cmd, sizeof(cmd), GPU::BufferFlags::CLIENT_STORAGE);
 
   //dib = std::make_unique<StaticBuffer>(nullptr, 0);
   // assets
@@ -149,7 +149,7 @@ void ChunkRenderer::RenderNorm()
 
   vao->Bind();
   dib->Bind<GPU::Target::DIB>();
-  drawCountGPU->Bind<GPU::Target::ParameterBuffer>();
+  drawCountGPU->Bind<GPU::Target::PARAMETER_BUFFER>();
   glMultiDrawArraysIndirectCount(GL_TRIANGLES, (void*)0, (GLintptr)0, allocator->ActiveAllocs(), 0);
 }
 
@@ -219,7 +219,7 @@ void ChunkRenderer::RenderVisible()
   dib->Bind<GPU::Target::DIB>();
   //glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
   //glMultiDrawArraysIndirect(GL_TRIANGLES, (void*)0, renderCount, 0);
-  drawCountGPU->Bind<GPU::Target::ParameterBuffer>();
+  drawCountGPU->Bind<GPU::Target::PARAMETER_BUFFER>();
   glMultiDrawArraysIndirectCount(GL_TRIANGLES, (void*)0, (GLintptr)0, activeAllocs, 0);
 }
 

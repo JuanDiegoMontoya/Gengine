@@ -13,7 +13,7 @@ namespace GPU
     glDeleteVertexArrays(1, &rendererID_);
   }
 
-  void VAO::AddBuffer(const StaticBuffer& vb, const VBOlayout& layout)
+  void VAO::AddBuffer(StaticBuffer& vb, const VBOlayout& layout)
   {
     Bind();
     vb.Bind<Target::VBO>();

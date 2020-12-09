@@ -4,7 +4,6 @@
 #include <filesystem>
 #include <iostream>
 
-#pragma optimize("", off)
 TextureArray::TextureArray(std::span<std::string> textures, glm::ivec2 xyDim)
   : dim(xyDim)
 {
