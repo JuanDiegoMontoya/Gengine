@@ -198,7 +198,7 @@ void Renderer::Init()
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 	glFrontFace(GL_CCW);
-	glfwSwapInterval(0);
+	glfwSwapInterval(0); // 0 == no vsync, 1 == vsync
 
 	CompileShaders();
 
