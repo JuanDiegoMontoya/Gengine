@@ -1,4 +1,5 @@
 # Gengine (it stands for Game Engine)
+A code-oriented game engine designed to be efficient, extensible, and simple to use.
 
 ## Features
 - Voxel engine (see [the 3D Voxel Engine repo](https://github.com/JuanDiegoMontoya/3D_Voxel_Engine) for more detail)
@@ -9,8 +10,22 @@
 - Model loading
 
 ## Graphics
-- Modern OpenGL (4.6) techniques
-- One draw call per material
+- OpenGL 4.6-based renderer for minimal driver overhead.
 
 ## To Do
-- Physics (collision, etc)
+- Extend physics with collision callbacks, filtering, etc.
+- More graphical features like skeletal animation, particles, transparency, etc.
+
+## Dependencies
+- assimp
+- cereal
+- entt
+- FastNoiseSIMD
+- glew
+- glfw
+- glm
+- Dear ImGui
+- PhysX
+- shaderc
+- std
+- zlib
