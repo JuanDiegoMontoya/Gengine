@@ -2,7 +2,7 @@
 #include <vector>
 #include <CoreEngine/GAssert.h>
 
-namespace GPU
+namespace GFX
 {
   struct VBOElement
   {

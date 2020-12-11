@@ -3,7 +3,7 @@
 #include <CoreEngine/Debug.h>
 #include <CoreEngine/GraphicsIncludes.h>
 
-namespace GPU
+namespace GFX
 {
   template<typename UserT>
   DynamicBuffer<UserT>::DynamicBuffer(uint32_t size, uint32_t alignment)

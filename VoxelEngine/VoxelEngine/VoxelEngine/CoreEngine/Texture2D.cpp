@@ -6,7 +6,7 @@
 #include <iostream>
 #include <filesystem>
 
-namespace GPU
+namespace GFX
 {
   Texture2D::Texture2D(std::string_view path)
   {

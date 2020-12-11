@@ -54,9 +54,9 @@ private:
   const Chunk* parent = nullptr;
   const Chunk* nearChunks[6]{ nullptr };
 
-  std::unique_ptr<GPU::StaticBuffer> encodedStuffVbo_;
-  std::unique_ptr<GPU::StaticBuffer> lightingVbo_;
-  std::unique_ptr<GPU::StaticBuffer> posVbo_;
+  std::unique_ptr<GFX::StaticBuffer> encodedStuffVbo_;
+  std::unique_ptr<GFX::StaticBuffer> lightingVbo_;
+  std::unique_ptr<GFX::StaticBuffer> posVbo_;
 
   // vertex data (held until buffers are sent to GPU)
   std::vector<GLint> encodedStuffArr;

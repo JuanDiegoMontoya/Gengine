@@ -47,15 +47,15 @@ private:
 
 	// batched+instanced rendering stuff (ONE MATERIAL SUPPORTED ATM)
 	friend class MeshManager;
-	static inline std::unique_ptr<GPU::DynamicBuffer<>> vertexBuffer;
-	static inline std::unique_ptr<GPU::DynamicBuffer<>> indexBuffer;
+	static inline std::unique_ptr<GFX::DynamicBuffer<>> vertexBuffer;
+	static inline std::unique_ptr<GFX::DynamicBuffer<>> indexBuffer;
 
 	// per-vertex layout
-	static inline std::unique_ptr<GPU::VAO> batchVAO;
+	static inline std::unique_ptr<GFX::VAO> batchVAO;
 
 	// maps handles to VERTEX and INDEX information in the respective dynamic buffers
 	// used to retrieve important offset and size info for meshes
-	using DBaT = GPU::DynamicBuffer<>::allocationData<>;
+	using DBaT = GFX::DynamicBuffer<>::allocationData<>;
 	static inline std::unordered_map<BatchedMeshHandle, DrawElementsIndirectCommand> meshBufferInfo;
 	static inline unsigned nextHandle = 1;
 

@@ -147,8 +147,8 @@ void Renderer::RenderBatch()
 void Renderer::RenderBatchHelper(MaterialHandle mat, const std::vector<UniformData>& uniformBuffer)
 {
 	// generate SSBO w/ uniforms
-	auto uniforms = std::make_unique<GPU::StaticBuffer>(uniformBuffer.data(), uniformBuffer.size() * sizeof(UniformData));
-	uniforms->Bind<GPU::Target::SSBO>(0);
+	auto uniforms = std::make_unique<GFX::StaticBuffer>(uniformBuffer.data(), uniformBuffer.size() * sizeof(UniformData));
+	uniforms->Bind<GFX::Target::SSBO>(0);
 
 	// generate DIB (one indirect command per mesh)
 	std::vector<DrawElementsIndirectCommand> commands;
@@ -164,8 +164,8 @@ void Renderer::RenderBatchHelper(MaterialHandle mat, const std::vector<UniformDa
 				baseInstance += cmd.second.instanceCount;
 			}
 		});
-	GPU::StaticBuffer dib(commands.data(), commands.size() * sizeof(DrawElementsIndirectCommand));
-	dib.Bind<GPU::Target::DIB>();
+	GFX::StaticBuffer dib(commands.data(), commands.size() * sizeof(DrawElementsIndirectCommand));
+	dib.Bind<GFX::Target::DIB>();
 
 	// clear instance count for next GL draw command
 	for (auto& info : meshBufferInfo)
@@ -204,11 +204,11 @@ void Renderer::Init()
 	CompileShaders();
 
 	// TODO: use dynamically sized buffer
-	vertexBuffer = std::make_unique<GPU::DynamicBuffer<>>(100'000'000, sizeof(Vertex));
-	indexBuffer = std::make_unique<GPU::DynamicBuffer<>>(100'000'000, sizeof(GLuint));
+	vertexBuffer = std::make_unique<GFX::DynamicBuffer<>>(100'000'000, sizeof(Vertex));
+	indexBuffer = std::make_unique<GFX::DynamicBuffer<>>(100'000'000, sizeof(GLuint));
 
 	// setup VAO for batched drawing (ONE VERTEX LAYOUT ATM)
-	batchVAO = std::make_unique<GPU::VAO>();
+	batchVAO = std::make_unique<GFX::VAO>();
 	glEnableVertexArrayAttrib(batchVAO->GetID(), 0); // pos
 	glEnableVertexArrayAttrib(batchVAO->GetID(), 1); // normal
 	glEnableVertexArrayAttrib(batchVAO->GetID(), 2); // uv
@@ -294,8 +294,8 @@ void Renderer::CompileShaders()
 
 void Renderer::DrawAxisIndicator()
 {
-	static GPU::VAO* axisVAO;
-	static GPU::StaticBuffer* axisVBO;
+	static GFX::VAO* axisVAO;
+	static GFX::StaticBuffer* axisVBO;
 	if (axisVAO == nullptr)
 	{
 		float indicatorVertices[] =
@@ -309,9 +309,9 @@ void Renderer::DrawAxisIndicator()
 			0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f
 		};
 
-		axisVAO = new GPU::VAO();
-		axisVBO = new GPU::StaticBuffer(indicatorVertices, sizeof(indicatorVertices));
-		GPU::VBOlayout layout;
+		axisVAO = new GFX::VAO();
+		axisVBO = new GFX::StaticBuffer(indicatorVertices, sizeof(indicatorVertices));
+		GFX::VBOlayout layout;
 		layout.Push<float>(3);
 		layout.Push<float>(3);
 		axisVAO->AddBuffer(*axisVBO, layout);
@@ -362,13 +362,13 @@ void Renderer::DrawQuad()
 
 void Renderer::DrawCube()
 {
-	static GPU::VAO* blockHoverVao = nullptr;
-	static GPU::StaticBuffer* blockHoverVbo = nullptr;
+	static GFX::VAO* blockHoverVao = nullptr;
+	static GFX::StaticBuffer* blockHoverVbo = nullptr;
 	if (blockHoverVao == nullptr)
 	{
-		blockHoverVao = new GPU::VAO();
-		blockHoverVbo = new GPU::StaticBuffer(Vertices::cube_norm_tex, sizeof(Vertices::cube_norm_tex));
-		GPU::VBOlayout layout;
+		blockHoverVao = new GFX::VAO();
+		blockHoverVbo = new GFX::StaticBuffer(Vertices::cube_norm_tex, sizeof(Vertices::cube_norm_tex));
+		GFX::VBOlayout layout;
 		layout.Push<float>(3);
 		layout.Push<float>(3);
 		layout.Push<float>(2);

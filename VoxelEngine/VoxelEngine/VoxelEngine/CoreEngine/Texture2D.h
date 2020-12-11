@@ -2,7 +2,7 @@
 #include <string>
 #include <glm/glm.hpp>
 
-namespace GPU
+namespace GFX
 {
   class Texture2D
   {

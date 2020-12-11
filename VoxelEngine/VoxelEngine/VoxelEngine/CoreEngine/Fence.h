@@ -22,7 +22,7 @@ typedef struct __GLsync* GLsync;
   Use this class primarily for ensuring persistently mapped buffers do not write 
   while the GPU is using them.
 */
-namespace GPU
+namespace GFX
 {
   class Fence
   {

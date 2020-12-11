@@ -2,7 +2,7 @@
 #include <CoreEngine/GraphicsIncludes.h>
 #include <CoreEngine/StaticBuffer.h>
 
-namespace GPU
+namespace GFX
 {
   StaticBuffer::StaticBuffer(const void* data, GLuint size, BufferFlags flags)
   {

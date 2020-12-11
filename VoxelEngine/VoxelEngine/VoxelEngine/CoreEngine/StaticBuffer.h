@@ -1,7 +1,7 @@
 #pragma once
 #include <type_traits>
 
-namespace GPU
+namespace GFX
 {
   enum class Target
   {

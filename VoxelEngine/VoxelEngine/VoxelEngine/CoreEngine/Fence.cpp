@@ -3,7 +3,7 @@
 #include "GraphicsIncludes.h"
 #include <Utilities/Timer.h>
 
-namespace GPU
+namespace GFX
 {
   Fence::Fence()
   {

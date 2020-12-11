@@ -2,7 +2,7 @@
 #include <CoreEngine/DynamicBuffer.h>
 #include <CoreEngine/Shapes.h>
 
-namespace GPU
+namespace GFX
 {
   class TextureArray;
   class Texture2D;
@@ -59,26 +59,26 @@ private:
   void RenderRest();      // phase 4
   void Update();
 
-  std::unique_ptr<GPU::DynamicBuffer<AABB16>> allocator;
-  std::unique_ptr<GPU::VAO> vao;
-  std::unique_ptr<GPU::StaticBuffer> dib;
+  std::unique_ptr<GFX::DynamicBuffer<AABB16>> allocator;
+  std::unique_ptr<GFX::VAO> vao;
+  std::unique_ptr<GFX::StaticBuffer> dib;
 
-  std::unique_ptr<GPU::StaticBuffer> drawCountGPU;
+  std::unique_ptr<GFX::StaticBuffer> drawCountGPU;
 
   // size of compute block  for the compute shader
   const int blockSize = 64; // defined in compact_batch.cs
 
   // resets each frame BEFORE the culling phase
   //GLuint allocDataBuffer = 0;
-  std::unique_ptr<GPU::VAO> vaoCull;
-  std::unique_ptr<GPU::StaticBuffer> vboCull; // stores only cube vertices
-  std::unique_ptr<GPU::StaticBuffer> dibCull;
+  std::unique_ptr<GFX::VAO> vaoCull;
+  std::unique_ptr<GFX::StaticBuffer> vboCull; // stores only cube vertices
+  std::unique_ptr<GFX::StaticBuffer> dibCull;
   GLsizei activeAllocs;
   std::pair<uint64_t, GLuint> stateInfo{ 0, 0 };
   bool dirtyAlloc = true;
-  std::unique_ptr<GPU::StaticBuffer> allocBuffer;
+  std::unique_ptr<GFX::StaticBuffer> allocBuffer;
 
   // resources
-  std::unique_ptr<GPU::TextureArray> textures;
-  std::unique_ptr<GPU::Texture2D> blueNoise64;
+  std::unique_ptr<GFX::TextureArray> textures;
+  std::unique_ptr<GFX::Texture2D> blueNoise64;
 };

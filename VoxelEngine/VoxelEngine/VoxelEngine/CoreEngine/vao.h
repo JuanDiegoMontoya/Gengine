@@ -1,7 +1,7 @@
 #pragma once
 #include <CoreEngine/vbo_layout.h>
 
-namespace GPU
+namespace GFX
 {
   class VAO
   {

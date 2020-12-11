@@ -3,7 +3,7 @@
 #include <Utilities/Timer.h>
 #include <CoreEngine/GraphicsIncludes.h>
 
-namespace GPU
+namespace GFX
 {
   class StaticBuffer;
 

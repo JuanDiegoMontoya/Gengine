@@ -1,7 +1,7 @@
 #include "EnginePCH.h"
 #include <CoreEngine/GraphicsIncludes.h>
 
-namespace GPU
+namespace GFX
 {
   VAO::VAO()
   {

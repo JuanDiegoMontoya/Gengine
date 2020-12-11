@@ -5,7 +5,7 @@
 #include <filesystem>
 #include <iostream>
 
-namespace GPU
+namespace GFX
 {
   TextureArray::TextureArray(std::span<std::string> textures, glm::ivec2 xyDim)
     : dim(xyDim)
