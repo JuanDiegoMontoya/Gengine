@@ -4,6 +4,7 @@
 #include <optional>
 #include <span>
 #include <CoreEngine/GAssert.h>
+#include <glm/gtc/type_ptr.hpp>
 
 #include <CoreEngine/GraphicsIncludes.h>
 #include <shaderc/shaderc.hpp>

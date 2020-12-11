@@ -1,5 +1,4 @@
 #pragma once
-#include "MathIncludes.h"
 #include <memory>
 
 class Frustum;

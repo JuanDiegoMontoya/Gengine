@@ -79,9 +79,6 @@
     <ClInclude Include="CoreEngine\GAssert.h">
       <Filter>CoreEngine</Filter>
     </ClInclude>
-    <ClInclude Include="CoreEngine\MathIncludes.h">
-      <Filter>CoreEngine</Filter>
-    </ClInclude>
     <ClInclude Include="CoreEngine\Application.h">
       <Filter>CoreEngine</Filter>
     </ClInclude>
@@ -178,12 +175,6 @@
     <ClInclude Include="Game\WorldGen.h">
       <Filter>Game</Filter>
     </ClInclude>
-    <ClInclude Include="CoreEngine\collision_check.h">
-      <Filter>CoreEngine</Filter>
-    </ClInclude>
-    <ClInclude Include="CoreEngine\collision_shapes.h">
-      <Filter>CoreEngine</Filter>
-    </ClInclude>
     <ClInclude Include="CoreEngine\Context.h">
       <Filter>CoreEngine</Filter>
     </ClInclude>
@@ -194,15 +185,6 @@
       <Filter>CoreEngine</Filter>
     </ClInclude>
     <ClInclude Include="CoreEngine\GraphicsIncludes.h">
-      <Filter>CoreEngine</Filter>
-    </ClInclude>
-    <ClInclude Include="CoreEngine\math_utils.h">
-      <Filter>CoreEngine</Filter>
-    </ClInclude>
-    <ClInclude Include="CoreEngine\misc_utils.h">
-      <Filter>CoreEngine</Filter>
-    </ClInclude>
-    <ClInclude Include="CoreEngine\utilities.h">
       <Filter>CoreEngine</Filter>
     </ClInclude>
     <ClInclude Include="CoreEngine\DynamicBuffer.h">
@@ -291,6 +273,12 @@
     </ClInclude>
     <ClInclude Include="CoreEngine\Fence.h">
       <Filter>CoreEngine\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\EnginePCH.h">
+      <Filter>CoreEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\utilities.h">
+      <Filter>CoreEngine</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -420,19 +408,10 @@
     <ClCompile Include="Game\WorldGen.cpp">
       <Filter>Game</Filter>
     </ClCompile>
-    <ClCompile Include="CoreEngine\collision_check.cpp">
-      <Filter>CoreEngine</Filter>
-    </ClCompile>
     <ClCompile Include="CoreEngine\Context.cpp">
       <Filter>CoreEngine</Filter>
     </ClCompile>
     <ClCompile Include="CoreEngine\GlobalRendererInfo.cpp">
-      <Filter>CoreEngine</Filter>
-    </ClCompile>
-    <ClCompile Include="CoreEngine\math_utils.cpp">
-      <Filter>CoreEngine</Filter>
-    </ClCompile>
-    <ClCompile Include="CoreEngine\misc_utils.cpp">
       <Filter>CoreEngine</Filter>
     </ClCompile>
     <ClCompile Include="CoreEngine\Frustum.cpp">

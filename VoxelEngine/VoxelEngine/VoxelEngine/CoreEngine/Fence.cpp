@@ -1,3 +1,4 @@
+#include "EnginePCH.h"
 #include "Fence.h"
 #include "GraphicsIncludes.h"
 #include <Utilities/Timer.h>

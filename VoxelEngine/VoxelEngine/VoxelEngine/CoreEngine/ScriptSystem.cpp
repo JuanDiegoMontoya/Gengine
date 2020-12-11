@@ -1,3 +1,4 @@
+#include "EnginePCH.h"
 #include <CoreEngine/ScriptSystem.h>
 #include <CoreEngine/Components.h>
 

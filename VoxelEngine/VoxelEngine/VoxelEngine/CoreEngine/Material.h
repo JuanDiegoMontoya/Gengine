@@ -35,7 +35,7 @@ private:
   {
     std::vector<std::string> tex2Dpaths;
     entt::hashed_string shaderID;
-    std::vector<Texture2D> textures;
+    std::vector<GPU::Texture2D> textures;
   };
 
   // There may be an argument to make this mapping public and switch to hashed strings

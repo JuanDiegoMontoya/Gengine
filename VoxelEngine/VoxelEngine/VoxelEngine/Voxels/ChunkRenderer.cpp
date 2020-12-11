@@ -8,7 +8,6 @@
 #include <CoreEngine/Shader.h>
 #include <CoreEngine/Vertices.h>
 #include <CoreEngine/vao.h>
-#include <memory>
 #include <CoreEngine/Texture2D.h>
 #include <CoreEngine/TextureArray.h>
 #include <CoreEngine/MeshUtils.h>
@@ -72,9 +71,9 @@ ChunkRenderer::ChunkRenderer()
   {
     texs.push_back(std::string(prop.name) + ".png");
   }
-  textures = std::make_unique<TextureArray>(std::span(texs.data(), texs.size()), glm::ivec2(32));
+  textures = std::make_unique<GPU::TextureArray>(std::span(texs.data(), texs.size()), glm::ivec2(32));
 
-  blueNoise64 = std::make_unique<Texture2D>("BlueNoise/64_64/LDR_LLL1_0.png");
+  blueNoise64 = std::make_unique<GPU::Texture2D>("BlueNoise/64_64/LDR_LLL1_0.png");
   //blueNoise64 = std::make_unique<Texture2D>("BlueNoise/256_256/LDR_LLL1_0.png");
 
 }

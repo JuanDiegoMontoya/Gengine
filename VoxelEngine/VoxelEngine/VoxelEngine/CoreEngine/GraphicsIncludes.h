@@ -1,7 +1,6 @@
 #pragma once
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include <CoreEngine/MathIncludes.h>
 
 #include <CoreEngine/utilities.h>
 #include <CoreEngine/shader.h>

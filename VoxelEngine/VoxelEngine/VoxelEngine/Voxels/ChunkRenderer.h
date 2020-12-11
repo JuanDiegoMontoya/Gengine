@@ -2,8 +2,11 @@
 #include <CoreEngine/DynamicBuffer.h>
 #include <CoreEngine/Shapes.h>
 
-class TextureArray;
-class Texture2D;
+namespace GPU
+{
+  class TextureArray;
+  class Texture2D;
+}
 
 class ChunkRenderer
 {
@@ -76,6 +79,6 @@ private:
   std::unique_ptr<GPU::StaticBuffer> allocBuffer;
 
   // resources
-  std::unique_ptr<TextureArray> textures;
-  std::unique_ptr<Texture2D> blueNoise64;
+  std::unique_ptr<GPU::TextureArray> textures;
+  std::unique_ptr<GPU::Texture2D> blueNoise64;
 };
