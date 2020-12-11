@@ -26,7 +26,7 @@ out vec3 vTexCoord;
 out vec4 vLighting; // RGBSun
 out flat vec3 vBlockPos;
 
-out vec4 vColor;
+//out vec4 vColor;
 
 const vec3 normals[] =
 {
@@ -48,15 +48,10 @@ const vec2 tex_corners[] =
   { 0, 0 },
 };
 
-float layer2coord(uint capacity, uint layer)
-{
-  return max(0, min(float(capacity - 1), floor(float(layer) + 0.5)));
-}
 
 // decodes vertex, normal, and texcoord info from encoded data
 // returns usable data (i.e. fully processed)
-void Decode(in uint encoded,
-  out vec3 modelPos, out vec3 normal, out vec3 texCoord)
+void Decode(in uint encoded, out vec3 modelPos, out vec3 normal, out vec3 texCoord)
 {
   // decode vertex position
   modelPos.x = encoded >> 26;
@@ -72,7 +67,7 @@ void Decode(in uint encoded,
   uint textureIdx = (encoded >> 2) & 0x1FF; // = 0b1111111111
   uint cornerIdx = (encoded >> 0) & 0x3; // = 0b11
 
-  texCoord = vec3(tex_corners[cornerIdx], layer2coord(1024, textureIdx));
+  texCoord = vec3(tex_corners[cornerIdx], textureIdx);
 }
 
 

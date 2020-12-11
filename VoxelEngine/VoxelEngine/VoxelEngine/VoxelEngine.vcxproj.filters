@@ -1,35 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
-    </Filter>
     <Filter Include="Resource Files">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
-    <Filter Include="Header Files\Components">
-      <UniqueIdentifier>{42bb8c21-4d75-45d9-9501-3318e3fc2b11}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Containers">
-      <UniqueIdentifier>{38905fdf-666b-4550-b0ce-85488690863b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Systems">
-      <UniqueIdentifier>{3aaa0590-c016-43fc-90ba-43e436ecc14c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Events">
-      <UniqueIdentifier>{729089d8-6975-4cfe-afa8-a5a9e2d8b33a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Containers">
-      <UniqueIdentifier>{629f984f-f189-4888-9572-ee344386f49f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Systems">
-      <UniqueIdentifier>{dee07729-9ef5-44d0-aab1-9a3d6214b457}</UniqueIdentifier>
     </Filter>
     <Filter Include="3rd Party">
       <UniqueIdentifier>{25119e14-86af-45b4-a189-2e721b036917}</UniqueIdentifier>
@@ -40,104 +14,29 @@
     <Filter Include="Voxel Engine">
       <UniqueIdentifier>{dc663184-9198-480c-b860-fe5e6cb9fc67}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Voxel Engine\Chunks">
-      <UniqueIdentifier>{43c32564-9adb-43dd-adf2-3a9f16609b64}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Voxel Engine\Refactor">
-      <UniqueIdentifier>{941b5f14-5b5d-4b0c-8826-b8e2eafb78fd}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Voxel Engine\Rendering">
-      <UniqueIdentifier>{5083ba25-2eab-487a-9f5f-af3d554af47a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Voxel Engine\Utilities">
-      <UniqueIdentifier>{a6660f86-4ee0-4e38-ba32-81b7b89a1524}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Voxel Engine\World">
-      <UniqueIdentifier>{b356d275-2c01-4537-aac8-9d8a629a0cb7}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Voxel Engine\WorldGen">
-      <UniqueIdentifier>{facc1ed4-29ad-4e15-95d8-e9af860b332b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="3rd Party\FastNoiseSIMD">
       <UniqueIdentifier>{1973af87-01d3-4bc4-9d86-e5188afc5b26}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Graphics">
-      <UniqueIdentifier>{f59e9c6c-31b3-4410-901e-cdf5fcc755ed}</UniqueIdentifier>
+    <Filter Include="CoreEngine">
+      <UniqueIdentifier>{6f5b3298-6999-4eeb-ad86-9dc0fe8c6a25}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Managers">
-      <UniqueIdentifier>{b215a5a5-6c83-4047-a659-49b3920642f7}</UniqueIdentifier>
+    <Filter Include="Game">
+      <UniqueIdentifier>{ee2ca854-b4a5-4dd4-ae8c-05bf220960d8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CoreEngine\Graphics">
+      <UniqueIdentifier>{d90572c4-fc10-4aaf-ab92-440764be1dd7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CoreEngine\Systems">
+      <UniqueIdentifier>{a424d2fa-a058-426a-b560-cefda8ce9e5a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CoreEngine\ECS">
+      <UniqueIdentifier>{f1303919-b3eb-4052-9128-6a7141965576}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utilities">
+      <UniqueIdentifier>{acd11cba-910f-4db3-bf05-1edc13b873eb}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Headers\Containers\BidirectionalMap.h">
-      <Filter>Header Files\Containers</Filter>
-    </ClInclude>
-    <ClInclude Include="Headers\Containers\CircularBuffer.h">
-      <Filter>Header Files\Containers</Filter>
-    </ClInclude>
-    <ClInclude Include="Headers\Containers\EventManger.h">
-      <Filter>Header Files\Containers</Filter>
-    </ClInclude>
-    <ClInclude Include="Headers\Containers\Object.h">
-      <Filter>Header Files\Containers</Filter>
-    </ClInclude>
-    <ClInclude Include="Headers\Containers\Properties.h">
-      <Filter>Header Files\Containers</Filter>
-    </ClInclude>
-    <ClInclude Include="Headers\Containers\Space.h">
-      <Filter>Header Files\Containers</Filter>
-    </ClInclude>
-    <ClInclude Include="Headers\Events\StubEvent.h">
-      <Filter>Header Files\Events</Filter>
-    </ClInclude>
-    <ClInclude Include="Headers\Engine.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Headers\Factory.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Headers\FactoryID.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Headers\Events\Event.h">
-      <Filter>Header Files\Events</Filter>
-    </ClInclude>
-    <ClInclude Include="Headers\Events\AllEventHeaders.h">
-      <Filter>Header Files\Events</Filter>
-    </ClInclude>
-    <ClInclude Include="Headers\JunkDrawer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Headers\PreProcessorMagic.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Headers\Events\UpdateEvent.h">
-      <Filter>Header Files\Events</Filter>
-    </ClInclude>
-    <ClInclude Include="Headers\Events\DrawEvent.h">
-      <Filter>Header Files\Events</Filter>
-    </ClInclude>
-    <ClInclude Include="Headers\Events\InitEvent.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Headers\Sandbox.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Headers\Events\DestroyEvent.h">
-      <Filter>Header Files\Events</Filter>
-    </ClInclude>
-    <ClInclude Include="Headers\Events\TraceEvent.h">
-      <Filter>Header Files\Events</Filter>
-    </ClInclude>
-    <ClInclude Include="Headers\Events\TestingEvent.h">
-      <Filter>Header Files\Events</Filter>
-    </ClInclude>
-    <ClInclude Include="Headers\Events\RenderEvent.h">
-      <Filter>Header Files\Events</Filter>
-    </ClInclude>
-    <ClInclude Include="Headers\engine_assert.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="3rdParty\imgui\imconfig.h">
       <Filter>3rd Party\imgui</Filter>
     </ClInclude>
@@ -162,110 +61,11 @@
     <ClInclude Include="3rdParty\imgui\imstb_truetype.h">
       <Filter>3rd Party\imgui</Filter>
     </ClInclude>
-    <ClInclude Include="Voxels\Refactor\Editor.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Voxels\prefab.h">
-      <Filter>Voxel Engine</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\pick.h">
-      <Filter>Voxel Engine</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\light.h">
-      <Filter>Voxel Engine</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\block.h">
       <Filter>Voxel Engine</Filter>
     </ClInclude>
     <ClInclude Include="Voxels\biome.h">
       <Filter>Voxel Engine</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\Chunks\BlockStorage.h">
-      <Filter>Voxel Engine\Chunks</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\Chunks\Chunk.h">
-      <Filter>Voxel Engine\Chunks</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\Chunks\ChunkHelpers.h">
-      <Filter>Voxel Engine\Chunks</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\Chunks\ChunkMesh.h">
-      <Filter>Voxel Engine\Chunks</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\Chunks\ChunkStorage.h">
-      <Filter>Voxel Engine\Chunks</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\Refactor\hud.h">
-      <Filter>Voxel Engine\Refactor</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\Refactor\Interface.h">
-      <Filter>Voxel Engine\Refactor</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\Refactor\player.h">
-      <Filter>Voxel Engine\Refactor</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\Refactor\settings.h">
-      <Filter>Voxel Engine\Refactor</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\Refactor\sun.h">
-      <Filter>Voxel Engine\Refactor</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\Rendering\ChunkRenderer.h">
-      <Filter>Voxel Engine\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\Rendering\NuRenderer.h">
-      <Filter>Voxel Engine\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\Rendering\RenderOrder.h">
-      <Filter>Voxel Engine\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\Rendering\TextureArray.h">
-      <Filter>Voxel Engine\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\Utilities\BitArray.h">
-      <Filter>Voxel Engine\Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\Utilities\collision_check.h">
-      <Filter>Voxel Engine\Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\Utilities\collision_shapes.h">
-      <Filter>Voxel Engine\Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\Utilities\FixedQueue.h">
-      <Filter>Voxel Engine\Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\Utilities\ImGuiBonus.h">
-      <Filter>Voxel Engine\Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\Utilities\Palette.h">
-      <Filter>Voxel Engine\Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\Utilities\serialize.h">
-      <Filter>Voxel Engine\Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="Headers\ImGuiIncludes.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\World\chunk_manager.h">
-      <Filter>Voxel Engine\World</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\World\parallel_chunks.h">
-      <Filter>Voxel Engine\World</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\World\World.h">
-      <Filter>Voxel Engine\World</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\WorldGen\WorldGen2.h">
-      <Filter>Voxel Engine\WorldGen</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\Rendering\Frustum.h">
-      <Filter>Voxel Engine\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="Headers\MathIncludes.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Voxels\Utilities\Timer.h">
-      <Filter>Voxel Engine\Utilities</Filter>
     </ClInclude>
     <ClInclude Include="3rdParty\FastNoiseSIMD\FastNoiseSIMD.h">
       <Filter>3rd Party\FastNoiseSIMD</Filter>
@@ -273,152 +73,227 @@
     <ClInclude Include="3rdParty\FastNoiseSIMD\FastNoiseSIMD_internal.h">
       <Filter>3rd Party\FastNoiseSIMD</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\abo.h">
-      <Filter>Graphics</Filter>
+    <ClInclude Include="CoreEngine\Input.h">
+      <Filter>CoreEngine</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\Context.h">
-      <Filter>Graphics</Filter>
+    <ClInclude Include="CoreEngine\GAssert.h">
+      <Filter>CoreEngine</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\dib.h">
-      <Filter>Graphics</Filter>
+    <ClInclude Include="CoreEngine\MathIncludes.h">
+      <Filter>CoreEngine</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\GraphicsIncludes.h">
-      <Filter>Graphics</Filter>
+    <ClInclude Include="CoreEngine\Application.h">
+      <Filter>CoreEngine</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\ibo.h">
-      <Filter>Graphics</Filter>
+    <ClInclude Include="CoreEngine\GraphicsSystem.h">
+      <Filter>CoreEngine\Systems</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\math_utils.h">
-      <Filter>Graphics</Filter>
+    <ClInclude Include="CoreEngine\PhysicsSystem.h">
+      <Filter>CoreEngine\Systems</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\misc_utils.h">
-      <Filter>Graphics</Filter>
+    <ClInclude Include="CoreEngine\DebugSystem.h">
+      <Filter>CoreEngine\Systems</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\param_bo.h">
-      <Filter>Graphics</Filter>
+    <ClInclude Include="CoreEngine\WindowUtils.h">
+      <Filter>CoreEngine\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\shader.h">
-      <Filter>Graphics</Filter>
+    <ClInclude Include="CoreEngine\WindowCB.h">
+      <Filter>CoreEngine\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\Shapes.h">
-      <Filter>Graphics</Filter>
+    <ClInclude Include="CoreEngine\Window.h">
+      <Filter>CoreEngine\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\utilities.h">
-      <Filter>Graphics</Filter>
+    <ClInclude Include="CoreEngine\Texture2D.h">
+      <Filter>CoreEngine\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\vao.h">
-      <Filter>Graphics</Filter>
+    <ClInclude Include="CoreEngine\Renderer.h">
+      <Filter>CoreEngine\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\vbo.h">
-      <Filter>Graphics</Filter>
+    <ClInclude Include="CoreEngine\MeshUtils.h">
+      <Filter>CoreEngine\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\vbo_layout.h">
-      <Filter>Graphics</Filter>
+    <ClInclude Include="CoreEngine\Mesh.h">
+      <Filter>CoreEngine\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\Vertices.h">
-      <Filter>Graphics</Filter>
+    <ClInclude Include="CoreEngine\Material.h">
+      <Filter>CoreEngine\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\UBO.h">
-      <Filter>Graphics</Filter>
+    <ClInclude Include="CoreEngine\Camera.h">
+      <Filter>CoreEngine\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\GlobalRendererInfo.h">
-      <Filter>Graphics</Filter>
+    <ClInclude Include="CoreEngine\AssimpUtils.h">
+      <Filter>CoreEngine\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Headers\Containers\Entity.h">
-      <Filter>Header Files\Containers</Filter>
+    <ClInclude Include="CoreEngine\Entity.h">
+      <Filter>CoreEngine\ECS</Filter>
     </ClInclude>
-    <ClInclude Include="Voxels\Rendering\texture.h">
-      <Filter>Voxel Engine\Rendering</Filter>
+    <ClInclude Include="CoreEngine\ScriptableEntity.h">
+      <Filter>CoreEngine\ECS</Filter>
     </ClInclude>
-    <ClInclude Include="Headers\Debug.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="CoreEngine\Scene.h">
+      <Filter>CoreEngine\ECS</Filter>
     </ClInclude>
-    <ClInclude Include="Headers\Components\Transform.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="CoreEngine\Components.h">
+      <Filter>CoreEngine\ECS</Filter>
     </ClInclude>
-    <ClInclude Include="Headers\Systems\Manager.h">
-      <Filter>Header Files\Systems</Filter>
+    <ClInclude Include="CoreEngine\Engine.h">
+      <Filter>CoreEngine</Filter>
     </ClInclude>
-    <ClInclude Include="Headers\Managers\AllManagerHeaders.h">
-      <Filter>Header Files\Systems</Filter>
+    <ClInclude Include="Voxels\BlockStorage.h">
+      <Filter>Voxel Engine</Filter>
     </ClInclude>
-    <ClInclude Include="Headers\Managers\GraphicsManager.h">
-      <Filter>Header Files\Systems</Filter>
+    <ClInclude Include="Voxels\Chunk.h">
+      <Filter>Voxel Engine</Filter>
     </ClInclude>
-    <ClInclude Include="Headers\Managers\FrameRateController.h">
-      <Filter>Header Files\Systems</Filter>
+    <ClInclude Include="Voxels\chunk_manager.h">
+      <Filter>Voxel Engine</Filter>
     </ClInclude>
-    <ClInclude Include="Headers\Managers\TraceManager.h">
-      <Filter>Header Files\Systems</Filter>
+    <ClInclude Include="Voxels\ChunkHelpers.h">
+      <Filter>Voxel Engine</Filter>
     </ClInclude>
-    <ClInclude Include="Headers\Managers\InputManager.h">
-      <Filter>Header Files\Systems</Filter>
+    <ClInclude Include="Voxels\ChunkMesh.h">
+      <Filter>Voxel Engine</Filter>
     </ClInclude>
-    <ClInclude Include="Headers\Managers\StubManager.h">
-      <Filter>Header Files\Systems</Filter>
+    <ClInclude Include="Voxels\ChunkRenderer.h">
+      <Filter>Voxel Engine</Filter>
     </ClInclude>
-    <ClInclude Include="Headers\Systems\AllSystemHeaders.h">
-      <Filter>Header Files\Components</Filter>
+    <ClInclude Include="Voxels\ChunkSerialize.h">
+      <Filter>Voxel Engine</Filter>
     </ClInclude>
-    <ClInclude Include="Headers\Systems\Camera.h">
-      <Filter>Header Files\Components</Filter>
+    <ClInclude Include="Voxels\EditorRefactor.h">
+      <Filter>Voxel Engine</Filter>
     </ClInclude>
-    <ClInclude Include="Headers\Systems\VoxelWorld.h">
-      <Filter>Header Files\Components</Filter>
+    <ClInclude Include="Voxels\HUDRefactor.h">
+      <Filter>Voxel Engine</Filter>
     </ClInclude>
-    <ClInclude Include="Headers\Systems\System.h">
-      <Filter>Header Files\Components</Filter>
+    <ClInclude Include="Voxels\parallel_chunks.h">
+      <Filter>Voxel Engine</Filter>
     </ClInclude>
-    <ClInclude Include="Headers\Systems\TestingSystem.h">
-      <Filter>Header Files\Components</Filter>
+    <ClInclude Include="Voxels\VoxelManager.h">
+      <Filter>Voxel Engine</Filter>
     </ClInclude>
-    <ClInclude Include="Headers\Systems\StubSystem.h">
-      <Filter>Header Files\Components</Filter>
+    <ClInclude Include="Voxels\World.h">
+      <Filter>Voxel Engine</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\StaticBuffer.h">
-      <Filter>Graphics</Filter>
+    <ClInclude Include="Game\WorldGen.h">
+      <Filter>Game</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\DynamicBuffer.h">
-      <Filter>Graphics</Filter>
+    <ClInclude Include="CoreEngine\collision_check.h">
+      <Filter>CoreEngine</Filter>
     </ClInclude>
-    <ClInclude Include="Voxels\Chunks\ChunkSerialize.h">
-      <Filter>Voxel Engine\Chunks</Filter>
+    <ClInclude Include="CoreEngine\collision_shapes.h">
+      <Filter>CoreEngine</Filter>
     </ClInclude>
-    <ClInclude Include="Voxels\Utilities\DeltaEncoder.h">
-      <Filter>Voxel Engine\Utilities</Filter>
+    <ClInclude Include="CoreEngine\Context.h">
+      <Filter>CoreEngine</Filter>
     </ClInclude>
-    <ClInclude Include="Voxels\Utilities\RunLengthEncoder.h">
-      <Filter>Voxel Engine\Utilities</Filter>
+    <ClInclude Include="CoreEngine\Debug.h">
+      <Filter>CoreEngine</Filter>
     </ClInclude>
-    <ClInclude Include="Voxels\Utilities\CompressBuffer.h">
-      <Filter>Voxel Engine\Utilities</Filter>
+    <ClInclude Include="CoreEngine\GlobalRendererInfo.h">
+      <Filter>CoreEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\GraphicsIncludes.h">
+      <Filter>CoreEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\math_utils.h">
+      <Filter>CoreEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\misc_utils.h">
+      <Filter>CoreEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\utilities.h">
+      <Filter>CoreEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\DynamicBuffer.h">
+      <Filter>CoreEngine\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\Frustum.h">
+      <Filter>CoreEngine\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\Shapes.h">
+      <Filter>CoreEngine\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\StaticBuffer.h">
+      <Filter>CoreEngine\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\TextureArray.h">
+      <Filter>CoreEngine\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\Vertices.h">
+      <Filter>CoreEngine\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\Shader.h">
+      <Filter>CoreEngine\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\vbo_layout.h">
+      <Filter>CoreEngine\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\VAO.h">
+      <Filter>CoreEngine\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\ScriptSystem.h">
+      <Filter>CoreEngine\Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\TestObj.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\BitArray.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\FixedQueue.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\ImGuiExt.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\Palette.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\Serialize.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\Timer.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\TestObj2.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\GameManager.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\FlyingPlayerController.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\PlayerActions.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\PhysicsPlayerController.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\Block.h">
+      <Filter>Voxel Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\Light.h">
+      <Filter>Voxel Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\Physics.h">
+      <Filter>CoreEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\PhysicsTest2.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\KinematicPlayerController.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\Compression.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\Fence.h">
+      <Filter>CoreEngine\Graphics</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Source\Engine.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Factory.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Containers\EventManger.cpp">
-      <Filter>Source Files\Containers</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Containers\Object.cpp">
-      <Filter>Source Files\Containers</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Containers\Space.cpp">
-      <Filter>Source Files\Containers</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\GuiIfy.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Entry.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\engine_assert.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="3rdParty\imgui\imgui.cpp">
       <Filter>3rd Party\imgui</Filter>
     </ClCompile>
@@ -434,74 +309,11 @@
     <ClCompile Include="3rdParty\imgui\imgui_widgets.cpp">
       <Filter>3rd Party\imgui</Filter>
     </ClCompile>
-    <ClCompile Include="Voxels\pick.cpp">
-      <Filter>Voxel Engine</Filter>
-    </ClCompile>
     <ClCompile Include="Voxels\prefab.cpp">
-      <Filter>Voxel Engine</Filter>
-    </ClCompile>
-    <ClCompile Include="Voxels\block.cpp">
       <Filter>Voxel Engine</Filter>
     </ClCompile>
     <ClCompile Include="Voxels\biome.cpp">
       <Filter>Voxel Engine</Filter>
-    </ClCompile>
-    <ClCompile Include="Voxels\Chunks\Chunk.cpp">
-      <Filter>Voxel Engine\Chunks</Filter>
-    </ClCompile>
-    <ClCompile Include="Voxels\Chunks\ChunkMesh.cpp">
-      <Filter>Voxel Engine\Chunks</Filter>
-    </ClCompile>
-    <ClCompile Include="Voxels\Refactor\Editor.cpp">
-      <Filter>Voxel Engine\Refactor</Filter>
-    </ClCompile>
-    <ClCompile Include="Voxels\Refactor\hud.cpp">
-      <Filter>Voxel Engine\Refactor</Filter>
-    </ClCompile>
-    <ClCompile Include="Voxels\Refactor\Interface.cpp">
-      <Filter>Voxel Engine\Refactor</Filter>
-    </ClCompile>
-    <ClCompile Include="Voxels\Refactor\main.cpp">
-      <Filter>Voxel Engine\Refactor</Filter>
-    </ClCompile>
-    <ClCompile Include="Voxels\Refactor\player.cpp">
-      <Filter>Voxel Engine\Refactor</Filter>
-    </ClCompile>
-    <ClCompile Include="Voxels\Refactor\settings.cpp">
-      <Filter>Voxel Engine\Refactor</Filter>
-    </ClCompile>
-    <ClCompile Include="Voxels\Refactor\sun.cpp">
-      <Filter>Voxel Engine\Refactor</Filter>
-    </ClCompile>
-    <ClCompile Include="Voxels\Rendering\ChunkRenderer.cpp">
-      <Filter>Voxel Engine\Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="Voxels\Rendering\NuRenderer.cpp">
-      <Filter>Voxel Engine\Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="Voxels\Rendering\TextureArray.cpp">
-      <Filter>Voxel Engine\Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="Voxels\Utilities\collision_check.cpp">
-      <Filter>Voxel Engine\Utilities</Filter>
-    </ClCompile>
-    <ClCompile Include="Voxels\Utilities\ImGuiBonus.cpp">
-      <Filter>Voxel Engine\Utilities</Filter>
-    </ClCompile>
-    <ClCompile Include="Voxels\World\chunk_manager.cpp">
-      <Filter>Voxel Engine\World</Filter>
-    </ClCompile>
-    <ClCompile Include="Voxels\World\parallel_chunks.cpp">
-      <Filter>Voxel Engine\World</Filter>
-    </ClCompile>
-    <ClCompile Include="Voxels\World\World.cpp">
-      <Filter>Voxel Engine\World</Filter>
-    </ClCompile>
-    <ClCompile Include="Voxels\WorldGen\WorldGen2.cpp">
-      <Filter>Voxel Engine\WorldGen</Filter>
-    </ClCompile>
-    <ClCompile Include="Voxels\Rendering\Frustum.cpp">
-      <Filter>Voxel Engine\Rendering</Filter>
     </ClCompile>
     <ClCompile Include="3rdParty\FastNoiseSIMD\FastNoiseSIMD.cpp">
       <Filter>3rd Party\FastNoiseSIMD</Filter>
@@ -524,100 +336,154 @@
     <ClCompile Include="3rdParty\FastNoiseSIMD\FastNoiseSIMD_neon.cpp">
       <Filter>3rd Party\FastNoiseSIMD</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics\abo.cpp">
-      <Filter>Graphics</Filter>
+    <ClCompile Include="CoreEngine\Input.cpp">
+      <Filter>CoreEngine</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics\Context.cpp">
-      <Filter>Graphics</Filter>
+    <ClCompile Include="CoreEngine\GAssert.cpp">
+      <Filter>CoreEngine</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics\dib.cpp">
-      <Filter>Graphics</Filter>
+    <ClCompile Include="CoreEngine\Application.cpp">
+      <Filter>CoreEngine</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics\ibo.cpp">
-      <Filter>Graphics</Filter>
+    <ClCompile Include="CoreEngine\GraphicsSystem.cpp">
+      <Filter>CoreEngine\Systems</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics\math_utils.cpp">
-      <Filter>Graphics</Filter>
+    <ClCompile Include="CoreEngine\PhysicsSystem.cpp">
+      <Filter>CoreEngine\Systems</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics\misc_utils.cpp">
-      <Filter>Graphics</Filter>
+    <ClCompile Include="CoreEngine\DebugSystem.cpp">
+      <Filter>CoreEngine\Systems</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics\param_bo.cpp">
-      <Filter>Graphics</Filter>
+    <ClCompile Include="CoreEngine\WindowCB.cpp">
+      <Filter>CoreEngine\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics\shader.cpp">
-      <Filter>Graphics</Filter>
+    <ClCompile Include="CoreEngine\Window.cpp">
+      <Filter>CoreEngine\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics\vao.cpp">
-      <Filter>Graphics</Filter>
+    <ClCompile Include="CoreEngine\Texture2D.cpp">
+      <Filter>CoreEngine\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics\vbo.cpp">
-      <Filter>Graphics</Filter>
+    <ClCompile Include="CoreEngine\Renderer.cpp">
+      <Filter>CoreEngine\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics\UBO.cpp">
-      <Filter>Graphics</Filter>
+    <ClCompile Include="CoreEngine\Mesh.cpp">
+      <Filter>CoreEngine\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics\GlobalRendererInfo.cpp">
-      <Filter>Graphics</Filter>
+    <ClCompile Include="CoreEngine\Material.cpp">
+      <Filter>CoreEngine\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Containers\Entity.cpp">
-      <Filter>Source Files\Containers</Filter>
+    <ClCompile Include="CoreEngine\Camera.cpp">
+      <Filter>CoreEngine\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Voxels\Rendering\texture.cpp">
-      <Filter>Voxel Engine\Rendering</Filter>
+    <ClCompile Include="CoreEngine\Entity.cpp">
+      <Filter>CoreEngine\ECS</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics\stbiImpl.cpp">
-      <Filter>Graphics</Filter>
+    <ClCompile Include="CoreEngine\Scene.cpp">
+      <Filter>CoreEngine\ECS</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Systems\Camera.cpp">
-      <Filter>Source Files\Systems</Filter>
+    <ClCompile Include="CoreEngine\Engine.cpp">
+      <Filter>CoreEngine</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Systems\StubSystem.cpp">
-      <Filter>Source Files\Systems</Filter>
+    <ClCompile Include="Voxels\Chunk.cpp">
+      <Filter>Voxel Engine</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Systems\System.cpp">
-      <Filter>Source Files\Systems</Filter>
+    <ClCompile Include="Voxels\chunk_manager.cpp">
+      <Filter>Voxel Engine</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Systems\TestingSystem.cpp">
-      <Filter>Source Files\Systems</Filter>
+    <ClCompile Include="Voxels\ChunkMesh.cpp">
+      <Filter>Voxel Engine</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Systems\VoxelWorld.cpp">
-      <Filter>Source Files\Systems</Filter>
+    <ClCompile Include="Voxels\ChunkRenderer.cpp">
+      <Filter>Voxel Engine</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Managers\FrameRateController.cpp">
-      <Filter>Source Files\Managers</Filter>
+    <ClCompile Include="Voxels\ChunkSerialize.cpp">
+      <Filter>Voxel Engine</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Managers\GraphicsManager.cpp">
-      <Filter>Source Files\Managers</Filter>
+    <ClCompile Include="Voxels\EditorRefactor.cpp">
+      <Filter>Voxel Engine</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Managers\InputManager.cpp">
-      <Filter>Source Files\Managers</Filter>
+    <ClCompile Include="Voxels\HUDRefactor.cpp">
+      <Filter>Voxel Engine</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Managers\StubManager.cpp">
-      <Filter>Source Files\Managers</Filter>
+    <ClCompile Include="Voxels\parallel_chunks.cpp">
+      <Filter>Voxel Engine</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Managers\TraceManager.cpp">
-      <Filter>Source Files\Managers</Filter>
+    <ClCompile Include="Voxels\VoxelManager.cpp">
+      <Filter>Voxel Engine</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics\StaticBuffer.cpp">
-      <Filter>Graphics</Filter>
+    <ClCompile Include="Voxels\World.cpp">
+      <Filter>Voxel Engine</Filter>
     </ClCompile>
-    <ClCompile Include="Voxels\Chunks\ChunkSerialize.cpp">
-      <Filter>Voxel Engine\Chunks</Filter>
+    <ClCompile Include="Game\main.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\WorldGen.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreEngine\collision_check.cpp">
+      <Filter>CoreEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreEngine\Context.cpp">
+      <Filter>CoreEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreEngine\GlobalRendererInfo.cpp">
+      <Filter>CoreEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreEngine\math_utils.cpp">
+      <Filter>CoreEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreEngine\misc_utils.cpp">
+      <Filter>CoreEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreEngine\Frustum.cpp">
+      <Filter>CoreEngine\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreEngine\StaticBuffer.cpp">
+      <Filter>CoreEngine\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreEngine\stbiImpl.cpp">
+      <Filter>CoreEngine\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreEngine\TextureArray.cpp">
+      <Filter>CoreEngine\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreEngine\Shader.cpp">
+      <Filter>CoreEngine\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreEngine\VAO.cpp">
+      <Filter>CoreEngine\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreEngine\ScriptSystem.cpp">
+      <Filter>CoreEngine\Systems</Filter>
+    </ClCompile>
+    <ClCompile Include="Utilities\ImGuiExt.cpp">
+      <Filter>Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="Voxels\Block.cpp">
+      <Filter>Voxel Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreEngine\Physics.cpp">
+      <Filter>CoreEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreEngine\Fence.cpp">
+      <Filter>CoreEngine\Graphics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Voxels\Chunks\BlockStorage.inl">
-      <Filter>Voxel Engine\Chunks</Filter>
+    <None Include="Voxels\BlockStorage.inl">
+      <Filter>Voxel Engine</Filter>
     </None>
-    <None Include="Voxels\Chunks\ChunkHelpers.inl">
-      <Filter>Voxel Engine\Chunks</Filter>
+    <None Include="Voxels\ChunkHelpers.inl">
+      <Filter>Voxel Engine</Filter>
     </None>
-    <None Include="Voxels\Utilities\Palette.inl">
-      <Filter>Voxel Engine\Utilities</Filter>
+    <None Include="CoreEngine\DynamicBuffer.inl">
+      <Filter>CoreEngine\Graphics</Filter>
     </None>
-    <None Include="Graphics\DynamicBuffer.inl">
-      <Filter>Graphics</Filter>
+    <None Include="Voxels\imgui.ini">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Utilities\Palette.inl">
+      <Filter>Utilities</Filter>
     </None>
   </ItemGroup>
 </Project>

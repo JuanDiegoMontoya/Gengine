@@ -1,13 +1,16 @@
 #pragma once
-#include <Graphics/math_utils.h>
+#include <CoreEngine/math_utils.h>
+#include <CoreEngine/GAssert.h>
 
 // describes the lighting level at a point in space, NOT the properties of a light emitter
-typedef class Light
+class Light
 {
 public:
   Light() : raw_(0) {}
   Light(const Light& o) : raw_(o.raw_) {}
   Light(glm::u8vec4 L) { Set(L); }
+  bool operator==(const Light& rhs) const = default;
+  Light& operator=(const Light& rhs) = default;
 
   uint16_t& Raw() { return raw_; }
 
@@ -26,10 +29,7 @@ public:
   void SetG(uint8_t g) { ASSERT(g < 16); raw_ = (raw_ & 0xF0FF) | (g << 8); }
   void SetB(uint8_t b) { ASSERT(b < 16); raw_ = (raw_ & 0xFF0F) | (b << 4); }
   void SetS(uint8_t s) { ASSERT(s < 16); raw_ = (raw_ & 0xFFF0) | s; }
-
-  bool operator==(const Light& rhs) const { return this->raw_ == rhs.raw_; }
-  Light& operator=(const Light& rhs) { this->raw_ = rhs.raw_; return *this; }
 private:
   // 4 bits each of: red, green, blue, and sunlight
   uint16_t raw_;
-}Light, *LightPtr;
+};

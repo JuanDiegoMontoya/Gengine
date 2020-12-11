@@ -1,8 +1,8 @@
 #pragma once
 #include <Utilities/serialize.h>
-#include <light.h>
+#include <Voxels/light.h>
 #include <vector>
-#include <Graphics/GraphicsIncludes.h>
+#include <CoreEngine/GraphicsIncludes.h>
 
 enum class Visibility
 {
@@ -56,7 +56,7 @@ enum class BlockType : uint16_t // upgrade when over 2^16 block types
 };
 
 
-typedef struct Block
+struct Block
 {
 public:
   
@@ -82,8 +82,8 @@ public:
   }
 
   static const std::vector<BlockProperties> PropertiesTable;
+
 private:
   BlockType type_; // could probably shove extra data in this
   Light light_;
-
-}Block, *BlockPtr;
+};

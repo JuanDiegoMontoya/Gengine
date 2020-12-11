@@ -29,104 +29,81 @@
     <ClInclude Include="3rdParty\imgui\imstb_rectpack.h" />
     <ClInclude Include="3rdParty\imgui\imstb_textedit.h" />
     <ClInclude Include="3rdParty\imgui\imstb_truetype.h" />
-    <ClInclude Include="Graphics\abo.h" />
-    <ClInclude Include="Graphics\DynamicBuffer.h" />
-    <ClInclude Include="Graphics\Context.h" />
-    <ClInclude Include="Graphics\dib.h" />
-    <ClInclude Include="Graphics\GlobalRendererInfo.h" />
-    <ClInclude Include="Graphics\GraphicsIncludes.h" />
-    <ClInclude Include="Graphics\ibo.h" />
-    <ClInclude Include="Graphics\math_utils.h" />
-    <ClInclude Include="Graphics\misc_utils.h" />
-    <ClInclude Include="Graphics\param_bo.h" />
-    <ClInclude Include="Graphics\shader.h" />
-    <ClInclude Include="Graphics\Shapes.h" />
-    <ClInclude Include="Graphics\StaticBuffer.h" />
-    <ClInclude Include="Graphics\UBO.h" />
-    <ClInclude Include="Graphics\utilities.h" />
-    <ClInclude Include="Graphics\vao.h" />
-    <ClInclude Include="Graphics\vbo.h" />
-    <ClInclude Include="Graphics\vbo_layout.h" />
-    <ClInclude Include="Graphics\Vertices.h" />
-    <ClInclude Include="Headers\Components\Transform.h" />
-    <ClInclude Include="Headers\Containers\BidirectionalMap.h" />
-    <ClInclude Include="Headers\Containers\CircularBuffer.h" />
-    <ClInclude Include="Headers\Containers\Entity.h" />
-    <ClInclude Include="Headers\Containers\EventManger.h" />
-    <ClInclude Include="Headers\Containers\Object.h" />
-    <ClInclude Include="Headers\Containers\Properties.h" />
-    <ClInclude Include="Headers\Containers\Space.h" />
-    <ClInclude Include="Headers\Debug.h" />
-    <ClInclude Include="Headers\Engine.h" />
-    <ClInclude Include="Headers\engine_assert.h" />
-    <ClInclude Include="Headers\Events\AllEventHeaders.h" />
-    <ClInclude Include="Headers\Events\DestroyEvent.h" />
-    <ClInclude Include="Headers\Events\DrawEvent.h" />
-    <ClInclude Include="Headers\Events\Event.h" />
-    <ClInclude Include="Headers\Events\RenderEvent.h" />
-    <ClInclude Include="Headers\Events\InitEvent.h" />
-    <ClInclude Include="Headers\Events\StubEvent.h" />
-    <ClInclude Include="Headers\Events\TestingEvent.h" />
-    <ClInclude Include="Headers\Events\TraceEvent.h" />
-    <ClInclude Include="Headers\Events\UpdateEvent.h" />
-    <ClInclude Include="Headers\Factory.h" />
-    <ClInclude Include="Headers\FactoryID.h" />
-    <ClInclude Include="Headers\ImGuiIncludes.h" />
-    <ClInclude Include="Headers\JunkDrawer.h" />
-    <ClInclude Include="Headers\Managers\AllManagerHeaders.h" />
-    <ClInclude Include="Headers\Managers\FrameRateController.h" />
-    <ClInclude Include="Headers\Managers\GraphicsManager.h" />
-    <ClInclude Include="Headers\Managers\InputManager.h" />
-    <ClInclude Include="Headers\Managers\StubManager.h" />
-    <ClInclude Include="Headers\Managers\TraceManager.h" />
-    <ClInclude Include="Headers\MathIncludes.h" />
-    <ClInclude Include="Headers\PreProcessorMagic.h" />
-    <ClInclude Include="Headers\Sandbox.h" />
-    <ClInclude Include="Headers\Systems\AllSystemHeaders.h" />
-    <ClInclude Include="Headers\Systems\Camera.h" />
-    <ClInclude Include="Headers\Systems\System.h" />
-    <ClInclude Include="Headers\Systems\Manager.h" />
-    <ClInclude Include="Headers\Systems\StubSystem.h" />
-    <ClInclude Include="Headers\Systems\TestingSystem.h" />
-    <ClInclude Include="Headers\Systems\VoxelWorld.h" />
+    <ClInclude Include="CoreEngine\Application.h" />
+    <ClInclude Include="CoreEngine\AssimpUtils.h" />
+    <ClInclude Include="CoreEngine\Camera.h" />
+    <ClInclude Include="CoreEngine\collision_check.h" />
+    <ClInclude Include="CoreEngine\collision_shapes.h" />
+    <ClInclude Include="CoreEngine\Components.h" />
+    <ClInclude Include="CoreEngine\Context.h" />
+    <ClInclude Include="CoreEngine\Debug.h" />
+    <ClInclude Include="CoreEngine\DebugSystem.h" />
+    <ClInclude Include="CoreEngine\DynamicBuffer.h" />
+    <ClInclude Include="CoreEngine\Engine.h" />
+    <ClInclude Include="CoreEngine\Entity.h" />
+    <ClInclude Include="CoreEngine\Fence.h" />
+    <ClInclude Include="CoreEngine\Frustum.h" />
+    <ClInclude Include="CoreEngine\GAssert.h" />
+    <ClInclude Include="CoreEngine\GlobalRendererInfo.h" />
+    <ClInclude Include="CoreEngine\GraphicsIncludes.h" />
+    <ClInclude Include="CoreEngine\GraphicsSystem.h" />
+    <ClInclude Include="CoreEngine\Input.h" />
+    <ClInclude Include="CoreEngine\Material.h" />
+    <ClInclude Include="CoreEngine\MathIncludes.h" />
+    <ClInclude Include="CoreEngine\math_utils.h" />
+    <ClInclude Include="CoreEngine\Mesh.h" />
+    <ClInclude Include="CoreEngine\MeshUtils.h" />
+    <ClInclude Include="CoreEngine\misc_utils.h" />
+    <ClInclude Include="CoreEngine\Physics.h" />
+    <ClInclude Include="CoreEngine\PhysicsSystem.h" />
+    <ClInclude Include="CoreEngine\Renderer.h" />
+    <ClInclude Include="CoreEngine\Scene.h" />
+    <ClInclude Include="CoreEngine\ScriptableEntity.h" />
+    <ClInclude Include="CoreEngine\ScriptSystem.h" />
+    <ClInclude Include="CoreEngine\Shader.h" />
+    <ClInclude Include="CoreEngine\Shapes.h" />
+    <ClInclude Include="CoreEngine\StaticBuffer.h" />
+    <ClInclude Include="CoreEngine\Texture2D.h" />
+    <ClInclude Include="CoreEngine\TextureArray.h" />
+    <ClInclude Include="CoreEngine\utilities.h" />
+    <ClInclude Include="CoreEngine\VAO.h" />
+    <ClInclude Include="CoreEngine\vbo_layout.h" />
+    <ClInclude Include="CoreEngine\Vertices.h" />
+    <ClInclude Include="CoreEngine\Window.h" />
+    <ClInclude Include="CoreEngine\WindowCB.h" />
+    <ClInclude Include="CoreEngine\WindowUtils.h" />
+    <ClInclude Include="Game\FlyingPlayerController.h" />
+    <ClInclude Include="Game\GameManager.h" />
+    <ClInclude Include="Game\KinematicPlayerController.h" />
+    <ClInclude Include="Game\PhysicsPlayerController.h" />
+    <ClInclude Include="Game\PhysicsTest2.h" />
+    <ClInclude Include="Game\PlayerActions.h" />
+    <ClInclude Include="Game\TestObj.h" />
+    <ClInclude Include="Game\TestObj2.h" />
+    <ClInclude Include="Game\WorldGen.h" />
+    <ClInclude Include="Utilities\BitArray.h" />
+    <ClInclude Include="Utilities\Compression.h" />
+    <ClInclude Include="Utilities\FixedQueue.h" />
+    <ClInclude Include="Utilities\ImGuiExt.h" />
+    <ClInclude Include="Utilities\Palette.h" />
+    <ClInclude Include="Utilities\Serialize.h" />
+    <ClInclude Include="Utilities\Timer.h" />
     <ClInclude Include="Voxels\biome.h" />
-    <ClInclude Include="Voxels\block.h" />
-    <ClInclude Include="Voxels\Chunks\BlockStorage.h" />
-    <ClInclude Include="Voxels\Chunks\Chunk.h" />
-    <ClInclude Include="Voxels\Chunks\ChunkHelpers.h" />
-    <ClInclude Include="Voxels\Chunks\ChunkMesh.h" />
-    <ClInclude Include="Voxels\Chunks\ChunkSerialize.h" />
-    <ClInclude Include="Voxels\Chunks\ChunkStorage.h" />
-    <ClInclude Include="Voxels\light.h" />
-    <ClInclude Include="Voxels\pick.h" />
+    <ClInclude Include="Voxels\Block.h" />
+    <ClInclude Include="Voxels\BlockStorage.h" />
+    <ClInclude Include="Voxels\Chunk.h" />
+    <ClInclude Include="Voxels\ChunkHelpers.h" />
+    <ClInclude Include="Voxels\ChunkMesh.h" />
+    <ClInclude Include="Voxels\ChunkRenderer.h" />
+    <ClInclude Include="Voxels\ChunkSerialize.h" />
+    <ClInclude Include="Voxels\chunk_manager.h" />
+    <ClInclude Include="Voxels\EditorRefactor.h" />
+    <ClInclude Include="Voxels\HUDRefactor.h" />
+    <ClInclude Include="Voxels\Light.h" />
+    <ClInclude Include="Voxels\parallel_chunks.h" />
     <ClInclude Include="Voxels\prefab.h" />
-    <ClInclude Include="Voxels\Refactor\Editor.h" />
-    <ClInclude Include="Voxels\Refactor\hud.h" />
-    <ClInclude Include="Voxels\Refactor\Interface.h" />
-    <ClInclude Include="Voxels\Refactor\player.h" />
-    <ClInclude Include="Voxels\Refactor\settings.h" />
-    <ClInclude Include="Voxels\Refactor\sun.h" />
-    <ClInclude Include="Voxels\Rendering\ChunkRenderer.h" />
-    <ClInclude Include="Voxels\Rendering\Frustum.h" />
-    <ClInclude Include="Voxels\Rendering\NuRenderer.h" />
-    <ClInclude Include="Voxels\Rendering\RenderOrder.h" />
-    <ClInclude Include="Voxels\Rendering\texture.h" />
-    <ClInclude Include="Voxels\Rendering\TextureArray.h" />
-    <ClInclude Include="Voxels\Utilities\BitArray.h" />
-    <ClInclude Include="Voxels\Utilities\collision_check.h" />
-    <ClInclude Include="Voxels\Utilities\collision_shapes.h" />
-    <ClInclude Include="Voxels\Utilities\CompressBuffer.h" />
-    <ClInclude Include="Voxels\Utilities\DeltaEncoder.h" />
-    <ClInclude Include="Voxels\Utilities\FixedQueue.h" />
-    <ClInclude Include="Voxels\Utilities\ImGuiBonus.h" />
-    <ClInclude Include="Voxels\Utilities\Palette.h" />
-    <ClInclude Include="Voxels\Utilities\RunLengthEncoder.h" />
-    <ClInclude Include="Voxels\Utilities\serialize.h" />
-    <ClInclude Include="Voxels\Utilities\Timer.h" />
-    <ClInclude Include="Voxels\WorldGen\WorldGen2.h" />
-    <ClInclude Include="Voxels\World\chunk_manager.h" />
-    <ClInclude Include="Voxels\World\parallel_chunks.h" />
-    <ClInclude Include="Voxels\World\World.h" />
+    <ClInclude Include="Voxels\VoxelManager.h" />
+    <ClInclude Include="Voxels\World.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="3rdParty\FastNoiseSIMD\FastNoiseSIMD.cpp" />
@@ -144,72 +121,59 @@
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <ClCompile Include="3rdParty\imgui\imgui_widgets.cpp" />
-    <ClCompile Include="Graphics\abo.cpp" />
-    <ClCompile Include="Graphics\Context.cpp" />
-    <ClCompile Include="Graphics\dib.cpp" />
-    <ClCompile Include="Graphics\GlobalRendererInfo.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/experimental:external /external:I "$(ProjectDir)3rdParty" %(AdditionalOptions)</AdditionalOptions>
-    </ClCompile>
-    <ClCompile Include="Graphics\ibo.cpp" />
-    <ClCompile Include="Graphics\math_utils.cpp" />
-    <ClCompile Include="Graphics\misc_utils.cpp" />
-    <ClCompile Include="Graphics\param_bo.cpp" />
-    <ClCompile Include="Graphics\shader.cpp" />
-    <ClCompile Include="Graphics\StaticBuffer.cpp" />
-    <ClCompile Include="Graphics\stbiImpl.cpp" />
-    <ClCompile Include="Graphics\UBO.cpp" />
-    <ClCompile Include="Graphics\vao.cpp" />
-    <ClCompile Include="Graphics\vbo.cpp" />
-    <ClCompile Include="Source\Containers\Entity.cpp" />
-    <ClCompile Include="Source\Containers\EventManger.cpp" />
-    <ClCompile Include="Source\Containers\Object.cpp" />
-    <ClCompile Include="Source\Containers\Space.cpp" />
-    <ClCompile Include="Source\engine_assert.cpp" />
-    <ClCompile Include="Source\Entry.cpp" />
-    <ClCompile Include="Source\Engine.cpp" />
-    <ClCompile Include="Source\Factory.cpp" />
-    <ClCompile Include="Source\GuiIfy.cpp" />
-    <ClCompile Include="Source\Managers\FrameRateController.cpp" />
-    <ClCompile Include="Source\Managers\GraphicsManager.cpp" />
-    <ClCompile Include="Source\Managers\InputManager.cpp" />
-    <ClCompile Include="Source\Managers\StubManager.cpp" />
-    <ClCompile Include="Source\Managers\TraceManager.cpp" />
-    <ClCompile Include="Source\Systems\Camera.cpp" />
-    <ClCompile Include="Source\Systems\StubSystem.cpp" />
-    <ClCompile Include="Source\Systems\System.cpp" />
-    <ClCompile Include="Source\Systems\TestingSystem.cpp" />
-    <ClCompile Include="Source\Systems\VoxelWorld.cpp" />
+    <ClCompile Include="CoreEngine\Application.cpp" />
+    <ClCompile Include="CoreEngine\Camera.cpp" />
+    <ClCompile Include="CoreEngine\collision_check.cpp" />
+    <ClCompile Include="CoreEngine\Context.cpp" />
+    <ClCompile Include="CoreEngine\DebugSystem.cpp" />
+    <ClCompile Include="CoreEngine\Engine.cpp" />
+    <ClCompile Include="CoreEngine\Entity.cpp" />
+    <ClCompile Include="CoreEngine\Fence.cpp" />
+    <ClCompile Include="CoreEngine\Frustum.cpp" />
+    <ClCompile Include="CoreEngine\GAssert.cpp" />
+    <ClCompile Include="CoreEngine\GlobalRendererInfo.cpp" />
+    <ClCompile Include="CoreEngine\GraphicsSystem.cpp" />
+    <ClCompile Include="CoreEngine\Input.cpp" />
+    <ClCompile Include="CoreEngine\Material.cpp" />
+    <ClCompile Include="CoreEngine\math_utils.cpp" />
+    <ClCompile Include="CoreEngine\Mesh.cpp" />
+    <ClCompile Include="CoreEngine\misc_utils.cpp" />
+    <ClCompile Include="CoreEngine\Physics.cpp" />
+    <ClCompile Include="CoreEngine\PhysicsSystem.cpp" />
+    <ClCompile Include="CoreEngine\Renderer.cpp" />
+    <ClCompile Include="CoreEngine\Scene.cpp" />
+    <ClCompile Include="CoreEngine\ScriptSystem.cpp" />
+    <ClCompile Include="CoreEngine\Shader.cpp" />
+    <ClCompile Include="CoreEngine\StaticBuffer.cpp" />
+    <ClCompile Include="CoreEngine\stbiImpl.cpp" />
+    <ClCompile Include="CoreEngine\Texture2D.cpp" />
+    <ClCompile Include="CoreEngine\TextureArray.cpp" />
+    <ClCompile Include="CoreEngine\VAO.cpp" />
+    <ClCompile Include="CoreEngine\Window.cpp" />
+    <ClCompile Include="CoreEngine\WindowCB.cpp" />
+    <ClCompile Include="Game\main.cpp" />
+    <ClCompile Include="Game\WorldGen.cpp" />
+    <ClCompile Include="Utilities\ImGuiExt.cpp" />
     <ClCompile Include="Voxels\biome.cpp" />
-    <ClCompile Include="Voxels\block.cpp" />
-    <ClCompile Include="Voxels\Chunks\Chunk.cpp" />
-    <ClCompile Include="Voxels\Chunks\ChunkMesh.cpp" />
-    <ClCompile Include="Voxels\Chunks\ChunkSerialize.cpp" />
-    <ClCompile Include="Voxels\pick.cpp" />
+    <ClCompile Include="Voxels\Block.cpp" />
+    <ClCompile Include="Voxels\Chunk.cpp" />
+    <ClCompile Include="Voxels\ChunkMesh.cpp" />
+    <ClCompile Include="Voxels\ChunkRenderer.cpp" />
+    <ClCompile Include="Voxels\ChunkSerialize.cpp" />
+    <ClCompile Include="Voxels\chunk_manager.cpp" />
+    <ClCompile Include="Voxels\EditorRefactor.cpp" />
+    <ClCompile Include="Voxels\HUDRefactor.cpp" />
+    <ClCompile Include="Voxels\parallel_chunks.cpp" />
     <ClCompile Include="Voxels\prefab.cpp" />
-    <ClCompile Include="Voxels\Refactor\Editor.cpp" />
-    <ClCompile Include="Voxels\Refactor\hud.cpp" />
-    <ClCompile Include="Voxels\Refactor\Interface.cpp" />
-    <ClCompile Include="Voxels\Refactor\main.cpp" />
-    <ClCompile Include="Voxels\Refactor\player.cpp" />
-    <ClCompile Include="Voxels\Refactor\settings.cpp" />
-    <ClCompile Include="Voxels\Refactor\sun.cpp" />
-    <ClCompile Include="Voxels\Rendering\ChunkRenderer.cpp" />
-    <ClCompile Include="Voxels\Rendering\Frustum.cpp" />
-    <ClCompile Include="Voxels\Rendering\NuRenderer.cpp" />
-    <ClCompile Include="Voxels\Rendering\texture.cpp" />
-    <ClCompile Include="Voxels\Rendering\TextureArray.cpp" />
-    <ClCompile Include="Voxels\Utilities\collision_check.cpp" />
-    <ClCompile Include="Voxels\Utilities\ImGuiBonus.cpp" />
-    <ClCompile Include="Voxels\WorldGen\WorldGen2.cpp" />
-    <ClCompile Include="Voxels\World\chunk_manager.cpp" />
-    <ClCompile Include="Voxels\World\parallel_chunks.cpp" />
-    <ClCompile Include="Voxels\World\World.cpp" />
+    <ClCompile Include="Voxels\VoxelManager.cpp" />
+    <ClCompile Include="Voxels\World.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Graphics\DynamicBuffer.inl" />
-    <None Include="Voxels\Chunks\BlockStorage.inl" />
-    <None Include="Voxels\Chunks\ChunkHelpers.inl" />
-    <None Include="Voxels\Utilities\Palette.inl" />
+    <None Include="CoreEngine\DynamicBuffer.inl" />
+    <None Include="Utilities\Palette.inl" />
+    <None Include="Voxels\BlockStorage.inl" />
+    <None Include="Voxels\ChunkHelpers.inl" />
+    <None Include="Voxels\imgui.ini" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
@@ -237,6 +201,7 @@
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
+    <EnableASAN>true</EnableASAN>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -273,12 +238,12 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(ProjectDir)3rdParty;$(ProjectDir)3rdParty\shaderc\include;$(ProjectDir)Headers;$(ProjectDir)3rdParty\glew-2.1.0\include;$(ProjectDir);$(ProjectDir)3rdParty\entt\src;$(ProjectDir)3rdParty\stb;$(ProjectDir)3rdParty\glfw-3.3-win64\include;$(ProjectDir)Voxels;$(ProjectDir)3rdParty\cereal-1.2.2\include;$(ProjectDir)3rdParty\zlib-1.2.11;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
-    <PreBuildEventUseInBuild>true</PreBuildEventUseInBuild>
+    <IncludePath>$(ProjectDir)3rdParty\assimp-3.3.1\include;$(ProjectDir)3rdParty;$(ProjectDir)3rdParty\shaderc\include;$(ProjectDir)3rdParty\glew-2.1.0\include;$(ProjectDir);$(ProjectDir)3rdParty\entt\src;$(ProjectDir)3rdParty\stb;$(ProjectDir)3rdParty\glfw-3.3-win64\include;$(ProjectDir)3rdParty\cereal-1.2.2\include;$(ProjectDir)3rdParty\PhysX\include;$(ProjectDir)3rdParty\PhysX\sharedinclude;$(ProjectDir)3rdParty\zlib-1.2.11;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <PreBuildEventUseInBuild>false</PreBuildEventUseInBuild>
     <CustomBuildBeforeTargets>
     </CustomBuildBeforeTargets>
     <CustomBuildAfterTargets>PreBuildEvent</CustomBuildAfterTargets>
-    <LibraryPath>$(ProjectDir)3rdParty\glew-2.1.0\lib\Release\x64;$(ProjectDir)3rdParty\glfw-3.3-win64\lib-vc2019;$(ProjectDir)3rdParty\shaderc\lib;$(ProjectDir)3rdParty\zlib-1.2.11\zlib123dllx64\static_x64;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(ProjectDir)3rdParty\assimp-3.3.1\lib\x64;$(ProjectDir)3rdParty\glew-2.1.0\lib\Release\x64;$(ProjectDir)3rdParty\glfw-3.3-win64\lib-vc2019;$(ProjectDir)3rdParty\shaderc\lib;$(ProjectDir)3rdParty\zlib-1.2.11\zlib123dllx64\static_x64;$(ProjectDir)3rdParty\PhysX\bin\x64\debug;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -290,12 +255,12 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(ProjectDir)3rdParty;$(ProjectDir)3rdParty\shaderc\include;$(ProjectDir)Headers;$(ProjectDir)3rdParty\glew-2.1.0\include;$(ProjectDir);$(ProjectDir)3rdParty\entt\src;$(ProjectDir)3rdParty\stb;$(ProjectDir)3rdParty\glfw-3.3-win64\include;$(ProjectDir)Voxels;$(ProjectDir)3rdParty\cereal-1.2.2\include;$(ProjectDir)3rdParty\zlib-1.2.11;$(IncludePath)</IncludePath>
-    <PreBuildEventUseInBuild>true</PreBuildEventUseInBuild>
+    <IncludePath>$(ProjectDir)3rdParty\assimp-3.3.1\include;$(ProjectDir)3rdParty;$(ProjectDir)3rdParty\shaderc\include;$(ProjectDir)3rdParty\glew-2.1.0\include;$(ProjectDir);$(ProjectDir)3rdParty\entt\src;$(ProjectDir)3rdParty\stb;$(ProjectDir)3rdParty\glfw-3.3-win64\include;$(ProjectDir)3rdParty\cereal-1.2.2\include;$(ProjectDir)3rdParty\PhysX\include;$(ProjectDir)3rdParty\PhysX\sharedinclude;$(ProjectDir)3rdParty\zlib-1.2.11;$(IncludePath)</IncludePath>
+    <PreBuildEventUseInBuild>false</PreBuildEventUseInBuild>
     <CustomBuildBeforeTargets>
     </CustomBuildBeforeTargets>
     <CustomBuildAfterTargets>PreBuildEvent</CustomBuildAfterTargets>
-    <LibraryPath>$(ProjectDir)3rdParty\glew-2.1.0\lib\Release\x64;$(ProjectDir)3rdParty\glfw-3.3-win64\lib-vc2019;$(ProjectDir)3rdParty\shaderc\lib;$(ProjectDir)3rdParty\zlib-1.2.11\zlib123dllx64\static_x64;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(ProjectDir)3rdParty\assimp-3.3.1\lib\x64;$(ProjectDir)3rdParty\glew-2.1.0\lib\Release\x64;$(ProjectDir)3rdParty\glfw-3.3-win64\lib-vc2019;$(ProjectDir)3rdParty\shaderc\lib;$(ProjectDir)3rdParty\zlib-1.2.11\zlib123dllx64\static_x64;$(ProjectDir)3rdParty\PhysX\bin\x64\debug;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -339,16 +304,18 @@
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <AdditionalOptions>/experimental:external /external:I 3rdParty /external:W0 %(AdditionalOptions)</AdditionalOptions>
-      <Optimization>Full</Optimization>
+      <Optimization>Disabled</Optimization>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>opengl32.lib;glfw3dll.lib;glew32.lib;shaderc_combined.lib;zlibstat.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;glfw3dll.lib;glew32.lib;shaderc_combined.lib;zlibstat.lib;ws2_32.lib;assimp.lib;LowLevel_static_64.lib;LowLevelAABB_static_64.lib;LowLevelDynamics_static_64.lib;PhysX_64.lib;PhysXCommon_64.lib;PhysXFoundation_64.lib;PhysXPvdSDK_static_64.lib;PhysXTask_static_64.lib;SceneQuery_static_64.lib;SimulationController_static_64.lib;PhysXCooking_64.lib;PhysXExtensions_static_64.lib;PhysXCharacterKinematic_static_64.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
-      <Command>$(SolutionDir)x64\Debug\PrePP.exe</Command>
-      <Message>running Pre-Build file generation</Message>
+      <Command>
+      </Command>
+      <Message>
+      </Message>
     </PreBuildEvent>
     <PreLinkEvent>
       <Command>
@@ -360,7 +327,14 @@
     </CustomBuildStep>
     <PostBuildEvent>
       <Command>copy "$(ProjectDir)3rdParty\glew-2.1.0\bin\Release\x64\glew32.dll" "$(TargetDir)glew32.dll" /Y
-copy "$(ProjectDir)3rdParty\glfw-3.3-win64\lib-vc2019\glfw3.dll" "$(TargetDir)glfw3.dll" /Y</Command>
+copy "$(ProjectDir)3rdParty\glfw-3.3-win64\lib-vc2019\glfw3.dll" "$(TargetDir)glfw3.dll" /Y
+copy "$(ProjectDir)3rdParty\assimp-3.3.1\bin\x64\assimp-vc142-mtd.dll" "$(TargetDir)assimp-vc142-mtd.dll" /Y
+copy "$(ProjectDir)3rdParty\PhysX\bin\x64\debug\PhysX_64.dll" "$(TargetDir)PhysX_64.dll" /Y
+copy "$(ProjectDir)3rdParty\PhysX\bin\x64\debug\PhysXCommon_64.dll" "$(TargetDir)PhysXCommon_64.dll" /Y
+copy "$(ProjectDir)3rdParty\PhysX\bin\x64\debug\PhysXCooking_64.dll" "$(TargetDir)PhysXCooking_64.dll" /Y
+copy "$(ProjectDir)3rdParty\PhysX\bin\x64\debug\PhysXFoundation_64.dll" "$(TargetDir)PhysXFoundation_64.dll" /Y
+copy "$(ProjectDir)3rdParty\PhysX\bin\x64\debug\PhysXGpu_64.dll" "$(TargetDir)PhysXGpu_64.dll" /Y
+copy "$(ProjectDir)3rdParty\PhysX\bin\x64\debug\PhysXDevice64.dll" "$(TargetDir)PhysXDevice64.dll" /Y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -418,11 +392,13 @@ copy "$(ProjectDir)3rdParty\glfw-3.3-win64\lib-vc2019\glfw3.dll" "$(TargetDir)gl
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>opengl32.lib;glfw3dll.lib;glew32.lib;shaderc_combined.lib;zlibstat.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;glfw3dll.lib;glew32.lib;shaderc_combined.lib;zlibstat.lib;ws2_32.lib;assimp.lib;LowLevel_static_64.lib;LowLevelAABB_static_64.lib;LowLevelDynamics_static_64.lib;PhysX_64.lib;PhysXCommon_64.lib;PhysXFoundation_64.lib;PhysXPvdSDK_static_64.lib;PhysXTask_static_64.lib;SceneQuery_static_64.lib;SimulationController_static_64.lib;PhysXCooking_64.lib;PhysXExtensions_static_64.lib;PhysXCharacterKinematic_static_64.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
-      <Command>"$(SolutionDir)x64\Release\PrePP.exe"</Command>
-      <Message>running Pre-Build file generation</Message>
+      <Command>
+      </Command>
+      <Message>
+      </Message>
     </PreBuildEvent>
     <PreLinkEvent>
       <Command>
@@ -434,7 +410,14 @@ copy "$(ProjectDir)3rdParty\glfw-3.3-win64\lib-vc2019\glfw3.dll" "$(TargetDir)gl
     </CustomBuildStep>
     <PostBuildEvent>
       <Command>copy "$(ProjectDir)3rdParty\glew-2.1.0\bin\Release\x64\glew32.dll" "$(TargetDir)glew32.dll" /Y
-copy "$(ProjectDir)3rdParty\glfw-3.3-win64\lib-vc2019\glfw3.dll" "$(TargetDir)glfw3.dll" /Y</Command>
+copy "$(ProjectDir)3rdParty\glfw-3.3-win64\lib-vc2019\glfw3.dll" "$(TargetDir)glfw3.dll" /Y
+copy "$(ProjectDir)3rdParty\assimp-3.3.1\bin\x64\assimp-vc142-mtd.dll" "$(TargetDir)assimp-vc142-mtd.dll" /Y
+copy "$(ProjectDir)3rdParty\PhysX\bin\x64\debug\PhysX_64.dll" "$(TargetDir)PhysX_64.dll" /Y
+copy "$(ProjectDir)3rdParty\PhysX\bin\x64\debug\PhysXCommon_64.dll" "$(TargetDir)PhysXCommon_64.dll" /Y
+copy "$(ProjectDir)3rdParty\PhysX\bin\x64\debug\PhysXCooking_64.dll" "$(TargetDir)PhysXCooking_64.dll" /Y
+copy "$(ProjectDir)3rdParty\PhysX\bin\x64\debug\PhysXFoundation_64.dll" "$(TargetDir)PhysXFoundation_64.dll" /Y
+copy "$(ProjectDir)3rdParty\PhysX\bin\x64\debug\PhysXGpu_64.dll" "$(TargetDir)PhysXGpu_64.dll" /Y
+copy "$(ProjectDir)3rdParty\PhysX\bin\x64\debug\PhysXDevice64.dll" "$(TargetDir)PhysXDevice64.dll" /Y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

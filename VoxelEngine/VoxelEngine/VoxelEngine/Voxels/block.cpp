@@ -1,4 +1,4 @@
-#include <block.h>
+#include <Voxels/block.h>
 
 const std::vector<BlockProperties> Block::PropertiesTable =
 {
