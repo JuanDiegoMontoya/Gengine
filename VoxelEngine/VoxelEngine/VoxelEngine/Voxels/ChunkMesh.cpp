@@ -187,7 +187,6 @@ inline void ChunkMesh::buildBlockFace(
   addQuad(blockPos, block, face, nearChunk, light);
 }
 
-//#pragma optimize("", off)
 inline void ChunkMesh::addQuad(const glm::ivec3& lpos, BlockType block, int face, const Chunk* nearChunk, Light light)
 {
   if (voxelReady_)

@@ -4,7 +4,6 @@
 #include <CoreEngine/Input.h>
 #include <CoreEngine/Camera.h>
 
-#pragma optimize("", off)
 
 class PhysicsPlayerController : public ScriptableEntity
 {

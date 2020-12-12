@@ -222,7 +222,6 @@ void World::CheckCollision()
 }
 
 
-#pragma optimize("", off)
 void World::CheckCollision2()
 {
   auto cam = Renderer::GetPipeline()->GetCamera(0);

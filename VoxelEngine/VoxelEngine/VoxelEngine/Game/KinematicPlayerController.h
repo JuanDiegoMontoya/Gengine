@@ -4,16 +4,6 @@
 #include <CoreEngine/Input.h>
 #include <CoreEngine/Camera.h>
 
-#pragma optimize("", off)
-
-inline float lerp_t(float a, float b, float t, float dt)
-{
-  return (a + ((b - a) * (1.0f - glm::pow(t, dt))));
-}
-inline float lerp(float a, float b, float t)
-{
-  return (a + ((b - a) * t));
-}
 
 class KinematicPlayerController : public ScriptableEntity
 {

@@ -2,7 +2,6 @@
 #include <cereal/types/vector.hpp>
 #include <CoreEngine/GAssert.h>
 
-//#pragma optimize("", off)
 
 struct SerializableBitArray
 {

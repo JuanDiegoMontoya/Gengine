@@ -13,7 +13,7 @@ namespace GFX
     UBO = GL_UNIFORM_BUFFER,
   };
 
-  enum class BufferFlags : uint32_t
+  enum class BufferFlag : uint32_t
   {
     NONE = 0,
     DYNAMIC_STORAGE = GL_DYNAMIC_STORAGE_BIT,
@@ -24,23 +24,14 @@ namespace GFX
     MAP_PERSISTENT = GL_MAP_PERSISTENT_BIT,
     MAP_COHERENT = GL_MAP_COHERENT_BIT,
   };
-  inline BufferFlags operator|(BufferFlags a, BufferFlags b)
-  {
-    using T = std::underlying_type_t<BufferFlags>;
-    return static_cast<BufferFlags>(static_cast<T>(a) | static_cast<T>(b));
-  }
-  inline BufferFlags operator&(BufferFlags a, BufferFlags b)
-  {
-    using T = std::underlying_type_t<BufferFlags>;
-    return static_cast<BufferFlags>(static_cast<T>(a) & static_cast<T>(b));
-  }
+  DECLARE_FLAG_TYPE(BufferFlags, BufferFlag, uint32_t)
 
 
   // General-purpose immutable buffer storage
   class StaticBuffer
   {
   public:
-    StaticBuffer(const void* data, GLuint size, BufferFlags flags = BufferFlags::DYNAMIC_STORAGE);
+    StaticBuffer(const void* data, GLuint size, BufferFlags flags = BufferFlag::DYNAMIC_STORAGE);
 
     // copies another buffer's data store and contents
     StaticBuffer(const StaticBuffer& other);

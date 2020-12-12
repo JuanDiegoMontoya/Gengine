@@ -18,7 +18,6 @@
 #define FIXED_STEP 1
 #define ENABLE_GPU 1 // PhysX will automatically disable GPU simulation for non CUDA-compatible devices; this is just for debugging
 
-#pragma optimize("", off)
 
 using namespace physx;
 namespace

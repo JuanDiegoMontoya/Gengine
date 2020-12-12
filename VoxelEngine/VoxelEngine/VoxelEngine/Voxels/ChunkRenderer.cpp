@@ -62,7 +62,7 @@ ChunkRenderer::ChunkRenderer()
   cmd.instanceCount = 0; // will be incremented - reset every frame
   cmd.first = 0;
   cmd.baseInstance = 0;
-  dibCull = std::make_unique<GFX::StaticBuffer>(&cmd, sizeof(cmd), GFX::BufferFlags::CLIENT_STORAGE);
+  dibCull = std::make_unique<GFX::StaticBuffer>(&cmd, sizeof(cmd), GFX::BufferFlag::CLIENT_STORAGE);
 
   //dib = std::make_unique<StaticBuffer>(nullptr, 0);
   // assets
