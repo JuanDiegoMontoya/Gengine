@@ -16,7 +16,7 @@ struct MaterialInfo
 {
   std::vector<std::string> tex2Dpaths;
   entt::hashed_string shaderID;
-  // user-exposed uniforms here (user puts a list of uniform names and polymorphic values)
+  // user-exposed uniforms here (user puts a list of uniform names and std::any)
 };
 
 class MaterialManager

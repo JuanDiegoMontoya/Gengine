@@ -300,7 +300,7 @@ physx::PxRigidDynamic* Physics::PhysicsManager::AddDynamicActorEntity(Entity ent
   PxBoxGeometry geom(toPxVec3(collider.halfExtents));
   PxRigidDynamic* dynamic = PxCreateDynamic(*gPhysics, tr2, geom, *gMaterials[(int)material], 10.0f);
   dynamic->setAngularDamping(0.5f);
-  dynamic->setRigidBodyFlags((PxRigidBodyFlags)flags);
+  dynamic->setRigidBodyFlags((PxRigidBodyFlags)(uint32_t)flags);
   gEntityActors[dynamic] = entity;
   PxLockWrite lkw(gScene);
   gScene->addActor(*dynamic);
@@ -316,7 +316,7 @@ physx::PxRigidDynamic* Physics::PhysicsManager::AddDynamicActorEntity(Entity ent
   PxCapsuleGeometry geom(collider.radius, collider.halfHeight);
   PxRigidDynamic* dynamic = PxCreateDynamic(*gPhysics, tr2, geom, *gMaterials[(int)material], 10.0f);
   dynamic->setAngularDamping(0.5f);
-  dynamic->setRigidBodyFlags((PxRigidBodyFlags)flags);
+  dynamic->setRigidBodyFlags((PxRigidBodyFlags)(uint32_t)flags);
   gEntityActors[dynamic] = entity;
   PxLockWrite lkw(gScene);
   gScene->addActor(*dynamic);
@@ -491,7 +491,7 @@ void Physics::DynamicActorInterface::SetLockFlags(LockFlags flags)
 void Physics::DynamicActorInterface::SetActorFlags(ActorFlags flags)
 {
   PxLockWrite lkw(actor->getScene());
-  actor->setActorFlags((PxActorFlags)flags);
+  actor->setActorFlags((PxActorFlags)(uint32_t)flags);
 }
 
 void Physics::DynamicActorInterface::SetMass(float mass)

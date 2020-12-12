@@ -62,22 +62,22 @@ namespace Physics
     ACCELERATION,
   };
 
-  enum DynamicActorFlag
+  enum class DynamicActorFlag
   {
     KINEMATIC = (1 << 0),
     ENABLE_CCD = (1 << 2),
 
   };
-  using DynamicActorFlags = Utils::Flags<DynamicActorFlag>;
+  DECLARE_FLAG_TYPE(DynamicActorFlags, DynamicActorFlag, uint32_t)
 
-  enum ActorFlag
+  enum class ActorFlag
   {
     DISABLE_GRAVITY = (1 << 1),
     DISABLE_SIMULATION = (1 << 3),
   };
-  using ActorFlags = Utils::Flags<ActorFlag>;
+  DECLARE_FLAG_TYPE(ActorFlags, ActorFlag, uint32_t)
 
-  enum LockFlag
+  enum class LockFlag
   {
     LOCK_LINEAR_X = (1 << 0),
     LOCK_LINEAR_Y = (1 << 1),
@@ -86,15 +86,15 @@ namespace Physics
     LOCK_ANGULAR_Y = (1 << 4),
     LOCK_ANGULAR_Z = (1 << 5)
   };
-  using LockFlags = uint32_t;
+  DECLARE_FLAG_TYPE(LockFlags, LockFlag, uint32_t)
 
-  enum ControllerCollisionFlag
+  enum class ControllerCollisionFlag
   {
     COLLISION_SIDES = (1 << 0),
     COLLISION_UP = (1 << 1),
     COLLISION_DOWN = (1 << 2)
   };
-  using ControllerCollisionFlags = uint32_t;
+  DECLARE_FLAG_TYPE(ControllerCollisionFlags, ControllerCollisionFlag, uint32_t)
 
   enum class CollisionType : uint8_t
   {
