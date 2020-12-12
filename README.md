@@ -8,12 +8,13 @@ A code-oriented game engine designed to be efficient, extensible, and simple to 
 - Entity scripting
 - Entity transformation hierarchy
 - Model loading
+- Dynamic physics and collision API leveraging PhysX
 
 ## Graphics
 - OpenGL 4.6-based renderer for minimal driver overhead.
 
 ## To Do
-- Extend physics with collision callbacks, filtering, etc.
+- Extend physics API with collision callbacks, filtering, etc.
 - More graphical features like skeletal animation, particles, transparency, etc.
 
 ## Dependencies
