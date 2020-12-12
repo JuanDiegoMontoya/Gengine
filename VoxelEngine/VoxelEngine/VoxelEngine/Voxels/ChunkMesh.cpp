@@ -110,7 +110,7 @@ void ChunkMesh::BuildMesh()
 
     tActor = reinterpret_cast<physx::PxRigidActor*>(
       Physics::PhysicsManager::AddStaticActorGeneric(
-        Physics::MaterialType::Terrain, tCollider, 
+        Physics::MaterialType::TERRAIN, tCollider, 
         glm::translate(glm::mat4(1), glm::vec3(parent->GetPos() * Chunk::CHUNK_SIZE))));
 
     //printf("%f: Meshed\n", glfwGetTime());

@@ -21,11 +21,11 @@ namespace Components
 
   struct DynamicPhysics
   {
-    DynamicPhysics(Entity ent, ::Physics::MaterialType mat, const ::Physics::BoxCollider& c, ::Physics::DynamicActorFlags flags = 0)
+    DynamicPhysics(Entity ent, ::Physics::MaterialType mat, const ::Physics::BoxCollider& c, ::Physics::DynamicActorFlags flags = ::Physics::DynamicActorFlags{})
     {
       internalActor = ::Physics::PhysicsManager::AddDynamicActorEntity(ent, mat, c, flags);
     }
-    DynamicPhysics(Entity ent, ::Physics::MaterialType mat, const ::Physics::CapsuleCollider& c, ::Physics::DynamicActorFlags flags = 0)
+    DynamicPhysics(Entity ent, ::Physics::MaterialType mat, const ::Physics::CapsuleCollider& c, ::Physics::DynamicActorFlags flags = ::Physics::DynamicActorFlags{})
     {
       internalActor = ::Physics::PhysicsManager::AddDynamicActorEntity(ent, mat, c, flags);
     }

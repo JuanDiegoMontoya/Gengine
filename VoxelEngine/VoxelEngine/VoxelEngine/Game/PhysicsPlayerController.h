@@ -48,7 +48,7 @@ public:
     if (Input::IsKeyDown(GLFW_KEY_T))
     {
       maxSpeed = 1000;
-      physics.Interface().AddForce(cam.GetDir() * 50.f, Physics::ForceMode::Force);
+      physics.Interface().AddForce(cam.GetDir() * 50.f, Physics::ForceMode::FORCE);
     }
     if (Input::IsKeyDown(GLFW_KEY_W))
       xzForce += xzForward * currSpeed;

@@ -2,6 +2,7 @@
 #include <glm/glm.hpp>
 #include <CoreEngine/Entity.h>
 #include <memory>
+#include "Flags.h"
 
 namespace physx
 {
@@ -49,32 +50,32 @@ namespace Physics
 
   enum class MaterialType
   {
-    Player,
-    Terrain
+    PLAYER,
+    TERRAIN
   };
 
   enum class ForceMode
   {
-    Force,
-    Impulse,
-    VelocityChange,
-    Acceleration,
+    FORCE,
+    IMPULSE,
+    VELOCITY_CHANGE,
+    ACCELERATION,
   };
 
   enum DynamicActorFlag
   {
-    Kinematic = (1 << 0),
-    EnableCCD = (1 << 2),
+    KINEMATIC = (1 << 0),
+    ENABLE_CCD = (1 << 2),
 
   };
-  using DynamicActorFlags = uint32_t;
+  using DynamicActorFlags = Utils::Flags<DynamicActorFlag>;
 
   enum ActorFlag
   {
-    DisableGravity = (1 << 1),
-    DisableSimulation = (1 << 3),
+    DISABLE_GRAVITY = (1 << 1),
+    DISABLE_SIMULATION = (1 << 3),
   };
-  using ActorFlags = uint32_t;
+  using ActorFlags = Utils::Flags<ActorFlag>;
 
   enum LockFlag
   {
@@ -98,17 +99,17 @@ namespace Physics
   enum class CollisionType : uint8_t
   {
     // trace types (no object can actually be one of these types)
-    Visibility,
-    Camera,
+    VISIBILITY,
+    CAMERA,
 
     // object types
-    WorldStatic,
-    WorldDynamic,
-    Player,
-    PhysicsBody,
-    Destructible,
+    WORLD_STATIC,
+    WORLD_DYNAMIC,
+    PLAYER,
+    PHYSICS_BODY,
+    DESTRUCTIBLE,
 
-    OTCount, // don't actually use this pls
+    CTCount_, // don't actually use this pls
   };
 
   enum class CollisionResponse : uint8_t
@@ -126,7 +127,7 @@ namespace Physics
     uint16_t flags;
   };
 
-  static_assert(sizeof(CollisionResponseFlags) * 8 >= (uint16_t)CollisionType::OTCount * 2,
+  static_assert(sizeof(CollisionResponseFlags) * 8 >= (uint16_t)CollisionType::CTCount_ * 2,
     "Too many object types to fit within the size of CollisionResponseFlags. Consider \
     increasing the width of the underlying type.");
 
@@ -174,7 +175,7 @@ namespace Physics
   {
   public:
     DynamicActorInterface(physx::PxRigidDynamic* atr) : actor(atr) {}
-    void AddForce(const glm::vec3& force, ForceMode mode = ForceMode::Impulse);
+    void AddForce(const glm::vec3& force, ForceMode mode = ForceMode::IMPULSE);
     void SetPosition(const glm::vec3& pos);
     glm::vec3 GetVelocity();
     void SetVelocity(const glm::vec3& vel);

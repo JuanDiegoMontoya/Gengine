@@ -40,7 +40,7 @@ public:
     float maxXZSpeed = normalSpeed;
 
     // speed modifiers
-    float acceleration = flags & Physics::COLLISION_DOWN ? accelerationGround : accelerationAir;
+    float acceleration = flags & Physics::ControllerCollisionFlag::COLLISION_DOWN ? accelerationGround : accelerationAir;
     if (Input::IsKeyDown(GLFW_KEY_LEFT_SHIFT))
     {
       maxXZSpeed = fastSpeed;
@@ -97,11 +97,11 @@ public:
       float deceleration = 0;
       expectedPosition += velocity * dt;
       flags = controller.Interface().Move(velocity * dt, dt);
-      if (flags & Physics::COLLISION_DOWN || flags & Physics::COLLISION_UP)
+      if (flags & Physics::ControllerCollisionFlag::COLLISION_DOWN || flags & Physics::ControllerCollisionFlag::COLLISION_UP)
       {
         velocity.y = 0;
         // jump if colliding below
-        if (flags & Physics::COLLISION_DOWN && Input::IsKeyDown(GLFW_KEY_SPACE))
+        if (flags & Physics::ControllerCollisionFlag::COLLISION_DOWN && Input::IsKeyDown(GLFW_KEY_SPACE))
           velocity.y = jumpVel;
 
         deceleration = decelerationGround;
@@ -126,7 +126,7 @@ public:
       velocity.x = velXZ.x;
       velocity.z = velXZ.y;
 
-      if (flags & Physics::COLLISION_SIDES)
+      if (flags & Physics::ControllerCollisionFlag::COLLISION_SIDES)
       {
       }
 

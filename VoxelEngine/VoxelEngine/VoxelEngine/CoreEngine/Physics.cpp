@@ -193,10 +193,10 @@ void Physics::PhysicsManager::Init()
   }
 
   gMaterials = std::vector<PxMaterial*>(2);
-  gMaterials[(int)MaterialType::Player] = gPhysics->createMaterial(0.2f, 0.2f, -1.0f);
-  gMaterials[(int)MaterialType::Terrain] = gPhysics->createMaterial(0.4f, 0.4f, .5f);
+  gMaterials[(int)MaterialType::PLAYER] = gPhysics->createMaterial(0.2f, 0.2f, -1.0f);
+  gMaterials[(int)MaterialType::TERRAIN] = gPhysics->createMaterial(0.4f, 0.4f, .5f);
 
-  PxRigidStatic* groundPlane = PxCreatePlane(*gPhysics, PxPlane(0, 1, 0, 0), *gMaterials[(int)MaterialType::Terrain]);
+  PxRigidStatic* groundPlane = PxCreatePlane(*gPhysics, PxPlane(0, 1, 0, 0), *gMaterials[(int)MaterialType::TERRAIN]);
   gScene->addActor(*groundPlane);
 }
 
@@ -485,7 +485,7 @@ void Physics::DynamicActorInterface::SetMaxVelocity(float vel)
 void Physics::DynamicActorInterface::SetLockFlags(LockFlags flags)
 {
   PxLockWrite lkw(actor->getScene());
-  actor->setRigidDynamicLockFlags((PxRigidDynamicLockFlag::Enum)flags);
+  actor->setRigidDynamicLockFlags((PxRigidDynamicLockFlag::Enum)(uint32_t)flags);
 }
 
 void Physics::DynamicActorInterface::SetActorFlags(ActorFlags flags)

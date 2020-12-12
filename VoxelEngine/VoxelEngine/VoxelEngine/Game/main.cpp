@@ -76,7 +76,7 @@ void OnStart(Scene* scene)
     player.AddComponent<Components::Camera>(Camera::ActiveCamera);
     Physics::CapsuleCollider collider(0.3, 0.5);
     //Physics::BoxCollider collider({ 1, 1, 1 });
-    player.AddComponent<Components::CharacterController>(player, Physics::MaterialType::Player, collider);
+    player.AddComponent<Components::CharacterController>(player, Physics::MaterialType::PLAYER, collider);
 
     // extra stuff attached to the player
     Entity playerSub = scene->CreateEntity("PlayerSub");
@@ -163,7 +163,7 @@ void OnStart(Scene* scene)
         entity.AddComponent<Components::BatchedMesh>().handle = meshes[0];
         entity.AddComponent<Components::Material>(batchMaterial);
         auto collider = Physics::BoxCollider(scale * .5f);
-        Components::DynamicPhysics phys(entity, Physics::MaterialType::Terrain, collider);
+        Components::DynamicPhysics phys(entity, Physics::MaterialType::TERRAIN, collider);
         entity.AddComponent<Components::DynamicPhysics>(std::move(phys));
       }
     }
@@ -179,7 +179,7 @@ void OnStart(Scene* scene)
         entity.AddComponent<Components::BatchedMesh>().handle = meshes[2];
         entity.AddComponent<Components::Material>(batchMaterial);
         auto collider = Physics::CapsuleCollider(.5, .01);
-        Components::DynamicPhysics phys(entity, Physics::MaterialType::Terrain, collider);
+        Components::DynamicPhysics phys(entity, Physics::MaterialType::TERRAIN, collider);
         entity.AddComponent<Components::DynamicPhysics>(std::move(phys));
       }
     }
@@ -190,7 +190,7 @@ void OnStart(Scene* scene)
       entity.GetComponent<Components::Transform>().SetScale({ 1, 1, 1 });
       entity.AddComponent<Components::BatchedMesh>().handle = meshes[0];
       entity.AddComponent<Components::Material>(batchMaterial);
-      Components::DynamicPhysics phys(entity, Physics::MaterialType::Terrain, Physics::BoxCollider(glm::vec3(.5)));
+      Components::DynamicPhysics phys(entity, Physics::MaterialType::TERRAIN, Physics::BoxCollider(glm::vec3(.5)));
       entity.AddComponent<Components::DynamicPhysics>(std::move(phys));
       entity.AddComponent<Components::NativeScriptComponent>().Bind<PhysicsTest2>();
     }
@@ -207,7 +207,7 @@ void OnStart(Scene* scene)
           entity.AddComponent<Components::BatchedMesh>().handle = meshes[0];
           entity.AddComponent<Components::Material>(batchMaterial);
           auto collider = Physics::BoxCollider({ .5, .5, .5 });
-          Components::StaticPhysics phys(entity, Physics::MaterialType::Terrain, collider);
+          Components::StaticPhysics phys(entity, Physics::MaterialType::TERRAIN, collider);
           entity.AddComponent<Components::StaticPhysics>(std::move(phys));
         }
       }
@@ -217,7 +217,7 @@ void OnStart(Scene* scene)
       Physics::MeshCollider collider;
       collider.vertices = { {-.5, -.5, -.5}, {-.5, -.5, .5}, {.5, -.5, .5}, {.5, -.5, -.5}, {0, .5, 0} };
       collider.indices = { 0, 1, 3, 3, 1, 2, 0, 4, 3, 3, 4, 2, 2, 4, 1, 1, 4, 0 };
-      auto* actor = Physics::PhysicsManager::AddStaticActorGeneric(Physics::MaterialType::Terrain, collider, glm::mat4(1));
+      auto* actor = Physics::PhysicsManager::AddStaticActorGeneric(Physics::MaterialType::TERRAIN, collider, glm::mat4(1));
       ASSERT(actor);
     }
   }

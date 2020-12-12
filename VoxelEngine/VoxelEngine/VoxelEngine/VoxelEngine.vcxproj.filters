@@ -280,6 +280,9 @@
     <ClInclude Include="CoreEngine\utilities.h">
       <Filter>CoreEngine</Filter>
     </ClInclude>
+    <ClInclude Include="CoreEngine\Flags.h">
+      <Filter>CoreEngine</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="3rdParty\imgui\imgui.cpp">
