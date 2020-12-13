@@ -372,4 +372,14 @@ namespace Vertices
      .5f,-.5f,-.5f, // rbn
      .5f,-.5f, .5f, // rbf
   };
+
+  static const GLubyte cube_indices_bufferless[] =
+  {
+    0, 2, 1, 2, 3, 1,
+    5, 4, 1, 1, 4, 0,
+    0, 4, 6, 0, 6, 2,
+    6, 5, 7, 6, 4, 5,
+    2, 6, 3, 6, 7, 3,
+    7, 1, 3, 7, 5, 1,
+  };
 }

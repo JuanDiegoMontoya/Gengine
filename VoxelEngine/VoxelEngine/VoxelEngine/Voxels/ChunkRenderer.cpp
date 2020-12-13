@@ -49,22 +49,22 @@ ChunkRenderer::ChunkRenderer()
 
   // setup vertex buffer for cube that will be used for culling
   vaoCull = std::make_unique<GFX::VAO>();
-  vaoCull->Bind();
-  vboCull = std::make_unique<GFX::StaticBuffer>(Vertices::cube, sizeof(Vertices::cube));
-  vboCull->Bind<GFX::Target::VBO>();
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-  glEnableVertexAttribArray(0);
-  vboCull->Unbind<GFX::Target::VBO>();
-  vaoCull->Unbind();
+  //vaoCull->Bind();
+  //vboCull = std::make_unique<GFX::StaticBuffer>(Vertices::cube, sizeof(Vertices::cube));
+  //vboCull->Bind<GFX::Target::VBO>();
+  //glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+  //glEnableVertexAttribArray(0);
+  //vboCull->Unbind<GFX::Target::VBO>();
+  //vaoCull->Unbind();
 
-  DrawArraysIndirectCommand cmd;
-  cmd.count = 36; // vertices on cube
+  DrawElementsIndirectCommand cmd;
+  cmd.count = 14; // vertices on cube
   cmd.instanceCount = 0; // will be incremented - reset every frame
-  cmd.first = 0;
+  cmd.baseVertex = 0;
+  cmd.firstIndex = 0;
   cmd.baseInstance = 0;
   dibCull = std::make_unique<GFX::StaticBuffer>(&cmd, sizeof(cmd), GFX::BufferFlag::CLIENT_STORAGE);
 
-  //dib = std::make_unique<StaticBuffer>(nullptr, 0);
   // assets
   std::vector<std::string> texs;
   for (const auto& prop : Block::PropertiesTable)
@@ -266,7 +266,7 @@ void ChunkRenderer::RenderOcclusion()
   vaoCull->Bind();
   constexpr GLint offset = offsetof(DrawArraysIndirectCommand, instanceCount);
   glCopyNamedBufferSubData(drawCountGPU->GetID(), dibCull->GetID(), 0, offset, sizeof(GLuint));
-  glMultiDrawArraysIndirect(GL_TRIANGLES, (void*)0, 1, 0);
+  glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, (void*)0, 1, 0);
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
   glEnable(GL_CULL_FACE);

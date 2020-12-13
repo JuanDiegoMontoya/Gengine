@@ -71,7 +71,7 @@ private:
   // resets each frame BEFORE the culling phase
   //GLuint allocDataBuffer = 0;
   std::unique_ptr<GFX::VAO> vaoCull;
-  std::unique_ptr<GFX::StaticBuffer> vboCull; // stores only cube vertices
+  //std::unique_ptr<GFX::StaticBuffer> vboCull; // stores only cube vertices
   std::unique_ptr<GFX::StaticBuffer> dibCull;
   GLsizei activeAllocs;
   std::pair<uint64_t, GLuint> stateInfo{ 0, 0 };
