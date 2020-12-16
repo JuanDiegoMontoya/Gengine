@@ -18,7 +18,7 @@ namespace
 }
 
 // init chunks that we finna modify
-void WorldGen2::Init()
+void WorldGen::Init()
 {
   vm.SetDim(highChunkDim);
   Timer timer;
@@ -46,10 +46,10 @@ void WorldGen2::Init()
 //   big rocky areas, good connectivity
 
 // does the thing
-void WorldGen2::GenerateWorld()
+void WorldGen::GenerateWorld()
 {
   Timer timer;
-  std::unique_ptr<FastNoiseSIMD> noisey (FastNoiseSIMD::NewFastNoiseSIMD());
+  std::unique_ptr<FastNoiseSIMD> noisey(FastNoiseSIMD::NewFastNoiseSIMD());
   noisey->SetFractalLacunarity(2.0);
   noisey->SetFractalOctaves(5);
   //noisey->SetFrequency(.04);
@@ -59,27 +59,28 @@ void WorldGen2::GenerateWorld()
 
   auto& chunks = vm.chunks_;
   std::for_each(std::execution::par, chunks.begin(), chunks.end(),
-    [&](Chunk* pair)
+    [&](Chunk* chunk)
   {
-    if (pair)
+    if (chunk)
     {
-      glm::ivec3 st = pair->GetPos() * Chunk::CHUNK_SIZE;
-      float* noiseSet = noisey->GetCubicFractalSet(st.z, st.y, st.x, 
-        Chunk::CHUNK_SIZE, Chunk::CHUNK_SIZE, Chunk::CHUNK_SIZE, 1);
-      int idx = 0;
+      glm::ivec3 st = chunk->GetPos() * Chunk::CHUNK_SIZE;
+      float* noiseSet = noisey->GetCubicFractalSet(st.z, 0, st.x, 
+        Chunk::CHUNK_SIZE, 1, Chunk::CHUNK_SIZE, 1);
+      //int idx = 0;
 
       //printf(".");
       glm::ivec3 pos, wpos;
       for (pos.z = 0; pos.z < Chunk::CHUNK_SIZE; pos.z++)
       {
-        //int zcsq = pos.z * Chunk::CHUNK_SIZE_SQRED;
+        int zcsq = pos.z * Chunk::CHUNK_SIZE;
         for (pos.y = 0; pos.y < Chunk::CHUNK_SIZE; pos.y++)
         {
           //int yczcsq = pos.y * Chunk::CHUNK_SIZE + zcsq;
           for (pos.x = 0; pos.x < Chunk::CHUNK_SIZE; pos.x++)
           {
             //int index = pos.x + yczcsq;
-            wpos = ChunkHelpers::chunkPosToWorldPos(pos, pair->GetPos());
+            int idx = pos.x + zcsq;
+            wpos = ChunkHelpers::chunkPosToWorldPos(pos, chunk->GetPos());
 
             //double density = noise.GetValue(wpos.x, wpos.y, wpos.z); // chunks are different
             //double density = noise.GetValue(pos.x, pos.y, pos.z); // same chunk every time
@@ -89,21 +90,25 @@ void WorldGen2::GenerateWorld()
             //  vm.SetBlockType(wpos, BlockType::bStone);
             //continue;
 
-            float density = noiseSet[idx++];
-            if (density < -.02)
+            float height = (noiseSet[idx] + .1f) * 100;
+            if (wpos.y < height)
             {
               vm.SetBlockType(wpos, BlockType::bGrass);
             }
-            if (density < -.03)
-            {
-              vm.SetBlockType(wpos, BlockType::bDirt);
-            }
-            if (density < -.04)
-            {
-              vm.SetBlockType(wpos, BlockType::bStone);
-            }
+            //if (density < -.02)
+            //{
+            //  vm.SetBlockType(wpos, BlockType::bGrass);
+            //}
+            //if (density < -.03)
+            //{
+            //  vm.SetBlockType(wpos, BlockType::bDirt);
+            //}
+            //if (density < -.04)
+            //{
+            //  vm.SetBlockType(wpos, BlockType::bStone);
+            //}
 
-            //printf("%f\n", density);
+            //printf("%f\n", height / 100.f);
           }
         }
       }
@@ -116,12 +121,11 @@ void WorldGen2::GenerateWorld()
     }
   });
 
-  //delete noisey;
   printf("Generating chunks took %f seconds\n", timer.elapsed());
 }
 
 
-void WorldGen2::InitMeshes()
+void WorldGen::InitMeshes()
 {
   Timer timer;
   auto& chunks = vm.chunks_;
@@ -135,7 +139,7 @@ void WorldGen2::InitMeshes()
 }
 
 
-void WorldGen2::InitBuffers()
+void WorldGen::InitBuffers()
 {
   Timer timer;
   auto& chunks = vm.chunks_;
@@ -151,7 +155,7 @@ void WorldGen2::InitBuffers()
 
 
 
-bool WorldGen2::checkDirectSunlight(glm::ivec3 wpos)
+bool WorldGen::checkDirectSunlight(glm::ivec3 wpos)
 {
   auto p = ChunkHelpers::worldPosToLocalPos(wpos);
   Chunk* chunk = vm.GetChunk(p.chunk_pos);
@@ -174,7 +178,7 @@ bool WorldGen2::checkDirectSunlight(glm::ivec3 wpos)
   return false;
 }
 
-void WorldGen2::InitializeSunlight()
+void WorldGen::InitializeSunlight()
 {
   Timer timer;
 
@@ -229,7 +233,7 @@ void WorldGen2::InitializeSunlight()
 }
 
 // updates the sunlight of a block at a given location
-void WorldGen2::sunlightPropagateOnce(const glm::ivec3& wpos)
+void WorldGen::sunlightPropagateOnce(const glm::ivec3& wpos)
 {
   // do something
   enum { left, right, up, down, front, back }; // +Z = front

@@ -65,7 +65,7 @@ public:
   std::unique_ptr<ChunkRenderer> chunkRenderer_{};
 private:
   friend class ChunkManager;
-  friend class WorldGen2;
+  friend class WorldGen;
   friend class ChunkMesh;
 
   std::unique_ptr<ChunkManager> chunkManager_{};

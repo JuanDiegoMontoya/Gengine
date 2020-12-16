@@ -4,10 +4,10 @@
 
 class VoxelManager;
 
-class WorldGen2
+class WorldGen
 {
 public:
-  WorldGen2(VoxelManager& v) : vm(v) {}
+  WorldGen(VoxelManager& v) : vm(v) {}
   void Init();
   void GenerateWorld();
   void InitMeshes();

@@ -36,10 +36,10 @@ static std::unique_ptr<VoxelManager> voxelManager{};
 void OnStart(Scene* scene)
 {
   voxelManager = std::make_unique<VoxelManager>();
-  WorldGen2 wg(*voxelManager);
+  WorldGen wg(*voxelManager);
   wg.Init();
   wg.GenerateWorld();
-  //wg.InitializeSunlight();
+  wg.InitializeSunlight();
   wg.InitMeshes();
   wg.InitBuffers();
   //auto compressed = CompressChunk(voxelManager->GetChunk(glm::ivec3(0))->GetStorage());
