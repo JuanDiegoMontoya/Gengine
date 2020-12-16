@@ -77,7 +77,7 @@ private:
   {
     //ASSERT(glm::all(glm::lessThan(p, worldDim_)) && glm::all(glm::greaterThanEqual(p, glm::ivec3(0))));
     //return glm::dot(glm::vec3(p), glm::vec3(chunksPerDim_));
-    return p.x + worldDim_.y * (p.y + worldDim_.x * p.z);
+    return p.x + worldDim_.x * (p.y + worldDim_.y * p.z);
   }
   Chunk* find(const glm::ivec3& p) const
   {
