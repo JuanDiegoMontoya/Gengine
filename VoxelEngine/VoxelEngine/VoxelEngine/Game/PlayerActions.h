@@ -38,6 +38,40 @@ public:
     ImGui::Text("%s", Block::PropertiesTable[(int)selected].name);
     ImGui::End();
     ImGui::PopStyleVar();
+
+    ImGui::Begin("Yeet");
+    ImGui::Text("Voxel raycast information:");
+    float dist = 5.f;
+    ImGui::Text("Ray length: %0.f", dist);
+    const auto cam = Camera::ActiveCamera;
+    voxels->Raycast(
+      cam->GetPos(),
+      cam->GetFront(),
+      dist,
+      [this](glm::vec3 pos, Block block, glm::vec3 side)->bool
+        {
+          if (block.GetType() == BlockType::bAir)
+          {
+            return false;
+          }
+          
+          ImGui::Text("Block Type: %d (%s)", block.GetTypei(), block.GetName());
+          //ImGui::Text("Write Strength: %d", block->WriteStrength());
+          //ImGui::Text("Light Value: %d", block->LightValue());
+          Light lit;
+          if (auto opt = voxels->TryGetBlock(pos))
+            lit = opt->GetLight();
+          Light lit2;
+          if (auto opt = voxels->TryGetBlock(pos + side))
+            lit2 = opt->GetLight();
+          ImGui::Text("Light:  (%d, %d, %d, %d)", lit.GetR(), lit.GetG(), lit.GetB(), lit.GetS());
+          ImGui::Text("FLight: (%d, %d, %d, %d)", lit2.GetR(), lit2.GetG(), lit2.GetB(), lit2.GetS());
+          ImGui::Text("Block pos:  (%.2f, %.2f, %.2f)", pos.x, pos.y, pos.z);
+          ImGui::Text("Block side: (%.2f, %.2f, %.2f)", side.x, side.y, side.z);
+
+          return true;
+        });
+    ImGui::End();
   }
 
 
@@ -63,8 +97,7 @@ public:
         cam->GetPos(),
         cam->GetFront(),
         5,
-        std::function<bool(glm::vec3, Block, glm::vec3)>
-        ([&](glm::vec3 pos, Block block, glm::vec3 side)->bool
+        [this](glm::vec3 pos, Block block, glm::vec3 side)->bool
           {
             if (block.GetType() == BlockType::bAir)
               return false;
@@ -73,8 +106,7 @@ public:
             //chunkManager_.UpdateBlock(pos + side, selected, 0);
             
             return true;
-          }
-      ));
+          });
     }
   }
 
@@ -91,8 +123,7 @@ public:
         cam->GetPos(),
         cam->GetFront(),
         5,
-        std::function<bool(glm::vec3, Block, glm::vec3)>
-        ([&](glm::vec3 pos, Block block, glm::vec3 side)->bool
+        [this](glm::vec3 pos, Block block, glm::vec3 side)->bool
           {
             if (block.GetType() == BlockType::bAir)
               return false;
@@ -101,8 +132,7 @@ public:
             //chunkManager_.UpdateBlock(pos, BlockType::bAir, 0);
 
             return true;
-          }
-      ));
+          });
     }
   }
 
@@ -119,8 +149,7 @@ public:
         cam->GetPos(),
         cam->GetFront(),
         5,
-        std::function<bool(glm::vec3, Block, glm::vec3)>
-        ([&](glm::vec3 pos, Block block, glm::vec3 side)->bool
+        [this](glm::vec3 pos, Block block, glm::vec3 side)->bool
           {
             if (block.GetType() == BlockType::bAir)
               return false;
@@ -128,8 +157,7 @@ public:
             selected = block.GetType();
 
             return true;
-          }
-      ));
+          });
     }
   }
 

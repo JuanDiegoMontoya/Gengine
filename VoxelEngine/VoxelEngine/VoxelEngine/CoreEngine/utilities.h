@@ -183,7 +183,7 @@ namespace Utils
 }
 
 
-static std::ostream& operator<<(std::ostream& o, glm::ivec3 v)
+inline std::ostream& operator<<(std::ostream& o, glm::ivec3 v)
 {
   return o << '('
     << v.x << ", "

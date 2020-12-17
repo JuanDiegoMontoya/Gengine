@@ -30,7 +30,7 @@ vec3 CreateCube(in uint vertexID)
 
 void main()
 {
-  vec3 aPos = CreateCube(gl_VertexID) - .5;
+  vec3 aPos = CreateCube(gl_VertexID) - .5; // gl_VertexIndex for Vulkan
 
   vID = gl_InstanceID; // index of chunk being drawn
   uint aOffset = drawCommands[vID].first * 2; // ratio between vertex size and int

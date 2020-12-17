@@ -139,11 +139,11 @@ private:
     auto it2 = gEntityActors.find(pairHeader.actors[1]);
     if (it1 != gEntityActors.end())
     {
-      printf("%s", it1->second.GetComponent<Components::Tag>().tag.c_str());
+      //printf("%s", it1->second.GetComponent<Components::Tag>().tag.c_str());
     }
     if (it2 != gEntityActors.end())
     {
-      printf("%s", it2->second.GetComponent<Components::Tag>().tag.c_str());
+      //printf("%s", it2->second.GetComponent<Components::Tag>().tag.c_str());
     }
   }
 };
@@ -369,10 +369,10 @@ physx::PxRigidStatic* Physics::PhysicsManager::AddStaticActorGeneric(MaterialTyp
   PxTolerancesScale scale;
   PxCookingParams params(scale);
   // disable mesh cleaning - perform mesh validation on development configurations
-  //params.meshPreprocessParams |= PxMeshPreprocessingFlag::eDISABLE_CLEAN_MESH;
+  params.meshPreprocessParams |= PxMeshPreprocessingFlag::eDISABLE_CLEAN_MESH;
   // disable edge precompute, edges are set for each triangle, slows contact generation
-  //params.meshPreprocessParams |= PxMeshPreprocessingFlag::eDISABLE_ACTIVE_EDGES_PRECOMPUTE;
-  params.meshPreprocessParams |= PxMeshPreprocessingFlag::eWELD_VERTICES;
+  params.meshPreprocessParams |= PxMeshPreprocessingFlag::eDISABLE_ACTIVE_EDGES_PRECOMPUTE;
+  //params.meshPreprocessParams |= PxMeshPreprocessingFlag::eWELD_VERTICES;
   params.meshWeldTolerance = .1f;
   // lower hierarchy for internal mesh
   //params.meshCookingHint = PxMeshCookingHint::eCOOKING_PERFORMANCE;
