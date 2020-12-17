@@ -153,11 +153,11 @@ namespace Utils
   namespace detail
   {
     // noise from https://gist.github.com/patriciogonzalezvivo/670c22f3966e662d2f83
-    float mod289(float x) { return x - floor(x * (1.0f / 289.0f)) * 289.0f; }
-    glm::vec4 mod289(glm::vec4 x) { return x - floor(x * (1.0f / 289.0f)) * 289.0f; }
-    glm::vec4 perm(glm::vec4 x) { return mod289(((x * 34.0f) + 1.0f) * x); }
+    inline float mod289(float x) { return x - floor(x * (1.0f / 289.0f)) * 289.0f; }
+    inline glm::vec4 mod289(glm::vec4 x) { return x - floor(x * (1.0f / 289.0f)) * 289.0f; }
+    inline glm::vec4 perm(glm::vec4 x) { return mod289(((x * 34.0f) + 1.0f) * x); }
   }
-  float noise(glm::vec3 p)
+  inline float noise(glm::vec3 p)
   {
     using namespace glm;
     vec3 a = floor(p);
