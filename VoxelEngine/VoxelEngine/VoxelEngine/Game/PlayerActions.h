@@ -23,11 +23,11 @@ public:
   {
     checkTestButton();
     checkBlockPick();
-    checkBlockDestruction();
+    checkBlockDestruction(dt);
     checkBlockPlacement();
 
     selected = (BlockType)glm::clamp((int)selected + (int)Input::GetScrollOffset().y, 0, (int)Block::PropertiesTable.size() - 1);
-    
+
     float size = 100.0f;
     ImGui::SetNextWindowBgAlpha(0.0f);
     ImGui::SetNextWindowSize(ImVec2(size * 1.25f, size * 1.7f));
@@ -71,7 +71,7 @@ public:
 
             voxels->UpdateBlock(pos + side, selected);
             //chunkManager_.UpdateBlock(pos + side, selected, 0);
-            
+
             return true;
           }
       ));
@@ -79,13 +79,15 @@ public:
   }
 
 
-  void checkBlockDestruction()
+  void checkBlockDestruction(float dt)
   {
-    if (Input::IsMousePressed(GLFW_MOUSE_BUTTON_1)/* &&
+    if(Input::IsMouseDown(GLFW_MOUSE_BUTTON_1)
+    /*if (Input::IsMousePressed(GLFW_MOUSE_BUTTON_1) &&
       !ImGui::IsAnyItemHovered() &&
       !ImGui::IsAnyItemActive() &&
       !ImGui::IsAnyItemFocused()*/)
     {
+      bool hit = false;
       const auto cam = Camera::ActiveCamera;
       voxels->Raycast(
         cam->GetPos(),
@@ -97,13 +99,34 @@ public:
             if (block.GetType() == BlockType::bAir)
               return false;
 
-            if(block.GetDestructible())
-                voxels->UpdateBlock(pos, BlockType::bAir);
+            hit = true;
+            timer += dt;
+            if (pos == prevBlock && prevHit && timer >= block.GetTTK() && block.GetDestructible())
+            {
+              voxels->UpdateBlock(pos, BlockType::bAir);
+              timer = 0.0f;
+              hit = false;
+            }
+            else
+            {
+              prevBlock = pos;
+              if (!block.GetDestructible())
+                timer = 0.0f;
+            }
+
             //chunkManager_.UpdateBlock(pos, BlockType::bAir, 0);
 
             return true;
           }
       ));
+      prevHit = hit;
+      if (!prevHit)
+        timer = 0.0f;
+    }
+    else
+    {
+      prevHit = false;
+      timer = 0.0f;
     }
   }
 
@@ -134,6 +157,9 @@ public:
     }
   }
 
+  glm::vec3 prevBlock = {-1, -1, -1};
+  bool prevHit = false;
+  float timer = 0.0f;
   BlockType selected = BlockType::bStone;
   VoxelManager* voxels{};
 };

@@ -15,13 +15,15 @@ enum class Visibility
 struct BlockProperties
 {
   BlockProperties(
-    const char* n, 
-    glm::uvec4 e, 
+    const char* n,
+    glm::uvec4 e,
+    float time = 0.5f,
     bool des = true,
     Visibility vis = Visibility::Opaque, 
     const char* tx = "<null>")
-  : name(n), emittance(e), destructible(des), visibility(vis), texture(tx) {}
+  : name(n), emittance(e), ttk(time), destructible(des), visibility(vis), texture(tx) {}
   const char* name;
+  float ttk;
   bool destructible;
   Visibility visibility; // skip rendering if true
   glm::u8vec4 emittance; // light
@@ -69,6 +71,7 @@ public:
   BlockType GetType() const { return type_; }
   int GetTypei() const { return int(type_); }
   const char* GetName() const { return Block::PropertiesTable[unsigned(type_)].name; }
+  float GetTTK() { return Block::PropertiesTable[unsigned(type_)].ttk; }
   bool GetDestructible() { return Block::PropertiesTable[unsigned(type_)].destructible; }
   Light& GetLightRef() { return light_; }
   Light GetLight() const { return light_; }

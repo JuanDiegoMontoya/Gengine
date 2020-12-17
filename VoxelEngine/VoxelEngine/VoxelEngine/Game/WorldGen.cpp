@@ -67,6 +67,8 @@ void WorldGen::GenerateWorld()
       glm::ivec3 st = chunk->GetPos() * Chunk::CHUNK_SIZE;
       float* noiseSet = noisey->GetCubicFractalSet(st.z, 0, st.x, 
         Chunk::CHUNK_SIZE, 1, Chunk::CHUNK_SIZE, 1);
+      /*float* riverNoiseSet = noisey->GetPerlinSet(st.z, 0, st.x,
+        Chunk::CHUNK_SIZE, 1, Chunk::CHUNK_SIZE, 1);*/
       //int idx = 0;
 
       //printf(".");
