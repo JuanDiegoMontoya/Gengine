@@ -150,7 +150,36 @@ namespace Utils
       0.0f, 0.0f, zNear, 0.0f);
   }
 
+  namespace detail
+  {
+    // noise from https://gist.github.com/patriciogonzalezvivo/670c22f3966e662d2f83
+    float mod289(float x) { return x - floor(x * (1.0f / 289.0f)) * 289.0f; }
+    glm::vec4 mod289(glm::vec4 x) { return x - floor(x * (1.0f / 289.0f)) * 289.0f; }
+    glm::vec4 perm(glm::vec4 x) { return mod289(((x * 34.0f) + 1.0f) * x); }
+  }
+  float noise(glm::vec3 p)
+  {
+    using namespace glm;
+    vec3 a = floor(p);
+    vec3 d = p - a;
+    d = d * d * (3.0f - 2.0f * d);
 
+    vec4 b = vec4(a.x, a.x, a.y, a.y) + vec4(0.0f, 1.0f, 0.0f, 1.0f);
+    vec4 k1 = detail::perm({ b.x, b.y, b.x, b.y });
+    vec4 k2 = detail::perm({ vec4(k1.x, k1.y, k1.x, k1.y) + vec4(b.z, b.z, b.w, b.w) });
+
+    vec4 c = k2 + vec4(a.z);
+    vec4 k3 = detail::perm(c);
+    vec4 k4 = detail::perm(c + 1.0f);
+
+    vec4 o1 = fract(k3 * (1.0f / 41.0f));
+    vec4 o2 = fract(k4 * (1.0f / 41.0f));
+
+    vec4 o3 = o2 * d.z + o1 * (1.0f - d.z);
+    vec2 o4 = vec2(o3.y, o3.w) * d.x + vec2(o3.x, o3.z) * (1.0f - d.x);
+
+    return o4.y * d.y + o4.x * (1.0f - d.y);
+  }
 }
 
 
