@@ -125,17 +125,29 @@ void ChunkManager::UpdateBlock(const glm::ivec3& wpos, Block bl, bool indirect)
   }
 
   if (indirect == false)
+  {
     chunk->SetBlockTypeAt(p.block_pos, bl.GetType());
+  }
   else
+  {
     chunk->SetBlockTypeAtIndirect(p.block_pos, bl.GetType());
+  }
 
   // check if removed block emitted light
   lightPropagateRemove(wpos);
 
+  // propagate sunlight down from above, if applicable
+  //if (auto block = voxelManager.TryGetBlock(wpos + glm::ivec3(0, 1, 0)); block && block->GetLight().GetS() > 1)
+  //{
+  //  lightPropagateAdd(wpos + glm::ivec3(0, 1, 0), block->GetLight());
+  //}
+
   // check if added block emits light
-  glm::uvec3 emit2 = Block::PropertiesTable[int(bl.GetType())].emittance;
+  glm::uvec3 emit2 = Block::PropertiesTable[bl.GetTypei()].emittance;
   if (emit2 != glm::uvec3(0))
-    lightPropagateAdd(wpos, Light(Block::PropertiesTable[int(bl.GetType())].emittance));
+  {
+    lightPropagateAdd(wpos, Light(Block::PropertiesTable[bl.GetTypei()].emittance));
+  }
 
   // add to update list if it ain't
   UpdateChunk(chunk);
@@ -307,19 +319,25 @@ void ChunkManager::lightPropagateAdd(glm::ivec3 wpos, Light nLight, bool skipsel
 
       // add chunk to update queue if it exists
       if (!noqueue)
+      {
         delayed_update_queue_.insert(voxelManager.GetChunk(ChunkHelpers::worldPosToLocalPos(nlightPos).chunk_pos));
+      }
 
       // if neighbor is solid block, skip dat boi
       if (Block::PropertiesTable[nblock->GetTypei()].visibility == Visibility::Opaque)
+      {
         continue;
+      }
 
-      // iterate over R, G, B
+      // iterate over R, G, B, Sun
       bool enqueue = false;
       for (int ci = 0; ci < 4; ci++)
       {
         // neighbor must have light level 2 less than current to be updated
         if (nlight.Get()[ci] + 2 > lightLevel.Get()[ci])
+        {
           continue;
+        }
 
         // TODO: light propagation through transparent materials
         // get all light systems (R, G, B, Sun) and modify ONE of them,
@@ -337,13 +355,17 @@ void ChunkManager::lightPropagateAdd(glm::ivec3 wpos, Light nLight, bool skipsel
         enqueue = true;
       }
       if (enqueue) // enqueue if any lighting system changed
+      {
         lightQueue.push(nlightPos);
+      }
     }
   }
 
   // do not update this chunk again if it contained the placed light
   if (!noqueue && skipself)
+  {
     delayed_update_queue_.erase(voxelManager.GetChunk(ChunkHelpers::worldPosToLocalPos(wpos).chunk_pos));
+  }
 }
 
 
@@ -352,10 +374,17 @@ void ChunkManager::lightPropagateRemove(glm::ivec3 wpos, bool noqueue)
   std::queue<std::pair<glm::ivec3, Light>> lightRemovalQueue;
   Light light = voxelManager.GetBlock(wpos).GetLight();
   lightRemovalQueue.push({ wpos, light });
-  voxelManager.SetLight(wpos, Light({ 0, 0, 0, light.GetS() }));
-  //GetBlockPtr(wpos)->GetLightRef().Set({ 0, 0, 0, light.GetS() });
+  voxelManager.SetLight(wpos, Light({ 0, 0, 0, 0 }));
 
   std::queue<std::pair<glm::ivec3, Light>> lightReadditionQueue;
+
+  const glm::ivec3 dirs[] = 
+    { { 1, 0, 0 },
+      { -1, 0, 0 },
+      { 0, 1, 0 },
+      { 0,-1, 0 },
+      { 0, 0, 1 },
+      { 0, 0,-1 } };
 
   while (!lightRemovalQueue.empty())
   {
@@ -363,56 +392,49 @@ void ChunkManager::lightPropagateRemove(glm::ivec3 wpos, bool noqueue)
     auto lightv = lite.Get(); // current light value
     lightRemovalQueue.pop();
 
-    const glm::ivec3 dirs[] =
-    {
-      { 1, 0, 0 },
-      {-1, 0, 0 },
-      { 0, 1, 0 },
-      { 0,-1, 0 },
-      { 0, 0, 1 },
-      { 0, 0,-1 },
-    };
 
     for (const auto& dir : dirs)
     {
       glm::ivec3 blockPos = plight + dir;
       auto optB = voxelManager.TryGetBlock(blockPos);
       //BlockPtr b = GetBlockPtr(plight + dir);
-      if (!optB.has_value())
-        continue;
-      for (int ci = 0; ci < 3; ci++) // iterate 3 color systems (not sunlight)
+      if (!optB)
       {
-        // if the removed block emits light, it needs to be re-propagated
-        auto emit = Block::PropertiesTable[optB->GetTypei()].emittance;
-        if (emit != glm::u8vec4(0))
-          lightReadditionQueue.push({ blockPos, emit });
-        Light nearLight = optB->GetLight();
-        //Light& nearLight = b->GetLightRef();
-        glm::u8vec4 nlightv = nearLight.Get(); // near light value
+        continue;
+      }
 
-        // skip updates when light is 0
-        // remove light if there is any and if it is weaker than this node's light value
-        //if (nlightv[ci] != 0)
+      bool set = false;
+      for (int ci = 0; ci < 4; ci++) // iterate 3 colors (not sunlight)
+      {
+        Light nearLight = optB->GetLight();
+        glm::u8vec4 nlightv = nearLight.Get();
+
+        // remove light if there is any and if it is weaker than this node's light value, OR if max sunlight and going down
+        if ((nlightv[ci] > 0 && nlightv[ci] == lightv[ci] - 1) || (dir == glm::ivec3(0, -1, 0) && ci == 3 && nlightv[3] == 0xF))
         {
-          if (nlightv[ci] != 0 && nlightv[ci] == lightv[ci] - 1)
+          lightRemovalQueue.push({ blockPos, nearLight });
+          if (!noqueue && voxelManager.GetChunk(ChunkHelpers::worldPosToLocalPos(blockPos).chunk_pos))
           {
-            lightRemovalQueue.push({ blockPos, nearLight });
-            if (!noqueue && voxelManager.GetChunk(ChunkHelpers::worldPosToLocalPos(blockPos).chunk_pos))
-              delayed_update_queue_.insert(voxelManager.GetChunk(ChunkHelpers::worldPosToLocalPos(blockPos).chunk_pos));
-            auto tmp = nearLight.Get();
-            tmp[ci] = 0;
-            //nearLight.Set(tmp);
-            optB->GetLightRef().Set(tmp);
-            voxelManager.SetLight(blockPos, tmp);
+            delayed_update_queue_.insert(voxelManager.GetChunk(ChunkHelpers::worldPosToLocalPos(blockPos).chunk_pos));
           }
-          // re-propagate near light that is equal to or brighter than this after setting it all to 0
-          else if (nlightv[ci] > lightv[ci])
-          {
-            glm::u8vec4 nue(0);
-            nue[ci] = nlightv[ci];
-            lightReadditionQueue.push({ blockPos, nue });
-          }
+          auto tmp = nearLight.Get();
+          tmp[ci] = 0;
+          optB->GetLightRef().Set(tmp);
+          //voxelManager.SetLight(blockPos, tmp);
+          set = true;
         }
+        // re-propagate near light that is equal to or brighter than this after setting it all to 0
+        else if (nlightv[ci] >= lightv[ci])
+        {
+          glm::u8vec4 nue(0);
+          nue[ci] = nlightv[ci];
+          lightReadditionQueue.push({ blockPos, nue });
+        }
+      }
+
+      if (set)
+      {
+        voxelManager.SetLight(blockPos, tmp);
       }
     }
   }
