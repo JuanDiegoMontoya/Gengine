@@ -23,11 +23,11 @@ public:
   {
     checkTestButton();
     checkBlockPick();
-    checkBlockDestruction();
+    checkBlockDestruction(dt);
     checkBlockPlacement();
 
     selected = (BlockType)glm::clamp((int)selected + (int)Input::GetScrollOffset().y, 0, (int)Block::PropertiesTable.size() - 1);
-    
+
     float size = 100.0f;
     ImGui::SetNextWindowBgAlpha(0.0f);
     ImGui::SetNextWindowSize(ImVec2(size * 1.25f, size * 1.7f));
@@ -49,28 +49,28 @@ public:
       cam->GetFront(),
       dist,
       [this](glm::vec3 pos, Block block, glm::vec3 side)->bool
+      {
+        if (block.GetType() == BlockType::bAir)
         {
-          if (block.GetType() == BlockType::bAir)
-          {
-            return false;
-          }
-          
-          ImGui::Text("Block Type: %d (%s)", block.GetTypei(), block.GetName());
-          //ImGui::Text("Write Strength: %d", block->WriteStrength());
-          //ImGui::Text("Light Value: %d", block->LightValue());
-          Light lit;
-          if (auto opt = voxels->TryGetBlock(pos))
-            lit = opt->GetLight();
-          Light lit2;
-          if (auto opt = voxels->TryGetBlock(pos + side))
-            lit2 = opt->GetLight();
-          ImGui::Text("Light:  (%d, %d, %d, %d)", lit.GetR(), lit.GetG(), lit.GetB(), lit.GetS());
-          ImGui::Text("FLight: (%d, %d, %d, %d)", lit2.GetR(), lit2.GetG(), lit2.GetB(), lit2.GetS());
-          ImGui::Text("Block pos:  (%.2f, %.2f, %.2f)", pos.x, pos.y, pos.z);
-          ImGui::Text("Block side: (%.2f, %.2f, %.2f)", side.x, side.y, side.z);
+          return false;
+        }
 
-          return true;
-        });
+        ImGui::Text("Block Type: %d (%s)", block.GetTypei(), block.GetName());
+        //ImGui::Text("Write Strength: %d", block->WriteStrength());
+        //ImGui::Text("Light Value: %d", block->LightValue());
+        Light lit;
+        if (auto opt = voxels->TryGetBlock(pos))
+          lit = opt->GetLight();
+        Light lit2;
+        if (auto opt = voxels->TryGetBlock(pos + side))
+          lit2 = opt->GetLight();
+        ImGui::Text("Light:  (%d, %d, %d, %d)", lit.GetR(), lit.GetG(), lit.GetB(), lit.GetS());
+        ImGui::Text("FLight: (%d, %d, %d, %d)", lit2.GetR(), lit2.GetG(), lit2.GetB(), lit2.GetS());
+        ImGui::Text("Block pos:  (%.2f, %.2f, %.2f)", pos.x, pos.y, pos.z);
+        ImGui::Text("Block side: (%.2f, %.2f, %.2f)", side.x, side.y, side.z);
+
+        return true;
+      });
     ImGui::End();
   }
 
@@ -97,42 +97,70 @@ public:
         cam->GetPos(),
         cam->GetFront(),
         5,
-        [this](glm::vec3 pos, Block block, glm::vec3 side)->bool
+        std::function<bool(glm::vec3, Block, glm::vec3)>
+        ([&](glm::vec3 pos, Block block, glm::vec3 side)->bool
           {
             if (block.GetType() == BlockType::bAir)
               return false;
 
             voxels->UpdateBlock(pos + side, selected);
             //chunkManager_.UpdateBlock(pos + side, selected, 0);
-            
+
             return true;
-          });
+          }
+      ));
     }
   }
 
 
-  void checkBlockDestruction()
+  void checkBlockDestruction(float dt)
   {
-    if (Input::IsMousePressed(GLFW_MOUSE_BUTTON_1)/* &&
+    if(Input::IsMouseDown(GLFW_MOUSE_BUTTON_1)
+    /*if (Input::IsMousePressed(GLFW_MOUSE_BUTTON_1) &&
       !ImGui::IsAnyItemHovered() &&
       !ImGui::IsAnyItemActive() &&
       !ImGui::IsAnyItemFocused()*/)
     {
+      bool hit = false;
       const auto cam = Camera::ActiveCamera;
       voxels->Raycast(
         cam->GetPos(),
         cam->GetFront(),
         5,
-        [this](glm::vec3 pos, Block block, glm::vec3 side)->bool
+        std::function<bool(glm::vec3, Block, glm::vec3)>
+        ([&](glm::vec3 pos, Block block, glm::vec3 side)->bool
           {
             if (block.GetType() == BlockType::bAir)
               return false;
 
-            voxels->UpdateBlock(pos, BlockType::bAir);
+            hit = true;
+            timer += dt;
+            if (pos == prevBlock && prevHit && timer >= block.GetTTK() && block.GetDestructible())
+            {
+              voxels->UpdateBlock(pos, BlockType::bAir);
+              timer = 0.0f;
+              hit = false;
+            }
+            else
+            {
+              prevBlock = pos;
+              if (!block.GetDestructible())
+                timer = 0.0f;
+            }
+
             //chunkManager_.UpdateBlock(pos, BlockType::bAir, 0);
 
             return true;
-          });
+          }
+      ));
+      prevHit = hit;
+      if (!prevHit)
+        timer = 0.0f;
+    }
+    else
+    {
+      prevHit = false;
+      timer = 0.0f;
     }
   }
 
@@ -149,7 +177,8 @@ public:
         cam->GetPos(),
         cam->GetFront(),
         5,
-        [this](glm::vec3 pos, Block block, glm::vec3 side)->bool
+        std::function<bool(glm::vec3, Block, glm::vec3)>
+        ([&](glm::vec3 pos, Block block, glm::vec3 side)->bool
           {
             if (block.GetType() == BlockType::bAir)
               return false;
@@ -157,10 +186,14 @@ public:
             selected = block.GetType();
 
             return true;
-          });
+          }
+      ));
     }
   }
 
+  glm::vec3 prevBlock = {-1, -1, -1};
+  bool prevHit = false;
+  float timer = 0.0f;
   BlockType selected = BlockType::bStone;
   VoxelManager* voxels{};
 };

@@ -115,9 +115,7 @@ void ChunkRenderer::GenerateDrawCommandsGPU()
   if (dirtyAlloc)
   {
     allocBuffer = std::make_unique<GFX::StaticBuffer>(allocs.data(), allocator->AllocSize() * allocs.size());
-    dib = std::make_unique<GFX::StaticBuffer>(
-      nullptr,
-      allocator->ActiveAllocs() * sizeof(DrawArraysIndirectCommand));
+    dib = std::make_unique<GFX::StaticBuffer>(nullptr, allocator->ActiveAllocs() * sizeof(DrawArraysIndirectCommand));
     dirtyAlloc = false;
   }
 
@@ -203,6 +201,7 @@ void ChunkRenderer::Draw()
   RenderVisible();
   GenerateDIB();
   RenderOcclusion();
+  //RenderRest();
 }
   
 void ChunkRenderer::RenderVisible()
@@ -216,8 +215,6 @@ void ChunkRenderer::RenderVisible()
 
   vao->Bind();
   dib->Bind<GFX::Target::DIB>();
-  //glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-  //glMultiDrawArraysIndirect(GL_TRIANGLES, (void*)0, renderCount, 0);
   drawCountGPU->Bind<GFX::Target::PARAMETER_BUFFER>();
   glMultiDrawArraysIndirectCount(GL_TRIANGLES, (void*)0, (GLintptr)0, activeAllocs, 0);
 }
@@ -272,6 +269,23 @@ void ChunkRenderer::RenderOcclusion()
   glEnable(GL_CULL_FACE);
   glDepthMask(true);
   glColorMask(true, true, true, true);
+}
+
+void ChunkRenderer::RenderRest()
+{
+  // Drawing logic:
+  // for each Chunk in Chunks
+  //   if Chunk was not rendered in RenderVisible and not occluded
+  //     draw(Chunk)
+
+  // resources:
+  // DIB with draw info
+
+  // IDEA: RenderOcclusion generates a mask to use for the NEXT frame's RenderRest pass
+  // the mask will contain all the chunks that were to be drawn at the start of that frame's RenderVisible pass
+  // the current frame will 
+
+  ASSERT(0); // not implemented
 }
 
 void ChunkRenderer::Update()
