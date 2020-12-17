@@ -97,7 +97,8 @@ public:
             if (block.GetType() == BlockType::bAir)
               return false;
 
-            voxels->UpdateBlock(pos, BlockType::bAir);
+            if(block.GetDestructible())
+                voxels->UpdateBlock(pos, BlockType::bAir);
             //chunkManager_.UpdateBlock(pos, BlockType::bAir, 0);
 
             return true;

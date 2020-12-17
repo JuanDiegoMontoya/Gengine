@@ -52,6 +52,7 @@ void WorldGen::GenerateWorld()
   std::unique_ptr<FastNoiseSIMD> noisey(FastNoiseSIMD::NewFastNoiseSIMD());
   noisey->SetFractalLacunarity(2.0);
   noisey->SetFractalOctaves(5);
+  noisey->SetSeed(7);
   //noisey->SetFrequency(.04);
   //noisey->SetPerturbType(FastNoiseSIMD::Gradient);
   //noisey->SetPerturbAmp(0.4);
@@ -93,7 +94,15 @@ void WorldGen::GenerateWorld()
             float height = (noiseSet[idx] + .1f) * 100;
             if (wpos.y < height)
             {
-              vm.SetBlockType(wpos, BlockType::bGrass);
+                vm.SetBlockType(wpos, BlockType::bGrass);
+                if (Utils::noise(pos) < .05f)
+                    vm.SetBlockType(wpos, BlockType::bDirt);
+            }
+            if (wpos.y < (height - 1))
+            {
+                vm.SetBlockType(wpos, BlockType::bDirt);
+                if (Utils::noise(pos) < .01f)
+                    vm.SetBlockType(wpos, BlockType::bStone);
             }
             //if (density < -.02)
             //{
