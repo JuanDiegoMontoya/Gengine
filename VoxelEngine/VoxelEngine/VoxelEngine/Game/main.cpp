@@ -276,7 +276,7 @@ void OnDraw(float dt)
 #include <Voxels/prefab.h>
 int main()
 {
-  //PrefabManager::InitPrefabs();
+  PrefabManager::InitPrefabs();
   Application::SetStartCallback(OnStart);
   Application::SetUpdateCallback(OnUpdate);
   Application::SetDrawCallback(OnDraw);

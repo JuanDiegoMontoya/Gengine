@@ -3,6 +3,7 @@
 #include <CoreEngine/Input.h>
 #include <Voxels/VoxelManager.h>
 #include <imgui/imgui.h>
+#include <Voxels/prefab.h>
 
 class PlayerActions : public ScriptableEntity
 {
@@ -103,7 +104,42 @@ public:
             if (block.GetType() == BlockType::bAir)
               return false;
 
-            voxels->UpdateBlock(pos + side, selected);
+            if (Input::IsKeyDown(GLFW_KEY_J) || Input::IsKeyDown(GLFW_KEY_K) || Input::IsKeyDown(GLFW_KEY_L))
+            {
+              Prefab prefab = PrefabManager::GetPrefab("OakTree");
+              if (Input::IsKeyDown(GLFW_KEY_K))
+                prefab = PrefabManager::GetPrefab("OakTreeBig");
+              else if (Input::IsKeyDown(GLFW_KEY_L))
+                prefab = PrefabManager::GetPrefab("Error");
+
+              bool spawn = true;
+
+              if (prefab.GetPlacementType() == PlacementType::PriorityRequired)
+              {
+                for (unsigned i = 0; i < prefab.blocks.size(); i++)
+                {
+                  if (voxels->GetBlock((glm::ivec3)(pos + side) + prefab.blocks[i].first).GetType() != BlockType::bAir)
+                  {
+                    spawn = false;
+                    break;
+                  }
+                }
+              }
+
+              if (spawn)
+              {
+                for (unsigned i = 0; i < prefab.blocks.size(); i++)
+                {
+                  if (prefab.GetPlacementType() != PlacementType::NoOverwriting || voxels->GetBlock((glm::ivec3)(pos + side) + prefab.blocks[i].first).GetType() == BlockType::bAir)
+                  {
+                    if (prefab.blocks[i].second.GetPriority() >= voxels->GetBlock((glm::ivec3)(pos + side) + prefab.blocks[i].first).GetPriority())
+                      voxels->UpdateBlock((glm::ivec3)(pos + side) + prefab.blocks[i].first, prefab.blocks[i].second);
+                  }
+                }
+              }
+            }
+            else
+              voxels->UpdateBlock(pos + side, selected);
             //chunkManager_.UpdateBlock(pos + side, selected, 0);
 
             return true;

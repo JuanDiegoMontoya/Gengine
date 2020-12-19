@@ -17,16 +17,18 @@ struct BlockProperties
   BlockProperties(
     const char* n,
     glm::uvec4 e,
+    int pr,
     float time = 0.5f,
     bool des = true,
     Visibility vis = Visibility::Opaque, 
     const char* tx = "<null>")
-  : name(n), emittance(e), ttk(time), destructible(des), visibility(vis), texture(tx) {}
+  : name(n), emittance(e), priority(pr), ttk(time), destructible(des), visibility(vis), texture(tx) {}
   const char* name;
+  glm::u8vec4 emittance; // light
+  int priority;
   float ttk;
   bool destructible;
   Visibility visibility; // skip rendering if true
-  glm::u8vec4 emittance; // light
   const char* texture;   // path to texture (default to name)
 };
 
@@ -71,6 +73,7 @@ public:
   BlockType GetType() const { return type_; }
   int GetTypei() const { return int(type_); }
   const char* GetName() const { return Block::PropertiesTable[unsigned(type_)].name; }
+  int GetPriority() { return Block::PropertiesTable[unsigned(type_)].priority; }
   float GetTTK() { return Block::PropertiesTable[unsigned(type_)].ttk; }
   bool GetDestructible() { return Block::PropertiesTable[unsigned(type_)].destructible; }
   Light& GetLightRef() { return light_; }
