@@ -25,6 +25,7 @@ void PrefabManager::InitPrefabs()
     if (i == 4)
       tree.Add({ 0, i + 1, 0 }, Block(BlockType::bOakLeaves));
   }
+  tree.SetPlacementType(PlacementType::NoRestrictions);
   prefabs_["OakTree"] = tree;
 
   Prefab bTree;
@@ -48,6 +49,7 @@ void PrefabManager::InitPrefabs()
       bTree.Add({ -1, i, +1 }, Block(BlockType::bOakLeaves));
     }
   }
+  bTree.SetPlacementType(PlacementType::PriorityRequired);
   prefabs_["OakTreeBig"] = bTree;
 
   // error prefab to be generated when an error occurs
@@ -62,6 +64,7 @@ void PrefabManager::InitPrefabs()
       }
     }
   }
+  error.SetPlacementType(PlacementType::NoOverwriting);
   prefabs_["Error"] = error;
 
   SavePrefabToFile(error, "Error");
