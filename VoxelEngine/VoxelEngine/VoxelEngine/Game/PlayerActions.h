@@ -26,6 +26,8 @@ public:
     checkBlockDestruction(dt);
     checkBlockPlacement();
 
+    printf("%.3f ", timer);
+
     selected = (BlockType)glm::clamp((int)selected + (int)Input::GetScrollOffset().y, 0, (int)Block::PropertiesTable.size() - 1);
 
     float size = 100.0f;
@@ -143,6 +145,10 @@ public:
             }
             else
             {
+              if (prevBlock != pos)
+              {
+                timer = dt;
+              }
               prevBlock = pos;
               if (!block.GetDestructible())
                 timer = 0.0f;
