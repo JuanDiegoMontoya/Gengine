@@ -74,8 +74,21 @@ bool Input::IsMouseReleased(MouseButton key)
   return mouseButtonStates[key] == KeyState::released;
 }
 
-void Input::keypress_cb([[maybe_unused]] GLFWwindow* window, int key, int scancode, int action, int mods)
+void Input::keypress_cb([[maybe_unused]] GLFWwindow* window, int key, int scancode, int action, [[maybe_unused]] int mods)
 {
+  ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
+
+  ImGuiIO& io = ImGui::GetIO();
+  if (action == GLFW_PRESS)
+    io.KeysDown[key] = true;
+  if (action == GLFW_RELEASE)
+    io.KeysDown[key] = false;
+
+  io.KeyCtrl = io.KeysDown[GLFW_KEY_LEFT_CONTROL] || io.KeysDown[GLFW_KEY_RIGHT_CONTROL];
+  io.KeyShift = io.KeysDown[GLFW_KEY_LEFT_SHIFT] || io.KeysDown[GLFW_KEY_RIGHT_SHIFT];
+  io.KeyAlt = io.KeysDown[GLFW_KEY_LEFT_ALT] || io.KeysDown[GLFW_KEY_RIGHT_ALT];
+  io.KeySuper = io.KeysDown[GLFW_KEY_LEFT_SUPER] || io.KeysDown[GLFW_KEY_RIGHT_SUPER];
+
   if (key != GLFW_KEY_UNKNOWN)
   {
     switch (action)
@@ -128,6 +141,7 @@ void Input::mouse_pos_cb([[maybe_unused]] GLFWwindow* window, double xpos, doubl
 
 void Input::mouse_scroll_cb([[maybe_unused]] GLFWwindow* window, double xoffset, double yoffset)
 {
+  ImGui_ImplGlfw_ScrollCallback(window, xoffset, yoffset);
   scrollOffset.x = (float)xoffset;
   scrollOffset.y = (float)yoffset;
 
@@ -168,4 +182,6 @@ void Input::init_glfw_input_cbs(GLFWwindow* window)
   glfwSetCursorPosCallback(window, mouse_pos_cb);
   glfwSetScrollCallback(window, mouse_scroll_cb);
   glfwSetMouseButtonCallback(window, mouse_button_cb);
+
+  glfwSetCharCallback(window, ImGui_ImplGlfw_CharCallback);
 }

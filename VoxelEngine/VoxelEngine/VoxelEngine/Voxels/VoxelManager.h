@@ -6,6 +6,7 @@
 
 class ChunkManager;
 class ChunkRenderer;
+class Editor;
 
 inline uint32_t Part1By2(uint32_t x)
 {
@@ -61,18 +62,13 @@ public:
   // Utility functions
   void Raycast(glm::vec3 origin, glm::vec3 direction, float distance, std::function<bool(glm::vec3, Block, glm::vec3)> callback);
 
-  // TODO: make private after NuRenderer finally dies
+  // TODO: privatize once a way to set settings is added
   std::unique_ptr<ChunkRenderer> chunkRenderer_{};
 private:
   friend class ChunkManager;
   friend class WorldGen;
   friend class ChunkMesh;
 
-  std::unique_ptr<ChunkManager> chunkManager_{};
-  //Concurrency::concurrent_unordered_map<glm::ivec3, Chunk*, Utils::ivec3Hash> chunks_{};
-  std::vector<Chunk*> chunks_;
-  glm::ivec3 worldDim_{ 0, 0, 0 };
-  glm::ivec3 chunksPerDim_{};
   uint32_t flatten(const glm::ivec3& p) const
   {
     //ASSERT(glm::all(glm::lessThan(p, worldDim_)) && glm::all(glm::greaterThanEqual(p, glm::ivec3(0))));
@@ -85,6 +81,15 @@ private:
       return chunks_[flatten(p)];
     return nullptr;
   }
+
+
+  std::unique_ptr<ChunkManager> chunkManager_{};
+  //Concurrency::concurrent_unordered_map<glm::ivec3, Chunk*, Utils::ivec3Hash> chunks_{};
+  std::vector<Chunk*> chunks_;
+  glm::ivec3 worldDim_{ 0, 0, 0 };
+  glm::ivec3 chunksPerDim_{};
+
+  std::unique_ptr<Editor> editor_{};
 };
 
 
