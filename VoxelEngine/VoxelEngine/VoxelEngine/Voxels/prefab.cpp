@@ -6,7 +6,6 @@
 #include <cereal/types/utility.hpp>
 #include <cereal/archives/binary.hpp>
 
-std::map<PrefabName, Prefab> PrefabManager::prefabs_;
 void PrefabManager::InitPrefabs()
 {
   // add basic tree prefab to list
@@ -26,7 +25,7 @@ void PrefabManager::InitPrefabs()
     if (i == 4)
       tree.Add({ 0, i + 1, 0 }, Block(BlockType::bOakLeaves));
   }
-  prefabs_[PrefabName::OakTree] = tree;
+  prefabs_["OakTree"] = tree;
 
   Prefab bTree;
   for (int i = 0; i < 8; i++)
@@ -49,7 +48,7 @@ void PrefabManager::InitPrefabs()
       bTree.Add({ -1, i, +1 }, Block(BlockType::bOakLeaves));
     }
   }
-  prefabs_[PrefabName::OakTreeBig] = bTree;
+  prefabs_["OakTreeBig"] = bTree;
 
   // error prefab to be generated when an error occurs
   Prefab error;
@@ -63,17 +62,29 @@ void PrefabManager::InitPrefabs()
       }
     }
   }
-  prefabs_[PrefabName::Error] = error;
+  prefabs_["Error"] = error;
 
-  LoadAllPrefabs();
+  SavePrefabToFile(error, "Error");
+  //LoadAllPrefabs();
+}
+
+const Prefab& PrefabManager::GetPrefab(std::string p)
+{
+  if (auto it = prefabs_.find(p); it != prefabs_.end())
+  {
+    return it->second;
+  }
+
+  // lazy
+  return prefabs_[p] = LoadPrefabFromFile(p);
 }
 
 // TODO: add support for xml and json archives (just check the file extension)
-Prefab PrefabManager::LoadPrefabFromFile(std::string name)
+Prefab PrefabManager::LoadPrefabFromFile(std::string filename)
 {
   try
   {
-    std::ifstream is(("./resources/Prefabs/" + std::string(name) + ".bin").c_str(), std::ios::binary);
+    std::ifstream is("./Resources/Prefabs/" + filename + ".bin", std::ios::binary);
     if (is.is_open())
     {
       cereal::BinaryInputArchive archive(is);
@@ -86,15 +97,32 @@ Prefab PrefabManager::LoadPrefabFromFile(std::string name)
   {
     //return prefabs_[Prefab::Error];
   }
-  return prefabs_[PrefabName::Error];
+  return prefabs_["Error"];
+}
+
+void PrefabManager::SavePrefabToFile(const Prefab& prefab, std::string filename)
+{
+  try
+  {
+    std::ofstream is("./Resources/Prefabs/" + filename + ".bin", std::ios::binary);
+    if (is.is_open())
+    {
+      cereal::BinaryOutputArchive archive(is);
+      archive(prefab);
+    }
+  }
+  catch (...)
+  {
+    printf("Error saving prefab.\n");
+  }
 }
 
 void PrefabManager::LoadAllPrefabs()
 {
-  prefabs_[PrefabName::DungeonSmall] = LoadPrefabFromFile("dungeon");
-  prefabs_[PrefabName::BorealTree] = LoadPrefabFromFile("borealTree");
-  prefabs_[PrefabName::Cactus] = LoadPrefabFromFile("cactus");
-  prefabs_[PrefabName::BoulderA] = LoadPrefabFromFile("boulderA");
-  prefabs_[PrefabName::BoulderB] = LoadPrefabFromFile("boulderB");
-  prefabs_[PrefabName::BoulderC] = LoadPrefabFromFile("boulderC");
+  //prefabs_["DungeonSmall"] = LoadPrefabFromFile("dungeon");
+  //prefabs_["BorealTree"] = LoadPrefabFromFile("borealTree");
+  //prefabs_["Cactus"] = LoadPrefabFromFile("cactus");
+  //prefabs_["BoulderA"] = LoadPrefabFromFile("boulderA");
+  //prefabs_["BoulderB"] = LoadPrefabFromFile("boulderB");
+  //prefabs_["BoulderC"] = LoadPrefabFromFile("boulderC");
 }

@@ -25,7 +25,9 @@ namespace cereal
   void serialize(Archive& archive, Chunk* c)
   {
     if (c)
+    {
       archive(*c);
+    }
   }
 
   template<class Archive, typename T>

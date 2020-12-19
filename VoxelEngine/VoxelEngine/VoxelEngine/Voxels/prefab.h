@@ -1,21 +1,7 @@
 #pragma once
 #include <Voxels/block.h>
-#include <map>
-
-enum struct PrefabName : int
-{
-  OakTree,
-  OakTreeBig,
-  Error,
-  DungeonSmall,
-  BorealTree,
-  Cactus,
-  BoulderA,
-  BoulderB,
-  BoulderC,
-
-  pfCount
-};
+#include <unordered_map>
+#include <Utilities/Serialize.h>
 
 // an object designed to be pasted into the world
 struct Prefab
@@ -39,11 +25,12 @@ class PrefabManager
 {
 public:
   static void InitPrefabs();
-  static const Prefab& GetPrefab(PrefabName p) { return prefabs_[p]; }
+  static const Prefab& GetPrefab(std::string p);
 
 private:
-  static Prefab LoadPrefabFromFile(std::string name);
+  static Prefab LoadPrefabFromFile(std::string filename);
+  static void SavePrefabToFile(const Prefab& prefab, std::string filename);
   static void LoadAllPrefabs();
 
-  static std::map<PrefabName, Prefab> prefabs_;
+  static inline std::unordered_map<std::string, Prefab> prefabs_;
 };

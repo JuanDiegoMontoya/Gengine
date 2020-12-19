@@ -273,8 +273,10 @@ void OnDraw(float dt)
   Renderer::DrawAxisIndicator();
 }
 
+#include <Voxels/prefab.h>
 int main()
 {
+  //PrefabManager::InitPrefabs();
   Application::SetStartCallback(OnStart);
   Application::SetUpdateCallback(OnUpdate);
   Application::SetDrawCallback(OnDraw);
