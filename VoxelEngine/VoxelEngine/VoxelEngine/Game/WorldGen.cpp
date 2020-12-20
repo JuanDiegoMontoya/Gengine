@@ -5,6 +5,7 @@
 #include <FastNoiseSIMD/FastNoiseSIMD.h>
 #include <Utilities/Timer.h>
 #include <Voxels/VoxelManager.h>
+#include <Voxels/prefab.h>
 
 namespace
 {
@@ -20,7 +21,7 @@ namespace
 // init chunks that we finna modify
 void WorldGen::Init()
 {
-  vm.SetDim(highChunkDim);
+  voxels.SetDim(highChunkDim);
   Timer timer;
   for (int x = lowChunkDim.x; x < highChunkDim.x; x++)
   {
@@ -30,8 +31,8 @@ void WorldGen::Init()
       //printf(" Y: %d", y);
       for (int z = lowChunkDim.z; z < highChunkDim.z; z++)
       {
-        Chunk* newChunk = new Chunk({ x, y, z }, vm);
-        vm.chunks_[vm.flatten({ x, y, z })] = newChunk;
+        Chunk* newChunk = new Chunk({ x, y, z }, voxels);
+        voxels.chunks_[voxels.flatten({ x, y, z })] = newChunk;
       }
     }
   }
@@ -58,7 +59,7 @@ void WorldGen::GenerateWorld()
   //noisey->SetPerturbAmp(0.4);
   //noisey->SetPerturbFrequency(0.4);
 
-  auto& chunks = vm.chunks_;
+  auto& chunks = voxels.chunks_;
   std::for_each(std::execution::par, chunks.begin(), chunks.end(),
     [&](Chunk* chunk)
   {
@@ -90,33 +91,49 @@ void WorldGen::GenerateWorld()
             //density = 0;
 
             //if (pos.z < 8 && pos.x < 8 && pos.y < 8)
-            //  vm.SetBlockType(wpos, BlockType::bStone);
+            //  voxels.SetBlockType(wpos, BlockType::bStone);
             //continue;
 
             float height = (noiseSet[idx] + .1f) * 100;
-            if (wpos.y < height)
+            /*if (wpos.y < height)
             {
-                vm.SetBlockType(wpos, BlockType::bGrass);
+                voxels.SetBlockType(wpos, BlockType::bGrass);
                 if (Utils::noise(pos) < .05f)
-                    vm.SetBlockType(wpos, BlockType::bDirt);
+                    voxels.SetBlockType(wpos, BlockType::bDirt);
+            }*/
+            if (wpos.y < height && wpos.y >= (height - 1))
+            {
+              voxels.SetBlockType(wpos, BlockType::bGrass);
+              if (Utils::noise(pos) < .01f)
+              {
+                voxels.SetBlockType(wpos, BlockType::bDirt);
+                Prefab prefab = PrefabManager::GetPrefab("OakTree");
+                glm::ivec3 offset = { 0, 1, 0 };
+                for (unsigned i = 0; i < prefab.blocks.size(); i++)
+                {
+                  if (auto block = voxels.TryGetBlock(wpos + offset + prefab.blocks[i].first))
+                    if (prefab.blocks[i].second.GetPriority() >= block->GetPriority())
+                      voxels.SetBlockType(wpos + offset + prefab.blocks[i].first, prefab.blocks[i].second.GetType());
+                }
+              }
             }
             if (wpos.y < (height - 1))
             {
-                vm.SetBlockType(wpos, BlockType::bDirt);
+                voxels.SetBlockType(wpos, BlockType::bDirt);
                 if (Utils::noise(pos) < .01f)
-                    vm.SetBlockType(wpos, BlockType::bStone);
+                    voxels.SetBlockType(wpos, BlockType::bStone);
             }
             //if (density < -.02)
             //{
-            //  vm.SetBlockType(wpos, BlockType::bGrass);
+            //  voxels.SetBlockType(wpos, BlockType::bGrass);
             //}
             //if (density < -.03)
             //{
-            //  vm.SetBlockType(wpos, BlockType::bDirt);
+            //  voxels.SetBlockType(wpos, BlockType::bDirt);
             //}
             //if (density < -.04)
             //{
-            //  vm.SetBlockType(wpos, BlockType::bStone);
+            //  voxels.SetBlockType(wpos, BlockType::bStone);
             //}
 
             //printf("%f\n", height / 100.f);
@@ -139,7 +156,7 @@ void WorldGen::GenerateWorld()
 void WorldGen::InitMeshes()
 {
   Timer timer;
-  auto& chunks = vm.chunks_;
+  auto& chunks = voxels.chunks_;
   std::for_each(std::execution::par,
     chunks.begin(), chunks.end(), [](auto& p)
   {
@@ -153,7 +170,7 @@ void WorldGen::InitMeshes()
 void WorldGen::InitBuffers()
 {
   Timer timer;
-  auto& chunks = vm.chunks_;
+  auto& chunks = voxels.chunks_;
   std::for_each(std::execution::seq,
     chunks.begin(), chunks.end(), [](auto& p)
   {
@@ -169,7 +186,7 @@ void WorldGen::InitBuffers()
 bool WorldGen::checkDirectSunlight(glm::ivec3 wpos)
 {
   auto p = ChunkHelpers::worldPosToLocalPos(wpos);
-  Chunk* chunk = vm.GetChunk(p.chunk_pos);
+  Chunk* chunk = voxels.GetChunk(p.chunk_pos);
   if (!chunk)
     return false;
   Block block = chunk->BlockAt(p.block_pos);
@@ -182,7 +199,7 @@ bool WorldGen::checkDirectSunlight(glm::ivec3 wpos)
   {
     chunk = next;
     cpos += up;
-    next = vm.GetChunk(cpos);
+    next = voxels.GetChunk(cpos);
   }
 
   // go down until we hit another solid block or this block
@@ -197,7 +214,7 @@ void WorldGen::InitializeSunlight()
   int maxY = std::numeric_limits<int>::min();
   int minY = std::numeric_limits<int>::max();
 
-  for (const auto& chunk : vm.chunks_)
+  for (const auto& chunk : voxels.chunks_)
   {
     if (chunk)
     {
@@ -207,7 +224,7 @@ void WorldGen::InitializeSunlight()
   }
 
   // generates initial columns of sunlight in the world
-  for (auto chunk : vm.chunks_)
+  for (auto chunk : voxels.chunks_)
   {
     // propagate light only from the highest chunks
     if (chunk == nullptr || chunk->GetPos().y != maxY)
@@ -258,12 +275,12 @@ void WorldGen::sunlightPropagateOnce(const glm::ivec3& wpos)
     { 0, 0,-1 },
   };
 
-  Light curLight = vm.GetBlock(wpos).GetLight();
+  Light curLight = voxels.GetBlock(wpos).GetLight();
   
   for (int dir = 0; dir < 6; dir++)
   {
     glm::ivec3 neighborPos = wpos + dirs[dir];
-    std::optional<Block> neighbor = vm.TryGetBlock(neighborPos);
+    std::optional<Block> neighbor = voxels.TryGetBlock(neighborPos);
     if (!neighbor)
       continue;
 
@@ -279,7 +296,7 @@ void WorldGen::sunlightPropagateOnce(const glm::ivec3& wpos)
       neighborLight.SetS(0xF);
     else
       neighborLight.SetS(curLight.GetS() - 1);
-    vm.SetBlockLight(neighborPos, neighborLight);
+    voxels.SetBlockLight(neighborPos, neighborLight);
     lightsToPropagate.push(neighborPos);
   }
 }
