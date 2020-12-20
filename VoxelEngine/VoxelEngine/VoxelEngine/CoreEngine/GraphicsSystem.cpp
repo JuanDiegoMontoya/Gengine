@@ -71,17 +71,6 @@ void GraphicsSystem::Update(Scene& scene, float dt)
 {
   Camera::ActiveCamera->Update(dt);
 
-  // draw non-batched objects in the scene
-  {
-    using namespace Components;
-    auto view = scene.GetRegistry().view<Transform, Mesh, Material>();
-    for (auto entity : view)
-    {
-      auto [transform, mesh, material] = view.get<Transform, Mesh, Material>(entity);
-      Renderer::Render(transform, mesh, material);
-    }
-  }
-
   // draw batched objects in the scene
   {
     using namespace Components;

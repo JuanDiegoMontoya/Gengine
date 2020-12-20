@@ -7,6 +7,7 @@
 #include <CoreEngine/Components.h>
 #include <CoreEngine/Camera.h>
 #include <CoreEngine/Texture2D.h>
+#include <CoreEngine/Mesh.h>
 
 #include <execution>
 
@@ -62,49 +63,15 @@ GLerrorCB(GLenum source,
 	std::cout << std::endl;
 }
 
-void Renderer::Render(Components::Transform& model, Components::Mesh& mesh, Components::Material& mat)
-{
-	auto& material = MaterialManager::materials[mat];
-	auto& shader = Shader::shaders[material.shaderID];
-	shader->Use();
-
-	glm::mat4 modelMatrix = model.GetModel();
-	//modelMatrix = glm::scale(modelMatrix, { 10, 10, 10 });
-	glm::mat4 modelInv = glm::inverse(modelMatrix);
-	modelInv = glm::transpose(modelInv);
-
-	glm::mat4 MVP = Camera::ActiveCamera->GetViewProj() * modelMatrix;
-
-	//ShadershadersShaderMcShaderFuckFaceUse->setMat4("InvTrModel", modelInv);
-	shader->setMat4("MVP", MVP);
-	//ShadershadersShaderMcShaderFuckFaceUse->setMat4("Model", modelMatrix);
-
-	//glActiveTexture(GL_TEXTURE0);
-	//glBindTexture(GL_TEXTURE_2D, mat.texHandle);
-	int i = 0;
-	for (const auto& tex : material.textures)
-	{
-		tex.Bind(i++);
-	}
-	shader->setInt("albedoMap", 0);
-
-	MeshHandle mHandle = mesh.meshHandle;
-
-	glBindVertexArray(mHandle.VAO);
-	glDrawElements(GL_TRIANGLES, (int)mHandle.indexCount, GL_UNSIGNED_INT, 0);
-}
-
 void Renderer::BeginBatch(uint32_t size)
 {
-	//userCommands.reserve(size);
 	userCommands.resize(size);
 }
 
 void Renderer::Submit(Components::Transform& model, Components::BatchedMesh& mesh, Components::Material& mat)
 {
 	auto index = cmdIndex++;
-	//userCommands.emplace(userCommands.begin() + index, BatchDrawCommand { .mesh = mesh.handle, .material = mat, .modelUniform = model.GetModel() });
-	userCommands[index] = BatchDrawCommand { .mesh = mesh.handle, .material = mat, .modelUniform = model.GetModel() };
+	userCommands[index] = BatchDrawCommand { .mesh = mesh.handle->handle, .material = mat, .modelUniform = model.GetModel() };
 }
 
 void Renderer::RenderBatch()

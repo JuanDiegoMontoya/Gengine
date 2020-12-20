@@ -123,11 +123,11 @@ void Input::mouse_pos_cb([[maybe_unused]] GLFWwindow* window, double xpos, doubl
     firstMouse = false;
   }
 
-  screenPos.x = (float)xpos;
-  screenPos.y = (float)ypos;
+  screenPos.x = static_cast<float>(xpos);
+  screenPos.y = static_cast<float>(ypos);
 
-  worldPos.x = (float)xpos;
-  worldPos.y = (float)ypos;
+  worldPos.x = static_cast<float>(xpos);
+  worldPos.y = static_cast<float>(ypos);
 
   screenOffset.x = xpos - prevScreenPos.x;
   screenOffset.y = prevScreenPos.y - ypos;
@@ -142,8 +142,8 @@ void Input::mouse_pos_cb([[maybe_unused]] GLFWwindow* window, double xpos, doubl
 void Input::mouse_scroll_cb([[maybe_unused]] GLFWwindow* window, double xoffset, double yoffset)
 {
   ImGui_ImplGlfw_ScrollCallback(window, xoffset, yoffset);
-  scrollOffset.x = (float)xoffset;
-  scrollOffset.y = (float)yoffset;
+  scrollOffset.x = static_cast<float>(xoffset);
+  scrollOffset.y = static_cast<float>(yoffset);
 
 #if DEBUG_INPUT
   std::cout << "Mouse scroll: " << "(" << xoffset << ", " << yoffset << ")" << std::endl;

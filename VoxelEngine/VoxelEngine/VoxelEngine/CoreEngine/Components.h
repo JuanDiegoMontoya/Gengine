@@ -8,6 +8,7 @@
 #include <CoreEngine/Physics.h>
 
 class Camera;
+struct MeshHandle;
 
 namespace Components
 {
@@ -169,14 +170,14 @@ namespace Components
   /// </summary>
 
   // temp
-  struct Mesh
-  {
-    MeshHandle meshHandle;
-  };
+  //struct Mesh
+  //{
+  //  MeshHandle meshHandle;
+  //};
 
   struct BatchedMesh
   {
-    BatchedMeshHandle handle;
+    std::shared_ptr<MeshHandle> handle;
   };
 
   // temp

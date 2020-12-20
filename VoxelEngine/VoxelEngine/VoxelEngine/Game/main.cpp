@@ -28,7 +28,6 @@
 
 
 
-// main.cpp: this is where the user's code belongs
 static MaterialHandle userMaterial{};
 static MaterialHandle batchMaterial{};
 static std::unique_ptr<VoxelManager> voxelManager{};
@@ -39,7 +38,7 @@ void OnStart(Scene* scene)
   WorldGen wg(*voxelManager);
   wg.Init();
   wg.GenerateWorld();
-  //wg.InitializeSunlight();
+  wg.InitializeSunlight();
   wg.InitMeshes();
   wg.InitBuffers();
   //auto compressed = CompressChunk(voxelManager->GetChunk(glm::ivec3(0))->GetStorage());
@@ -86,14 +85,20 @@ void OnStart(Scene* scene)
   }
 
   {
-    bool l, o;
-    std::vector<BatchedMeshHandle> meshes;
-    meshes.push_back(MeshManager::CreateMeshBatched("./Resources/Models/big_cube.obj", l, o)[0]);
-    meshes.push_back(MeshManager::CreateMeshBatched("./Resources/Models/bunny.obj", l, o)[0]);
-    meshes.push_back(MeshManager::CreateMeshBatched("./Resources/Models/goodSphere.obj", l, o)[0]);
-    meshes.push_back(MeshManager::CreateMeshBatched("./Resources/Models/teapot.obj", l, o)[0]);
+    //std::vector<MeshHandle> meshes;
+    //meshes.push_back(MeshManager::CreateMeshBatched("./Resources/Models/big_cube.obj"));
+    //meshes.push_back(MeshManager::CreateMeshBatched("./Resources/Models/bunny.obj"));
+    //meshes.push_back(MeshManager::CreateMeshBatched("./Resources/Models/goodSphere.obj"));
+    //meshes.push_back(MeshManager::CreateMeshBatched("./Resources/Models/teapot.obj"));
 
-    auto notbatch = MeshManager::CreateMesh("./Resources/Models/sphere.obj", l, o)[0];
+    //auto notbatch = MeshManager::CreateMesh("./Resources/Models/sphere.obj", l, o)[0];
+
+    std::vector<std::shared_ptr<MeshHandle>> meshes;
+    meshes.push_back(MeshManager::CreateMeshBatched("./Resources/Models/big_cube.obj", "big_cube"));
+    meshes.push_back(MeshManager::CreateMeshBatched("./Resources/Models/bunny.obj", "bunny"));
+    meshes.push_back(MeshManager::CreateMeshBatched("./Resources/Models/goodSphere.obj", "sphere"));
+    meshes.push_back(MeshManager::CreateMeshBatched("./Resources/Models/teapot.obj", "teapot"));
+
     if (0) // creating a really tall parenting chain of objects
     {
       Entity parent = scene->CreateEntity("parent");
@@ -102,7 +107,7 @@ void OnStart(Scene* scene)
       parent.AddComponent<Components::NativeScriptComponent>().Bind<TestObj>();
       //parent.AddComponent<Components::Mesh>().meshHandle = bunny;
       //parent.AddComponent<Components::Material>(userMaterial);
-      parent.AddComponent<Components::BatchedMesh>().handle = meshes[0];
+      parent.AddComponent<Components::BatchedMesh>().handle = MeshManager::GetMeshBatched("big_cube");
       parent.AddComponent<Components::Material>(batchMaterial);
 
       for (int i = 0; i < 5000; i++)
@@ -115,7 +120,7 @@ void OnStart(Scene* scene)
         child.GetComponent<Components::LocalTransform>().transform.SetScale({ .95, .95, .95 });
         //child.AddComponent<Components::Mesh>().meshHandle = bunny;
         //child.AddComponent<Components::Material>(userMaterial);
-        child.AddComponent<Components::BatchedMesh>().handle = meshes[0];
+        child.AddComponent<Components::BatchedMesh>().handle = MeshManager::GetMeshBatched("big_cube");
         child.AddComponent<Components::Material>(batchMaterial);
         parent = child;
       }
@@ -167,12 +172,12 @@ void OnStart(Scene* scene)
         entity.AddComponent<Components::DynamicPhysics>(std::move(phys));
       }
     }
-    if (0) // spheres physics test
+    if (1) // spheres physics test
     {
       for (int i = 0; i < 500; i++)
       {
         Entity entity = scene->CreateEntity("physics entity" + std::to_string(i));
-        entity.AddComponent<Components::Transform>().SetTranslation({ -10, 50 + i, 10 + (float(i) / 50.f) });
+        entity.AddComponent<Components::Transform>().SetTranslation({ +30, 50 + i, 10 + (float(i) / 50.f) });
         //entity.AddComponent<Components::Transform>().SetTranslation({ -15, 50, 10 });
         glm::vec3 scale{ 1, 1, 1 };
         entity.GetComponent<Components::Transform>().SetScale(scale * .5f);

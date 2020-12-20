@@ -71,12 +71,14 @@ public:
 
   // Getters
   BlockType GetType() const { return type_; }
-  int GetTypei() const { return int(type_); }
-  const char* GetName() const { return Block::PropertiesTable[unsigned(type_)].name; }
-  int GetPriority() { return Block::PropertiesTable[unsigned(type_)].priority; }
-  float GetTTK() { return Block::PropertiesTable[unsigned(type_)].ttk; }
-  bool GetDestructible() { return Block::PropertiesTable[unsigned(type_)].destructible; }
+  int GetTypei() const { return static_cast<int>(type_); }
+  const char* GetName() const { return Block::PropertiesTable[GetTypei()].name; }
+  int GetPriority() const { return Block::PropertiesTable[GetTypei()].priority; }
+  float GetTTK() const { return Block::PropertiesTable[GetTypei()].ttk; }
+  bool GetDestructible() const { return Block::PropertiesTable[GetTypei()].destructible; }
+  Visibility GetVisibility() const { return Block::PropertiesTable[GetTypei()].visibility; }
   Light& GetLightRef() { return light_; }
+  const Light& GetLightRef() const { return light_; }
   Light GetLight() const { return light_; }
 
   // Setters

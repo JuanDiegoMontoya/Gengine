@@ -279,7 +279,7 @@ void WorldGen::sunlightPropagateOnce(const glm::ivec3& wpos)
       neighborLight.SetS(0xF);
     else
       neighborLight.SetS(curLight.GetS() - 1);
-    vm.SetLight(neighborPos, neighborLight);
+    vm.SetBlockLight(neighborPos, neighborLight);
     lightsToPropagate.push(neighborPos);
   }
 }

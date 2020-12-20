@@ -1,6 +1,5 @@
 #pragma once
 #include <memory>
-#include <concurrent_unordered_map.h>
 #include <Voxels/Chunk.h>
 #include <Voxels/ChunkHelpers.h>
 
@@ -32,7 +31,6 @@ public:
 
   VoxelManager(VoxelManager&) = delete;
   VoxelManager(VoxelManager&&) noexcept = delete;
-
   VoxelManager& operator=(const VoxelManager&) = delete;
   VoxelManager& operator=(VoxelManager&&) = delete;
 
@@ -49,14 +47,19 @@ public:
   Block GetBlock(const ChunkHelpers::localpos& p) const;
   std::optional<Block> TryGetBlock(const glm::ivec3& wpos) const;
 
-  // Meshing-aware block-changing functions
+  // Meshing-aware block-changing functions. Expensive, but convenient.
+  // Call these functions infrequently, such as during common gameplay actions.
   void UpdateBlock(const glm::ivec3& wpos, Block block);
   void UpdateBlockCheap(const glm::ivec3& wpos, Block block);
 
-  // Change the state of the voxel world
+  // Change the state of the voxel world. These functions are cheap to call as 
+  // they only modify the block data, but do not cause the chunk to be remeshed.
+  // Call these functions for data-heavy work such as world generation.
   bool SetBlock(const glm::ivec3& wpos, Block block);
   bool SetBlockType(const glm::ivec3& wpos, BlockType type);
-  bool SetLight(const glm::ivec3& wpos, Light light);
+  bool SetBlockLight(const glm::ivec3& wpos, Light light);
+
+  // Regenerates the mesh of the chunk at the specified location
   void MeshChunk(const glm::ivec3& cpos);
 
   // Utility functions
@@ -178,7 +181,7 @@ inline bool VoxelManager::SetBlockType(const glm::ivec3& wpos, BlockType type)
   return false;
 }
 
-inline bool VoxelManager::SetLight(const glm::ivec3& wpos, Light light)
+inline bool VoxelManager::SetBlockLight(const glm::ivec3& wpos, Light light)
 {
   ChunkHelpers::localpos w = ChunkHelpers::worldPosToLocalPos(wpos);
   Chunk* chunk = chunks_[flatten(w.chunk_pos)];
