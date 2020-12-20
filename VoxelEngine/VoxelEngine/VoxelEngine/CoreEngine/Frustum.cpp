@@ -1,6 +1,12 @@
 #include <CoreEngine/GraphicsIncludes.h>
 #include <CoreEngine/Frustum.h>
 
+
+Frustum::~Frustum() 
+{
+    // cokc
+}
+
 void Frustum::Transform(const glm::mat4& proj, const glm::mat4& view)
 {
   glm::mat4 clip;

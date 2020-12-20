@@ -20,7 +20,9 @@ void HUD::Update()
     //printf("%d\n", selected_);
   }
   //reinterpret_cast<unsigned char&>(selected_) += ofs;
-  Camera* cam = Camera::ActiveCamera;
+
+  //Camera* cam = CameraSystem::ActiveCamera;----
+
   //printf("%f\n", Input::Mouse().scrollOffset.y);
 
   // render the selected object on the screen
@@ -35,7 +37,7 @@ void HUD::Update()
     auto& curr = Shader::shaders["textured_array"];
     curr->Use();
     curr->setMat4("u_model", model);
-    curr->setMat4("u_proj", cam->GetProj());
+    curr->setMat4("u_proj", CameraSystem::GetProj());
     curr->setMat4("u_view", glm::mat4(1));
     //curr->setVec4("u_color", Block::PropertiesTable[int(selected_)].color);
     ASSERT_MSG(false, "Do something to make next line work");
@@ -50,7 +52,7 @@ void HUD::Update()
     curr->setVec4("u_color", glm::vec4(1));
     model = glm::scale(model, { 1.1, 1.1, 1.1 });
     curr->setMat4("u_model", model);
-    curr->setMat4("u_proj", cam->GetProj());
+    curr->setMat4("u_proj", CameraSystem::GetProj());
     curr->setMat4("u_view", glm::mat4(1));
   }
 

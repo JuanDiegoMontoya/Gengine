@@ -9,15 +9,15 @@
 #include <CoreEngine/Mesh.h>
 #include <execution>
 
+#include <imgui/imgui.h>
+
 // TODO: TEMP GARBAGE
 #include <CoreEngine/Context.h>
-Camera* cam;
-
 
 void GraphicsSystem::Init()
 {
-  cam = new Camera();
-  Camera::ActiveCamera = cam;
+  //cam = new Camera();
+  //Camera::ActiveCamera = cam;
   window = init_glfw_context();
   glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
   glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
@@ -45,12 +45,12 @@ void GraphicsSystem::Init()
   }
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+  CameraSystem::Init();
   Renderer::Init();
 }
 
 void GraphicsSystem::Shutdown()
 {
-  delete cam;
   glfwDestroyWindow(window);
 }
 
@@ -68,33 +68,38 @@ void GraphicsSystem::StartFrame()
 
 void GraphicsSystem::Update(Scene& scene, float dt)
 {
-  Camera::ActiveCamera->Update(dt);
-
-  // draw non-batched objects in the scene
-  {
-    using namespace Components;
-    auto view = scene.GetRegistry().view<Transform, Mesh, Material>();
-    for (auto entity : view)
+    auto camList = CameraSystem::GetCameraList();
+    for (Components::Camera* camera : camList)
     {
-      auto [transform, mesh, material] = view.get<Transform, Mesh, Material>(entity);
-      Renderer::Render(transform, mesh, material);
+        CameraSystem::ActiveCamera = camera;
+        CameraSystem::Update(dt);
+
+        // draw non-batched objects in the scene
+        {
+            using namespace Components;
+            auto view = scene.GetRegistry().view<Transform, Mesh, Material>();
+            for (auto entity : view)
+            {
+                auto [transform, mesh, material] = view.get<Transform, Mesh, Material>(entity);
+                Renderer::Render(transform, mesh, material);
+            }
+        }
+
+        // draw batched objects in the scene
+        {
+            using namespace Components;
+            auto group = scene.GetRegistry().group<BatchedMesh>(entt::get<Transform, Material>);
+            Renderer::BeginBatch(group.size());
+            std::for_each(std::execution::par_unseq, group.begin(), group.end(),
+                [&group](entt::entity entity)
+            {
+                auto [mesh, transform, material] = group.get<BatchedMesh, Transform, Material>(entity);
+                Renderer::Submit(transform, mesh, material);
+            });
+
+            Renderer::RenderBatch();
+        }
     }
-  }
-
-  // draw batched objects in the scene
-  {
-    using namespace Components;
-    auto group = scene.GetRegistry().group<BatchedMesh>(entt::get<Transform, Material>);
-    Renderer::BeginBatch(group.size());
-    std::for_each(std::execution::par_unseq, group.begin(), group.end(),
-      [&group](entt::entity entity)
-      {
-        auto [mesh, transform, material] = group.get<BatchedMesh, Transform, Material>(entity);
-        Renderer::Submit(transform, mesh, material);
-      });
-
-    Renderer::RenderBatch();
-  }
 }
 
 void GraphicsSystem::EndFrame()

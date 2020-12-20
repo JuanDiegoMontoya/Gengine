@@ -1,5 +1,6 @@
 #pragma once
 #include "Camera.h"
+#include <CoreEngine/Components.h>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/component_wise.hpp>
 #undef GLM_ENABLE_EXPERIMENTAL
@@ -31,10 +32,10 @@ struct Box
 
 
   // .5 x .5 x .5 camera
-  Box(const Camera& c)
+  Box(const Components::Camera& c)
     : min(), max(), blockpos(0)
   {
-    const auto& p = c.GetPos();
+      const auto& p = glm::vec3(0);// c.GetPos();
     min = p - .25f;
     max = p + .25f;
     //max.y *= 2;

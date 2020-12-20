@@ -6,8 +6,6 @@
 #include <CoreEngine/MeshUtils.h>
 #include <CoreEngine/Material.h>
 
-class Camera;
-
 namespace Components
 {
   /// <summary>
@@ -38,16 +36,32 @@ namespace Components
     const auto& GetRotation() const { return rotation; }
     const auto& GetScale() const { return scale; }
     const auto& GetModel() const { return model; }
+
+    const auto& GetForward() const { return (glm::vec3(rotation[2])); }
+    const auto& GetUp() const { return (glm::vec3(rotation[1])); }
+    const auto& GetRight() const { return (glm::vec3(rotation[0])); }
+
     auto IsDirty() const { return isDirty; }
     void SetTranslation(const glm::vec3& vec) { translation = vec; isDirty = true; }
     void SetRotation(const glm::mat4& mat) { rotation = mat; isDirty = true; }
     void SetScale(const glm::vec3& vec) { scale = vec; isDirty = true; }
     void SetModel(const glm::mat4& mat) { model = mat; isDirty = false; }
 
+    void SetPYR(const glm::vec3& pyr) { pitch_ = pyr.x; yaw_ = pyr.y; roll_ = pyr.z; isDirty = true; }
+
+    // Temp
+    float pitch_ = 16;
+    float yaw_ = 255;
+    float roll_ = 0;
+
   private:
     glm::vec3	translation{ 0 };
     glm::mat4 rotation{ 1 };
     glm::vec3	scale{ 1, 1, 1 };
+
+    glm::vec3 forward{ 0, 0, 1 };
+    glm::vec3 up{ 0, 0, 1 };
+    glm::vec3 right{ 0, 0, 1 };
 
     glm::mat4	model{ 1 };
     bool isDirty = false;
@@ -71,12 +85,29 @@ namespace Components
   // temp
   using Material = ::MaterialHandle;
   
-  // TODO: temp cuz this is sucky
   struct Camera
   {
-    Camera(::Camera* c) : cam(c) {}
-    ::Camera* cam;
+    /*Camera(::Camera* c) : cam(c) 
+    {
+
+    }
+    ::Camera* cam;*/
     //bool isActive;
+
+    // New
+      Camera(Entity);
+
+    Entity entity{};
+
+    bool frustumCulling = false;
+    // Culling Mask
+
+    float fov = 70.0f;
+
+    float zNear = 0.1f;
+    float zFar = 1000.0f;
+
+    unsigned skybox = 0;
   };
 
   struct Parent

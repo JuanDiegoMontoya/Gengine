@@ -30,10 +30,10 @@ public:
   {
     if (Input::IsMousePressed(GLFW_MOUSE_BUTTON_2))
     {
-      const auto cam = Camera::ActiveCamera;
+      //const auto cam = CameraSystem::ActiveCamera;
       voxels->Raycast(
-        cam->GetPos(),
-        cam->GetFront(),
+         CameraSystem::GetPos(),
+         CameraSystem::GetFront(),
         5,
         std::function<bool(glm::vec3, Block, glm::vec3)>
         ([&](glm::vec3 pos, Block block, glm::vec3 side)->bool
@@ -58,10 +58,10 @@ public:
       !ImGui::IsAnyItemActive() &&
       !ImGui::IsAnyItemFocused()*/)
     {
-      const auto cam = Camera::ActiveCamera;
+      //const auto cam = CameraSystem::ActiveCamera;
       voxels->Raycast(
-        cam->GetPos(),
-        cam->GetFront(),
+         CameraSystem::GetPos(),
+         CameraSystem::GetFront(),
         5,
         std::function<bool(glm::vec3, Block, glm::vec3)>
         ([&](glm::vec3 pos, Block block, glm::vec3 side)->bool
@@ -86,10 +86,10 @@ public:
       !ImGui::IsAnyItemActive() &&
       !ImGui::IsAnyItemFocused()*/)
     {
-      const auto cam = Camera::ActiveCamera;
+      //const auto cam = CameraSystem::ActiveCamera;
       voxels->Raycast(
-        cam->GetPos(),
-        cam->GetFront(),
+         CameraSystem::GetPos(),
+         CameraSystem::GetFront(),
         5,
         std::function<bool(glm::vec3, Block, glm::vec3)>
         ([&](glm::vec3 pos, Block block, glm::vec3 side)->bool

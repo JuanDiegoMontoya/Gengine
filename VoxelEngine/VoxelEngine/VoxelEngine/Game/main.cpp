@@ -65,7 +65,7 @@ void OnStart(Scene* scene)
   {
     Entity player = scene->CreateEntity("player");
     player.AddComponent<Components::Transform>();
-    player.AddComponent<Components::Camera>(Camera::ActiveCamera);
+    player.AddComponent<Components::Camera>(player);
     player.AddComponent<Components::NativeScriptComponent>().Bind<FlyingPlayerController>();
     //player.AddComponent<Components::NativeScriptComponent>().Bind<PhysicsPlayerController>();
     //player.AddComponent<Components::Physics>();
