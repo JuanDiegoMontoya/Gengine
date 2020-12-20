@@ -1,14 +1,11 @@
+#include "EnginePCH.h"
 #include "DebugSystem.h"
 #include "Scene.h"
 #include <imgui/imgui.h>
-//#include <imgui/imgui_impl_glfw.h>
-//#include <imgui/imgui_impl_opengl3.h>
 #include <Utilities/ImGuiExt.h>
-#include <GLFW/glfw3.h>
 #include <CoreEngine/Input.h>
 #include <chrono>
 #include <thread>
-#include <glm/glm.hpp>
 
 void DebugSystem::Init(GLFWwindow* win)
 {

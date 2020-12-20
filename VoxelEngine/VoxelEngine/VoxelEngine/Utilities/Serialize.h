@@ -1,8 +1,6 @@
 #pragma once
 #include <glm/glm.hpp>
-#include <Utilities/CompressBuffer.h>
-#include <Utilities/RunLengthEncoder.h>
-#include <Utilities/DeltaEncoder.h>
+#include <Utilities/Compression.h>
 #include <Utilities/BitArray.h>
 #include <cereal/types/vector.hpp>
 #include <cereal/archives/binary.hpp>
@@ -27,7 +25,9 @@ namespace cereal
   void serialize(Archive& archive, Chunk* c)
   {
     if (c)
+    {
       archive(*c);
+    }
   }
 
   template<class Archive, typename T>

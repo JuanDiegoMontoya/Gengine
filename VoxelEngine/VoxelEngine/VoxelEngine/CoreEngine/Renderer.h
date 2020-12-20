@@ -9,25 +9,12 @@
 
 class Shader;
 
-namespace std
-{
-	template<>
-	struct hash<BatchedMeshHandle>
-	{
-		std::size_t operator()(const BatchedMeshHandle& k) const
-		{
-			return std::hash<unsigned>()(k.handle);
-		}
-	};
-}
-
 class Renderer
 {
 public:
 	static void Init();
 	static void CompileShaders();
 
-	static void Render(Components::Transform& model, Components::Mesh& mesh, Components::Material& mat);
 	static void BeginBatch(uint32_t size);
 	static void Submit(Components::Transform& model, Components::BatchedMesh& mesh, Components::Material& mat);
 	static void RenderBatch();
@@ -47,26 +34,24 @@ private:
 
 	// batched+instanced rendering stuff (ONE MATERIAL SUPPORTED ATM)
 	friend class MeshManager;
-	static inline std::unique_ptr<DynamicBuffer<>> vertexBuffer;
-	static inline std::unique_ptr<DynamicBuffer<>> indexBuffer;
+	static inline std::unique_ptr<GFX::DynamicBuffer<>> vertexBuffer;
+	static inline std::unique_ptr<GFX::DynamicBuffer<>> indexBuffer;
 
 	// per-vertex layout
-	static inline std::unique_ptr<VAO> batchVAO;
+	static inline std::unique_ptr<GFX::VAO> batchVAO;
 
 	// maps handles to VERTEX and INDEX information in the respective dynamic buffers
 	// used to retrieve important offset and size info for meshes
-	using DBaT = DynamicBuffer<>::allocationData<>;
-	static inline std::unordered_map<BatchedMeshHandle, DrawElementsIndirectCommand> meshBufferInfo;
-	static inline unsigned nextHandle = 1;
+	using DBaT = GFX::DynamicBuffer<>::allocationData<>;
+	static inline std::unordered_map<uint32_t, DrawElementsIndirectCommand> meshBufferInfo;
 
 	struct BatchDrawCommand
 	{
-		BatchedMeshHandle mesh;
+		MeshID mesh;
 		MaterialHandle material;
 		glm::mat4 modelUniform;
 	};
 	static inline std::vector<BatchDrawCommand> userCommands;
 
 	static inline std::atomic_uint32_t cmdIndex{ 0 };
-	//static inline std::vector<DrawElementsIndirectCommand> indirectCommands;
 };

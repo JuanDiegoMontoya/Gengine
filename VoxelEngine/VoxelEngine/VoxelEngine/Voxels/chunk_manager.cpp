@@ -120,22 +120,37 @@ void ChunkManager::UpdateBlock(const glm::ivec3& wpos, Block bl, bool indirect)
   if (!chunk)
   {
     // make chunk, then modify changed block
-    voxelManager.chunks_[p.chunk_pos] = chunk = new Chunk(p.chunk_pos, voxelManager);
+    voxelManager.chunks_[voxelManager.flatten(p.chunk_pos)] = chunk = new Chunk(p.chunk_pos, voxelManager);
     remBlock = chunk->BlockAt(p.block_pos); // remBlock would've been 0 block cuz null, so it's fix here
   }
 
   if (indirect == false)
+  {
     chunk->SetBlockTypeAt(p.block_pos, bl.GetType());
+  }
   else
+  {
     chunk->SetBlockTypeAtIndirect(p.block_pos, bl.GetType());
+  }
 
   // check if removed block emitted light
-  lightPropagateRemove(wpos);
+  if (bl.GetVisibility() == Visibility::Opaque || remBlock.GetVisibility() == Visibility::Opaque)
+  {
+    lightPropagateRemove(wpos);
+  }
+
+  // propagate sunlight down from above, if applicable
+  //if (auto block = voxelManager.TryGetBlock(wpos + glm::ivec3(0, 1, 0)); block && block->GetLight().GetS() > 1)
+  //{
+  //  lightPropagateAdd(wpos + glm::ivec3(0, 1, 0), block->GetLight());
+  //}
 
   // check if added block emits light
-  glm::uvec3 emit2 = Block::PropertiesTable[int(bl.GetType())].emittance;
+  glm::uvec3 emit2 = Block::PropertiesTable[bl.GetTypei()].emittance;
   if (emit2 != glm::uvec3(0))
-    lightPropagateAdd(wpos, Light(Block::PropertiesTable[int(bl.GetType())].emittance));
+  {
+    lightPropagateAdd(wpos, Light(Block::PropertiesTable[bl.GetTypei()].emittance));
+  }
 
   // add to update list if it ain't
   UpdateChunk(chunk);
@@ -174,10 +189,10 @@ void ChunkManager::ReloadAllChunks()
 {
   for (const auto& p : voxelManager.chunks_)
   {
-    if (p.second)
+    if (p)
     {
       //std::lock_guard<std::mutex> lock(chunk_mesher_mutex_);
-      UpdateChunk(p.second);
+      UpdateChunk(p);
     }
       //if (!isChunkInUpdateList(p.second))
       //  updatedChunks_.push_back(p.second);
@@ -240,7 +255,9 @@ void ChunkManager::checkUpdateChunkNearBlock(const glm::ivec3& pos, const glm::i
   auto p1 = ChunkHelpers::worldPosToLocalPos(pos);
   auto p2 = ChunkHelpers::worldPosToLocalPos(pos + near);
   if (p1.chunk_pos == p2.chunk_pos)
+  {
     return;
+  }
 
   // update chunk if near block is NOT air/invisible
   //BlockPtr cb = Chunk::AtWorld(pos);
@@ -273,7 +290,7 @@ void ChunkManager::lightPropagateAdd(glm::ivec3 wpos, Light nLight, bool skipsel
     // if there is already light in the spot,
     // combine the two by taking the max values only
     glm::u8vec4 t = glm::max(optL->GetLight().Get(), nLight.Get());
-    voxelManager.SetLight(wpos, t);
+    voxelManager.SetBlockLight(wpos, t);
     //L.Set(t); //*L = t;
   }
   
@@ -301,25 +318,30 @@ void ChunkManager::lightPropagateAdd(glm::ivec3 wpos, Light nLight, bool skipsel
     {
       glm::ivec3 nlightPos = lightp + dir;
       auto nblock = voxelManager.TryGetBlock(nlightPos);
-      if (!nblock.has_value()) // skip if block invalid (outside of world)
-        continue;
+      if (!nblock) continue;
       Light nlight = nblock->GetLight();
 
       // add chunk to update queue if it exists
       if (!noqueue)
+      {
         delayed_update_queue_.insert(voxelManager.GetChunk(ChunkHelpers::worldPosToLocalPos(nlightPos).chunk_pos));
+      }
 
       // if neighbor is solid block, skip dat boi
       if (Block::PropertiesTable[nblock->GetTypei()].visibility == Visibility::Opaque)
+      {
         continue;
+      }
 
-      // iterate over R, G, B
+      // iterate over R, G, B, Sun
       bool enqueue = false;
       for (int ci = 0; ci < 4; ci++)
       {
         // neighbor must have light level 2 less than current to be updated
         if (nlight.Get()[ci] + 2 > lightLevel.Get()[ci])
+        {
           continue;
+        }
 
         // TODO: light propagation through transparent materials
         // get all light systems (R, G, B, Sun) and modify ONE of them,
@@ -331,88 +353,95 @@ void ChunkManager::lightPropagateAdd(glm::ivec3 wpos, Light nLight, bool skipsel
 
         // if sunlight, max light, and going down, then don't decrease power
         if (ci == 3 && lightLevel.Get()[3] == 0xF && dir == glm::ivec3(0, -1, 0))
+        {
           val[3] = 0xF;
+        }
 
-        voxelManager.SetLight(nlightPos, val);
+        voxelManager.SetBlockLight(nlightPos, val);
         enqueue = true;
       }
       if (enqueue) // enqueue if any lighting system changed
+      {
         lightQueue.push(nlightPos);
+      }
     }
   }
 
   // do not update this chunk again if it contained the placed light
   if (!noqueue && skipself)
+  {
     delayed_update_queue_.erase(voxelManager.GetChunk(ChunkHelpers::worldPosToLocalPos(wpos).chunk_pos));
+  }
 }
 
 
 void ChunkManager::lightPropagateRemove(glm::ivec3 wpos, bool noqueue)
 {
   std::queue<std::pair<glm::ivec3, Light>> lightRemovalQueue;
-  Light light = voxelManager.GetBlock(wpos).GetLight();
+  Block wblock = voxelManager.GetBlock(wpos);
+  Light light = wblock.GetLight();
   lightRemovalQueue.push({ wpos, light });
-  voxelManager.SetLight(wpos, Light({ 0, 0, 0, light.GetS() }));
-  //GetBlockPtr(wpos)->GetLightRef().Set({ 0, 0, 0, light.GetS() });
+
+  if (wblock.GetVisibility() == Visibility::Opaque)
+  {
+    voxelManager.SetBlockLight(wpos, Light({ 0, 0, 0, 0 }));
+  }
 
   std::queue<std::pair<glm::ivec3, Light>> lightReadditionQueue;
 
-  while (!lightRemovalQueue.empty())
-  {
-    auto [plight, lite] = lightRemovalQueue.front();
-    auto lightv = lite.Get(); // current light value
-    lightRemovalQueue.pop();
-
-    const glm::ivec3 dirs[] =
-    {
-      { 1, 0, 0 },
-      {-1, 0, 0 },
+  const glm::ivec3 dirs[] = 
+    { { 1, 0, 0 },
+      { -1, 0, 0 },
       { 0, 1, 0 },
       { 0,-1, 0 },
       { 0, 0, 1 },
-      { 0, 0,-1 },
-    };
+      { 0, 0,-1 } };
+
+  while (!lightRemovalQueue.empty())
+  {
+    const auto [plight, lite] = lightRemovalQueue.front();
+    const auto lightv = lite.Get(); // current light value
+    lightRemovalQueue.pop();
 
     for (const auto& dir : dirs)
     {
       glm::ivec3 blockPos = plight + dir;
       auto optB = voxelManager.TryGetBlock(blockPos);
-      //BlockPtr b = GetBlockPtr(plight + dir);
-      if (!optB.has_value())
-        continue;
-      for (int ci = 0; ci < 3; ci++) // iterate 3 color systems (not sunlight)
-      {
-        // if the removed block emits light, it needs to be re-propagated
-        auto emit = Block::PropertiesTable[optB->GetTypei()].emittance;
-        if (emit != glm::u8vec4(0))
-          lightReadditionQueue.push({ blockPos, emit });
-        Light nearLight = optB->GetLight();
-        //Light& nearLight = b->GetLightRef();
-        glm::u8vec4 nlightv = nearLight.Get(); // near light value
+      if (!optB) continue;
 
-        // skip updates when light is 0
-        // remove light if there is any and if it is weaker than this node's light value
-        //if (nlightv[ci] != 0)
+      const Light nearLight = optB->GetLight();
+      glm::u8vec4 nlightv = nearLight.Get();
+      glm::u8vec4 nue(0);
+      bool enqueueRemove = false;
+      bool enqueueReadd = false;
+      for (int ci = 0; ci < 4; ci++) // iterate 3 colors (not sunlight)
+      {
+        // remove light if there is any and if it is weaker than this node's light value, OR if max sunlight and going down
+        if (nlightv[ci] > 0 && ((nlightv[ci] == lightv[ci] - 1)) || (dir == glm::ivec3(0, -1, 0) && ci == 3 && nlightv[3] == 0xF))
         {
-          if (nlightv[ci] != 0 && nlightv[ci] == lightv[ci] - 1)
-          {
-            lightRemovalQueue.push({ blockPos, nearLight });
-            if (!noqueue && voxelManager.GetChunk(ChunkHelpers::worldPosToLocalPos(blockPos).chunk_pos))
-              delayed_update_queue_.insert(voxelManager.GetChunk(ChunkHelpers::worldPosToLocalPos(blockPos).chunk_pos));
-            auto tmp = nearLight.Get();
-            tmp[ci] = 0;
-            //nearLight.Set(tmp);
-            optB->GetLightRef().Set(tmp);
-            voxelManager.SetLight(blockPos, tmp);
-          }
-          // re-propagate near light that is equal to or brighter than this after setting it all to 0
-          else if (nlightv[ci] > lightv[ci])
-          {
-            glm::u8vec4 nue(0);
-            nue[ci] = nlightv[ci];
-            lightReadditionQueue.push({ blockPos, nue });
-          }
+          enqueueRemove = true;
+          nlightv[ci] = 0;
+          voxelManager.SetBlockLight(blockPos, nlightv);
         }
+        // re-propagate near light that is equal to or brighter than this after setting it all to 0
+        else if (nlightv[ci] > lightv[ci])
+        {
+          enqueueReadd = true;
+          nue[ci] = nlightv[ci];
+        }
+      }
+      
+      if (enqueueRemove)
+      {
+        lightRemovalQueue.push({ blockPos, nearLight });
+        if (!noqueue && voxelManager.GetChunk(ChunkHelpers::worldPosToLocalPos(blockPos).chunk_pos))
+        {
+          delayed_update_queue_.insert(voxelManager.GetChunk(ChunkHelpers::worldPosToLocalPos(blockPos).chunk_pos));
+        }
+      }
+      if (enqueueReadd)
+      {
+        lightReadditionQueue.push({ blockPos, nue });
       }
     }
   }
@@ -429,77 +458,3 @@ void ChunkManager::lightPropagateRemove(glm::ivec3 wpos, bool noqueue)
   // do not update the removed block's chunk again since the act of removing will update it
   delayed_update_queue_.erase(voxelManager.GetChunk(ChunkHelpers::worldPosToLocalPos(wpos).chunk_pos));
 }
-
-
-//void ChunkManager::initializeSunlight()
-//{
-//  Timer timer;
-//  // find the max chunk height (assumed world has flat top, so no column-local max height needed)
-//  int maxY = std::numeric_limits<int>::min();
-//  int minY = std::numeric_limits<int>::max();
-//
-//  for (const auto& [pos, chunk] : voxelManager.chunks_)
-//  {
-//    minY = glm::min(minY, pos.y);
-//    maxY = glm::max(maxY, pos.y);
-//  }
-//
-//  std::queue<glm::ivec3> lightLocationsToPropagate;
-//
-//  std::function <void(int, int, Chunk*)> processColumn = [&](const int x, const int z, Chunk* c)
-//  {
-//    // each column
-//    bool broke = false;
-//    for (int y = Chunk::CHUNK_SIZE - 1; y >= 0; y--)
-//    {
-//      glm::ivec3 lpos{ x, y, z };
-//      auto wpos = ChunkHelpers::chunkPosToWorldPos(lpos, c->GetPos());
-//
-//      // break the moment any block in the column is solid; not exposed to sunlight
-//      Block curBlock = voxelManager.GetBlock(wpos);
-//      if (Block::PropertiesTable[curBlock.GetTypei()].visibility == Visibility::Opaque)
-//      {
-//        broke = true;
-//        break;
-//      }
-//
-//      Light light = c->LightAt(lpos);
-//      light.SetS(0xF); // set sunlight to max
-//      c->SetLightAt(lpos, light);
-//      lightLocationsToPropagate.push(wpos);
-//    }
-//
-//    // if entire column was illuminated, continue to chunk below
-//    if (broke == false && c->GetPos().y > minY)
-//    {
-//      processColumn(x, z, voxelManager.GetChunk(c->GetPos() - glm::ivec3(0, 1, 0)));
-//    }
-//  };
-//
-//  // generates initial columns of sunlight in the world
-//  for (auto [cpos, chunk] : voxelManager.chunks_)
-//  {
-//    // propagate light only from the highest chunks
-//    if (cpos.y != maxY || chunk == nullptr)
-//      continue;
-//
-//    // for each block on top of the chunk
-//    for (int x = 0; x < Chunk::CHUNK_SIZE; x++)
-//    {
-//      for (int z = 0; z < Chunk::CHUNK_SIZE; z++)
-//      {
-//        processColumn(x, z, chunk);
-//      }
-//    }
-//  }
-//
-//  while (!lightLocationsToPropagate.empty())
-//  {
-//    auto wpos = lightLocationsToPropagate.front();
-//    lightLocationsToPropagate.pop();
-//
-//    //sunlightPropagateAdd(wpos, 0xF);
-//  }
-//
-//  printf("Sunlight propagation took %f seconds\n", timer.elapsed());
-//}

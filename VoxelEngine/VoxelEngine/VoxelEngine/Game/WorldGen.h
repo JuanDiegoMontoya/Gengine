@@ -4,17 +4,17 @@
 
 class VoxelManager;
 
-class WorldGen2
+class WorldGen
 {
 public:
-  WorldGen2(VoxelManager& v) : vm(v) {}
+  WorldGen(VoxelManager& v) : voxels(v) {}
   void Init();
   void GenerateWorld();
   void InitMeshes();
   void InitBuffers();
   void InitializeSunlight();
 private:
-  VoxelManager& vm;
+  VoxelManager& voxels;
   std::queue<glm::ivec3> lightsToPropagate;
 
   void sunlightPropagateOnce(const glm::ivec3& wpos);

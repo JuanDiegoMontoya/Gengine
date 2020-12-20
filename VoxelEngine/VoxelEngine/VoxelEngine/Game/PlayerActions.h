@@ -2,6 +2,8 @@
 #include <CoreEngine/ScriptableEntity.h>
 #include <CoreEngine/Input.h>
 #include <Voxels/VoxelManager.h>
+#include <imgui/imgui.h>
+#include <Voxels/prefab.h>
 
 class PlayerActions : public ScriptableEntity
 {
@@ -20,9 +22,70 @@ public:
 
   virtual void OnUpdate(float dt) override
   {
+    checkTestButton();
     checkBlockPick();
-    checkBlockDestruction();
+    checkBlockDestruction(dt);
     checkBlockPlacement();
+
+    selected = (BlockType)glm::clamp((int)selected + (int)Input::GetScrollOffset().y, 0, (int)Block::PropertiesTable.size() - 1);
+
+    float size = 100.0f;
+    ImGui::SetNextWindowBgAlpha(0.0f);
+    ImGui::SetNextWindowSize(ImVec2(size * 1.25f, size * 1.7f));
+    ImGui::SetNextWindowPos(ImVec2(32.0f, 1017 - size * 1.55f - 32.0f));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+    ImGui::Begin("Held Block", 0, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove);
+    //ImGui::Begin("Held Block");
+    ImGui::Text("%s", Block::PropertiesTable[(int)selected].name);
+    ImGui::End();
+    ImGui::PopStyleVar();
+
+    ImGui::Begin("Yeet");
+    ImGui::Text("Voxel raycast information:");
+    float dist = 5.f;
+    ImGui::Text("Ray length: %0.f", dist);
+    const auto cam = Camera::ActiveCamera;
+    voxels->Raycast(
+      cam->GetPos(),
+      cam->GetFront(),
+      dist,
+      [this](glm::vec3 pos, Block block, glm::vec3 side)->bool
+      {
+        if (block.GetType() == BlockType::bAir)
+        {
+          return false;
+        }
+
+        ImGui::Text("Block Type: %d (%s)", block.GetTypei(), block.GetName());
+        //ImGui::Text("Write Strength: %d", block->WriteStrength());
+        //ImGui::Text("Light Value: %d", block->LightValue());
+        Light lit;
+        if (auto opt = voxels->TryGetBlock(pos))
+          lit = opt->GetLight();
+        Light lit2;
+        if (auto opt = voxels->TryGetBlock(pos + side))
+          lit2 = opt->GetLight();
+        ImGui::Text("Light:  (%d, %d, %d, %d)", lit.GetR(), lit.GetG(), lit.GetB(), lit.GetS());
+        ImGui::Text("FLight: (%d, %d, %d, %d)", lit2.GetR(), lit2.GetG(), lit2.GetB(), lit2.GetS());
+        ImGui::Text("Block pos:  (%.2f, %.2f, %.2f)", pos.x, pos.y, pos.z);
+        ImGui::Text("Block side: (%.2f, %.2f, %.2f)", side.x, side.y, side.z);
+
+        return true;
+      });
+    ImGui::End();
+  }
+
+
+  void checkTestButton()
+  {
+    if (Input::IsKeyDown(GLFW_KEY_G))
+    {
+      for (int i = 0; i < 100; i++)
+      {
+        //voxels->MeshChunk({ rand() % 5, rand() % 5, rand() % 5 });
+        voxels->UpdateBlock({ rand() % 100, rand() % 100, rand() % 100 }, Block(BlockType::bStone));
+      }
+    }
   }
 
 
@@ -41,7 +104,42 @@ public:
             if (block.GetType() == BlockType::bAir)
               return false;
 
-            voxels->UpdateBlock(pos + side, selected);
+            if (Input::IsKeyDown(GLFW_KEY_J) || Input::IsKeyDown(GLFW_KEY_K) || Input::IsKeyDown(GLFW_KEY_L))
+            {
+              Prefab prefab = PrefabManager::GetPrefab("OakTree");
+              if (Input::IsKeyDown(GLFW_KEY_K))
+                prefab = PrefabManager::GetPrefab("OakTreeBig");
+              else if (Input::IsKeyDown(GLFW_KEY_L))
+                prefab = PrefabManager::GetPrefab("Error");
+
+              bool spawn = true;
+
+              if (prefab.GetPlacementType() == PlacementType::PriorityRequired)
+              {
+                for (unsigned i = 0; i < prefab.blocks.size(); i++)
+                {
+                  if (voxels->GetBlock((glm::ivec3)(pos + side) + prefab.blocks[i].first).GetType() != BlockType::bAir)
+                  {
+                    spawn = false;
+                    break;
+                  }
+                }
+              }
+
+              if (spawn)
+              {
+                for (unsigned i = 0; i < prefab.blocks.size(); i++)
+                {
+                  if (prefab.GetPlacementType() != PlacementType::NoOverwriting || voxels->GetBlock((glm::ivec3)(pos + side) + prefab.blocks[i].first).GetType() == BlockType::bAir)
+                  {
+                    if (prefab.blocks[i].second.GetPriority() >= voxels->GetBlock((glm::ivec3)(pos + side) + prefab.blocks[i].first).GetPriority())
+                      voxels->SetBlockType((glm::ivec3)(pos + side) + prefab.blocks[i].first, prefab.blocks[i].second.GetType());
+                  }
+                }
+              }
+            }
+            else
+              voxels->UpdateBlock(pos + side, selected);
             //chunkManager_.UpdateBlock(pos + side, selected, 0);
 
             return true;
@@ -51,13 +149,15 @@ public:
   }
 
 
-  void checkBlockDestruction()
+  void checkBlockDestruction(float dt)
   {
-    if (Input::IsMousePressed(GLFW_MOUSE_BUTTON_1)/* &&
+    if(Input::IsMouseDown(GLFW_MOUSE_BUTTON_1)
+    /*if (Input::IsMousePressed(GLFW_MOUSE_BUTTON_1) &&
       !ImGui::IsAnyItemHovered() &&
       !ImGui::IsAnyItemActive() &&
       !ImGui::IsAnyItemFocused()*/)
     {
+      bool hit = false;
       //const auto cam = CameraSystem::ActiveCamera;
       voxels->Raycast(
          CameraSystem::GetPos(),
@@ -69,12 +169,38 @@ public:
             if (block.GetType() == BlockType::bAir)
               return false;
 
-            voxels->UpdateBlock(pos, BlockType::bAir);
+            hit = true;
+            timer += dt;
+            if (pos == prevBlock && prevHit && timer >= block.GetTTK() && block.GetDestructible())
+            {
+              voxels->UpdateBlock(pos, BlockType::bAir);
+              timer = 0.0f;
+              hit = false;
+            }
+            else
+            {
+              if (prevBlock != pos)
+              {
+                timer = dt;
+              }
+              prevBlock = pos;
+              if (!block.GetDestructible())
+                timer = 0.0f;
+            }
+
             //chunkManager_.UpdateBlock(pos, BlockType::bAir, 0);
 
             return true;
           }
       ));
+      prevHit = hit;
+      if (!prevHit)
+        timer = 0.0f;
+    }
+    else
+    {
+      prevHit = false;
+      timer = 0.0f;
     }
   }
 
@@ -105,6 +231,9 @@ public:
     }
   }
 
+  glm::vec3 prevBlock = {-1, -1, -1};
+  bool prevHit = false;
+  float timer = 0.0f;
   BlockType selected = BlockType::bStone;
   VoxelManager* voxels{};
 };

@@ -1,3 +1,4 @@
+#include "EnginePCH.h"
 #include <CoreEngine/Context.h>
 
 #include <GL/glew.h>
@@ -53,23 +54,21 @@ GLFWwindow* init_glfw_context()
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-  glfwWindowHint(GLFW_CONTEXT_NO_ERROR, GLFW_TRUE);
-  glfwWindowHint(GLFW_CONTEXT_RELEASE_BEHAVIOR, GLFW_RELEASE_BEHAVIOR_FLUSH);
+  //glfwWindowHint(GLFW_CONTEXT_NO_ERROR, GLFW_TRUE);
+  //glfwWindowHint(GLFW_CONTEXT_RELEASE_BEHAVIOR, GLFW_RELEASE_BEHAVIOR_FLUSH);
 
   // MSAA
   //glfwWindowHint(GLFW_SAMPLES, Settings::Get().Graphics.multisamples);
   //glEnable(GL_MULTISAMPLE);
 
   // start window maximized
-  glfwWindowHint(GLFW_MAXIMIZED, GL_TRUE);
-
-  // vertical sync enabled if GL_TRUE
-  glfwWindowHint(GLFW_DOUBLEBUFFER, GL_TRUE);
-
+  glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
+  glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
+  
   const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
 
   int window_width = 1920; //mode->width;
-  int window_height = 1016; //mode->height;
+  int window_height = 1080; //mode->height;
 
   bool fullscreen = false;
   GLFWwindow* window;
@@ -100,11 +99,11 @@ GLFWwindow* init_glfw_context()
 
   glViewport(0, 0, window_width, window_height - 63);
 
-  glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  glEnable(GL_BLEND_COLOR);
+  //glEnable(GL_BLEND);
+  //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  //glEnable(GL_BLEND_COLOR);
 
-  glClearColor(0.3f, 0.3f, 0.5f, 1.0f);
+  //glClearColor(0.3f, 0.3f, 0.5f, 1.0f);
 
   return window;
 }

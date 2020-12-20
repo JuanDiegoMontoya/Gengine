@@ -62,13 +62,14 @@ public:
   }
 
   // sets the parent entity of this entity
-  Entity SetParent(Entity parent);
+  void SetParent(Entity parent);
   // adds a child entity of this entity
-  Entity AddChild(Entity child);
+  void AddChild(Entity child);
 
   unsigned GetHierarchyHeight() const;
 
 private:
   Scene* scene_ = nullptr;
   entt::entity entityHandle_ = entt::null;
+  friend class ScriptableEntity;
 };

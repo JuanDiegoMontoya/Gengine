@@ -1,74 +1,77 @@
+#include "EnginePCH.h"
 #include <CoreEngine/GraphicsIncludes.h>
 #include <CoreEngine/TextureArray.h>
 #include <stb_image.h>
 #include <filesystem>
 #include <iostream>
 
-#pragma optimize("", off)
-TextureArray::TextureArray(std::span<std::string> textures, glm::ivec2 xyDim)
-  : dim(xyDim)
+namespace GFX
 {
-  const GLsizei layerCount = textures.size();
-  glCreateTextures(GL_TEXTURE_2D_ARRAY, 1, &rendererID_);
-  glTextureStorage3D(rendererID_, 1, GL_RGBA8, dim.x, dim.y, layerCount);
-
-  stbi_set_flip_vertically_on_load(true);
-
-  int i = 0;
-  for (auto texture : textures)
+  TextureArray::TextureArray(std::span<std::string> textures, glm::ivec2 xyDim)
+    : dim(xyDim)
   {
-    std::string tex = texPath + texture;
-    bool hasTex = std::filesystem::exists(texPath + texture);
+    const GLsizei layerCount = textures.size();
+    glCreateTextures(GL_TEXTURE_2D_ARRAY, 1, &rendererID_);
+    glTextureStorage3D(rendererID_, 1, GL_RGBA8, dim.x, dim.y, layerCount);
 
-    if (hasTex == false)
+    stbi_set_flip_vertically_on_load(true);
+
+    int i = 0;
+    for (auto texture : textures)
     {
-      std::cout << "Failed to load texture " << texture << ", using fallback.\n";
-      tex = texPath + "error.png";
+      std::string tex = texPath + texture;
+      bool hasTex = std::filesystem::exists(texPath + texture);
+
+      if (hasTex == false)
+      {
+        std::cout << "Failed to load texture " << texture << ", using fallback.\n";
+        tex = texPath + "error.png";
+      }
+
+      int width, height, n;
+      auto pixels = (unsigned char*)stbi_load(tex.c_str(), &width, &height, &n, 4);
+      ASSERT(pixels != nullptr);
+      ASSERT(width == dim.x && height == dim.y);
+
+      glTextureSubImage3D(
+        rendererID_,
+        0,           // mip level 0
+        0, 0, i,     // image start layer
+        dim.x, dim.y, 1, // x, y, z size (z = 1 b/c it's just a single layer)
+        GL_RGBA,
+        GL_UNSIGNED_BYTE,
+        pixels);
+
+      stbi_image_free(pixels);
+
+      i++;
     }
 
-    int width, height, n;
-    auto pixels = (unsigned char*)stbi_load(tex.c_str(), &width, &height, &n, 4);
-    ASSERT(pixels != nullptr);
-    ASSERT(width == dim.x && height == dim.y);
-    
-    glTextureSubImage3D(
-      rendererID_,
-      0,           // mip level 0
-      0, 0, i,     // image start layer
-      dim.x, dim.y, 1, // x, y, z size (z = 1 b/c it's just a single layer)
-      GL_RGBA,
-      GL_UNSIGNED_BYTE,
-      pixels);
+    // sets the anisotropic filtering texture paramter to the highest supported by the system
+    // TODO: make this parameter user-selectable
+    GLfloat a;
+    glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &a);
+    glTextureParameterf(rendererID_, GL_TEXTURE_MAX_ANISOTROPY, a);
 
-    stbi_image_free(pixels);
+    // TODO: play with this parameter for optimal looks, maybe make it user-selectable
+    glTextureParameteri(rendererID_, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTextureParameteri(rendererID_, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTextureParameteri(rendererID_, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTextureParameteri(rendererID_, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-    i++;
+    // use OpenGL to generate mipmaps for us
+    glGenerateTextureMipmap(rendererID_);
   }
 
-  // sets the anisotropic filtering texture paramter to the highest supported by the system
-  // TODO: make this parameter user-selectable
-  GLfloat a;
-  glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &a);
-  glTextureParameterf(rendererID_, GL_TEXTURE_MAX_ANISOTROPY, a);
-  
-  // TODO: play with this parameter for optimal looks, maybe make it user-selectable
-  glTextureParameteri(rendererID_, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-  glTextureParameteri(rendererID_, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  glTextureParameteri(rendererID_, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  glTextureParameteri(rendererID_, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-  // use OpenGL to generate mipmaps for us
-  glGenerateTextureMipmap(rendererID_);
-}
+  TextureArray::~TextureArray()
+  {
+    glDeleteTextures(1, &rendererID_);
+  }
 
 
-TextureArray::~TextureArray()
-{
-  glDeleteTextures(1, &rendererID_);
-}
-
-
-void TextureArray::Bind(unsigned slot) const
-{
-  glBindTextureUnit(slot, rendererID_);
+  void TextureArray::Bind(unsigned slot) const
+  {
+    glBindTextureUnit(slot, rendererID_);
+  }
 }

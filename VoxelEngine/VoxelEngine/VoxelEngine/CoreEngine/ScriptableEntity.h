@@ -19,6 +19,11 @@ public:
 		return entity_.HasComponent<T>();
 	}
 
+	Entity CreateEntity(std::string_view name = "")
+	{
+		return entity_.scene_->CreateEntity(name);
+	}
+
 protected:
 	virtual void OnCreate() {}
 	virtual void OnDestroy() {}

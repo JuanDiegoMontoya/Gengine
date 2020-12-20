@@ -8,7 +8,6 @@
 #include <CoreEngine/Shader.h>
 #include <CoreEngine/Vertices.h>
 #include <CoreEngine/vao.h>
-#include <memory>
 #include <CoreEngine/Texture2D.h>
 #include <CoreEngine/TextureArray.h>
 #include <CoreEngine/MeshUtils.h>
@@ -16,11 +15,11 @@
 // call after all chunks are initialized
 ChunkRenderer::ChunkRenderer()
 {
-  drawCountGPU = std::make_unique<StaticBuffer>(nullptr, sizeof(GLint));
+  drawCountGPU = std::make_unique<GFX::StaticBuffer>(nullptr, sizeof(GLint));
 
   // allocate big buffer
   // TODO: vary the allocation size based on some user setting
-  allocator = std::make_unique<DynamicBuffer<AABB16>>(100'000'000, 2 * sizeof(GLint));
+  allocator = std::make_unique<GFX::DynamicBuffer<AABB16>>(100'000'000, 2 * sizeof(GLint));
     
   /* :::::::::::BUFFER FORMAT:::::::::::
                           CHUNK 1                                    CHUNK 2                   NULL                   CHUNK 3
@@ -29,7 +28,7 @@ ChunkRenderer::ChunkRenderer()
   Draw commands will specify where in memory the draw call starts. This will account for variable offsets.
 
       :::::::::::BUFFER FORMAT:::::::::::*/
-  vao = std::make_unique<VAO>();
+  vao = std::make_unique<GFX::VAO>();
   vao->Bind();
   // bind big data buffer (interleaved)
   glBindBuffer(GL_ARRAY_BUFFER, allocator->GetGPUHandle());
@@ -49,33 +48,33 @@ ChunkRenderer::ChunkRenderer()
   vao->Unbind();
 
   // setup vertex buffer for cube that will be used for culling
-  vaoCull = std::make_unique<VAO>();
-  vaoCull->Bind();
-  vboCull = std::make_unique<StaticBuffer>(Vertices::cube, sizeof(Vertices::cube));
-  vboCull->Bind<Target::VBO>();
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-  glEnableVertexAttribArray(0);
-  vboCull->Unbind<Target::VBO>();
-  vaoCull->Unbind();
+  vaoCull = std::make_unique<GFX::VAO>();
+  //vaoCull->Bind();
+  //vboCull = std::make_unique<GFX::StaticBuffer>(Vertices::cube, sizeof(Vertices::cube));
+  //vboCull->Bind<GFX::Target::VBO>();
+  //glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+  //glEnableVertexAttribArray(0);
+  //vboCull->Unbind<GFX::Target::VBO>();
+  //vaoCull->Unbind();
 
-  DrawArraysIndirectCommand cmd;
-  cmd.count = 36; // vertices on cube
+  DrawElementsIndirectCommand cmd;
+  cmd.count = 14; // vertices on cube
   cmd.instanceCount = 0; // will be incremented - reset every frame
-  cmd.first = 0;
+  cmd.baseVertex = 0;
+  cmd.firstIndex = 0;
   cmd.baseInstance = 0;
-  dibCull = std::make_unique<StaticBuffer>(&cmd, sizeof(cmd), GL_CLIENT_STORAGE_BIT);
+  dibCull = std::make_unique<GFX::StaticBuffer>(&cmd, sizeof(cmd), GFX::BufferFlag::CLIENT_STORAGE);
 
-  //dib = std::make_unique<StaticBuffer>(nullptr, 0);
   // assets
   std::vector<std::string> texs;
   for (const auto& prop : Block::PropertiesTable)
   {
     texs.push_back(std::string(prop.name) + ".png");
   }
-  textures = std::make_unique<TextureArray>(std::span(texs.data(), texs.size()), glm::ivec2(32));
+  textures = std::make_unique<GFX::TextureArray>(std::span(texs.data(), texs.size()), glm::ivec2(32));
 
-  //blueNoise64 = std::make_unique<Texture2D>("BlueNoise/64_64/LDR_LLL1_0.png");
-  blueNoise64 = std::make_unique<Texture2D>("BlueNoise/256_256/LDR_LLL1_0.png");
+  blueNoise64 = std::make_unique<GFX::Texture2D>("BlueNoise/64_64/LDR_LLL1_0.png");
+  //blueNoise64 = std::make_unique<Texture2D>("BlueNoise/256_256/LDR_LLL1_0.png");
 
 }
 
@@ -91,10 +90,12 @@ void ChunkRenderer::GenerateDrawCommandsGPU()
 #endif
 
   //Camera* cam = Camera::ActiveCamera;
-  // make buffer sized as if every allocation was non-null
   auto& sdr = Shader::shaders["compact_batch"];
   sdr->Use();
-#if 1
+
+  // set uniforms for chunk rendering
+  //sdr->setVec3("u_viewpos", cam->GetPos());
+  //Frustum fr = *cam->GetFrustum();
   sdr->setVec3("u_viewpos", CameraSystem::GetPos());
   Frustum fr = *CameraSystem::GetFrustum();
   for (int i = 0; i < 5; i++) // ignore near plane
@@ -104,59 +105,34 @@ void ChunkRenderer::GenerateDrawCommandsGPU()
   }
   sdr->setFloat("u_cullMinDist", settings.normalMin);
   sdr->setFloat("u_cullMaxDist", settings.normalMax);
-#endif
   sdr->setUInt("u_reservedVertices", 2);
   sdr->setUInt("u_vertexSize", sizeof(GLuint) * 2);
 
-  //drawCounter->Bind(0);
-  //drawCounter->Reset();
-  //drawCountGPU->Reset();
   GLint zero = 0;
   drawCountGPU->SubData(&zero, sizeof(GLint));
 
-  // copy input data to buffer at binding 0
-  //GLuint indata;
-  //glGenBuffers(1, &indata);
-  //glBindBuffer(GL_SHADER_STORAGE_BUFFER, indata);
-  //glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, indata);
   const auto& allocs = allocator->GetAllocs();
-    
-  //glBufferData(GL_SHADER_STORAGE_BUFFER, allocator->AllocSize() * allocs.size(), allocs.data(), GL_STATIC_COPY);
 
   // only re-construct if allocator has been modified
   if (dirtyAlloc)
   {
-    allocBuffer = std::make_unique<StaticBuffer>(allocs.data(), allocator->AllocSize() * allocs.size());
-    dib = std::make_unique<StaticBuffer>(
-      nullptr,
-      allocator->ActiveAllocs() * sizeof(DrawArraysIndirectCommand));
-    //dirtyAlloc = false;
+    allocBuffer = std::make_unique<GFX::StaticBuffer>(allocs.data(), allocator->AllocSize() * allocs.size());
+    dib = std::make_unique<GFX::StaticBuffer>(nullptr, allocator->ActiveAllocs() * sizeof(DrawArraysIndirectCommand));
+    dirtyAlloc = false;
   }
 
-  allocBuffer->Bind<Target::SSBO>(0);
-  //glBindBuffer(GL_SHADER_STORAGE_BUFFER, allocBuffer->GetID());
-  //glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, allocBuffer->GetID());
-
-  // make DIB output SSBO (binding 1) for the shader
-  //glBindBuffer(GL_SHADER_STORAGE_BUFFER, dib->GetID());
-  dib->Bind<Target::SSBO>(1);
-  //glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, dib->GetID());
-
-  //glBindBuffer(GL_SHADER_STORAGE_BUFFER, drawCountGPU->GetID());
-  drawCountGPU->Bind<Target::SSBO>(2);
-  //glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, drawCountGPU->GetID());
+  allocBuffer->Bind<GFX::Target::SSBO>(0);
+  dib->Bind<GFX::Target::SSBO>(1);
+  drawCountGPU->Bind<GFX::Target::SSBO>(2);
     
   {
     int numBlocks = (allocs.size() + blockSize - 1) / blockSize;
     glDispatchCompute(numBlocks, 1, 1);
-    //glMemoryBarrier(GL_ATOMIC_COUNTER_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT);
+    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT); // make SSBO writes visible to subsequent execution
   }
-  //renderCount = drawCounter->Get(0); // sync point
-  //ASSERT(renderCount <= allocator->ActiveAllocs());
-  //glDeleteBuffers(1, &indata);
 
-  drawCountGPU->Unbind<Target::SSBO>();
-  dib->Unbind<Target::SSBO>();
+  drawCountGPU->Unbind<GFX::Target::SSBO>();
+  dib->Unbind<GFX::Target::SSBO>();
   activeAllocs = allocator->ActiveAllocs();
 
   //PERF_BENCHMARK_END;
@@ -171,10 +147,8 @@ void ChunkRenderer::RenderNorm()
   //  return;
 
   vao->Bind();
-  dib->Bind<Target::DIB>();
-  //glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-  //glMultiDrawArraysIndirect(GL_TRIANGLES, (void*)0, renderCount, 0);
-  drawCountGPU->Bind<Target::ParameterBuffer>();
+  dib->Bind<GFX::Target::DIB>();
+  drawCountGPU->Bind<GFX::Target::PARAMETER_BUFFER>();
   glMultiDrawArraysIndirectCount(GL_TRIANGLES, (void*)0, (GLintptr)0, allocator->ActiveAllocs(), 0);
 }
 
@@ -211,14 +185,16 @@ void ChunkRenderer::Draw()
   currShader->setFloat("sunAngle", angle);
 
   // undo gamma correction for sky color
-  static glm::vec3 skyColor(
+  static const glm::vec3 skyColor(
     glm::pow(.529f, 2.2f),
     glm::pow(.808f, 2.2f),
     glm::pow(.922f, 2.2f));
+  //currShader->setVec3("viewPos", cam->GetPos());
   currShader->setVec3("viewPos", CameraSystem::GetPos());
   currShader->setFloat("fogStart", 500.0f);
   currShader->setFloat("fogEnd", 3000.0f);
   currShader->setVec3("fogColor", skyColor);
+  //currShader->setMat4("u_viewProj", cam->GetProj() * cam->GetView());
   currShader->setMat4("u_viewProj", CameraSystem::GetProj() * CameraSystem::GetView());
 
   textures->Bind(0);
@@ -226,10 +202,10 @@ void ChunkRenderer::Draw()
   blueNoise64->Bind(1);
   currShader->setInt("blueNoise", 1);
 
-  currShader->Use();
   RenderVisible();
   GenerateDIB();
   RenderOcclusion();
+  //RenderRest();
 }
   
 void ChunkRenderer::RenderVisible()
@@ -242,10 +218,8 @@ void ChunkRenderer::RenderVisible()
 #endif
 
   vao->Bind();
-  dib->Bind<Target::DIB>();
-  //glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-  //glMultiDrawArraysIndirect(GL_TRIANGLES, (void*)0, renderCount, 0);
-  drawCountGPU->Bind<Target::ParameterBuffer>();
+  dib->Bind<GFX::Target::DIB>();
+  drawCountGPU->Bind<GFX::Target::PARAMETER_BUFFER>();
   glMultiDrawArraysIndirectCount(GL_TRIANGLES, (void*)0, (GLintptr)0, activeAllocs, 0);
 }
 
@@ -276,6 +250,7 @@ void ChunkRenderer::RenderOcclusion()
   auto& sr = Shader::shaders["chunk_render_cull"];
   sr->Use();
 
+  //const glm::mat4 viewProj = cam->GetProj() * cam->GetView();
   //Camera* cam = Camera::ActiveCamera;
   const glm::mat4 viewProj = CameraSystem::GetProj() * CameraSystem::GetView();
   sr->setMat4("u_viewProj", viewProj);
@@ -289,16 +264,33 @@ void ChunkRenderer::RenderOcclusion()
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, dib->GetID());
     
   // copy # of chunks being drawn (parameter buffer) to instance count (DIB)
-  dibCull->Bind<Target::DIB>();
+  dibCull->Bind<GFX::Target::DIB>();
   vaoCull->Bind();
   constexpr GLint offset = offsetof(DrawArraysIndirectCommand, instanceCount);
   glCopyNamedBufferSubData(drawCountGPU->GetID(), dibCull->GetID(), 0, offset, sizeof(GLuint));
+  glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, (void*)0, 1, 0);
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-  glMultiDrawArraysIndirect(GL_TRIANGLES, (void*)0, 1, 0);
 
   glEnable(GL_CULL_FACE);
   glDepthMask(true);
   glColorMask(true, true, true, true);
+}
+
+void ChunkRenderer::RenderRest()
+{
+  // Drawing logic:
+  // for each Chunk in Chunks
+  //   if Chunk was not rendered in RenderVisible and not occluded
+  //     draw(Chunk)
+
+  // resources:
+  // DIB with draw info
+
+  // IDEA: RenderOcclusion generates a mask to use for the NEXT frame's RenderRest pass
+  // the mask will contain all the chunks that were to be drawn at the start of that frame's RenderVisible pass
+  // the current frame will 
+
+  ASSERT(0); // not implemented
 }
 
 void ChunkRenderer::Update()

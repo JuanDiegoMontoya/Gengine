@@ -115,7 +115,7 @@ void main()
   vec4 texColor = texture(textures, vTexCoord).rgba;
 
   // dithering happens here
-  if (clipTransparency(texColor.a) || texColor.a == 0)
+  if (texColor.a < 1 && (clipTransparency(texColor.a) || texColor.a == 0))
     discard;
 
   vec3 tempColor = texColor.rgb;

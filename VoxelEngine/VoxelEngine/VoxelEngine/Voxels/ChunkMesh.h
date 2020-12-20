@@ -2,6 +2,7 @@
 #include <Voxels/block.h>
 #include <shared_mutex>
 #include <CoreEngine/StaticBuffer.h>
+#include <CoreEngine/Physics.h>
 
 //class VAO;
 //class VBO;
@@ -53,14 +54,17 @@ private:
   const Chunk* parent = nullptr;
   const Chunk* nearChunks[6]{ nullptr };
 
-  std::unique_ptr<StaticBuffer> encodedStuffVbo_;
-  std::unique_ptr<StaticBuffer> lightingVbo_;
-  std::unique_ptr<StaticBuffer> posVbo_;
+  std::unique_ptr<GFX::StaticBuffer> encodedStuffVbo_;
+  std::unique_ptr<GFX::StaticBuffer> lightingVbo_;
+  std::unique_ptr<GFX::StaticBuffer> posVbo_;
 
   // vertex data (held until buffers are sent to GPU)
   std::vector<GLint> encodedStuffArr;
   std::vector<GLint> lightingArr;
   std::vector<GLint> interleavedArr;
+
+  Physics::MeshCollider tCollider{};
+  physx::PxRigidActor* tActor = nullptr;
 
   GLsizei vertexCount_ = 0; // number of block vertices
   uint64_t bufferHandle = NULL;

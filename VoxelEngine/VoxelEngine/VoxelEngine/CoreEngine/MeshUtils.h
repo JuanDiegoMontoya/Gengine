@@ -4,18 +4,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-struct MeshHandle
-{
-	unsigned VAO = 0;
-
-	int indexCount = 0;
-};
-
-struct BatchedMeshHandle
-{
-	auto operator<=>(const BatchedMeshHandle&) const = default;
-	unsigned handle;
-};
+using MeshID = entt::id_type;
 
 struct Vertex
 {

@@ -79,9 +79,6 @@
     <ClInclude Include="CoreEngine\GAssert.h">
       <Filter>CoreEngine</Filter>
     </ClInclude>
-    <ClInclude Include="CoreEngine\MathIncludes.h">
-      <Filter>CoreEngine</Filter>
-    </ClInclude>
     <ClInclude Include="CoreEngine\Application.h">
       <Filter>CoreEngine</Filter>
     </ClInclude>
@@ -178,12 +175,6 @@
     <ClInclude Include="Game\WorldGen.h">
       <Filter>Game</Filter>
     </ClInclude>
-    <ClInclude Include="CoreEngine\collision_check.h">
-      <Filter>CoreEngine</Filter>
-    </ClInclude>
-    <ClInclude Include="CoreEngine\collision_shapes.h">
-      <Filter>CoreEngine</Filter>
-    </ClInclude>
     <ClInclude Include="CoreEngine\Context.h">
       <Filter>CoreEngine</Filter>
     </ClInclude>
@@ -194,15 +185,6 @@
       <Filter>CoreEngine</Filter>
     </ClInclude>
     <ClInclude Include="CoreEngine\GraphicsIncludes.h">
-      <Filter>CoreEngine</Filter>
-    </ClInclude>
-    <ClInclude Include="CoreEngine\math_utils.h">
-      <Filter>CoreEngine</Filter>
-    </ClInclude>
-    <ClInclude Include="CoreEngine\misc_utils.h">
-      <Filter>CoreEngine</Filter>
-    </ClInclude>
-    <ClInclude Include="CoreEngine\utilities.h">
       <Filter>CoreEngine</Filter>
     </ClInclude>
     <ClInclude Include="CoreEngine\DynamicBuffer.h">
@@ -218,9 +200,6 @@
       <Filter>CoreEngine\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="CoreEngine\TextureArray.h">
-      <Filter>CoreEngine\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="CoreEngine\UBO.h">
       <Filter>CoreEngine\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="CoreEngine\Vertices.h">
@@ -244,12 +223,6 @@
     <ClInclude Include="Utilities\BitArray.h">
       <Filter>Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="Utilities\CompressBuffer.h">
-      <Filter>Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="Utilities\DeltaEncoder.h">
-      <Filter>Utilities</Filter>
-    </ClInclude>
     <ClInclude Include="Utilities\FixedQueue.h">
       <Filter>Utilities</Filter>
     </ClInclude>
@@ -257,9 +230,6 @@
       <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\Palette.h">
-      <Filter>Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="Utilities\RunLengthEncoder.h">
       <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\Serialize.h">
@@ -288,6 +258,30 @@
     </ClInclude>
     <ClInclude Include="Voxels\Light.h">
       <Filter>Voxel Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\Physics.h">
+      <Filter>CoreEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\PhysicsTest2.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\KinematicPlayerController.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\Compression.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\Fence.h">
+      <Filter>CoreEngine\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\EnginePCH.h">
+      <Filter>CoreEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\utilities.h">
+      <Filter>CoreEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\Flags.h">
+      <Filter>CoreEngine</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -417,19 +411,10 @@
     <ClCompile Include="Game\WorldGen.cpp">
       <Filter>Game</Filter>
     </ClCompile>
-    <ClCompile Include="CoreEngine\collision_check.cpp">
-      <Filter>CoreEngine</Filter>
-    </ClCompile>
     <ClCompile Include="CoreEngine\Context.cpp">
       <Filter>CoreEngine</Filter>
     </ClCompile>
     <ClCompile Include="CoreEngine\GlobalRendererInfo.cpp">
-      <Filter>CoreEngine</Filter>
-    </ClCompile>
-    <ClCompile Include="CoreEngine\math_utils.cpp">
-      <Filter>CoreEngine</Filter>
-    </ClCompile>
-    <ClCompile Include="CoreEngine\misc_utils.cpp">
       <Filter>CoreEngine</Filter>
     </ClCompile>
     <ClCompile Include="CoreEngine\Frustum.cpp">
@@ -442,9 +427,6 @@
       <Filter>CoreEngine\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="CoreEngine\TextureArray.cpp">
-      <Filter>CoreEngine\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="CoreEngine\UBO.cpp">
       <Filter>CoreEngine\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="CoreEngine\Shader.cpp">
@@ -461,6 +443,12 @@
     </ClCompile>
     <ClCompile Include="Voxels\Block.cpp">
       <Filter>Voxel Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreEngine\Physics.cpp">
+      <Filter>CoreEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreEngine\Fence.cpp">
+      <Filter>CoreEngine\Graphics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

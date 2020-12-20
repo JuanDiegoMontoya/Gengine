@@ -6,6 +6,7 @@
 #include <Voxels/ChunkRenderer.h>
 #include <Voxels/VoxelManager.h>
 
+
 #include <iomanip>
 #include <mutex>
 #include <shared_mutex>
@@ -16,6 +17,8 @@ using namespace std::chrono;
 ChunkMesh::~ChunkMesh()
 {
   voxelManager_.chunkRenderer_->allocator->Free(bufferHandle);
+  if (tActor)
+    Physics::PhysicsManager::RemoveActorGeneric(tActor);
 }
 
 
@@ -24,7 +27,6 @@ void ChunkMesh::BuildBuffers()
   std::lock_guard lk(mtx);
 
   vertexCount_ = encodedStuffArr.size();
-
   voxelManager_.chunkRenderer_->allocator->Free(bufferHandle);
 
   // nothing emitted, don't try to make buffers
@@ -44,7 +46,14 @@ void ChunkMesh::BuildBuffers()
   lightingArr.clear();
   interleavedArr.clear();
 
-  //printf("%f: Buffered\n", glfwGetTime());
+  tCollider.vertices.clear();
+  tCollider.indices.clear();
+
+  encodedStuffArr.shrink_to_fit();
+  lightingArr.shrink_to_fit();
+  interleavedArr.shrink_to_fit();
+  tCollider.vertices.shrink_to_fit();
+  tCollider.indices.shrink_to_fit();
 }
 
 
@@ -65,8 +74,7 @@ void ChunkMesh::BuildMesh()
     interleavedArr.push_back(ap.x);
     interleavedArr.push_back(ap.y);
     interleavedArr.push_back(ap.z);
-    interleavedArr.push_back(12345); // necessary padding
-    // no padding necessary
+    interleavedArr.push_back(0xDEADBEEF); // necessary padding
 
     glm::ivec3 pos;
     for (pos.z = 0; pos.z < Chunk::CHUNK_SIZE; pos.z++)
@@ -96,6 +104,14 @@ void ChunkMesh::BuildMesh()
         }
       }
     }
+
+
+    Physics::PhysicsManager::RemoveActorGeneric(tActor);
+
+    tActor = reinterpret_cast<physx::PxRigidActor*>(
+      Physics::PhysicsManager::AddStaticActorGeneric(
+        Physics::MaterialType::TERRAIN, tCollider, 
+        glm::translate(glm::mat4(1), glm::vec3(parent->GetPos() * Chunk::CHUNK_SIZE))));
 
     //printf("%f: Meshed\n", glfwGetTime());
   }
@@ -171,7 +187,6 @@ inline void ChunkMesh::buildBlockFace(
   addQuad(blockPos, block, face, nearChunk, light);
 }
 
-//#pragma optimize("", off)
 inline void ChunkMesh::addQuad(const glm::ivec3& lpos, BlockType block, int face, const Chunk* nearChunk, Light light)
 {
   if (voxelReady_)
@@ -199,6 +214,8 @@ inline void ChunkMesh::addQuad(const glm::ivec3& lpos, BlockType block, int face
     glm::vec3 vert(data[i + 0], data[i + 1], data[i + 2]);
     glm::uvec3 finalVert = glm::ceil(vert) + glm::vec3(lpos);// +0.5f;
 
+    tCollider.vertices.push_back(glm::vec3(finalVert));
+
     // compress attributes into 32 bits
     GLuint encoded = Encode(finalVert, normalIdx, texIdx, cindex);
     encodeds[cindex] = encoded;
@@ -213,7 +230,6 @@ inline void ChunkMesh::addQuad(const glm::ivec3& lpos, BlockType block, int face
     tLight.Set(tLight.Get() - glm::min(tLight.Get(), glm::u8vec4(invOcclusion)));
     lighting = tLight.Raw();
     glm::ivec3 dirCent = glm::vec3(lpos) - glm::vec3(finalVert);
-    //printf("(%d, %d, %d)\n", dirCent.x, dirCent.y, dirCent.z);
     lightdeds[cindex] = EncodeLight(lighting, dirCent);
   }
 
@@ -229,6 +245,8 @@ inline void ChunkMesh::addQuad(const glm::ivec3& lpos, BlockType block, int face
     lightingArr.push_back(lightdeds[indices[i]]);
     interleavedArr.push_back(encodeds[indices[i]]);
     interleavedArr.push_back(lightdeds[indices[i]]);
+
+    tCollider.indices.push_back(indicesA[i] + tCollider.vertices.size() - (tCollider.vertices.size() % 4) - 4);
   }
 }
 

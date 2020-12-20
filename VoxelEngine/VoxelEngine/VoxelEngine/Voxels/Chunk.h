@@ -43,11 +43,14 @@ public:
   /*################################
             Global Chunk Info
   ################################*/
-  static constexpr int CHUNK_SIZE        = 32;
+  static constexpr int CHUNK_SIZE       = 32;
   static constexpr int CHUNK_SIZE_SQRED = CHUNK_SIZE * CHUNK_SIZE;
   static constexpr int CHUNK_SIZE_CUBED = CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE;
   static constexpr int CHUNK_SIZE_LOG2  = 5; // log2(32) = 5
-
+  static constexpr int BLOCKS_PER_X = 1;
+  static constexpr int BLOCKS_PER_Y = CHUNK_SIZE;
+  static constexpr int BLOCKS_PER_Z = CHUNK_SIZE_SQRED;
+  static inline const glm::ivec3 BLOCKS_PER_DIM{ BLOCKS_PER_X, BLOCKS_PER_Y, BLOCKS_PER_Z };
 
   /*################################
           Query Functions
@@ -143,7 +146,7 @@ public:
     ar(pos_, storage);
   }
 
-  const PaletteBlockStorage<CHUNK_SIZE_CUBED>& GetStorage() const { return storage; }
+  const auto& GetStorage() const { return storage; }
 
 private:
   glm::ivec3 pos_;  // position relative to other chunks (1 chunk = 1 index)

@@ -1,3 +1,4 @@
+#include "EnginePCH.h"
 #include "Material.h"
 #include <CoreEngine/GAssert.h>
 

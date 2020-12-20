@@ -15,14 +15,20 @@ enum class Visibility
 struct BlockProperties
 {
   BlockProperties(
-    const char* n, 
-    glm::uvec4 e, 
+    const char* n,
+    glm::uvec4 e,
+    int pr,
+    float time = 0.5f,
+    bool des = true,
     Visibility vis = Visibility::Opaque, 
     const char* tx = "<null>")
-  : name(n), visibility(vis), emittance(e), texture(tx) {}
+  : name(n), emittance(e), priority(pr), ttk(time), destructible(des), visibility(vis), texture(tx) {}
   const char* name;
-  Visibility visibility; // skip rendering if true
   glm::u8vec4 emittance; // light
+  int priority;
+  float ttk;
+  bool destructible;
+  Visibility visibility; // skip rendering if true
   const char* texture;   // path to texture (default to name)
 };
 
@@ -65,9 +71,14 @@ public:
 
   // Getters
   BlockType GetType() const { return type_; }
-  int GetTypei() const { return int(type_); }
-  const char* GetName() const { return Block::PropertiesTable[unsigned(type_)].name; }
+  int GetTypei() const { return static_cast<int>(type_); }
+  const char* GetName() const { return Block::PropertiesTable[GetTypei()].name; }
+  int GetPriority() const { return Block::PropertiesTable[GetTypei()].priority; }
+  float GetTTK() const { return Block::PropertiesTable[GetTypei()].ttk; }
+  bool GetDestructible() const { return Block::PropertiesTable[GetTypei()].destructible; }
+  Visibility GetVisibility() const { return Block::PropertiesTable[GetTypei()].visibility; }
   Light& GetLightRef() { return light_; }
+  const Light& GetLightRef() const { return light_; }
   Light GetLight() const { return light_; }
 
   // Setters

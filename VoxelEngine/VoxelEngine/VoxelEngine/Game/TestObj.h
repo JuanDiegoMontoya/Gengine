@@ -33,8 +33,8 @@ public:
 
     if (Input::IsKeyDown(GLFW_KEY_C) || Input::IsKeyDown(GLFW_KEY_V))
     {
-      glm::mat4 rot = glm::rotate(glm::mat4(1), dt, { 0, 1, 0 });
-      glm::mat4 nrot = glm::rotate(glm::mat4(1), -dt, { 0, 1, 0 });
+      glm::quat rot = glm::rotate(glm::quat(1, 0, 0, 0), dt, { 0, 1, 0 });
+      glm::quat nrot = glm::rotate(glm::quat(1, 0, 0, 0), -dt, { 0, 1, 0 });
       if (Input::IsKeyDown(GLFW_KEY_C))
         transform->SetRotation(transform->GetRotation() * rot);
       if (Input::IsKeyDown(GLFW_KEY_V))

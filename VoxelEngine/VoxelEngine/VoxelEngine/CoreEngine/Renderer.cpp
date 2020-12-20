@@ -1,3 +1,4 @@
+#include "EnginePCH.h"
 #include "Renderer.h"
 
 #include <CoreEngine/WindowUtils.h>
@@ -6,6 +7,7 @@
 #include <CoreEngine/Components.h>
 #include <CoreEngine/Camera.h>
 #include <CoreEngine/Texture2D.h>
+#include <CoreEngine/Mesh.h>
 
 #include <execution>
 
@@ -61,49 +63,16 @@ GLerrorCB(GLenum source,
 	std::cout << std::endl;
 }
 
-void Renderer::Render(Components::Transform& model, Components::Mesh& mesh, Components::Material& mat)
-{
-	auto& material = MaterialManager::materials[mat];
-	auto& shader = Shader::shaders[material.shaderID];
-	shader->Use();
-
-	glm::mat4 modelMatrix = model.GetModel();
-	//modelMatrix = glm::scale(modelMatrix, { 10, 10, 10 });
-	glm::mat4 modelInv = glm::inverse(modelMatrix);
-	modelInv = glm::transpose(modelInv);
-
 	glm::mat4 MVP = CameraSystem::GetViewProj() * modelMatrix;
-
-	//ShadershadersShaderMcShaderFuckFaceUse->setMat4("InvTrModel", modelInv);
-	shader->setMat4("MVP", MVP);
-	//ShadershadersShaderMcShaderFuckFaceUse->setMat4("Model", modelMatrix);
-
-	//glActiveTexture(GL_TEXTURE0);
-	//glBindTexture(GL_TEXTURE_2D, mat.texHandle);
-	int i = 0;
-	for (const auto& tex : material.textures)
-	{
-		tex.Bind(i++);
-	}
-	shader->setInt("albedoMap", 0);
-
-	MeshHandle mHandle = mesh.meshHandle;
-
-	glBindVertexArray(mHandle.VAO);
-	glDrawElements(GL_TRIANGLES, (int)mHandle.indexCount, GL_UNSIGNED_INT, 0);
-}
-
 void Renderer::BeginBatch(uint32_t size)
 {
-	//userCommands.reserve(size);
 	userCommands.resize(size);
 }
 
 void Renderer::Submit(Components::Transform& model, Components::BatchedMesh& mesh, Components::Material& mat)
 {
 	auto index = cmdIndex++;
-	//userCommands.emplace(userCommands.begin() + index, BatchDrawCommand { .mesh = mesh.handle, .material = mat, .modelUniform = model.GetModel() });
-	userCommands[index] = BatchDrawCommand { .mesh = mesh.handle, .material = mat, .modelUniform = model.GetModel() };
+	userCommands[index] = BatchDrawCommand { .mesh = mesh.handle->handle, .material = mat, .modelUniform = model.GetModel() };
 }
 
 void Renderer::RenderBatch()
@@ -146,8 +115,8 @@ void Renderer::RenderBatch()
 void Renderer::RenderBatchHelper(MaterialHandle mat, const std::vector<UniformData>& uniformBuffer)
 {
 	// generate SSBO w/ uniforms
-	auto uniforms = std::make_unique<StaticBuffer>(uniformBuffer.data(), uniformBuffer.size() * sizeof(UniformData));
-	uniforms->Bind<Target::SSBO>(0);
+	auto uniforms = std::make_unique<GFX::StaticBuffer>(uniformBuffer.data(), uniformBuffer.size() * sizeof(UniformData));
+	uniforms->Bind<GFX::Target::SSBO>(0);
 
 	// generate DIB (one indirect command per mesh)
 	std::vector<DrawElementsIndirectCommand> commands;
@@ -163,8 +132,8 @@ void Renderer::RenderBatchHelper(MaterialHandle mat, const std::vector<UniformDa
 				baseInstance += cmd.second.instanceCount;
 			}
 		});
-	StaticBuffer dib(commands.data(), commands.size() * sizeof(DrawElementsIndirectCommand));
-	dib.Bind<Target::DIB>();
+	GFX::StaticBuffer dib(commands.data(), commands.size() * sizeof(DrawElementsIndirectCommand));
+	dib.Bind<GFX::Target::DIB>();
 
 	// clear instance count for next GL draw command
 	for (auto& info : meshBufferInfo)
@@ -198,16 +167,16 @@ void Renderer::Init()
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 	glFrontFace(GL_CCW);
-	glfwSwapInterval(0);
+	glfwSwapInterval(0); // 0 == no vsync, 1 == vsync
 
 	CompileShaders();
 
 	// TODO: use dynamically sized buffer
-	vertexBuffer = std::make_unique<DynamicBuffer<>>(100'000'000, sizeof(Vertex));
-	indexBuffer = std::make_unique<DynamicBuffer<>>(100'000'000, sizeof(GLuint));
+	vertexBuffer = std::make_unique<GFX::DynamicBuffer<>>(100'000'000, sizeof(Vertex));
+	indexBuffer = std::make_unique<GFX::DynamicBuffer<>>(100'000'000, sizeof(GLuint));
 
 	// setup VAO for batched drawing (ONE VERTEX LAYOUT ATM)
-	batchVAO = std::make_unique<VAO>();
+	batchVAO = std::make_unique<GFX::VAO>();
 	glEnableVertexArrayAttrib(batchVAO->GetID(), 0); // pos
 	glEnableVertexArrayAttrib(batchVAO->GetID(), 1); // normal
 	glEnableVertexArrayAttrib(batchVAO->GetID(), 2); // uv
@@ -293,8 +262,8 @@ void Renderer::CompileShaders()
 
 void Renderer::DrawAxisIndicator()
 {
-	static VAO* axisVAO;
-	static StaticBuffer* axisVBO;
+	static GFX::VAO* axisVAO;
+	static GFX::StaticBuffer* axisVBO;
 	if (axisVAO == nullptr)
 	{
 		float indicatorVertices[] =
@@ -308,9 +277,9 @@ void Renderer::DrawAxisIndicator()
 			0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f
 		};
 
-		axisVAO = new VAO();
-		axisVBO = new StaticBuffer(indicatorVertices, sizeof(indicatorVertices));
-		VBOlayout layout;
+		axisVAO = new GFX::VAO();
+		axisVBO = new GFX::StaticBuffer(indicatorVertices, sizeof(indicatorVertices));
+		GFX::VBOlayout layout;
 		layout.Push<float>(3);
 		layout.Push<float>(3);
 		axisVAO->AddBuffer(*axisVBO, layout);
@@ -361,13 +330,13 @@ void Renderer::DrawQuad()
 
 void Renderer::DrawCube()
 {
-	static VAO* blockHoverVao = nullptr;
-	static StaticBuffer* blockHoverVbo = nullptr;
+	static GFX::VAO* blockHoverVao = nullptr;
+	static GFX::StaticBuffer* blockHoverVbo = nullptr;
 	if (blockHoverVao == nullptr)
 	{
-		blockHoverVao = new VAO();
-		blockHoverVbo = new StaticBuffer(Vertices::cube_norm_tex, sizeof(Vertices::cube_norm_tex));
-		VBOlayout layout;
+		blockHoverVao = new GFX::VAO();
+		blockHoverVbo = new GFX::StaticBuffer(Vertices::cube_norm_tex, sizeof(Vertices::cube_norm_tex));
+		GFX::VBOlayout layout;
 		layout.Push<float>(3);
 		layout.Push<float>(3);
 		layout.Push<float>(2);

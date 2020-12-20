@@ -1,3 +1,4 @@
+#include "EnginePCH.h"
 #include "Engine.h"
 #include <Utilities/Timer.h>
 #include <CoreEngine/Input.h>
@@ -23,6 +24,8 @@ Engine::Engine()
 
 Engine::~Engine()
 {
+  scenes_.~vector();
+  physicsSystem.reset();
 }
 
 void Engine::Run()
@@ -34,6 +37,7 @@ void Engine::Run()
     timer.reset();
 
     Input::Update();
+    debugSystem->StartFrame(*activeScene_, dt_);
 
     // idk when this should be called tbh
     scriptSystem->Update(*activeScene_, dt_);
@@ -42,7 +46,6 @@ void Engine::Run()
       updateCallback(dt_);
 
     graphicsSystem->StartFrame();
-    debugSystem->StartFrame(*activeScene_, dt_);
 
     graphicsSystem->Update(*activeScene_, dt_);
     if (drawCallback)

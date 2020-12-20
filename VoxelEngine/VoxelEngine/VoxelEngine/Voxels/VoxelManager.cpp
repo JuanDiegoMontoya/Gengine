@@ -1,12 +1,14 @@
 #include <Voxels/VoxelManager.h>
 #include <Voxels/chunk_manager.h>
 #include <Voxels/ChunkRenderer.h>
+#include <Voxels/EditorRefactor.h>
 
 VoxelManager::VoxelManager()
 {
   chunkManager_ = std::make_unique<ChunkManager>(*this);
   chunkManager_->Init();
   chunkRenderer_ = std::make_unique<ChunkRenderer>();
+  editor_ = std::make_unique<Editor>(*this);
 }
 
 VoxelManager::~VoxelManager()
@@ -23,6 +25,7 @@ void VoxelManager::Draw()
 {
   chunkRenderer_->Draw();
   chunkRenderer_->DrawBuffers();
+  editor_->Update();
 }
 
 void VoxelManager::UpdateBlock(const glm::ivec3& wpos, Block block)
@@ -37,9 +40,10 @@ void VoxelManager::UpdateBlockCheap(const glm::ivec3& wpos, Block block)
 
 void VoxelManager::MeshChunk(const glm::ivec3& cpos)
 {
-  auto it = chunks_.find(cpos);
-  ASSERT(it != chunks_.end());
-  chunkManager_->UpdateChunk(it->second);
+  //auto it = chunks_.find(cpos);
+  //ASSERT(it != chunks_.end());
+  //chunkManager_->UpdateChunk(it->second);
+  chunkManager_->UpdateChunk(chunks_[flatten(cpos)]);
 }
 
 

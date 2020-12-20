@@ -1,5 +1,4 @@
 #pragma once
-#include <CoreEngine/math_utils.h>
 #include <CoreEngine/GAssert.h>
 
 // describes the lighting level at a point in space, NOT the properties of a light emitter

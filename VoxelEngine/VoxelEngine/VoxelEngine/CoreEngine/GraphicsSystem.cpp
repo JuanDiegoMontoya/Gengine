@@ -1,3 +1,4 @@
+#include "EnginePCH.h"
 #include "GraphicsSystem.h"
 #include "Scene.h"
 #include <CoreEngine/GraphicsIncludes.h>
@@ -73,6 +74,7 @@ void GraphicsSystem::Update(Scene& scene, float dt)
     {
         CameraSystem::ActiveCamera = camera;
         CameraSystem::Update(dt);
+	}
 
         // draw non-batched objects in the scene
         {

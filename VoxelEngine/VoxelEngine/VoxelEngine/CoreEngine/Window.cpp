@@ -1,3 +1,4 @@
+#include "EnginePCH.h"
 #define WIN32_LEAN_AND_MEAN
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -33,9 +34,13 @@ void Window::MakeWindow()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
+	//glfwWindowHint(GLFW_CONTEXT_RELEASE_BEHAVIOR, GLFW_RELEASE_BEHAVIOR_FLUSH);
+#ifdef DEBUG
+	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
+	glfwWindowHint(GLFW_CONTEXT_NO_ERROR, GLFW_FALSE);
+#else // release mode
 	glfwWindowHint(GLFW_CONTEXT_NO_ERROR, GLFW_TRUE);
-	//glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
-	glfwWindowHint(GLFW_CONTEXT_RELEASE_BEHAVIOR, GLFW_RELEASE_BEHAVIOR_FLUSH);
+#endif
 
 	int numberOfMonitors = 0;
 	GLFWmonitor** monitors = glfwGetMonitors(&numberOfMonitors);
@@ -87,21 +92,20 @@ void Window::MakeWindow()
 
 	glViewport(0, 0, width, height);
 
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_BLEND_COLOR);
+	//glEnable(GL_BLEND);
+	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	//glEnable(GL_BLEND_COLOR);
 
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
-	glFrontFace(GL_CCW);
+	//glEnable(GL_DEPTH_TEST);
+	//glEnable(GL_CULL_FACE);
+	//glCullFace(GL_BACK);
+	//glFrontFace(GL_CCW);
 
-	glDebugMessageCallback(ExErrorCB, NULL);
+	//glDebugMessageCallback(ExErrorCB, NULL);
 	//glEnable(GL_DEBUG_OUTPUT);
 	//glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 	//glDebugMessageControl(GL_DEBUG_SOURCE_API, GL_DEBUG_PE_ERROR, GL_DEBUG_SEVERI_HIGH, 0, nullptr, GL_TRUE);
-
-	glClearColor(0.3f, 0.3f, 0.5f, 1.0f);
+	//glClearColor(0.3f, 0.3f, 0.5f, 1.0f);
 
 	WindowInitialized = true;
 
@@ -109,8 +113,7 @@ void Window::MakeWindow()
 	{
 		glfwMaximizeWindow(window);
 	}
-	GLenum e;
-	if ((e = glGetError()) != GL_NO_ERROR)
+	if (GLenum e = glGetError(); e != GL_NO_ERROR)
 	{
 		printf("Error in Window.h: %s\n", glewGetErrorString(e));
 	}

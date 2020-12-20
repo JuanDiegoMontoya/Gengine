@@ -5,6 +5,10 @@
 #include <CoreEngine/ScriptableEntity.h>
 #include <CoreEngine/MeshUtils.h>
 #include <CoreEngine/Material.h>
+#include <CoreEngine/Physics.h>
+
+class Camera;
+struct MeshHandle;
 
 namespace Components
 {
@@ -16,16 +20,119 @@ namespace Components
     std::string tag;
   };
 
-  struct Physics
+  struct DynamicPhysics
   {
-    glm::vec3 velocity;
-    glm::vec3 acceleration;
+    DynamicPhysics(Entity ent, ::Physics::MaterialType mat, const ::Physics::BoxCollider& c, ::Physics::DynamicActorFlags flags = ::Physics::DynamicActorFlags{})
+    {
+      internalActor = ::Physics::PhysicsManager::AddDynamicActorEntity(ent, mat, c, flags);
+    }
+    DynamicPhysics(Entity ent, ::Physics::MaterialType mat, const ::Physics::CapsuleCollider& c, ::Physics::DynamicActorFlags flags = ::Physics::DynamicActorFlags{})
+    {
+      internalActor = ::Physics::PhysicsManager::AddDynamicActorEntity(ent, mat, c, flags);
+    }
+
+    DynamicPhysics(DynamicPhysics&& rhs) noexcept { *this = std::move(rhs); }
+    DynamicPhysics& operator=(DynamicPhysics&& rhs) noexcept
+    {
+      internalActor = std::exchange(rhs.internalActor, nullptr);
+      return *this;
+    }
+    DynamicPhysics(const DynamicPhysics&) = delete;
+    DynamicPhysics& operator=(const DynamicPhysics&) = delete;
+
+    ::Physics::DynamicActorInterface Interface()
+    {
+      return internalActor;
+    }
+
+    ~DynamicPhysics()
+    {
+      if (internalActor)
+      {
+        //printf("PHYSICS %p really DELETED\n", this);
+        ::Physics::PhysicsManager::RemoveActorEntity(reinterpret_cast<physx::PxRigidActor*>(internalActor));
+      }
+    }
+
+  private:
+    physx::PxRigidDynamic* internalActor;
+
   };
 
-  struct AABBCollider
+  struct StaticPhysics
   {
-    glm::vec3 center; // relative to transform
-    glm::vec3 scale;
+    StaticPhysics(Entity ent, ::Physics::MaterialType mat, const ::Physics::BoxCollider& c)
+    {
+      internalActor = ::Physics::PhysicsManager::AddStaticActorEntity(ent, mat, c);
+    }
+    StaticPhysics(Entity ent, ::Physics::MaterialType mat, const ::Physics::CapsuleCollider& c)
+    {
+      internalActor = ::Physics::PhysicsManager::AddStaticActorEntity(ent, mat, c);
+    }
+
+    StaticPhysics(StaticPhysics&& rhs) noexcept { *this = std::move(rhs); }
+    StaticPhysics& operator=(StaticPhysics&& rhs) noexcept
+    {
+      internalActor = std::exchange(rhs.internalActor, nullptr);
+      return *this;
+    }
+    StaticPhysics(const StaticPhysics&) = delete;
+    StaticPhysics& operator=(const StaticPhysics&) = delete;
+
+    ::Physics::StaticActorInterface Interface()
+    {
+      return internalActor;
+    }
+
+    ~StaticPhysics()
+    {
+      if (internalActor)
+      {
+        //printf("PHYSICS %p really DELETED\n", this);
+        ::Physics::PhysicsManager::RemoveActorEntity(reinterpret_cast<physx::PxRigidActor*>(internalActor));
+      }
+    }
+
+  private:
+    physx::PxRigidStatic* internalActor;
+  };
+
+  struct CharacterController
+  {
+    //CharacterController(Entity ent, ::Physics::MaterialType mat, const ::Physics::BoxCollider& c)
+    //{
+    //  internalController = ::Physics::PhysicsManager::AddCharacterControllerEntity(ent, mat, c);
+    //}
+    CharacterController(Entity ent, ::Physics::MaterialType mat, const ::Physics::CapsuleCollider& c)
+    {
+      internalController = ::Physics::PhysicsManager::AddCharacterControllerEntity(ent, mat, c);
+    }
+
+    CharacterController(CharacterController&& rhs) noexcept { *this = std::move(rhs); }
+    CharacterController& operator=(CharacterController&& rhs) noexcept
+    {
+      internalController = std::exchange(rhs.internalController, nullptr);
+      return *this;
+    }
+    CharacterController(const CharacterController&) = delete;
+    CharacterController& operator=(const CharacterController&) = delete;
+
+    ::Physics::CharacterControllerInterface Interface()
+    {
+      return internalController;
+    }
+
+    ~CharacterController()
+    {
+      if (internalController)
+      {
+        //printf("PHYSICS %p really DELETED\n", this);
+        ::Physics::PhysicsManager::RemoveCharacterControllerEntity(internalController);
+      }
+    }
+
+  private:
+    physx::PxController* internalController;
   };
 
   // direct member access forbidden because of isDirty flag
@@ -35,7 +142,11 @@ namespace Components
     const auto& GetTranslation() const { return translation; }
     const auto& GetRotation() const { return rotation; }
     const auto& GetScale() const { return scale; }
-    const auto& GetModel() const { return model; }
+    const auto& GetModel() const
+    {
+      /*return model;*/
+      return glm::translate(glm::mat4(1), translation) * glm::mat4_cast(rotation) * glm::scale(glm::mat4(1), scale);
+    }
 
     const auto& GetForward() const { return (glm::vec3(rotation[2])); }
     const auto& GetUp() const { return (glm::vec3(rotation[1])); }
@@ -43,9 +154,11 @@ namespace Components
 
     auto IsDirty() const { return isDirty; }
     void SetTranslation(const glm::vec3& vec) { translation = vec; isDirty = true; }
-    void SetRotation(const glm::mat4& mat) { rotation = mat; isDirty = true; }
+    void SetRotation(const glm::mat4& mat) { rotation = glm::quat_cast(mat); isDirty = true; }
+    void SetRotation(const glm::quat& q) { rotation = q; isDirty = true; }
     void SetScale(const glm::vec3& vec) { scale = vec; isDirty = true; }
-    void SetModel(const glm::mat4& mat) { model = mat; isDirty = false; }
+    //void SetModel(const glm::mat4& mat) { model = mat; isDirty = false; }
+    void SetModel() { isDirty = false; }
 
     void SetPYR(const glm::vec3& pyr) { pitch_ = pyr.x; yaw_ = pyr.y; roll_ = pyr.z; isDirty = true; }
 
@@ -56,15 +169,16 @@ namespace Components
 
   private:
     glm::vec3	translation{ 0 };
-    glm::mat4 rotation{ 1 };
+    //glm::mat4 rotation{ 1 };
+    glm::quat rotation{ 1, 0, 0, 0 };
     glm::vec3	scale{ 1, 1, 1 };
 
     glm::vec3 forward{ 0, 0, 1 };
     glm::vec3 up{ 0, 0, 1 };
     glm::vec3 right{ 0, 0, 1 };
 
-    glm::mat4	model{ 1 };
     bool isDirty = false;
+    //glm::mat4	model{ 1 };
   };
 
   /// <summary>
@@ -72,14 +186,14 @@ namespace Components
   /// </summary>
 
   // temp
-  struct Mesh
-  {
-    MeshHandle meshHandle;
-  };
+  //struct Mesh
+  //{
+  //  MeshHandle meshHandle;
+  //};
 
   struct BatchedMesh
   {
-    BatchedMeshHandle handle;
+    std::shared_ptr<MeshHandle> handle;
   };
 
   // temp
