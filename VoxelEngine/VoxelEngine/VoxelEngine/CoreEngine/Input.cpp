@@ -175,7 +175,6 @@ void Input::mouse_button_cb(GLFWwindow* window, int button, int action, int mods
 #endif
 }
 
-// sets GLFW input callbacks
 void Input::init_glfw_input_cbs(GLFWwindow* window)
 {
   glfwSetKeyCallback(window, keypress_cb);
@@ -184,4 +183,34 @@ void Input::init_glfw_input_cbs(GLFWwindow* window)
   glfwSetMouseButtonCallback(window, mouse_button_cb);
 
   glfwSetCharCallback(window, ImGui_ImplGlfw_CharCallback);
+}
+
+void Input::AddInputAction(entt::hashed_string action, std::span<Key> keys)
+{
+  ASSERT_MSG(actionToKey.find(action) == actionToKey.end(), "Input action already exists.");
+  for (auto key : keys)
+  {
+    actionToKey.insert({ action, key });
+  }
+}
+
+void Input::RemoveInputAction(entt::hashed_string action)
+{
+  ASSERT_MSG(actionToKey.count(action) > 0, "No input action of that type exists.");
+  actionToKey.erase(action);
+}
+
+bool Input::IsInputActionPressed(entt::hashed_string action)
+{
+  ASSERT_MSG(actionToKey.count(action) > 0, "No input action of that type exists.");
+  auto range = actionToKey.equal_range(action);
+  for (auto it = range.first; it != range.second; it++)
+  {
+    auto key = it->second;
+    if (IsKeyPressed(key))
+    {
+      return true;
+    }
+  }
+  return false;
 }

@@ -22,6 +22,19 @@ public:
 
   virtual void OnUpdate(float dt) override
   {
+    const auto cam = Camera::ActiveCamera;
+
+    if (Input::IsKeyPressed(GLFW_KEY_V))
+    {
+      Entity ent = CreateEntity("Arrow");
+      ent.AddComponent<Components::Transform>().SetTranslation(cam->GetPos() + (cam->GetFront() * 1.f));
+      ent.AddComponent<Components::BatchedMesh>().handle = MeshManager::GetMeshBatched("big_cube");
+      ent.AddComponent<Components::Material>(1); // TODO: hackity hack
+      auto collider = Physics::BoxCollider(glm::vec3(.5f));
+      Components::DynamicPhysics phys(ent, Physics::MaterialType::TERRAIN, collider);
+      ent.AddComponent<Components::DynamicPhysics>(std::move(phys)).Interface().AddForce(cam->GetFront() * 300.f);
+    }
+
     checkTestButton();
     checkBlockPick();
     checkBlockDestruction(dt);
@@ -44,7 +57,6 @@ public:
     ImGui::Text("Voxel raycast information:");
     float dist = 5.f;
     ImGui::Text("Ray length: %0.f", dist);
-    const auto cam = Camera::ActiveCamera;
     voxels->Raycast(
       cam->GetPos(),
       cam->GetFront(),
