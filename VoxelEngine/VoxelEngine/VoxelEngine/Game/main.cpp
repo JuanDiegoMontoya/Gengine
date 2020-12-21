@@ -46,13 +46,23 @@ void OnStart(Scene* scene)
   wg.InitBuffers();
   //auto compressed = CompressChunk(voxelManager->GetChunk(glm::ivec3(0))->GetStorage());
 
+  InputAxisType attackButtons[] = { {.scale = 1.0f, .type = InputMouseButton{.button = GLFW_MOUSE_BUTTON_1 }} };
+  InputActionType buildButtons[] = { InputMouseButton{.button = GLFW_MOUSE_BUTTON_2 } };
+  InputAxisType crouchButtons[] = { {.scale = 1.0f, .type = InputKey{.key = GLFW_KEY_LEFT_CONTROL}} };
+  InputAxisType sprintButtons[] = { {.scale = 1.0f, .type = InputKey{.key = GLFW_KEY_LEFT_SHIFT}} };
+  InputAxisType strafeAxes[] = {
+    {.scale = -1.0f, .type = InputKey{.key = GLFW_KEY_A }},
+    {.scale = 1.0f, .type = InputKey{.key = GLFW_KEY_D }} };
+  InputAxisType forwardAxes[] = {
+    {.scale = -1.0f, .type = InputKey{.key = GLFW_KEY_S }},
+    {.scale = 1.0f, .type = InputKey{.key = GLFW_KEY_W }} };
+  Input::AddInputAxis("Attack", attackButtons);
+  Input::AddInputAction("Build", buildButtons);
+  Input::AddInputAxis("Strafe", strafeAxes);
+  Input::AddInputAxis("Forward", forwardAxes);
+  Input::AddInputAxis("Sprint", sprintButtons);
+  Input::AddInputAxis("Crouch", crouchButtons);
 
-  //{
-  //  MaterialInfo info;
-  //  info.shaderID = "ShaderMcShaderFace";
-  //  info.tex2Dpaths.push_back("==intentionally invalid texture==");
-  //  userMaterial = MaterialManager::CreateMaterial(info);
-  //}
   MaterialInfo info{};
   info.shaderID = "batched";
   info.tex2Dpaths.push_back("==intentionally invalid texture==");
@@ -75,7 +85,7 @@ void OnStart(Scene* scene)
     //player.AddComponent<Components::NativeScriptComponent>().Bind<PhysicsPlayerController>();
     player.AddComponent<Components::NativeScriptComponent>().Bind<KinematicPlayerController>();
     //player.AddComponent<Components::Camera>(Camera::ActiveCamera);
-    player.AddComponent<Components::Camera>(player);
+    player.AddComponent<Components::Camera>(player).SetPos({ 0, .65, 0 });
     Physics::CapsuleCollider collider(0.3, 0.5);
     //Physics::BoxCollider collider({ 1, 1, 1 });
     player.AddComponent<Components::CharacterController>(player, Physics::MaterialType::PLAYER, collider);

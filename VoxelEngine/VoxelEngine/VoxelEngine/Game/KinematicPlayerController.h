@@ -19,23 +19,23 @@ public:
 
   virtual void OnUpdate(float dt) override
   {
-      auto& cam = GetComponent<Components::Camera>();// *CameraSystem::ActiveCamera;
+    auto& cam = GetComponent<Components::Camera>();// *CameraSystem::ActiveCamera;
     const auto& transform = GetComponent<Components::Transform>();
     //cam.SetPos(transform.GetTranslation()); // TODO: TEMP BULLSHIT
     auto& controller = GetComponent<Components::CharacterController>();
 
     const glm::vec2 xzForward = glm::normalize(glm::vec2(cam.GetForward().x, cam.GetForward().z));
-    const glm::vec2 xzRight = glm::normalize(glm::vec2(xzForward.y, -xzForward.x));
+    const glm::vec2 xzRight = glm::normalize(glm::vec2(-xzForward.y, xzForward.x));
 
     float maxXZSpeed = normalSpeed;
 
     // speed modifiers
     float acceleration = flags & Physics::ControllerCollisionFlag::COLLISION_DOWN ? accelerationGround : accelerationAir;
-    if (Input::IsKeyDown(GLFW_KEY_LEFT_SHIFT))
+    if (Input::GetInputAxis("Sprint") != 0.0f)
     {
       maxXZSpeed = fastSpeed;
     }
-    if (Input::IsKeyDown(GLFW_KEY_LEFT_CONTROL))
+    if (Input::GetInputAxis("Crouch") != 0.0f)
     {
       if (acceleration == accelerationGround)
         acceleration = accelerationGroundSlow;
@@ -45,14 +45,16 @@ public:
     float currSpeed = acceleration * dt;
     bool speeding = false;
     glm::vec2 xzForce{ 0 };
-    if (Input::IsKeyDown(GLFW_KEY_W))
-      xzForce += xzForward;
-    if (Input::IsKeyDown(GLFW_KEY_S))
-      xzForce -= xzForward;
-    if (Input::IsKeyDown(GLFW_KEY_A))
-      xzForce += xzRight;
-    if (Input::IsKeyDown(GLFW_KEY_D))
-      xzForce -= xzRight;
+    //if (Input::IsKeyDown(GLFW_KEY_W))
+    //  xzForce += xzForward;
+    //if (Input::IsKeyDown(GLFW_KEY_S))
+    //  xzForce -= xzForward;
+    //if (Input::IsKeyDown(GLFW_KEY_A))
+    //  xzForce += xzRight;
+    //if (Input::IsKeyDown(GLFW_KEY_D))
+    //  xzForce -= xzRight;
+    xzForce += xzForward * Input::GetInputAxis("Forward");
+    xzForce += xzRight * Input::GetInputAxis("Strafe");
     if (xzForce != glm::vec2(0))
       xzForce = glm::normalize(xzForce) * currSpeed;
     if (Input::IsKeyDown(GLFW_KEY_T))
@@ -137,7 +139,7 @@ public:
     cam.SetYaw(pyr.y + Input::GetScreenOffset().x);
     cam.SetPitch(glm::clamp(pyr.x + Input::GetScreenOffset().y, -89.0f, 89.0f));
     //pyr = CameraSystem::GetEuler(); // oof
-    
+
     //glm::vec3 temp;
     //temp.x = cos(glm::radians(pyr.x)) * cos(glm::radians(pyr.y));
     //temp.y = sin(glm::radians(pyr.x));
@@ -158,7 +160,7 @@ public:
   const float accelerationAir = 20.0f;
   const float decelerationGround = 60.0f;
   const float decelerationAir = 3.0f;
-  
+
   // max speed on the XZ plane when moving
   const float slowSpeed = 2.0f;
   const float normalSpeed = 4.0f;

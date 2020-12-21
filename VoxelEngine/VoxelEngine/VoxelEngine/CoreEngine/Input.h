@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 #include <entt/src/core/hashed_string.hpp>
 #include <span>
+#include <variant>
 
 //constexpr int MOUSE_OFFSET = GLFW_KEY_MENU;
 //constexpr int MOUSE_COUNT = GLFW_MOUSE_BUTTON_LAST;
@@ -21,6 +22,15 @@ struct GLFWwindow;
 using Key = int;
 using MouseButton = int;
 
+struct InputKey { Key key{}; };
+struct InputMouseButton { MouseButton button; };
+struct InputMouseScroll { bool yaxis{ false }; };
+struct InputMousePos { bool yaxis{ false }; };
+
+using InputActionType = std::variant<InputKey, InputMouseButton, InputMouseScroll>;
+using InputAxis_t = std::variant<InputKey, InputMouseButton, InputMouseScroll, InputMousePos>;
+struct InputAxisType { float scale{ 1 }; InputAxis_t type; };
+
 class Input
 {
 public:
@@ -36,7 +46,6 @@ public:
   static void Update();
 
   static glm::vec2 GetScreenPos() { return screenPos; }
-  static glm::vec2 GetWorldPos() { return worldPos; }
   static glm::vec2 GetScreenOffset() { return screenOffset; }
   static glm::vec2 GetPrevScreenPos() { return prevScreenPos; }
   static glm::vec2 GetScrollOffset() { return scrollOffset; }
@@ -55,13 +64,16 @@ public:
 
   static inline float sensitivity = 0.05f;
 
-  static void AddInputAction(entt::hashed_string action, std::span<Key> keys);
+  static void AddInputAction(entt::hashed_string action, std::span<InputActionType> keys);
   static void RemoveInputAction(entt::hashed_string action);
   static bool IsInputActionPressed(entt::hashed_string action);
 
+  static void AddInputAxis(entt::hashed_string action, std::span<InputAxisType> keys);
+  static void RemoveInputAxis(entt::hashed_string action);
+  static float GetInputAxis(entt::hashed_string action);
+
 private:
   static inline glm::vec2 screenPos;
-  static inline glm::vec2 worldPos;
   static inline glm::vec2 screenOffset;
   static inline glm::vec2 prevScreenPos;
   static inline glm::vec2 scrollOffset;
@@ -75,5 +87,6 @@ private:
   static inline KeyState mouseButtonStates[MOUSE_BUTTON_STATES] = { KeyState(0) };
 
   // an action can be mapped to multiple keys
-  static inline std::unordered_multimap<entt::id_type, Key> actionToKey;
+  static inline std::unordered_multimap<entt::id_type, InputActionType> inputActions;
+  static inline std::unordered_multimap<entt::id_type, InputAxisType> inputAxes;
 };

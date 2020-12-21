@@ -126,9 +126,6 @@ void Input::mouse_pos_cb([[maybe_unused]] GLFWwindow* window, double xpos, doubl
   screenPos.x = static_cast<float>(xpos);
   screenPos.y = static_cast<float>(ypos);
 
-  worldPos.x = static_cast<float>(xpos);
-  worldPos.y = static_cast<float>(ypos);
-
   screenOffset.x = xpos - prevScreenPos.x;
   screenOffset.y = prevScreenPos.y - ypos;
   prevScreenPos = glm::vec2(xpos, ypos);
@@ -185,32 +182,131 @@ void Input::init_glfw_input_cbs(GLFWwindow* window)
   glfwSetCharCallback(window, ImGui_ImplGlfw_CharCallback);
 }
 
-void Input::AddInputAction(entt::hashed_string action, std::span<Key> keys)
+void Input::AddInputAction(entt::hashed_string action, std::span<InputActionType> keys)
 {
-  ASSERT_MSG(actionToKey.find(action) == actionToKey.end(), "Input action already exists.");
+  ASSERT_MSG(inputActions.find(action) == inputActions.end(), "Input action already exists.");
   for (auto key : keys)
   {
-    actionToKey.insert({ action, key });
+    inputActions.insert({ action, key });
   }
 }
 
 void Input::RemoveInputAction(entt::hashed_string action)
 {
-  ASSERT_MSG(actionToKey.count(action) > 0, "No input action of that type exists.");
-  actionToKey.erase(action);
+  ASSERT_MSG(inputActions.count(action) > 0, "No input action of that type exists.");
+  inputActions.erase(action);
 }
 
 bool Input::IsInputActionPressed(entt::hashed_string action)
 {
-  ASSERT_MSG(actionToKey.count(action) > 0, "No input action of that type exists.");
-  auto range = actionToKey.equal_range(action);
+  ASSERT_MSG(inputActions.count(action) > 0, "No input action of that type exists.");
+  auto range = inputActions.equal_range(action);
   for (auto it = range.first; it != range.second; it++)
   {
-    auto key = it->second;
-    if (IsKeyPressed(key))
+    auto var = it->second;
+    if (auto key = std::get_if<InputKey>(&var))
     {
-      return true;
+      if (IsKeyPressed(key->key))
+      {
+        return true;
+      }
+    }
+    if (auto button = std::get_if<InputMouseButton>(&var))
+    {
+      if (IsMousePressed(button->button))
+      {
+        return true;
+      }
+    }
+    if (auto scroll = std::get_if<InputMouseScroll>(&var))
+    {
+      if ((scroll->yaxis && GetScrollOffset().y != 0) || (!scroll->yaxis && GetScrollOffset().x != 0))
+      {
+        return true;
+      }
     }
   }
   return false;
+}
+
+void Input::AddInputAxis(entt::hashed_string action, std::span<InputAxisType> keys)
+{
+  ASSERT_MSG(inputAxes.find(action) == inputAxes.end(), "Input axis already exists.");
+  for (auto key : keys)
+  {
+    inputAxes.insert({ action, key });
+  }
+}
+
+void Input::RemoveInputAxis(entt::hashed_string action)
+{
+  ASSERT_MSG(inputAxes.count(action) > 0, "No input axis of that type exists.");
+  inputAxes.erase(action);
+}
+
+float Input::GetInputAxis(entt::hashed_string action)
+{
+  ASSERT_MSG(inputAxes.count(action) > 0, "No input action of that type exists.");
+  auto range = inputAxes.equal_range(action);
+  float maxAbs = 0;
+  for (auto it = range.first; it != range.second; it++)
+  {
+    auto var = it->second;
+    auto scale = var.scale;
+    if (auto key = std::get_if<InputKey>(&var.type))
+    {
+      if (IsKeyDown(key->key))
+      {
+        if (auto val = 1.0f * scale; std::abs(val) > std::abs(maxAbs))
+        {
+          maxAbs = val;
+        }
+      }
+    }
+    if (auto button = std::get_if<InputMouseButton>(&var.type))
+    {
+      if (IsMouseDown(button->button))
+      {
+        if (auto val = 1.0f * scale; std::abs(val) > std::abs(maxAbs))
+        {
+          maxAbs = val;
+        }
+      }
+    }
+    if (auto scroll = std::get_if<InputMouseScroll>(&var.type))
+    {
+      if (scroll->yaxis)
+      {
+        if (auto off = GetScrollOffset().y * scale; std::abs(off) > std::abs(maxAbs))
+        {
+          maxAbs = off;
+        }
+      }
+      else
+      {
+        if (auto off = GetScrollOffset().x * scale; std::abs(off) > std::abs(maxAbs))
+        {
+          maxAbs = off;
+        }
+      }
+    }
+    if (auto mouse = std::get_if<InputMousePos>(&var.type))
+    {
+      if (mouse->yaxis)
+      {
+        if (auto off = GetScreenOffset().y * scale; std::abs(off) > std::abs(maxAbs))
+        {
+          maxAbs = off;
+        }
+      }
+      else
+      {
+        if (auto off = GetScreenOffset().x * scale; std::abs(off) > std::abs(maxAbs))
+        {
+          maxAbs = off;
+        }
+      }
+    }
+  }
+  return maxAbs;
 }

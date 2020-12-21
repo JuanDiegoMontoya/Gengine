@@ -24,7 +24,7 @@ public:
   {
     auto cam = GetComponent<Components::Parent>().entity.GetComponent<Components::Camera>();
 
-    if (Input::IsKeyPressed(GLFW_KEY_V))
+    if (Input::IsKeyDown(GLFW_KEY_V))
     {
       Entity ent = CreateEntity("Arrow");
       ent.AddComponent<Components::Transform>().SetTranslation(cam.GetWorldPos() + (cam.GetForward() * 1.f));
@@ -164,7 +164,7 @@ public:
 
   void checkBlockDestruction(float dt)
   {
-    if (Input::IsMouseDown(GLFW_MOUSE_BUTTON_1)
+    if (Input::GetInputAxis("Attack")
       /*if (Input::IsMousePressed(GLFW_MOUSE_BUTTON_1) &&
         !ImGui::IsAnyItemHovered() &&
         !ImGui::IsAnyItemActive() &&
@@ -220,7 +220,7 @@ public:
 
   void checkBlockPick()
   {
-    if (Input::IsMousePressed(GLFW_MOUSE_BUTTON_3) /*&&
+    if (Input::IsInputActionPressed("Build") /*&&
       !ImGui::IsAnyItemHovered() &&
       !ImGui::IsAnyItemActive() &&
       !ImGui::IsAnyItemFocused()*/)

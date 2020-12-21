@@ -43,13 +43,17 @@ void Engine::Run()
     scriptSystem->Update(*activeScene_, dt_);
 
     if (updateCallback != nullptr)
+    {
       updateCallback(dt_);
+    }
 
     graphicsSystem->StartFrame();
 
     graphicsSystem->Update(*activeScene_, dt_);
     if (drawCallback)
+    {
       drawCallback(dt_);
+    }
 
     physicsSystem->Update(*activeScene_, dt_);
     debugSystem->Update(*activeScene_, dt_);
