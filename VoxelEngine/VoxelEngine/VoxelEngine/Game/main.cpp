@@ -74,7 +74,8 @@ void OnStart(Scene* scene)
     //player.AddComponent<Components::NativeScriptComponent>().Bind<FlyingPlayerController>();
     //player.AddComponent<Components::NativeScriptComponent>().Bind<PhysicsPlayerController>();
     player.AddComponent<Components::NativeScriptComponent>().Bind<KinematicPlayerController>();
-    player.AddComponent<Components::Camera>(Camera::ActiveCamera);
+    //player.AddComponent<Components::Camera>(Camera::ActiveCamera);
+    player.AddComponent<Components::Camera>(player);
     Physics::CapsuleCollider collider(0.3, 0.5);
     //Physics::BoxCollider collider({ 1, 1, 1 });
     player.AddComponent<Components::CharacterController>(player, Physics::MaterialType::PLAYER, collider);
