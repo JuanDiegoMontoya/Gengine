@@ -30,7 +30,7 @@ private:
 	{
 		glm::mat4 model;
 	};
-	static void RenderBatchHelper(MaterialHandle material, const std::vector<UniformData>& uniformBuffer);
+	static void RenderBatchHelper(MaterialID material, const std::vector<UniformData>& uniformBuffer);
 
 	// batched+instanced rendering stuff (ONE MATERIAL SUPPORTED ATM)
 	friend class MeshManager;
@@ -48,7 +48,7 @@ private:
 	struct BatchDrawCommand
 	{
 		MeshID mesh;
-		MaterialHandle material;
+		MaterialID material;
 		glm::mat4 modelUniform;
 	};
 	static inline std::vector<BatchDrawCommand> userCommands;

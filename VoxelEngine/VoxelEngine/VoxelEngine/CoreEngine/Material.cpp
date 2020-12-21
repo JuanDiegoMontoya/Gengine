@@ -1,16 +1,30 @@
 #include "EnginePCH.h"
 #include "Material.h"
-#include <CoreEngine/GAssert.h>
 
-MaterialHandle MaterialManager::CreateMaterial(MaterialInfo materialData)
+std::shared_ptr<MaterialHandle> MaterialManager::CreateMaterial(MaterialInfo materialData, entt::hashed_string name)
 {
   MaterialInternalInfo info;
   info.tex2Dpaths = materialData.tex2Dpaths;
   info.shaderID = materialData.shaderID;
   for (const auto& path : materialData.tex2Dpaths)
+  {
     info.textures.emplace_back(path);
-  auto aa = materials.emplace(nextKey, std::move(info));
-  return nextKey++;
+  }
+  auto res = std::make_shared<MaterialHandle>(name.value());
+  handleMap_.emplace(name.value(), res);
+  materials_.emplace(name.value(), std::move(info));
+  return std::move(res);
+}
+
+std::shared_ptr<MaterialHandle> MaterialManager::GetMaterial(entt::hashed_string name)
+{
+  return std::shared_ptr<MaterialHandle>(handleMap_[name.value()]);
+}
+
+void MaterialManager::DestroyMaterial(MaterialID handle)
+{
+  materials_.erase(handle);
+  handleMap_.erase(handle);
 }
 
 //const MaterialInfo& MaterialManager::GetMaterialInfo(Material material)

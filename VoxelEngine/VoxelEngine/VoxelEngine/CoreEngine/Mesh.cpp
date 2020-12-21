@@ -41,7 +41,7 @@ std::shared_ptr<MeshHandle> MeshManager::CreateMeshBatched(std::string filename,
 	}
 
 	std::vector<Vertex> vertices;
-	std::vector<unsigned> indices;
+	std::vector<GLuint> indices;
 	LoadMesh(scene, scene->mMeshes[0], indices, vertices);
 
 	GenBatchedHandle_GL(name.value(), indices, vertices);

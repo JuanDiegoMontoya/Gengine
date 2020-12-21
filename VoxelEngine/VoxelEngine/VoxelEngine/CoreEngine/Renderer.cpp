@@ -71,7 +71,7 @@ void Renderer::BeginBatch(uint32_t size)
 void Renderer::Submit(Components::Transform& model, Components::BatchedMesh& mesh, Components::Material& mat)
 {
 	auto index = cmdIndex++;
-	userCommands[index] = BatchDrawCommand { .mesh = mesh.handle->handle, .material = mat, .modelUniform = model.GetModel() };
+	userCommands[index] = BatchDrawCommand { .mesh = mesh.handle->handle, .material = mat.handle->handle, .modelUniform = model.GetModel() };
 }
 
 void Renderer::RenderBatch()
@@ -92,7 +92,7 @@ void Renderer::RenderBatch()
 	// accumulate per-material draws and uniforms
 	std::vector<UniformData> uniforms;
 	uniforms.reserve(userCommands.size());
-	MaterialHandle curMat = userCommands[0].material;
+	MaterialID curMat = userCommands[0].material;
 	for (size_t i = 0; i < userCommands.size(); i++)
 	{
 		const auto& draw = userCommands[i];
@@ -111,7 +111,7 @@ void Renderer::RenderBatch()
 	userCommands.clear();
 }
 
-void Renderer::RenderBatchHelper(MaterialHandle mat, const std::vector<UniformData>& uniformBuffer)
+void Renderer::RenderBatchHelper(MaterialID mat, const std::vector<UniformData>& uniformBuffer)
 {
 	// generate SSBO w/ uniforms
 	auto uniforms = std::make_unique<GFX::StaticBuffer>(uniformBuffer.data(), uniformBuffer.size() * sizeof(UniformData));
@@ -139,7 +139,7 @@ void Renderer::RenderBatchHelper(MaterialHandle mat, const std::vector<UniformDa
 		info.second.instanceCount = 0;
 
 	// do the actual draw
-	auto& material = MaterialManager::materials[mat];
+	auto& material = MaterialManager::materials_[mat];
 	auto& shader = Shader::shaders[material.shaderID];
 	shader->Use();
 

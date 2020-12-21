@@ -29,8 +29,6 @@
 
 
 
-static MaterialHandle userMaterial{};
-static MaterialHandle batchMaterial{};
 static std::unique_ptr<VoxelManager> voxelManager{};
 
 void OnStart(Scene* scene)
@@ -55,12 +53,10 @@ void OnStart(Scene* scene)
   //  info.tex2Dpaths.push_back("==intentionally invalid texture==");
   //  userMaterial = MaterialManager::CreateMaterial(info);
   //}
-  {
-    MaterialInfo info;
-    info.shaderID = "batched";
-    info.tex2Dpaths.push_back("==intentionally invalid texture==");
-    batchMaterial = MaterialManager::CreateMaterial(info);
-  }
+  MaterialInfo info{};
+  info.shaderID = "batched";
+  info.tex2Dpaths.push_back("==intentionally invalid texture==");
+  auto batchMaterial = MaterialManager::CreateMaterial(info, "batchMaterial");
 
   // add game manager entity
   {
@@ -114,7 +110,7 @@ void OnStart(Scene* scene)
       //parent.AddComponent<Components::Mesh>().meshHandle = bunny;
       //parent.AddComponent<Components::Material>(userMaterial);
       parent.AddComponent<Components::BatchedMesh>().handle = MeshManager::GetMeshBatched("big_cube");
-      parent.AddComponent<Components::Material>(batchMaterial);
+      parent.AddComponent<Components::Material>(MaterialManager::GetMaterial("batchMaterial"));
 
       for (int i = 0; i < 5000; i++)
       {
@@ -127,7 +123,7 @@ void OnStart(Scene* scene)
         //child.AddComponent<Components::Mesh>().meshHandle = bunny;
         //child.AddComponent<Components::Material>(userMaterial);
         child.AddComponent<Components::BatchedMesh>().handle = MeshManager::GetMeshBatched("big_cube");
-        child.AddComponent<Components::Material>(batchMaterial);
+        child.AddComponent<Components::Material>().handle = batchMaterial;
         parent = child;
       }
     }
@@ -154,7 +150,7 @@ void OnStart(Scene* scene)
           entity.AddComponent<Components::Transform>().SetTranslation({ x * 3, 0, y * 3 });
           entity.GetComponent<Components::Transform>().SetScale({ 1, 1, 1 });
           entity.AddComponent<Components::BatchedMesh>().handle = meshes[rand() % meshes.size()];
-          entity.AddComponent<Components::Material>(batchMaterial);
+          entity.AddComponent<Components::Material>().handle = batchMaterial;
           //Components::Physics phys(entity, Physics::MaterialType::Terrain, Physics::BoxCollider(glm::vec3(1)));
           //entity.AddComponent<Components::Physics>(std::move(phys));
           //entity.AddComponent<Components::Mesh>().meshHandle = notbatch;
@@ -172,7 +168,7 @@ void OnStart(Scene* scene)
         glm::vec3 scale{ 1, .4f, glm::clamp(1 + i * (.02f), .1f, 10.f) };
         entity.GetComponent<Components::Transform>().SetScale(scale);
         entity.AddComponent<Components::BatchedMesh>().handle = meshes[0];
-        entity.AddComponent<Components::Material>(batchMaterial);
+        entity.AddComponent<Components::Material>().handle = MaterialManager::GetMaterial("batchMaterial");
         auto collider = Physics::BoxCollider(scale * .5f);
         Components::DynamicPhysics phys(entity, Physics::MaterialType::TERRAIN, collider);
         entity.AddComponent<Components::DynamicPhysics>(std::move(phys));
@@ -188,7 +184,7 @@ void OnStart(Scene* scene)
         glm::vec3 scale{ 1, 1, 1 };
         entity.GetComponent<Components::Transform>().SetScale(scale * .5f);
         entity.AddComponent<Components::BatchedMesh>().handle = meshes[2];
-        entity.AddComponent<Components::Material>(batchMaterial);
+        entity.AddComponent<Components::Material>().handle = batchMaterial;
         auto collider = Physics::CapsuleCollider(.5, .01);
         Components::DynamicPhysics phys(entity, Physics::MaterialType::TERRAIN, collider);
         entity.AddComponent<Components::DynamicPhysics>(std::move(phys));
@@ -200,7 +196,7 @@ void OnStart(Scene* scene)
       entity.AddComponent<Components::Transform>().SetTranslation({ -15, 5, 10 });
       entity.GetComponent<Components::Transform>().SetScale({ 1, 1, 1 });
       entity.AddComponent<Components::BatchedMesh>().handle = meshes[0];
-      entity.AddComponent<Components::Material>(batchMaterial);
+      entity.AddComponent<Components::Material>().handle = batchMaterial;
       Components::DynamicPhysics phys(entity, Physics::MaterialType::TERRAIN, Physics::BoxCollider(glm::vec3(.5)));
       entity.AddComponent<Components::DynamicPhysics>(std::move(phys));
       entity.AddComponent<Components::NativeScriptComponent>().Bind<PhysicsTest2>();

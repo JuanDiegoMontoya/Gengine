@@ -180,8 +180,10 @@ namespace Components
     std::shared_ptr<MeshHandle> handle;
   };
 
-  // temp
-  using Material = ::MaterialHandle;
+  struct Material
+  {
+    std::shared_ptr<MaterialHandle> handle;
+  };
   
   // TODO: temp cuz this is sucky
   struct Camera

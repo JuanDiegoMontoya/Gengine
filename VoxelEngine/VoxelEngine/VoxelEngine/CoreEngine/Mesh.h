@@ -37,10 +37,9 @@ private:
 struct MeshHandle
 {
 	MeshHandle(MeshID id) : handle(id) {}
-	~MeshHandle() { printf("Destroying %u\n", handle); MeshManager::DestroyBatchedMesh(handle); }
+	~MeshHandle() { printf("Destroying mesh, ID %u\n", handle); MeshManager::DestroyBatchedMesh(handle); }
 
 private:
 	friend class Renderer;
-
 	MeshID handle;
 };

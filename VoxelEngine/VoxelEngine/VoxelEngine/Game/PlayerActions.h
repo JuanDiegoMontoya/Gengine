@@ -29,7 +29,7 @@ public:
       Entity ent = CreateEntity("Arrow");
       ent.AddComponent<Components::Transform>().SetTranslation(cam->GetPos() + (cam->GetFront() * 1.f));
       ent.AddComponent<Components::BatchedMesh>().handle = MeshManager::GetMeshBatched("big_cube");
-      ent.AddComponent<Components::Material>(1); // TODO: hackity hack
+      ent.AddComponent<Components::Material>().handle = MaterialManager::GetMaterial("batchMaterial");
       auto collider = Physics::BoxCollider(glm::vec3(.5f));
       Components::DynamicPhysics phys(ent, Physics::MaterialType::TERRAIN, collider);
       ent.AddComponent<Components::DynamicPhysics>(std::move(phys)).Interface().AddForce(cam->GetFront() * 300.f);
@@ -163,11 +163,11 @@ public:
 
   void checkBlockDestruction(float dt)
   {
-    if(Input::IsMouseDown(GLFW_MOUSE_BUTTON_1)
-    /*if (Input::IsMousePressed(GLFW_MOUSE_BUTTON_1) &&
-      !ImGui::IsAnyItemHovered() &&
-      !ImGui::IsAnyItemActive() &&
-      !ImGui::IsAnyItemFocused()*/)
+    if (Input::IsMouseDown(GLFW_MOUSE_BUTTON_1)
+      /*if (Input::IsMousePressed(GLFW_MOUSE_BUTTON_1) &&
+        !ImGui::IsAnyItemHovered() &&
+        !ImGui::IsAnyItemActive() &&
+        !ImGui::IsAnyItemFocused()*/)
     {
       bool hit = false;
       const auto cam = Camera::ActiveCamera;
@@ -243,7 +243,7 @@ public:
     }
   }
 
-  glm::vec3 prevBlock = {-1, -1, -1};
+  glm::vec3 prevBlock = { -1, -1, -1 };
   bool prevHit = false;
   float timer = 0.0f;
   BlockType selected = BlockType::bStone;
