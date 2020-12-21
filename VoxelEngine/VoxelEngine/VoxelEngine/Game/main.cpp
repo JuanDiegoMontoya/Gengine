@@ -15,6 +15,7 @@
 // eh
 #include <CoreEngine/Renderer.h>
 #include <CoreEngine/Camera.h>
+#include <Voxels/prefab.h>
 
 #include <iostream>
 #include <Game/FlyingPlayerController.h>
@@ -34,21 +35,26 @@ static std::unique_ptr<VoxelManager> voxelManager{};
 
 void OnStart(Scene* scene)
 {
+  // TODO: eventually remove this
+  PrefabManager::InitPrefabs();
   voxelManager = std::make_unique<VoxelManager>();
   WorldGen wg(*voxelManager);
   wg.Init();
   wg.GenerateWorld();
+#if !DEBUG
   wg.InitializeSunlight();
+#endif
   wg.InitMeshes();
   wg.InitBuffers();
   //auto compressed = CompressChunk(voxelManager->GetChunk(glm::ivec3(0))->GetStorage());
-  
-  {
-    MaterialInfo info;
-    info.shaderID = "ShaderMcShaderFace";
-    info.tex2Dpaths.push_back("==intentionally invalid texture==");
-    userMaterial = MaterialManager::CreateMaterial(info);
-  }
+
+
+  //{
+  //  MaterialInfo info;
+  //  info.shaderID = "ShaderMcShaderFace";
+  //  info.tex2Dpaths.push_back("==intentionally invalid texture==");
+  //  userMaterial = MaterialManager::CreateMaterial(info);
+  //}
   {
     MaterialInfo info;
     info.shaderID = "batched";
@@ -159,7 +165,7 @@ void OnStart(Scene* scene)
     }
     if (1) // boxes physics test
     {
-      for (int i = 0; i < 5; i++)
+      for (int i = 0; i < 50; i++)
       {
         Entity entity = scene->CreateEntity("physics entity" + std::to_string(i));
         entity.AddComponent<Components::Transform>().SetTranslation({ -15, 50 + i, 10 + (float(i)/50.f) });
@@ -175,7 +181,7 @@ void OnStart(Scene* scene)
     }
     if (1) // spheres physics test
     {
-      for (int i = 0; i < 500; i++)
+      for (int i = 0; i < 50; i++)
       {
         Entity entity = scene->CreateEntity("physics entity" + std::to_string(i));
         entity.AddComponent<Components::Transform>().SetTranslation({ +30, 50 + i, 10 + (float(i) / 50.f) });
@@ -279,10 +285,8 @@ void OnDraw(float dt)
   Renderer::DrawAxisIndicator();
 }
 
-#include <Voxels/prefab.h>
 int main()
 {
-  PrefabManager::InitPrefabs();
   Application::SetStartCallback(OnStart);
   Application::SetUpdateCallback(OnUpdate);
   Application::SetDrawCallback(OnDraw);

@@ -1,7 +1,8 @@
 #pragma once
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
-#include <functional>
+#include <entt/src/core/hashed_string.hpp>
+#include <span>
 
 //constexpr int MOUSE_OFFSET = GLFW_KEY_MENU;
 //constexpr int MOUSE_COUNT = GLFW_MOUSE_BUTTON_LAST;
@@ -23,7 +24,7 @@ using MouseButton = int;
 class Input
 {
 public:
-  enum KeyState // applicable to keyboard keys and mouse buttons
+  enum KeyState : uint8_t // applicable to keyboard keys and mouse buttons
   {
     down     = 0b00001,
     pressed  = 0b00011,
@@ -54,6 +55,10 @@ public:
 
   static inline float sensitivity = 0.05f;
 
+  static void AddInputAction(entt::hashed_string action, std::span<Key> keys);
+  static void RemoveInputAction(entt::hashed_string action);
+  static bool IsInputActionPressed(entt::hashed_string action);
+
 private:
   static inline glm::vec2 screenPos;
   static inline glm::vec2 worldPos;
@@ -61,11 +66,14 @@ private:
   static inline glm::vec2 prevScreenPos;
   static inline glm::vec2 scrollOffset;
 
-  static void keypress_cb    (GLFWwindow* window, int key, int scancode, int action, int mods);
-  static void mouse_pos_cb   (GLFWwindow* window, double xpos, double ypos);
+  static void keypress_cb(GLFWwindow* window, int key, int scancode, int action, int mods);
+  static void mouse_pos_cb(GLFWwindow* window, double xpos, double ypos);
   static void mouse_scroll_cb(GLFWwindow* window, double xoffset, double yoffset);
   static void mouse_button_cb(GLFWwindow* window, int button, int action, int mods);
 
   static inline KeyState keyStates[BUTTON_COUNT] = { KeyState(0) };
   static inline KeyState mouseButtonStates[MOUSE_BUTTON_STATES] = { KeyState(0) };
+
+  // an action can be mapped to multiple keys
+  static inline std::unordered_multimap<entt::id_type, Key> actionToKey;
 };
