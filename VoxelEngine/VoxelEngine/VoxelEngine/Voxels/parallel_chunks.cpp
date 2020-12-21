@@ -19,7 +19,7 @@ namespace Utils
         return false;
       glm::vec3 wposA = glm::vec3(first->GetPos() * Chunk::CHUNK_SIZE);
       glm::vec3 wposB = glm::vec3(second->GetPos() * Chunk::CHUNK_SIZE);
-      glm::vec3 cam = Camera::ActiveCamera->GetPos();
+      glm::vec3 cam = CameraSystem::GetPos();
       return
         glm::distance(wposA, cam) <
         glm::distance(wposB, cam);

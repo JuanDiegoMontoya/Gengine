@@ -89,13 +89,15 @@ void ChunkRenderer::GenerateDrawCommandsGPU()
   TracyGpuZone("Gen draw commands norm");
 #endif
 
-  Camera* cam = Camera::ActiveCamera;
+  //Camera* cam = Camera::ActiveCamera;
   auto& sdr = Shader::shaders["compact_batch"];
   sdr->Use();
 
   // set uniforms for chunk rendering
-  sdr->setVec3("u_viewpos", cam->GetPos());
-  Frustum fr = *cam->GetFrustum();
+  //sdr->setVec3("u_viewpos", cam->GetPos());
+  //Frustum fr = *cam->GetFrustum();
+  sdr->setVec3("u_viewpos", CameraSystem::GetPos());
+  Frustum fr = *CameraSystem::GetFrustum();
   for (int i = 0; i < 5; i++) // ignore near plane
   {
     std::string uname = "u_viewfrustum.data_[" + std::to_string(i) + "]";
@@ -177,7 +179,7 @@ void ChunkRenderer::Draw()
   auto& currShader = Shader::shaders["chunk_optimized"];
   currShader->Use();
 
-  Camera* cam = Camera::ActiveCamera;
+  //Camera* cam = Camera::ActiveCamera;
   //float angle = glm::max(glm::dot(-glm::normalize(NuRenderer::activeSun_->GetDir()), glm::vec3(0, 1, 0)), 0.f);
   float angle = 1.0f;
   currShader->setFloat("sunAngle", angle);
@@ -187,11 +189,13 @@ void ChunkRenderer::Draw()
     glm::pow(.529f, 2.2f),
     glm::pow(.808f, 2.2f),
     glm::pow(.922f, 2.2f));
-  currShader->setVec3("viewPos", cam->GetPos());
+  //currShader->setVec3("viewPos", cam->GetPos());
+  currShader->setVec3("viewPos", CameraSystem::GetPos());
   currShader->setFloat("fogStart", 500.0f);
   currShader->setFloat("fogEnd", 3000.0f);
   currShader->setVec3("fogColor", skyColor);
-  currShader->setMat4("u_viewProj", cam->GetProj() * cam->GetView());
+  //currShader->setMat4("u_viewProj", cam->GetProj() * cam->GetView());
+  currShader->setMat4("u_viewProj", CameraSystem::GetProj() * CameraSystem::GetView());
 
   textures->Bind(0);
   currShader->setInt("textures", 0);
@@ -246,8 +250,9 @@ void ChunkRenderer::RenderOcclusion()
   auto& sr = Shader::shaders["chunk_render_cull"];
   sr->Use();
 
-  Camera* cam = Camera::ActiveCamera;
-  const glm::mat4 viewProj = cam->GetProj() * cam->GetView();
+  //const glm::mat4 viewProj = cam->GetProj() * cam->GetView();
+  //Camera* cam = Camera::ActiveCamera;
+  const glm::mat4 viewProj = CameraSystem::GetProj() * CameraSystem::GetView();
   sr->setMat4("u_viewProj", viewProj);
   sr->setUInt("u_chunk_size", Chunk::CHUNK_SIZE);
   sr->setBool("u_debugDraw", settings.debug_drawOcclusionCulling);

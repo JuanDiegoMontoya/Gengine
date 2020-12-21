@@ -8,7 +8,7 @@ public:
   enum { A, B, C, D };
 
   Frustum() : data_() {}
-  ~Frustum() {}
+  ~Frustum();
 
   void Transform(const glm::mat4& proj, const glm::mat4& view);
 

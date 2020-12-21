@@ -22,17 +22,17 @@ public:
 
   virtual void OnUpdate(float dt) override
   {
-    const auto cam = Camera::ActiveCamera;
+    auto cam = GetComponent<Components::Parent>().entity.GetComponent<Components::Camera>();
 
     if (Input::IsKeyPressed(GLFW_KEY_V))
     {
       Entity ent = CreateEntity("Arrow");
-      ent.AddComponent<Components::Transform>().SetTranslation(cam->GetPos() + (cam->GetFront() * 1.f));
+      ent.AddComponent<Components::Transform>().SetTranslation(cam.GetWorldPos() + (cam.GetForward() * 1.f));
       ent.AddComponent<Components::BatchedMesh>().handle = MeshManager::GetMeshBatched("big_cube");
       ent.AddComponent<Components::Material>(1); // TODO: hackity hack
       auto collider = Physics::BoxCollider(glm::vec3(.5f));
       Components::DynamicPhysics phys(ent, Physics::MaterialType::TERRAIN, collider);
-      ent.AddComponent<Components::DynamicPhysics>(std::move(phys)).Interface().AddForce(cam->GetFront() * 300.f);
+      ent.AddComponent<Components::DynamicPhysics>(std::move(phys)).Interface().AddForce(cam.GetForward() * 300.f);
     }
 
     checkTestButton();
@@ -57,9 +57,10 @@ public:
     ImGui::Text("Voxel raycast information:");
     float dist = 5.f;
     ImGui::Text("Ray length: %0.f", dist);
+    //const auto cam = Camera::ActiveCamera;
     voxels->Raycast(
-      cam->GetPos(),
-      cam->GetFront(),
+      CameraSystem::GetPos(),
+      CameraSystem::GetFront(),
       dist,
       [this](glm::vec3 pos, Block block, glm::vec3 side)->bool
       {
@@ -105,10 +106,10 @@ public:
   {
     if (Input::IsMousePressed(GLFW_MOUSE_BUTTON_2))
     {
-      const auto cam = Camera::ActiveCamera;
+      //const auto cam = CameraSystem::ActiveCamera;
       voxels->Raycast(
-        cam->GetPos(),
-        cam->GetFront(),
+         CameraSystem::GetPos(),
+         CameraSystem::GetFront(),
         5,
         std::function<bool(glm::vec3, Block, glm::vec3)>
         ([&](glm::vec3 pos, Block block, glm::vec3 side)->bool
@@ -170,10 +171,10 @@ public:
       !ImGui::IsAnyItemFocused()*/)
     {
       bool hit = false;
-      const auto cam = Camera::ActiveCamera;
+      //const auto cam = CameraSystem::ActiveCamera;
       voxels->Raycast(
-        cam->GetPos(),
-        cam->GetFront(),
+         CameraSystem::GetPos(),
+         CameraSystem::GetFront(),
         5,
         std::function<bool(glm::vec3, Block, glm::vec3)>
         ([&](glm::vec3 pos, Block block, glm::vec3 side)->bool
@@ -224,10 +225,10 @@ public:
       !ImGui::IsAnyItemActive() &&
       !ImGui::IsAnyItemFocused()*/)
     {
-      const auto cam = Camera::ActiveCamera;
+      //const auto cam = CameraSystem::ActiveCamera;
       voxels->Raycast(
-        cam->GetPos(),
-        cam->GetFront(),
+         CameraSystem::GetPos(),
+         CameraSystem::GetFront(),
         5,
         std::function<bool(glm::vec3, Block, glm::vec3)>
         ([&](glm::vec3 pos, Block block, glm::vec3 side)->bool

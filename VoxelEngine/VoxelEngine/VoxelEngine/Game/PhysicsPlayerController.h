@@ -23,13 +23,13 @@ public:
 
   virtual void OnUpdate(float dt) override
   {
-    auto& cam = *GetComponent<Components::Camera>().cam;
+    auto& cam = *CameraSystem::ActiveCamera;
     const auto& transform = GetComponent<Components::Transform>();
-    cam.SetPos(transform.GetTranslation()); // TODO: TEMP BULLSHIT
+    CameraSystem::SetPos(transform.GetTranslation()); // TODO: TEMP BULLSHIT
     auto& physics = GetComponent<Components::DynamicPhysics>();
 
     glm::vec2 xzForce{0};
-    const glm::vec2 xzForward = glm::normalize(glm::vec2(cam.GetDir().x, cam.GetDir().z));
+    const glm::vec2 xzForward = glm::normalize(glm::vec2(CameraSystem::GetDir().x, CameraSystem::GetDir().z));
     const glm::vec2 xzRight = glm::normalize(glm::vec2(xzForward.y, -xzForward.x));
     //
     float currSpeed = normalForce * dt;
@@ -47,7 +47,7 @@ public:
     if (Input::IsKeyDown(GLFW_KEY_T))
     {
       maxSpeed = 1000;
-      physics.Interface().AddForce(cam.GetDir() * 50.f, Physics::ForceMode::FORCE);
+      physics.Interface().AddForce(CameraSystem::GetDir() * 50.f, Physics::ForceMode::FORCE);
     }
     if (Input::IsKeyDown(GLFW_KEY_W))
       xzForce += xzForward * currSpeed;
@@ -70,17 +70,17 @@ public:
     vel.z = xzVel[1];
     physics.Interface().SetVelocity(vel);
 
-    auto pyr = cam.GetEuler(); // Pitch, Yaw, Roll
-    cam.SetYaw(pyr.y + Input::GetScreenOffset().x);
-    cam.SetPitch(glm::clamp(pyr.x + Input::GetScreenOffset().y, -89.0f, 89.0f));
-    pyr = cam.GetEuler(); // oof
+    auto pyr = CameraSystem::GetEuler(); // Pitch, Yaw, Roll
+    CameraSystem::SetYaw(pyr.y + Input::GetScreenOffset().x);
+    CameraSystem::SetPitch(glm::clamp(pyr.x + Input::GetScreenOffset().y, -89.0f, 89.0f));
+    pyr = CameraSystem::GetEuler(); // oof
 
-    glm::vec3 temp;
-    temp.x = cos(glm::radians(pyr.x)) * cos(glm::radians(pyr.y));
-    temp.y = sin(glm::radians(pyr.x));
-    temp.z = cos(glm::radians(pyr.x)) * sin(glm::radians(pyr.y));
-    cam.SetFront(glm::normalize(temp));
-    cam.SetDir(cam.GetFront());
+    //glm::vec3 temp;
+    //temp.x = cos(glm::radians(pyr.x)) * cos(glm::radians(pyr.y));
+    //temp.y = sin(glm::radians(pyr.x));
+    //temp.z = cos(glm::radians(pyr.x)) * sin(glm::radians(pyr.y));
+    //CameraSystem::SetFront(glm::normalize(temp));
+    //CameraSystem::SetDir(CameraSystem::GetFront());
   }
 
   const float jumpVel = 8.0f;

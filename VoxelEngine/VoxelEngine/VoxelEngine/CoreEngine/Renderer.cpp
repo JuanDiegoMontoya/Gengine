@@ -63,6 +63,7 @@ GLerrorCB(GLenum source,
 	std::cout << std::endl;
 }
 
+//glm::mat4 MVP = CameraSystem::GetViewProj() * modelMatrix;
 void Renderer::BeginBatch(uint32_t size)
 {
 	userCommands.resize(size);
@@ -143,7 +144,7 @@ void Renderer::RenderBatchHelper(MaterialHandle mat, const std::vector<UniformDa
 	auto& shader = Shader::shaders[material.shaderID];
 	shader->Use();
 
-	shader->setMat4("u_viewProj", Camera::ActiveCamera->GetViewProj());
+	shader->setMat4("u_viewProj", CameraSystem::GetViewProj());
 
 	batchVAO->Bind();
 	glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, (void*)0, commands.size(), 0);
@@ -285,10 +286,10 @@ void Renderer::DrawAxisIndicator()
 	}
 	auto& currShader = Shader::shaders["axis"];
 	currShader->Use();
-	Camera* cam = Camera::ActiveCamera;
-	currShader->setMat4("u_model", glm::translate(glm::mat4(1), cam->GetPos() + cam->GetFront() * 10.f)); // add scaling factor (larger # = smaller visual)
-	currShader->setMat4("u_view", cam->GetView());
-	currShader->setMat4("u_proj", cam->GetProj());
+	//Camera* cam = Camera::ActiveCamera;
+	currShader->setMat4("u_model", glm::translate(glm::mat4(1), CameraSystem::GetPos() + CameraSystem::GetFront() * 10.f)); // add scaling factor (larger # = smaller visual)
+	currShader->setMat4("u_view", CameraSystem::GetView());
+	currShader->setMat4("u_proj", CameraSystem::GetProj());
 	glClear(GL_DEPTH_BUFFER_BIT); // allows indicator to always be rendered
 	axisVAO->Bind();
 	glLineWidth(2.f);

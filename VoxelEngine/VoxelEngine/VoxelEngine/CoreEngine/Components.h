@@ -7,7 +7,6 @@
 #include <CoreEngine/Material.h>
 #include <CoreEngine/Physics.h>
 
-class Camera;
 struct MeshHandle;
 
 namespace Components
@@ -147,6 +146,11 @@ namespace Components
       /*return model;*/
       return glm::translate(glm::mat4(1), translation) * glm::mat4_cast(rotation) * glm::scale(glm::mat4(1), scale);
     }
+
+    const auto& GetForward() const { return (glm::vec3(glm::mat4_cast(rotation)[2])); }
+    const auto& GetUp() const { return (glm::vec3(glm::mat4_cast(rotation)[1])); }
+    const auto& GetRight() const { return (glm::vec3(glm::mat4_cast(rotation)[0])); }
+
     auto IsDirty() const { return isDirty; }
     void SetTranslation(const glm::vec3& vec) { translation = vec; isDirty = true; }
     void SetRotation(const glm::mat4& mat) { rotation = glm::quat_cast(mat); isDirty = true; }
@@ -155,11 +159,22 @@ namespace Components
     //void SetModel(const glm::mat4& mat) { model = mat; isDirty = false; }
     void SetModel() { isDirty = false; }
 
+    void SetPYR(const glm::vec3& pyr) { pitch_ = pyr.x; yaw_ = pyr.y; roll_ = pyr.z; isDirty = true; }
+
+    // Temp
+    float pitch_ = 16;
+    float yaw_ = 255;
+    float roll_ = 0;
+
   private:
     glm::vec3	translation{ 0 };
     //glm::mat4 rotation{ 1 };
     glm::quat rotation{ 1, 0, 0, 0 };
     glm::vec3	scale{ 1, 1, 1 };
+
+    glm::vec3 forward{ 0, 0, 1 };
+    glm::vec3 up{ 0, 0, 1 };
+    glm::vec3 right{ 0, 0, 1 };
 
     bool isDirty = false;
     //glm::mat4	model{ 1 };
@@ -183,12 +198,67 @@ namespace Components
   // temp
   using Material = ::MaterialHandle;
   
-  // TODO: temp cuz this is sucky
   struct Camera
   {
-    Camera(::Camera* c) : cam(c) {}
-    ::Camera* cam;
+    /*Camera(::Camera* c) : cam(c) 
+    {
+
+    }
+    ::Camera* cam;*/
     //bool isActive;
+
+    // New
+      Camera(Entity);
+
+      void SetPos(glm::vec3 pos) { translation = pos; }
+      //void SetDir(const glm::vec3& v) { dir_ = v;  }
+      void SetYaw(float f) { yaw_ = f;  }
+      void SetPitch(float f) { pitch_ = f;  }
+      void SetDir(glm::vec3 d) { dir = d; }
+
+      glm::vec3	dir{ 0 };
+      glm::vec3	translation{ 0 };
+      glm::quat rotation{ 1, 0, 0, 0 };
+
+      float pitch_ = 16;
+      float yaw_ = 255;
+      float roll_ = 0;
+
+      glm::vec3 GetEuler() { return { pitch_, yaw_, roll_ }; }
+
+      const auto& GetWorldPos()
+      {
+          Transform& tr = entity.GetComponent<Components::Transform>();
+          return tr.GetTranslation() + translation;
+      }
+
+      const auto& GetLocalPos()
+      {
+          return translation;
+      }
+
+      const auto& GetForward() 
+      {
+          dir.x = cos(glm::radians(pitch_)) * cos(glm::radians(yaw_));
+          dir.y = sin(glm::radians(pitch_));
+          dir.z = cos(glm::radians(pitch_)) * sin(glm::radians(yaw_));
+          return dir; // (glm::vec3(glm::mat4_cast(rotation)[2])); 
+      }
+      const auto& GetUp() const { return (glm::vec3(glm::mat4_cast(rotation)[1])); }
+      const auto& GetRight() const { return (glm::vec3(glm::mat4_cast(rotation)[0])); }
+
+    Entity entity{};
+
+    bool frustumCulling = false;
+    // Culling Mask
+
+    float fov = 70.0f;
+
+    float zNear = 0.1f;
+    float zFar = 1000.0f;
+
+    unsigned skybox = 0;
+    GLuint renderTexture = 0;
   };
 
   struct Parent
