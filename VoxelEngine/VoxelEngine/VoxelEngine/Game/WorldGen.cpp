@@ -85,6 +85,7 @@ void WorldGen::GenerateWorld()
             //int index = pos.x + yczcsq;
             int idx = pos.x + zcsq;
             wpos = ChunkHelpers::chunkPosToWorldPos(pos, chunk->GetPos());
+            float waterHeight = 10.0f;
 
             //double density = noise.GetValue(wpos.x, wpos.y, wpos.z); // chunks are different
             //double density = noise.GetValue(pos.x, pos.y, pos.z); // same chunk every time
@@ -107,13 +108,16 @@ void WorldGen::GenerateWorld()
               if (Utils::noise(pos) < .01f)
               {
                 voxels.SetBlockType(wpos, BlockType::bDirt);
-                Prefab prefab = PrefabManager::GetPrefab("OakTree");
-                glm::ivec3 offset = { 0, 1, 0 };
-                for (unsigned i = 0; i < prefab.blocks.size(); i++)
+                if (height > waterHeight)
                 {
-                  if (auto block = voxels.TryGetBlock(wpos + offset + prefab.blocks[i].first))
-                    if (prefab.blocks[i].second.GetPriority() >= block->GetPriority())
-                      voxels.SetBlockType(wpos + offset + prefab.blocks[i].first, prefab.blocks[i].second.GetType());
+                  Prefab prefab = PrefabManager::GetPrefab("OakTree");
+                  glm::ivec3 offset = { 0, 1, 0 };
+                  for (unsigned i = 0; i < prefab.blocks.size(); i++)
+                  {
+                    if (auto block = voxels.TryGetBlock(wpos + offset + prefab.blocks[i].first))
+                      if (prefab.blocks[i].second.GetPriority() >= block->GetPriority())
+                        voxels.SetBlockType(wpos + offset + prefab.blocks[i].first, prefab.blocks[i].second.GetType());
+                  }
                 }
               }
             }
@@ -123,6 +127,10 @@ void WorldGen::GenerateWorld()
                 if (Utils::noise(pos) < .01f)
                     voxels.SetBlockType(wpos, BlockType::bStone);
             }
+
+            if (wpos.y >= height && wpos.y <= waterHeight)
+              voxels.SetBlockType(wpos, BlockType::bBglass);
+
             //if (density < -.02)
             //{
             //  voxels.SetBlockType(wpos, BlockType::bGrass);
