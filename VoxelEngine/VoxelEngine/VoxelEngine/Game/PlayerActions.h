@@ -22,17 +22,17 @@ public:
 
   virtual void OnUpdate(float dt) override
   {
-    const auto cam = Camera::ActiveCamera;
+    auto cam = GetComponent<Components::Parent>().entity.GetComponent<Components::Camera>();
 
     if (Input::IsKeyPressed(GLFW_KEY_V))
     {
       Entity ent = CreateEntity("Arrow");
-      ent.AddComponent<Components::Transform>().SetTranslation(cam->GetPos() + (cam->GetFront() * 1.f));
+      ent.AddComponent<Components::Transform>().SetTranslation(cam.GetWorldPos() + (cam.GetForward() * 1.f));
       ent.AddComponent<Components::BatchedMesh>().handle = MeshManager::GetMeshBatched("big_cube");
       ent.AddComponent<Components::Material>(1); // TODO: hackity hack
       auto collider = Physics::BoxCollider(glm::vec3(.5f));
       Components::DynamicPhysics phys(ent, Physics::MaterialType::TERRAIN, collider);
-      ent.AddComponent<Components::DynamicPhysics>(std::move(phys)).Interface().AddForce(cam->GetFront() * 300.f);
+      ent.AddComponent<Components::DynamicPhysics>(std::move(phys)).Interface().AddForce(cam.GetForward() * 300.f);
     }
 
     checkTestButton();
@@ -58,7 +58,6 @@ public:
     float dist = 5.f;
     ImGui::Text("Ray length: %0.f", dist);
     //const auto cam = Camera::ActiveCamera;
-    const auto cam = CameraSystem::ActiveCamera;
     voxels->Raycast(
       CameraSystem::GetPos(),
       CameraSystem::GetFront(),

@@ -226,6 +226,17 @@ namespace Components
 
       glm::vec3 GetEuler() { return { pitch_, yaw_, roll_ }; }
 
+      const auto& GetWorldPos()
+      {
+          Transform& tr = entity.GetComponent<Components::Transform>();
+          return tr.GetTranslation() + translation;
+      }
+
+      const auto& GetLocalPos()
+      {
+          return translation;
+      }
+
       const auto& GetForward() 
       {
           dir.x = cos(glm::radians(pitch_)) * cos(glm::radians(yaw_));
