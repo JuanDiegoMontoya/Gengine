@@ -4,6 +4,7 @@
 #include <CoreEngine/Frustum.h>
 #include <iostream>
 #include <CoreEngine/utilities.h>
+#include "Components.h"
 
 using namespace Components;
 
@@ -58,18 +59,20 @@ void CameraSystem::Update(float dt)
 	Transform& tr = entity.GetComponent<Components::Transform>();
 
 	// View Setup
-	worldpos_ = tr.GetTranslation();
+	worldpos_ = tr.GetTranslation() + ActiveCamera->translation;
 
 	//glm::vec3 temp;
-	front.x = cos(glm::radians(tr.pitch_)) * cos(glm::radians(tr.yaw_));
-	front.y = sin(glm::radians(tr.pitch_));
-	front.z = cos(glm::radians(tr.pitch_)) * sin(glm::radians(tr.yaw_));
+	//front.x = cos(glm::radians(ActiveCamera->pitch_)) * cos(glm::radians(ActiveCamera->yaw_));
+	//front.y = sin(glm::radians(ActiveCamera->pitch_));
+	//front.z = cos(glm::radians(ActiveCamera->pitch_)) * sin(glm::radians(ActiveCamera->yaw_));
 
-	//front = tr.GetForward();
-	up = tr.GetUp();
-	right = tr.GetRight();
+  front = ActiveCamera->GetForward();
 
-	dir_ = tr.GetForward();
+	//front = ActiveCamera->GetForward();
+  up = glm::vec3(0, 1, 0);// ActiveCamera->GetUp();
+	right = ActiveCamera->GetRight();
+
+  dir_ = front;// ActiveCamera->GetForward();
 
 	// Projection 
 	near_ = ActiveCamera->zNear;

@@ -36,7 +36,7 @@ public:
     // apply some force on this entity
     if (Input::IsKeyPressed(GLFW_KEY_F))
     {
-      auto dir = Camera::ActiveCamera->GetDir();
+      auto dir = CameraSystem::GetDir();
       GetComponent<Components::DynamicPhysics>().Interface().AddForce(dir * 50.f);
     }
     

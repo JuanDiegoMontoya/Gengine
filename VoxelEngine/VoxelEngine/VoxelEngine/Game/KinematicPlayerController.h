@@ -19,12 +19,12 @@ public:
 
   virtual void OnUpdate(float dt) override
   {
-    auto& cam = *GetComponent<Components::Camera>().cam;
+      auto& cam = GetComponent<Components::Camera>();// *CameraSystem::ActiveCamera;
     const auto& transform = GetComponent<Components::Transform>();
-    cam.SetPos(transform.GetTranslation()); // TODO: TEMP BULLSHIT
+    //cam.SetPos(transform.GetTranslation()); // TODO: TEMP BULLSHIT
     auto& controller = GetComponent<Components::CharacterController>();
 
-    const glm::vec2 xzForward = glm::normalize(glm::vec2(cam.GetDir().x, cam.GetDir().z));
+    const glm::vec2 xzForward = glm::normalize(glm::vec2(cam.GetForward().x, cam.GetForward().z));
     const glm::vec2 xzRight = glm::normalize(glm::vec2(xzForward.y, -xzForward.x));
 
     float maxXZSpeed = normalSpeed;
@@ -57,7 +57,7 @@ public:
       xzForce = glm::normalize(xzForce) * currSpeed;
     if (Input::IsKeyDown(GLFW_KEY_T))
     {
-      velocity += cam.GetDir() * dt * 100.f;
+      velocity += cam.GetForward() * dt * 100.f;
       speeding = true;
     }
 
@@ -136,14 +136,14 @@ public:
     auto pyr = cam.GetEuler(); // Pitch, Yaw, Roll
     cam.SetYaw(pyr.y + Input::GetScreenOffset().x);
     cam.SetPitch(glm::clamp(pyr.x + Input::GetScreenOffset().y, -89.0f, 89.0f));
-    pyr = cam.GetEuler(); // oof
+    //pyr = CameraSystem::GetEuler(); // oof
     
-    glm::vec3 temp;
-    temp.x = cos(glm::radians(pyr.x)) * cos(glm::radians(pyr.y));
-    temp.y = sin(glm::radians(pyr.x));
-    temp.z = cos(glm::radians(pyr.x)) * sin(glm::radians(pyr.y));
-    cam.SetFront(glm::normalize(temp));
-    cam.SetDir(cam.GetFront());
+    //glm::vec3 temp;
+    //temp.x = cos(glm::radians(pyr.x)) * cos(glm::radians(pyr.y));
+    //temp.y = sin(glm::radians(pyr.x));
+    //temp.z = cos(glm::radians(pyr.x)) * sin(glm::radians(pyr.y));
+    //CameraSystem::SetFront(glm::normalize(temp));
+    //CameraSystem::SetDir(CameraSystem::GetFront());
   }
 
   // instantly sets Y velocity to this when jumping

@@ -165,7 +165,7 @@ void Editor::DrawSelection()
     glm::mat4 tPos = glm::translate(glm::mat4(1), pos + .5f);
     glm::mat4 tScale = glm::scale(glm::mat4(1), scale + 1.f);
 
-    const auto cam = Camera::ActiveCamera;
+    const auto cam = CameraSystem::ActiveCamera;
     GLint polygonMode;
     glGetIntegerv(GL_POLYGON_MODE, &polygonMode);
     glDisable(GL_CULL_FACE);
@@ -173,8 +173,8 @@ void Editor::DrawSelection()
     auto& curr = Shader::shaders["flat_color"];
     curr->Use();
     curr->setMat4("u_model", tPos * tScale);
-    curr->setMat4("u_view", cam->GetView());
-    curr->setMat4("u_proj", cam->GetProj());
+    curr->setMat4("u_view", CameraSystem::GetView());
+    curr->setMat4("u_proj", CameraSystem::GetProj());
     curr->setVec4("u_color", glm::vec4(1.f, .3f, 1.f, 1.f));
     Renderer::DrawCube();
     glPolygonMode(GL_FRONT_AND_BACK, polygonMode);
@@ -188,10 +188,10 @@ void Editor::Update()
     open = !open;
   if (open)
   {
-    const auto cam = Camera::ActiveCamera;
+    const auto cam = CameraSystem::ActiveCamera;
     voxels.Raycast(
-      cam->GetPos(),
-      cam->GetFront(),
+      CameraSystem::GetPos(),
+      CameraSystem::GetFront(),
       pickLength,
       [&](glm::vec3 pos, Block block, glm::vec3 side)->bool
     {

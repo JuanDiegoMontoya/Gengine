@@ -63,7 +63,7 @@ GLerrorCB(GLenum source,
 	std::cout << std::endl;
 }
 
-	glm::mat4 MVP = CameraSystem::GetViewProj() * modelMatrix;
+//glm::mat4 MVP = CameraSystem::GetViewProj() * modelMatrix;
 void Renderer::BeginBatch(uint32_t size)
 {
 	userCommands.resize(size);

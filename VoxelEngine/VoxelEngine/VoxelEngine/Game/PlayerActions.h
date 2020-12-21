@@ -44,10 +44,10 @@ public:
     ImGui::Text("Voxel raycast information:");
     float dist = 5.f;
     ImGui::Text("Ray length: %0.f", dist);
-    const auto cam = Camera::ActiveCamera;
+    const auto cam = CameraSystem::ActiveCamera;
     voxels->Raycast(
-      cam->GetPos(),
-      cam->GetFront(),
+      CameraSystem::GetPos(),
+      CameraSystem::GetFront(),
       dist,
       [this](glm::vec3 pos, Block block, glm::vec3 side)->bool
       {
