@@ -10,7 +10,8 @@ public:
   void Shutdown();
 
   void StartFrame();
-  void Update(Scene& scene, float dt);
+  void DrawOpaque(Scene& scene, float dt);
+  void DrawTransparent(Scene& scene, float dt);
   void EndFrame();
 
   GLFWwindow* GetWindow() { return window; }

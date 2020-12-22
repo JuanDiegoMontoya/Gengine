@@ -8,6 +8,7 @@
 #include "DebugSystem.h"
 #include "PhysicsSystem.h"
 #include "ScriptSystem.h"
+#include "ParticleSystem.h"
 
 #include <CoreEngine/Components.h>
 
@@ -17,6 +18,7 @@ Engine::Engine()
   debugSystem = std::make_unique<DebugSystem>();
   physicsSystem = std::make_unique<PhysicsSystem>();
   scriptSystem = std::make_unique<ScriptSystem>();
+  particleSystem = std::make_unique<ParticleSystem>();
 
   graphicsSystem->Init();
   debugSystem->Init(graphicsSystem->GetWindow());
@@ -47,13 +49,15 @@ void Engine::Run()
       updateCallback(dt_);
     }
 
-    graphicsSystem->StartFrame();
+    particleSystem->Update(*activeScene_, dt_);
 
-    graphicsSystem->Update(*activeScene_, dt_);
+    graphicsSystem->StartFrame();
+    graphicsSystem->DrawOpaque(*activeScene_, dt_);
     if (drawCallback)
     {
       drawCallback(dt_);
     }
+    graphicsSystem->DrawTransparent(*activeScene_, dt_);
 
     physicsSystem->Update(*activeScene_, dt_);
     debugSystem->Update(*activeScene_, dt_);

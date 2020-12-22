@@ -4,7 +4,6 @@
 #include <CoreEngine/WindowUtils.h>
 #include <CoreEngine/Window.h>
 #include <CoreEngine/shader.h>
-#include <CoreEngine/Components.h>
 #include <CoreEngine/Camera.h>
 #include <CoreEngine/Texture2D.h>
 #include <CoreEngine/Mesh.h>
@@ -69,15 +68,15 @@ void Renderer::BeginBatch(uint32_t size)
 	userCommands.resize(size);
 }
 
-void Renderer::Submit(Components::Transform& model, Components::BatchedMesh& mesh, Components::Material& mat)
+void Renderer::Submit(const Components::Transform& model, const Components::BatchedMesh& mesh, const Components::Material& mat)
 {
-	auto index = cmdIndex++;
+	auto index = cmdIndex.fetch_add(1, std::memory_order::memory_order_acq_rel);
 	userCommands[index] = BatchDrawCommand { .mesh = mesh.handle->handle, .material = mat.handle->handle, .modelUniform = model.GetModel() };
 }
 
 void Renderer::RenderBatch()
 {
-	cmdIndex = 0;
+  cmdIndex.store(0, std::memory_order_release);
 	if (userCommands.empty())
 		return;
 
@@ -106,8 +105,10 @@ void Renderer::RenderBatch()
 		meshBufferInfo[draw.mesh].instanceCount++;
 		uniforms.push_back(UniformData{ .model = draw.modelUniform });
 	}
-	if (uniforms.size() > 0)
-		RenderBatchHelper(curMat, uniforms);
+  if (uniforms.size() > 0)
+  {
+    RenderBatchHelper(curMat, uniforms);
+  }
 
 	userCommands.clear();
 }
@@ -151,6 +152,28 @@ void Renderer::RenderBatchHelper(MaterialID mat, const std::vector<UniformData>&
 	batchVAO->Unbind();
 }
 
+void Renderer::RenderParticleEmitter(const Components::ParticleEmitter& emitter, const Components::Transform& model)
+{
+  glEnable(GL_DEPTH_TEST);
+  //glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+  //glDisable(GL_BLEND);
+  auto& shader = Shader::shaders["particle"];
+  shader->Use();
+
+  glm::mat4 vp = CameraSystem::GetViewProj();
+  shader->setMat4("u_viewproj", vp);
+  glm::mat4 md = model.GetModel();
+  shader->setMat4("u_model", md);
+  shader->setInt("u_sprite", 0);
+  emitter.texture->Bind(0);
+  emitter.particleBuffer->Bind<GFX::Target::SSBO>(0);
+
+  // TODO: make empty vao thingy (there is no actual vertex format)
+  particleVao->Bind();
+  glDrawArraysInstanced(GL_TRIANGLE_FAN, 0, 4, emitter.numParticles);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+}
+
 void Renderer::Init()
 {
 	glEnable(GL_DEBUG_OUTPUT);
@@ -192,6 +215,34 @@ void Renderer::Init()
 	glVertexArrayVertexBuffer(batchVAO->GetID(), 0, vertexBuffer->GetGPUHandle(), 0, sizeof(Vertex));
 	glVertexArrayElementBuffer(batchVAO->GetID(), indexBuffer->GetGPUHandle());
 
+  //GLfloat vertices[] =
+  //{
+  //  -.5, -.5, 0,   0, 0,
+  //   .5,  .5, 0,   1, 1,
+  //  -.5,  .5, 0,   0, 1,
+  //  -.5, -.5, 0,   0, 0,
+  //   .5, -.5, 0,   1, 0,
+  //   .5,  .5, 0,   1, 1
+  //};
+  GLfloat vertices[] =
+  {
+     0.5f,  0.5f, 0.0f, 1.0f, 1.0f,
+     0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+    -0.5f, -0.5f, 0.0f, 0.0f, 0.0f,
+    -0.5f,  0.5f, 0.0f, 0.0f, 1.0f
+  };
+  particleVertices = std::make_unique<GFX::StaticBuffer>(vertices, sizeof(vertices));
+  particleVao = std::make_unique<GFX::VAO>();
+  glEnableVertexArrayAttrib(particleVao->GetID(), 0); // pos
+  glEnableVertexArrayAttrib(particleVao->GetID(), 1); // uv
+
+  glVertexArrayAttribFormat(particleVao->GetID(), 0, 3, GL_FLOAT, GL_FALSE, 0);
+  glVertexArrayAttribFormat(particleVao->GetID(), 1, 2, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat));
+
+  glVertexArrayAttribBinding(particleVao->GetID(), 0, 0);
+  glVertexArrayAttribBinding(particleVao->GetID(), 1, 0);
+
+  glVertexArrayVertexBuffer(particleVao->GetID(), 0, particleVertices->GetID(), 0, 5 * sizeof(GLfloat));
 
 	/*Layout layout = Window::layout;
 
@@ -254,6 +305,11 @@ void Renderer::CompileShaders()
 			{ "chunk_render_cull.vs", GL_VERTEX_SHADER },
 			{ "chunk_render_cull.fs", GL_FRAGMENT_SHADER }
 		}));
+  Shader::shaders["particle"].emplace(Shader(
+    {
+      { "particle.vs", GL_VERTEX_SHADER },
+      { "particle.fs", GL_FRAGMENT_SHADER }
+    }));
 
 	Shader::shaders["sun"].emplace(Shader("flat_sun.vs", "flat_sun.fs"));
 	Shader::shaders["axis"].emplace(Shader("axis.vs", "axis.fs"));
@@ -290,10 +346,11 @@ void Renderer::DrawAxisIndicator()
 	currShader->setMat4("u_model", glm::translate(glm::mat4(1), CameraSystem::GetPos() + CameraSystem::GetFront() * 10.f)); // add scaling factor (larger # = smaller visual)
 	currShader->setMat4("u_view", CameraSystem::GetView());
 	currShader->setMat4("u_proj", CameraSystem::GetProj());
-	glClear(GL_DEPTH_BUFFER_BIT); // allows indicator to always be rendered
+	glDisable(GL_DEPTH_TEST); // allows indicator to always be rendered
 	axisVAO->Bind();
 	glLineWidth(2.f);
 	glDrawArrays(GL_LINES, 0, 6);
+  glEnable(GL_DEPTH_TEST);
 	axisVAO->Unbind();
 }
 

@@ -169,7 +169,7 @@ void OnStart(Scene* scene)
         }
       }
     }
-    if (1) // boxes physics test
+    if (0) // boxes physics test
     {
       for (int i = 0; i < 50; i++)
       {
@@ -185,7 +185,7 @@ void OnStart(Scene* scene)
         entity.AddComponent<Components::DynamicPhysics>(std::move(phys));
       }
     }
-    if (1) // spheres physics test
+    if (0) // spheres physics test
     {
       for (int i = 0; i < 50; i++)
       {
@@ -237,6 +237,25 @@ void OnStart(Scene* scene)
       collider.indices = { 0, 1, 3, 3, 1, 2, 0, 4, 3, 3, 4, 2, 2, 4, 1, 1, 4, 0 };
       auto* actor = Physics::PhysicsManager::AddStaticActorGeneric(Physics::MaterialType::TERRAIN, collider, glm::mat4(1));
       ASSERT(actor);
+    }
+    if (1) // particle emitter test
+    {
+      Entity entity = scene->CreateEntity("particle boi");
+      auto& tr = entity.AddComponent<Components::Transform>();
+      tr.SetTranslation({ 2, 0, -2 });
+      tr.SetScale({ 1, 1, 1 });
+      entity.AddComponent<Components::BatchedMesh>().handle = MeshManager::GetMeshBatched("bunny");
+      entity.AddComponent<Components::Material>().handle = batchMaterial;
+      Components::ParticleEmitter emitter(500000, "stone.png");
+      emitter.minLife = 1.0f;
+      emitter.maxLife = 2.0f;
+      emitter.interval = .000005;
+      emitter.minParticleAccel = { -8, 0, -2 };
+      emitter.maxParticleAccel = { 8, 5, 2 };
+      emitter.minParticleScale = { .01, .01 };
+      emitter.maxParticleScale = { .01, .01 };
+      entity.AddComponent<Components::ParticleEmitter>(std::move(emitter));
+      sizeof(Components::ParticleEmitter);
     }
   }
 

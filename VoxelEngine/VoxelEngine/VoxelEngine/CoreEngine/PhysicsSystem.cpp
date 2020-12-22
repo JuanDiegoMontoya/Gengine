@@ -26,7 +26,7 @@ void PhysicsSystem::Update(Scene& scene, float dt)
 			[&scene](const entt::entity lhs, const entt::entity rhs)
 		{
 			return Entity(lhs, &scene).GetHierarchyHeight() > Entity(rhs, &scene).GetHierarchyHeight();
-		}, entt::insertion_sort());
+		}, entt::insertion_sort()); // insertion sort optimal for nearly-sorted containers
 
 		for (auto entity : group)
 		{

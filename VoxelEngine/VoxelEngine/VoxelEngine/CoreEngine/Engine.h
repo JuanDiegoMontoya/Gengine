@@ -39,5 +39,5 @@ private:
   std::unique_ptr<DebugSystem> debugSystem;
   std::unique_ptr<PhysicsSystem> physicsSystem;
   std::unique_ptr<ScriptSystem> scriptSystem;
-  //std::unique_ptr<ParticleSystem> particleSystem;
+  std::unique_ptr<ParticleSystem> particleSystem;
 };

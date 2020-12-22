@@ -7,6 +7,11 @@
 #include <CoreEngine/Material.h>
 #include <CoreEngine/Physics.h>
 
+// TODO: temp and bad
+#include "Texture2D.h"
+#include "StaticBuffer.h"
+#include <queue>
+
 struct MeshHandle;
 
 namespace Components
@@ -184,12 +189,6 @@ namespace Components
   /// Graphics components
   /// </summary>
 
-  // temp
-  //struct Mesh
-  //{
-  //  MeshHandle meshHandle;
-  //};
-
   struct BatchedMesh
   {
     std::shared_ptr<MeshHandle> handle;
@@ -199,10 +198,10 @@ namespace Components
   {
     std::shared_ptr<MaterialHandle> handle;
   };
-  
+
   struct Camera
   {
-    /*Camera(::Camera* c) : cam(c) 
+    /*Camera(::Camera* c) : cam(c)
     {
 
     }
@@ -210,44 +209,44 @@ namespace Components
     //bool isActive;
 
     // New
-      Camera(Entity);
+    Camera(Entity);
 
-      void SetPos(glm::vec3 pos) { translation = pos; }
-      //void SetDir(const glm::vec3& v) { dir_ = v;  }
-      void SetYaw(float f) { yaw_ = f;  }
-      void SetPitch(float f) { pitch_ = f;  }
-      void SetDir(glm::vec3 d) { dir = d; }
+    void SetPos(glm::vec3 pos) { translation = pos; }
+    //void SetDir(const glm::vec3& v) { dir_ = v;  }
+    void SetYaw(float f) { yaw_ = f; }
+    void SetPitch(float f) { pitch_ = f; }
+    void SetDir(glm::vec3 d) { dir = d; }
 
-      glm::vec3	dir{ 0 };
-      glm::vec3	translation{ 0 };
-      glm::quat rotation{ 1, 0, 0, 0 };
+    glm::vec3	dir{ 0 };
+    glm::vec3	translation{ 0 };
+    glm::quat rotation{ 1, 0, 0, 0 };
 
-      float pitch_ = 16;
-      float yaw_ = 255;
-      float roll_ = 0;
+    float pitch_ = 16;
+    float yaw_ = 255;
+    float roll_ = 0;
 
-      glm::vec3 GetEuler() { return { pitch_, yaw_, roll_ }; }
+    glm::vec3 GetEuler() { return { pitch_, yaw_, roll_ }; }
 
-      const auto& GetWorldPos()
-      {
-          Transform& tr = entity.GetComponent<Components::Transform>();
-          return tr.GetTranslation() + translation;
-      }
+    const auto& GetWorldPos()
+    {
+      Transform& tr = entity.GetComponent<Components::Transform>();
+      return tr.GetTranslation() + translation;
+    }
 
-      const auto& GetLocalPos()
-      {
-          return translation;
-      }
+    const auto& GetLocalPos()
+    {
+      return translation;
+    }
 
-      const auto& GetForward() 
-      {
-          dir.x = cos(glm::radians(pitch_)) * cos(glm::radians(yaw_));
-          dir.y = sin(glm::radians(pitch_));
-          dir.z = cos(glm::radians(pitch_)) * sin(glm::radians(yaw_));
-          return dir; // (glm::vec3(glm::mat4_cast(rotation)[2])); 
-      }
-      const auto& GetUp() const { return (glm::vec3(glm::mat4_cast(rotation)[1])); }
-      const auto& GetRight() const { return (glm::vec3(glm::mat4_cast(rotation)[0])); }
+    const auto& GetForward()
+    {
+      dir.x = cos(glm::radians(pitch_)) * cos(glm::radians(yaw_));
+      dir.y = sin(glm::radians(pitch_));
+      dir.z = cos(glm::radians(pitch_)) * sin(glm::radians(yaw_));
+      return dir; // (glm::vec3(glm::mat4_cast(rotation)[2])); 
+    }
+    const auto& GetUp() const { return (glm::vec3(glm::mat4_cast(rotation)[1])); }
+    const auto& GetRight() const { return (glm::vec3(glm::mat4_cast(rotation)[0])); }
 
     Entity entity{};
 
@@ -263,6 +262,101 @@ namespace Components
     GLuint renderTexture = 0;
   };
 
+  struct ParticleEmitter
+  {
+    struct Particle
+    {
+      glm::vec4 pos{};
+      glm::vec4 scale{};
+      glm::vec4 velocity{};
+      glm::vec4 accel{};
+      glm::vec4 color{};
+      float life{};
+      int alive{};
+      float p1{}, p2{}; // std430 padding
+    };
+
+    ParticleEmitter(uint32_t maxp, std::string tex) : maxParticles(maxp)
+    {
+      Particle* tp = new Particle[maxParticles];
+      particleBuffer = new GFX::StaticBuffer(tp, sizeof(Particle) * maxParticles,
+        GFX::BufferFlag::MAP_PERSISTENT |
+        GFX::BufferFlag::MAP_COHERENT |
+        GFX::BufferFlag::DYNAMIC_STORAGE |
+        GFX::BufferFlag::MAP_READ |
+        GFX::BufferFlag::MAP_WRITE);
+      particles = reinterpret_cast<Particle*>(particleBuffer->GetMappedPointer());
+
+      texture = new GFX::Texture2D(tex);
+      delete[] tp;
+    }
+
+    ParticleEmitter(const ParticleEmitter&) = delete;
+    ParticleEmitter& operator=(const ParticleEmitter&) = delete;
+    ParticleEmitter(ParticleEmitter&& rhs) noexcept : maxParticles(rhs.maxParticles)
+    {
+      *this = std::move(rhs);
+    }
+    ParticleEmitter& operator=(ParticleEmitter&& rhs) noexcept
+    {
+      ASSERT(this->maxParticles == rhs.maxParticles);
+      minParticleOffset = rhs.minParticleOffset;
+      maxParticleOffset = rhs.maxParticleOffset;
+      minParticleVelocity = rhs.minParticleVelocity;
+      maxParticleVelocity = rhs.maxParticleVelocity;
+      minParticleAccel = rhs.minParticleAccel;
+      maxParticleAccel = rhs.maxParticleAccel;
+      minParticleScale = rhs.minParticleScale;
+      maxParticleScale = rhs.maxParticleScale;
+      timer = rhs.timer;
+      interval = rhs.interval;
+      minLife = rhs.minLife;
+      maxLife = rhs.maxLife;
+      numParticles = rhs.numParticles;
+      particles = rhs.particles;
+      particleBuffer = rhs.particleBuffer;
+      texture = rhs.texture;
+      rhs.texture = nullptr;
+      rhs.particleBuffer = nullptr;
+      freedIndices.swap(rhs.freedIndices);
+      return *this;
+    }
+
+
+    ~ParticleEmitter()
+    {
+      delete particleBuffer;
+      delete texture;
+    }
+
+    // initial particle offset
+    glm::vec3 minParticleOffset{ -1 };
+    glm::vec3 maxParticleOffset{ 1 };
+    glm::vec3 minParticleVelocity{ -1 };
+    glm::vec3 maxParticleVelocity{ 1 };
+    glm::vec3 minParticleAccel{ -1 };
+    glm::vec3 maxParticleAccel{ 1 };
+    glm::vec2 minParticleScale{ .1 };
+    glm::vec2 maxParticleScale{ 1 };
+
+    float timer{ 0.0f };
+    float interval{ 0.1f };
+    //float minTimeScale{ 1.0f };
+    //float maxTimeScale{ 1.0f };
+    float minLife{ 1 };
+    float maxLife{ 1 };
+
+    uint32_t numParticles{ 0 };
+    const uint32_t maxParticles;
+    Particle* particles{};
+  private:
+    friend class Renderer;
+    friend class ParticleSystem;
+    GFX::StaticBuffer* particleBuffer{};
+    GFX::Texture2D* texture{};
+    std::queue<int> freedIndices;
+  };
+
   struct Parent
   {
     Entity entity{};
@@ -270,7 +364,7 @@ namespace Components
 
   struct Children
   {
-    void AddChild(Entity child) 
+    void AddChild(Entity child)
     {
       ASSERT_MSG(std::count(children.begin(), children.end(), child) == 0, "That entity is already a child of this!");
       children.push_back(child);
@@ -313,10 +407,10 @@ namespace Components
     {
       // perfectly forwards arguments to function object with which to instantiate this script
       InstantiateScript =
-        [... args = std::forward<Args>(args)] () mutable
-        {
-            return static_cast<ScriptableEntity*>(new T(std::forward<Args>(args)...));
-        };
+        [... args = std::forward<Args>(args)]() mutable
+      {
+        return static_cast<ScriptableEntity*>(new T(std::forward<Args>(args)...));
+      };
       DestroyScript = [](NativeScriptComponent* nsc) { delete nsc->Instance; nsc->Instance = nullptr; };
     }
 

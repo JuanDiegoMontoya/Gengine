@@ -67,29 +67,46 @@ void GraphicsSystem::StartFrame()
   glEnable(GL_FRAMEBUFFER_SRGB); // gamma correction
 }
 
-void GraphicsSystem::Update(Scene& scene, float dt)
+void GraphicsSystem::DrawOpaque(Scene& scene, float dt)
 {
-    auto camList = CameraSystem::GetCameraList();
-    for (Components::Camera* camera : camList)
+  const auto& camList = CameraSystem::GetCameraList();
+  for (Components::Camera* camera : camList)
+  {
+    CameraSystem::ActiveCamera = camera;
+    CameraSystem::Update(dt);
+
+    // draw batched objects in the scene
+    using namespace Components;
+    auto group = scene.GetRegistry().group<BatchedMesh>(entt::get<Transform, Material>);
+    Renderer::BeginBatch(group.size());
+    std::for_each(std::execution::par_unseq, group.begin(), group.end(),
+      [&group](entt::entity entity)
+      {
+        auto [mesh, transform, material] = group.get<BatchedMesh, Transform, Material>(entity);
+        Renderer::Submit(transform, mesh, material);
+      });
+
+      Renderer::RenderBatch();
+  }
+
+}
+
+void GraphicsSystem::DrawTransparent(Scene& scene, float dt)
+{
+  const auto& camList = CameraSystem::GetCameraList();
+  for (Components::Camera* camera : camList)
+  {
+    CameraSystem::ActiveCamera = camera;
+
+    // draw particles
+    using namespace Components;
+    auto view = scene.GetRegistry().view<ParticleEmitter, Transform>();
+    for (auto entity : view)
     {
-        CameraSystem::ActiveCamera = camera;
-        CameraSystem::Update(dt);
-
-        // draw batched objects in the scene
-        {
-            using namespace Components;
-            auto group = scene.GetRegistry().group<BatchedMesh>(entt::get<Transform, Material>);
-            Renderer::BeginBatch(group.size());
-            std::for_each(std::execution::par_unseq, group.begin(), group.end(),
-                [&group](entt::entity entity)
-            {
-                auto [mesh, transform, material] = group.get<BatchedMesh, Transform, Material>(entity);
-                Renderer::Submit(transform, mesh, material);
-            });
-
-            Renderer::RenderBatch();
-        }
+      auto [emitter, transform] = view.get<ParticleEmitter, Transform>(entity);
+      Renderer::RenderParticleEmitter(emitter, transform);
     }
+  }
 }
 
 void GraphicsSystem::EndFrame()
@@ -97,15 +114,12 @@ void GraphicsSystem::EndFrame()
   glDisable(GL_FRAMEBUFFER_SRGB);
   glDepthFunc(GL_LESS);
   glDisable(GL_DEPTH_TEST);
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-  glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo);
-  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0); // default FBO
-  glBlitFramebuffer(
+  
+  glBlitNamedFramebuffer(fbo, 0,
     0, 0, fboWidth, fboHeight,
     0, 0, windowWidth, windowHeight,
     GL_COLOR_BUFFER_BIT, GL_LINEAR);
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
   glfwSwapBuffers(window);
 }

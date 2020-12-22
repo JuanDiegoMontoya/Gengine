@@ -1,5 +1,4 @@
 #pragma once
-
 #include <vector>
 
 #include "MeshUtils.h"
@@ -16,8 +15,9 @@ public:
 	static void CompileShaders();
 
 	static void BeginBatch(uint32_t size);
-	static void Submit(Components::Transform& model, Components::BatchedMesh& mesh, Components::Material& mat);
+	static void Submit(const Components::Transform& model, const Components::BatchedMesh& mesh, const Components::Material& mat);
 	static void RenderBatch();
+	static void RenderParticleEmitter(const Components::ParticleEmitter& emitter, const Components::Transform& model);
 
 	// generic drawing functions (TODO: move)
 	static void DrawAxisIndicator();
@@ -52,6 +52,8 @@ private:
 		glm::mat4 modelUniform;
 	};
 	static inline std::vector<BatchDrawCommand> userCommands;
-
 	static inline std::atomic_uint32_t cmdIndex{ 0 };
+
+	static inline std::unique_ptr<GFX::VAO> particleVao;
+	static inline std::unique_ptr<GFX::StaticBuffer> particleVertices;
 };

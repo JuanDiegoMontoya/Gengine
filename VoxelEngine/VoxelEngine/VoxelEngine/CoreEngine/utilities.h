@@ -180,6 +180,12 @@ namespace Utils
 
     return o4.y * d.y + o4.x * (1.0f - d.y);
   }
+
+  template<typename T, typename Q>
+  T map(T val, Q r1s, Q r1e, Q r2s, Q r2e)
+  {
+    return (val - r1s) / (r1e - r1s) * (r2e - r2s) + r2s;
+  }
 }
 
 
