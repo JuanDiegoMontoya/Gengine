@@ -76,6 +76,7 @@ public:
   int GetPriority() const { return Block::PropertiesTable[GetTypei()].priority; }
   float GetTTK() const { return Block::PropertiesTable[GetTypei()].ttk; }
   bool GetDestructible() const { return Block::PropertiesTable[GetTypei()].destructible; }
+  glm::u8vec4 GetEmittance() const { return Block::PropertiesTable[GetTypei()].emittance; }
   Visibility GetVisibility() const { return Block::PropertiesTable[GetTypei()].visibility; }
   Light& GetLightRef() { return light_; }
   const Light& GetLightRef() const { return light_; }

@@ -104,7 +104,7 @@ public:
 
   void checkBlockPlacement()
   {
-    if (Input::IsMousePressed(GLFW_MOUSE_BUTTON_2))
+    if (Input::IsInputActionPressed("Build"))
     {
       //const auto cam = CameraSystem::ActiveCamera;
       voxels->Raycast(
@@ -152,7 +152,9 @@ public:
               }
             }
             else
+            {
               voxels->UpdateBlock(pos + side, selected);
+            }
             //chunkManager_.UpdateBlock(pos + side, selected, 0);
 
             return true;
@@ -220,7 +222,8 @@ public:
 
   void checkBlockPick()
   {
-    if (Input::IsInputActionPressed("Build") /*&&
+    
+    if (Input::IsMousePressed(GLFW_MOUSE_BUTTON_MIDDLE) /*&&
       !ImGui::IsAnyItemHovered() &&
       !ImGui::IsAnyItemActive() &&
       !ImGui::IsAnyItemFocused()*/)
