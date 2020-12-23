@@ -35,7 +35,7 @@ void OnStart(Scene* scene)
 {
   // TODO: eventually remove this
   PrefabManager::InitPrefabs();
-  voxelManager = std::make_unique<VoxelManager>();
+  voxelManager = std::make_unique<VoxelManager>(*scene);
   WorldGen wg(*voxelManager);
   wg.Init();
   wg.GenerateWorld();

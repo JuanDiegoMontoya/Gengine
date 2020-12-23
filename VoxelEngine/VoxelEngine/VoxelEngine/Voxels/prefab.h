@@ -46,9 +46,9 @@ class PrefabManager
 public:
   static void InitPrefabs();
   static const Prefab& GetPrefab(std::string p);
+  static Prefab LoadPrefabFromFile(std::string filename);
 
 private:
-  static Prefab LoadPrefabFromFile(std::string filename);
   static void SavePrefabToFile(const Prefab& prefab, std::string filename);
   static void LoadAllPrefabs();
 
