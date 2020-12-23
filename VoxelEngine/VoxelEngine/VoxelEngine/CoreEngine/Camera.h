@@ -49,7 +49,6 @@ public:
   static inline Components::Camera* ActiveCamera = nullptr;
 
 private:
-
 	static inline std::vector<Components::Camera*> cameraList;
 
 	static inline glm::vec3 worldpos_ = glm::vec3(150, 50, 100);
@@ -59,14 +58,12 @@ private:
 	static inline glm::vec3 front = glm::vec3(0, 0, -1.f);
 	static inline glm::vec3 right = glm::vec3(1, 0, 0);
 
-
 	static inline float speed_ = 3.5f;
 
 	// view matrix info
 	static inline float pitch_ = 16;
 	static inline float yaw_ = 255;
 	static inline float roll_ = 0;
-
 
   // projection matrix info
 	static inline float fovDeg_ = 80.f;

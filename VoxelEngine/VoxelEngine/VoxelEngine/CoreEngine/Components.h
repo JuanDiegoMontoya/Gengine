@@ -192,6 +192,7 @@ namespace Components
   struct BatchedMesh
   {
     std::shared_ptr<MeshHandle> handle;
+    uint64_t renderFlag = (uint64_t)RenderFlags::Default;
   };
 
   struct Material
@@ -201,64 +202,61 @@ namespace Components
 
   struct Camera
   {
-    /*Camera(::Camera* c) : cam(c)
-    {
-
-    }
-    ::Camera* cam;*/
-    //bool isActive;
-
-    // New
     Camera(Entity);
 
+    void AddCullingFlag(RenderFlags renderFlag)
+    {
+        cullingMask |= (uint64_t)renderFlag;
+    }
+
+    void RemoveCullingFlag(RenderFlags renderFlag)
+    {
+        cullingMask &= ~(uint64_t)renderFlag;
+    }
+
     void SetPos(glm::vec3 pos) { translation = pos; }
-    //void SetDir(const glm::vec3& v) { dir_ = v;  }
+
     void SetYaw(float f) { yaw_ = f; }
     void SetPitch(float f) { pitch_ = f; }
     void SetDir(glm::vec3 d) { dir = d; }
-
-    glm::vec3	dir{ 0 };
-    glm::vec3	translation{ 0 };
-    glm::quat rotation{ 1, 0, 0, 0 };
-
-    float pitch_ = 16;
-    float yaw_ = 255;
-    float roll_ = 0;
 
     glm::vec3 GetEuler() { return { pitch_, yaw_, roll_ }; }
 
     const auto& GetWorldPos()
     {
-      Transform& tr = entity.GetComponent<Components::Transform>();
-      return tr.GetTranslation() + translation;
+        Transform& tr = entity.GetComponent<Components::Transform>();
+        return tr.GetTranslation() + translation;
     }
 
-    const auto& GetLocalPos()
-    {
-      return translation;
-    }
+    const auto& GetLocalPos()  { return translation; }
 
     const auto& GetForward()
     {
-      dir.x = cos(glm::radians(pitch_)) * cos(glm::radians(yaw_));
-      dir.y = sin(glm::radians(pitch_));
-      dir.z = cos(glm::radians(pitch_)) * sin(glm::radians(yaw_));
-      return dir; // (glm::vec3(glm::mat4_cast(rotation)[2])); 
+        dir.x = cos(glm::radians(pitch_)) * cos(glm::radians(yaw_));
+        dir.y = sin(glm::radians(pitch_));
+        dir.z = cos(glm::radians(pitch_)) * sin(glm::radians(yaw_));
+        return dir;
     }
-    const auto& GetUp() const { return (glm::vec3(glm::mat4_cast(rotation)[1])); }
-    const auto& GetRight() const { return (glm::vec3(glm::mat4_cast(rotation)[0])); }
+
+    glm::vec3	dir{ 0 };
+    glm::vec3	translation{ 0 };
+
+    float pitch_ = 16;
+    float yaw_ = 255;
+    float roll_ = 0;
 
     Entity entity{};
 
     bool frustumCulling = false;
-    // Culling Mask
+
+    uint64_t cullingMask = (uint64_t)RenderFlags::NoRender;
 
     float fov = 70.0f;
 
     float zNear = 0.1f;
     float zFar = 1000.0f;
 
-    unsigned skybox = 0;
+    GLuint skybox = 0;
     GLuint renderTexture = 0;
   };
 
@@ -300,6 +298,7 @@ namespace Components
     ParticleEmitter& operator=(ParticleEmitter&& rhs) noexcept
     {
       ASSERT(this->maxParticles == rhs.maxParticles);
+      renderFlag = rhs.renderFlag;
       minParticleOffset = rhs.minParticleOffset;
       maxParticleOffset = rhs.maxParticleOffset;
       minParticleVelocity = rhs.minParticleVelocity;
@@ -329,6 +328,8 @@ namespace Components
       delete texture;
     }
 
+    uint64_t renderFlag = (uint64_t)RenderFlags::Default;
+
     // initial particle offset
     glm::vec3 minParticleOffset{ -1 };
     glm::vec3 maxParticleOffset{ 1 };
@@ -349,6 +350,7 @@ namespace Components
     uint32_t numParticles{ 0 };
     const uint32_t maxParticles;
     Particle* particles{};
+
   private:
     friend class Renderer;
     friend class ParticleSystem;

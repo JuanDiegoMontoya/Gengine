@@ -83,12 +83,14 @@ void GraphicsSystem::DrawOpaque(Scene& scene, float dt)
       [&group](entt::entity entity)
       {
         auto [mesh, transform, material] = group.get<BatchedMesh, Transform, Material>(entity);
-        Renderer::Submit(transform, mesh, material);
+        if ((CameraSystem::ActiveCamera->cullingMask & mesh.renderFlag) != mesh.renderFlag) // Mesh not set to be culled
+        {
+          Renderer::Submit(transform, mesh, material);
+        }
       });
 
-      Renderer::RenderBatch();
+    Renderer::RenderBatch();
   }
-
 }
 
 void GraphicsSystem::DrawTransparent(Scene& scene, float dt)
@@ -104,7 +106,10 @@ void GraphicsSystem::DrawTransparent(Scene& scene, float dt)
     for (auto entity : view)
     {
       auto [emitter, transform] = view.get<ParticleEmitter, Transform>(entity);
-      Renderer::RenderParticleEmitter(emitter, transform);
+      if ((CameraSystem::ActiveCamera->cullingMask & emitter.renderFlag) != emitter.renderFlag) // Emitter not set to be culled
+      {
+        Renderer::RenderParticleEmitter(emitter, transform);
+      }
     }
   }
 }
