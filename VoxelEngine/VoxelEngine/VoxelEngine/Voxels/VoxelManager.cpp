@@ -3,7 +3,7 @@
 #include <Voxels/ChunkRenderer.h>
 #include <Voxels/EditorRefactor.h>
 
-VoxelManager::VoxelManager()
+VoxelManager::VoxelManager(Scene& scene) : scene_(scene)
 {
   chunkManager_ = std::make_unique<ChunkManager>(*this);
   chunkManager_->Init();

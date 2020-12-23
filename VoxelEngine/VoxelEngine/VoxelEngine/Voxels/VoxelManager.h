@@ -6,6 +6,7 @@
 class ChunkManager;
 class ChunkRenderer;
 class Editor;
+class Scene;
 
 inline uint32_t Part1By2(uint32_t x)
 {
@@ -26,7 +27,7 @@ inline uint32_t EncodeMorton3(const glm::ivec3& p)
 class VoxelManager
 {
 public:
-  VoxelManager();
+  VoxelManager(Scene& scene);
   ~VoxelManager();
 
   VoxelManager(VoxelManager&) = delete;
@@ -71,6 +72,7 @@ private:
   friend class ChunkManager;
   friend class WorldGen;
   friend class ChunkMesh;
+  friend class Editor;
 
   uint32_t flatten(const glm::ivec3& p) const
   {
@@ -93,6 +95,7 @@ private:
   glm::ivec3 chunksPerDim_{};
 
   std::unique_ptr<Editor> editor_{};
+  Scene& scene_;
 };
 
 
