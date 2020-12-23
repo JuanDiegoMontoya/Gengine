@@ -38,6 +38,7 @@ public:
   static glm::vec3 GetEuler() { return { pitch_, yaw_, roll_ }; }
   static auto GetFront() { return front; }
   static auto GetUp() { return up; }
+  static auto GetRight() { return right; }
 
   static void SetPos(const glm::vec3& v) { worldpos_ = v; dirty_ = true; }
   static void SetFar(float f) { far_ = f; GenProjection(); dirty_ = true; }

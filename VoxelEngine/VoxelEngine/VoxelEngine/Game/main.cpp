@@ -35,7 +35,7 @@ void OnStart(Scene* scene)
 {
   // TODO: eventually remove this
   PrefabManager::InitPrefabs();
-  voxelManager = std::make_unique<VoxelManager>();
+  voxelManager = std::make_unique<VoxelManager>(*scene);
   WorldGen wg(*voxelManager);
   wg.Init();
   wg.GenerateWorld();
@@ -169,16 +169,16 @@ void OnStart(Scene* scene)
         }
       }
     }
-    if (0) // boxes physics test
+    if (1) // boxes physics test
     {
-      for (int i = 0; i < 50; i++)
+      for (int i = 0; i < 1; i++)
       {
         Entity entity = scene->CreateEntity("physics entity" + std::to_string(i));
         entity.AddComponent<Components::Transform>().SetTranslation({ -15, 50 + i, 10 + (float(i) / 50.f) });
         //entity.AddComponent<Components::Transform>().SetTranslation({ -15, 50, 10 });
         glm::vec3 scale{ 1, .4f, glm::clamp(1 + i * (.02f), .1f, 10.f) };
         entity.GetComponent<Components::Transform>().SetScale(scale);
-        entity.AddComponent<Components::BatchedMesh>().handle = meshes[0];
+        entity.AddComponent<Components::BatchedMesh>().handle = MeshManager::GetMeshBatched("big_cube");
         entity.AddComponent<Components::Material>().handle = MaterialManager::GetMaterial("batchMaterial");
         auto collider = Physics::BoxCollider(scale * .5f);
         Components::DynamicPhysics phys(entity, Physics::MaterialType::TERRAIN, collider);
@@ -244,18 +244,32 @@ void OnStart(Scene* scene)
       auto& tr = entity.AddComponent<Components::Transform>();
       tr.SetTranslation({ 2, 0, -2 });
       tr.SetScale({ 1, 1, 1 });
-      entity.AddComponent<Components::BatchedMesh>().handle = MeshManager::GetMeshBatched("bunny");
+      entity.AddComponent<Components::BatchedMesh>().handle = MeshManager::GetMeshBatched("teapot");
       entity.AddComponent<Components::Material>().handle = batchMaterial;
-      Components::ParticleEmitter emitter(500000, "stone.png");
+      //entity.AddComponent<Components::NativeScriptComponent>().Bind<TestObj>();
+      Components::ParticleEmitter emitter(50000, "stone.png");
+#if 1
       emitter.minLife = 1.0f;
       emitter.maxLife = 2.0f;
-      emitter.interval = .000005;
-      emitter.minParticleAccel = { -8, 0, -2 };
-      emitter.maxParticleAccel = { 8, 5, 2 };
+      emitter.interval = .00005;
+      emitter.minParticleAccel = { -8, -4, -2 };
+      emitter.maxParticleAccel = { 8, -10, 2 };
       emitter.minParticleScale = { .01, .01 };
-      emitter.maxParticleScale = { .01, .01 };
+      emitter.maxParticleScale = { .05, .05 };
+      emitter.minParticleColor = { .75, .75, 0, .4 };
+      emitter.maxParticleColor = { 1, .75, 0, .8 };
+#else
+      emitter.minLife = 1.0f;
+      emitter.maxLife = 1.0f;
+      emitter.interval = .5f;
+      emitter.minParticleAccel = { 0, 0, 0 };
+      emitter.maxParticleAccel = { 0, 0, 0 };
+      emitter.minParticleScale = { 1, 1 };
+      emitter.maxParticleScale = { 1, 1 };
+      emitter.minParticleColor = { .75, .75, 0, .4 };
+      emitter.maxParticleColor = { 1, .75, 0, .8 };
+#endif
       entity.AddComponent<Components::ParticleEmitter>(std::move(emitter));
-      sizeof(Components::ParticleEmitter);
     }
   }
 

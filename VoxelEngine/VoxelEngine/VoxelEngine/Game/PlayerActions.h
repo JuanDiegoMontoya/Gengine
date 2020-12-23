@@ -24,7 +24,7 @@ public:
   {
     auto cam = GetComponent<Components::Parent>().entity.GetComponent<Components::Camera>();
 
-    if (Input::IsKeyDown(GLFW_KEY_V))
+    if (Input::IsKeyPressed(GLFW_KEY_V))
     {
       Entity ent = CreateEntity("Arrow");
       ent.AddComponent<Components::Transform>().SetTranslation(cam.GetWorldPos() + (cam.GetForward() * 1.f));
@@ -33,6 +33,44 @@ public:
       auto collider = Physics::BoxCollider(glm::vec3(.5f));
       Components::DynamicPhysics phys(ent, Physics::MaterialType::TERRAIN, collider);
       ent.AddComponent<Components::DynamicPhysics>(std::move(phys)).Interface().AddForce(cam.GetForward() * 300.f);
+
+      {
+        Components::ParticleEmitter emitter(1500, "smoke.png");
+        emitter.minLife = 1.0f;
+        emitter.maxLife = 2.0f;
+        emitter.interval = .001;
+        emitter.minParticleOffset = { -.5, -.5, -.5 };
+        emitter.maxParticleOffset = { .5, .5, .5 };
+        emitter.minParticleAccel = { -.5, 1, -.5 };
+        emitter.maxParticleAccel = { .5, 2, .5 };
+        emitter.minParticleScale = { .3, .3 };
+        emitter.maxParticleScale = { .3, .3 };
+        //emitter.minParticleColor = { .75, .75, 0, .4 };
+        //emitter.maxParticleColor = { 1, .75, 0, .8 };
+        emitter.minParticleColor = { .75, .40, 0, .4 };
+        emitter.maxParticleColor = { 1, .60, .2, .8 };
+        ent.AddComponent<Components::ParticleEmitter>(std::move(emitter));
+      }
+
+      Entity child = CreateEntity("ArrowSmoke");
+      child.SetParent(ent);
+      child.AddComponent<Components::Transform>();
+      child.AddComponent<Components::LocalTransform>();
+      {
+        Components::ParticleEmitter emitter2(3500, "smoke.png");
+        emitter2.minLife = 3.0f;
+        emitter2.maxLife = 4.0f;
+        emitter2.interval = .001;
+        emitter2.minParticleAccel = { -2, 1, -2 };
+        emitter2.maxParticleAccel = { 2, 2, 2 };
+        emitter2.minParticleScale = { .3, .3 };
+        emitter2.maxParticleScale = { .3, .3 };
+        emitter2.minParticleOffset = { -1, -1, -1 };
+        emitter2.maxParticleOffset = { 1, 2, 1 };
+        emitter2.minParticleColor = { .4, .4, .4, .4 };
+        emitter2.maxParticleColor = { .5, .5, .5, .8 };
+        child.AddComponent<Components::ParticleEmitter>(std::move(emitter2));
+      }
     }
 
     checkTestButton();

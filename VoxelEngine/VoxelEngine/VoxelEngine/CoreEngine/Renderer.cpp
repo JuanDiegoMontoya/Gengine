@@ -71,16 +71,28 @@ void Renderer::BeginBatch(uint32_t size)
 void Renderer::Submit(const Components::Transform& model, const Components::BatchedMesh& mesh, const Components::Material& mat)
 {
 	auto index = cmdIndex.fetch_add(1, std::memory_order::memory_order_acq_rel);
+  //auto index = cmdIndex++;
 	userCommands[index] = BatchDrawCommand { .mesh = mesh.handle->handle, .material = mat.handle->handle, .modelUniform = model.GetModel() };
 }
 
 void Renderer::RenderBatch()
 {
   cmdIndex.store(0, std::memory_order_release);
-	if (userCommands.empty())
-		return;
+  //cmdIndex = 0;
+  if (userCommands.empty())
+  {
+    return;
+  }
 
-	std::sort(std::execution::par_unseq, userCommands.begin(), userCommands.end(),
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glDepthMask(GL_TRUE);
+  glEnable(GL_CULL_FACE);
+  glCullFace(GL_BACK);
+  glFrontFace(GL_CCW);
+
+  // NOTE: mesh order MUST match meshBufferInfo's
+	std::sort(std::execution::par, userCommands.begin(), userCommands.end(),
 		[](const auto& lhs, const auto& rhs)
 		{
 			if (lhs.material != rhs.material)
@@ -99,6 +111,7 @@ void Renderer::RenderBatch()
 		if (draw.material != curMat)
 		{
 			RenderBatchHelper(curMat, uniforms); // submit draw when material is done
+      curMat = draw.material;
 			uniforms.clear();
 		}
 
@@ -113,17 +126,17 @@ void Renderer::RenderBatch()
 	userCommands.clear();
 }
 
-void Renderer::RenderBatchHelper(MaterialID mat, const std::vector<UniformData>& uniformBuffer)
+void Renderer::RenderBatchHelper(MaterialID mat, const std::vector<UniformData>& uniforms)
 {
 	// generate SSBO w/ uniforms
-	auto uniforms = std::make_unique<GFX::StaticBuffer>(uniformBuffer.data(), uniformBuffer.size() * sizeof(UniformData));
-	uniforms->Bind<GFX::Target::SSBO>(0);
+	auto uniformBuffer = std::make_unique<GFX::StaticBuffer>(uniforms.data(), uniforms.size() * sizeof(UniformData));
+  uniformBuffer->Bind<GFX::Target::SSBO>(0);
 
 	// generate DIB (one indirect command per mesh)
 	std::vector<DrawElementsIndirectCommand> commands;
 	GLuint baseInstance = 0;
 	std::for_each(meshBufferInfo.begin(), meshBufferInfo.end(),
-		[&commands, &baseInstance](auto cmd)
+		[&commands, &baseInstance](auto& cmd)
 		{
 			if (cmd.second.instanceCount != 0)
 			{
@@ -134,11 +147,13 @@ void Renderer::RenderBatchHelper(MaterialID mat, const std::vector<UniformData>&
 			}
 		});
 	GFX::StaticBuffer dib(commands.data(), commands.size() * sizeof(DrawElementsIndirectCommand));
-	dib.Bind<GFX::Target::DIB>();
+  dib.Bind<GFX::Target::DIB>();
 
 	// clear instance count for next GL draw command
-	for (auto& info : meshBufferInfo)
-		info.second.instanceCount = 0;
+  for (auto& info : meshBufferInfo)
+  {
+    info.second.instanceCount = 0;
+  }
 
 	// do the actual draw
 	auto& material = MaterialManager::materials_[mat];
@@ -154,24 +169,31 @@ void Renderer::RenderBatchHelper(MaterialID mat, const std::vector<UniformData>&
 
 void Renderer::RenderParticleEmitter(const Components::ParticleEmitter& emitter, const Components::Transform& model)
 {
-  glEnable(GL_DEPTH_TEST);
-  //glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-  //glDisable(GL_BLEND);
+  glDepthMask(GL_FALSE);
+  glDisable(GL_CULL_FACE);
   auto& shader = Shader::shaders["particle"];
   shader->Use();
 
   glm::mat4 vp = CameraSystem::GetViewProj();
-  shader->setMat4("u_viewproj", vp);
-  glm::mat4 md = model.GetModel();
-  shader->setMat4("u_model", md);
+  const auto& v = CameraSystem::GetView();
+  glm::mat4 md = glm::translate(glm::scale(glm::mat4(1), model.GetScale()), model.GetTranslation());
+  //glm::mat4 md = model.GetModel() * glm::inverse(glm::mat4_cast(model.GetRotation()));
+  shader->setMat4("u_viewProj", vp);
+  //shader->setMat4("u_model", md);
   shader->setInt("u_sprite", 0);
+  shader->setVec3("u_cameraRight", v[0][0], v[1][0], v[2][0]);
+  shader->setVec3("u_cameraUp", v[0][1], v[1][1], v[2][1]);
   emitter.texture->Bind(0);
   emitter.particleBuffer->Bind<GFX::Target::SSBO>(0);
 
-  // TODO: make empty vao thingy (there is no actual vertex format)
+  //glBlendFunc(GL_SRC_ALPHA, GL_ONE);
   particleVao->Bind();
   glDrawArraysInstanced(GL_TRIANGLE_FAN, 0, 4, emitter.numParticles);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  particleVao->Unbind();
+  emitter.particleBuffer->Unbind<GFX::Target::SSBO>();
+  shader->Unuse();
+  glEnable(GL_CULL_FACE);
+  glDepthMask(GL_TRUE);
 }
 
 void Renderer::Init()
@@ -224,25 +246,26 @@ void Renderer::Init()
   //   .5, -.5, 0,   1, 0,
   //   .5,  .5, 0,   1, 1
   //};
-  GLfloat vertices[] =
-  {
-     0.5f,  0.5f, 0.0f, 1.0f, 1.0f,
-     0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
-    -0.5f, -0.5f, 0.0f, 0.0f, 0.0f,
-    -0.5f,  0.5f, 0.0f, 0.0f, 1.0f
-  };
-  particleVertices = std::make_unique<GFX::StaticBuffer>(vertices, sizeof(vertices));
+  //GLfloat vertices[] =
+  //{
+  //   0.5f,  0.5f, 0.0f, 1.0f, 1.0f,
+  //   0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+  //  -0.5f, -0.5f, 0.0f, 0.0f, 0.0f,
+  //  -0.5f,  0.5f, 0.0f, 0.0f, 1.0f
+  //};
+  //particleVertices = std::make_unique<GFX::StaticBuffer>(vertices, sizeof(vertices));
+  //particleVertices = std::make_unique<GFX::StaticBuffer>(nullptr, 0);
   particleVao = std::make_unique<GFX::VAO>();
-  glEnableVertexArrayAttrib(particleVao->GetID(), 0); // pos
-  glEnableVertexArrayAttrib(particleVao->GetID(), 1); // uv
+  //glEnableVertexArrayAttrib(particleVao->GetID(), 0); // pos
+  //glEnableVertexArrayAttrib(particleVao->GetID(), 1); // uv
 
-  glVertexArrayAttribFormat(particleVao->GetID(), 0, 3, GL_FLOAT, GL_FALSE, 0);
-  glVertexArrayAttribFormat(particleVao->GetID(), 1, 2, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat));
+  //glVertexArrayAttribFormat(particleVao->GetID(), 0, 3, GL_FLOAT, GL_FALSE, 0);
+  //glVertexArrayAttribFormat(particleVao->GetID(), 1, 2, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat));
 
-  glVertexArrayAttribBinding(particleVao->GetID(), 0, 0);
-  glVertexArrayAttribBinding(particleVao->GetID(), 1, 0);
+  //glVertexArrayAttribBinding(particleVao->GetID(), 0, 0);
+  //glVertexArrayAttribBinding(particleVao->GetID(), 1, 0);
 
-  glVertexArrayVertexBuffer(particleVao->GetID(), 0, particleVertices->GetID(), 0, 5 * sizeof(GLfloat));
+  //glVertexArrayVertexBuffer(particleVao->GetID(), 0, particleVertices->GetID(), 0, 5 * sizeof(GLfloat));
 
 	/*Layout layout = Window::layout;
 
@@ -346,11 +369,11 @@ void Renderer::DrawAxisIndicator()
 	currShader->setMat4("u_model", glm::translate(glm::mat4(1), CameraSystem::GetPos() + CameraSystem::GetFront() * 10.f)); // add scaling factor (larger # = smaller visual)
 	currShader->setMat4("u_view", CameraSystem::GetView());
 	currShader->setMat4("u_proj", CameraSystem::GetProj());
-	glDisable(GL_DEPTH_TEST); // allows indicator to always be rendered
+	glDepthFunc(GL_ALWAYS); // allows indicator to always be rendered
 	axisVAO->Bind();
 	glLineWidth(2.f);
 	glDrawArrays(GL_LINES, 0, 6);
-  glEnable(GL_DEPTH_TEST);
+  glDepthFunc(GL_GEQUAL);
 	axisVAO->Unbind();
 }
 

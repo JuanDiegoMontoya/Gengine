@@ -44,18 +44,18 @@ std::shared_ptr<MeshHandle> MeshManager::CreateMeshBatched(std::string filename,
 	std::vector<GLuint> indices;
 	LoadMesh(scene, scene->mMeshes[0], indices, vertices);
 
-	GenBatchedHandle_GL(name.value(), indices, vertices);
-	auto ptr = std::make_shared<MeshHandle>(name.value());
-	handleMap_[name.value()] = ptr;
+	GenBatchedHandle_GL(name, indices, vertices);
+	auto ptr = std::make_shared<MeshHandle>(name);
+	handleMap_[name] = ptr;
 	return std::move(ptr);
 }
 
 std::shared_ptr<MeshHandle> MeshManager::GetMeshBatched(entt::hashed_string name)
 {
-	return std::shared_ptr<MeshHandle>(handleMap_[name.value()]);
+	return std::shared_ptr<MeshHandle>(handleMap_[name]);
 }
 
-void MeshManager::GenBatchedHandle_GL(MeshID handle, const std::vector<GLuint>& indices, const std::vector<Vertex>& vertices)
+void MeshManager::GenBatchedHandle_GL(entt::hashed_string handle, const std::vector<GLuint>& indices, const std::vector<Vertex>& vertices)
 {
 	// never freed
 	auto vh = Renderer::vertexBuffer->Allocate(vertices.data(), vertices.size() * sizeof(Vertex));
@@ -76,12 +76,15 @@ void MeshManager::GenBatchedHandle_GL(MeshID handle, const std::vector<GLuint>& 
 
 void MeshManager::DestroyBatchedMesh(MeshID handle)
 {
-	auto [vh, ih] = IDMap_[handle];
+  auto [vh, ih] = std::find_if(IDMap_.begin(), IDMap_.end(), [&](const auto& elem) { return elem.first.value() == handle; })->second;
+  //auto [vh, ih] = IDMap_[handle];
 	Renderer::vertexBuffer->Free(vh);
 	Renderer::indexBuffer->Free(ih);
 	Renderer::meshBufferInfo.erase(handle);
-	IDMap_.erase(handle);
-	handleMap_.erase(handle);
+  IDMap_.erase(std::find_if(IDMap_.begin(), IDMap_.end(), [&](const auto& elem) { return elem.first.value() == handle; }));
+  handleMap_.erase(std::find_if(handleMap_.begin(), handleMap_.end(), [&](const auto& elem) { return elem.first.value() == handle; }));
+	//IDMap_.erase(handle);
+	//handleMap_.erase(handle);
 }
 
 void MeshManager::LoadMesh(const aiScene* scene, aiMesh* mesh, std::vector<GLuint>& indices, std::vector<Vertex>& vertices)

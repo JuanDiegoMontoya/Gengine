@@ -1,9 +1,8 @@
 #version 460 core
-layout (location = 0) in vec3 aPos;
-layout (location = 1) in vec2 aTexCoord;
-
-layout (location = 0) uniform mat4 u_viewproj;
-layout (location = 1) uniform mat4 u_model;
+layout (location = 0) uniform mat4 u_viewProj;
+//layout (location = 1) uniform mat4 u_model;
+layout (location = 2) uniform vec3 u_cameraRight;
+layout (location = 3) uniform vec3 u_cameraUp;
 
 layout (location = 0) out vec2 vTexCoord;
 layout (location = 1) out vec4 vColor;
@@ -11,11 +10,12 @@ layout (location = 1) out vec4 vColor;
 struct Particle
 {
     vec4 pos;
-    vec4 scale;
     vec4 velocity;
     vec4 accel;
     vec4 color;
     float life;
+    int alive;
+    vec2 scale;
 };
 
 layout (std430, binding = 0) readonly buffer data
@@ -23,29 +23,18 @@ layout (std430, binding = 0) readonly buffer data
 	Particle particles[];
 };
 
-const vec2 positions[] =
+// vertices in [0, 1]
+vec2 CreateQuad(in uint vertexID) // triangle fan
 {
-    vec2(-.5, -.5),
-    vec2(.5, .5),
-    vec2(-.5, .5),
-    vec2(-.5, -.5),
-    vec2(.5, -.5),
-    vec2(.5, .5)
-};
-const vec2 texcoords[] =
-{
-    vec2(0.0, 0.0),
-    vec2(1.0, 1.0),
-    vec2(0.0, 1.0),
-    vec2(0.0, 0.0),
-    vec2(1.0, 0.0),
-    vec2(1.0, 1.0)
-};
+    uint b = 1 << vertexID;
+    return vec2((0x3 & b) != 0, (0x9 & b) != 0);
+}
 
 void main()
 {
-    //vec3 aPos = vec3(positions[gl_VertexID], 0.0); // gl_VertexIndex for Vulkan
-    //vec2 aTexCoord = texcoords[gl_VertexID];
+    vec2 aTexCoord = CreateQuad(gl_VertexID);
+    vec2 aPos = aTexCoord * 0.5;
+    
     int index = gl_InstanceID;
     
     Particle particle = particles[index];
@@ -53,6 +42,14 @@ void main()
     vTexCoord = aTexCoord;
     vColor = particle.color;
 
-    gl_Position = u_viewproj * u_model * vec4((aPos * particle.scale.xyz) + particle.pos.xyz, 1.0);
-    //gl_Position = u_viewproj * u_model * vec4(aPos * 1.0 + particle.pos.xyz, 1.0);
+    //vec3 particleCenter_wordspace = BillboardPos;
+
+    vec3 vertexPosition_worldspace = 
+        particle.pos.xyz +
+        u_cameraRight * aPos.x * particle.scale.x +
+        u_cameraUp * aPos.y * particle.scale.y;
+
+    // Output position of the vertex
+    gl_Position = u_viewProj * vec4(vertexPosition_worldspace, 1.0f);
+    //gl_Position = u_viewProj * u_model * vec4((vec3(aPos, 0.0) * vec3(particle.scale.xy, 0.0)) + particle.pos.xyz, 1.0);
 }

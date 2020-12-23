@@ -31,6 +31,7 @@ public:
   //static const MaterialInfo& GetMaterialInfo(Material material);
 
 private:
+  friend class GraphicsSystem;
   friend class Renderer;
 
   // the user doesn't get to know about this

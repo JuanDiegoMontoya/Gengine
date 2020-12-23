@@ -13,18 +13,6 @@
 #pragma warning(push)
 #pragma warning(disable : 4267) // 8->4 byte int conversion
 
-namespace std
-{
-  template<>
-  struct hash<entt::hashed_string>
-  {
-    std::size_t operator()(const entt::hashed_string& hs) const
-    {
-      return hs.value();
-    }
-  };
-}
-
 // encapsulates shaders by storing uniforms and its GPU memory location
 // also stores the program's name and both shader paths for recompiling
 class Shader
@@ -146,7 +134,7 @@ public:
     ASSERT(Uniforms.find(uniform) != Uniforms.end());
     glProgramUniform3f(programID, Uniforms[uniform], x, y, z);
   }
-  void setVec4(entt::hashed_string uniform, const glm::vec4 &value)
+  void setVec4(entt::hashed_string uniform, const glm::vec4& value)
   {
     ASSERT(Uniforms.find(uniform) != Uniforms.end());
     glProgramUniform4fv(programID, Uniforms[uniform], 1, glm::value_ptr(value));
@@ -156,7 +144,7 @@ public:
     ASSERT(Uniforms.find(uniform) != Uniforms.end());
     glProgramUniform4f(programID, Uniforms[uniform], x, y, z, w);
   }
-  void setMat3(entt::hashed_string uniform, const glm::mat3 &mat)
+  void setMat3(entt::hashed_string uniform, const glm::mat3& mat)
   {
     ASSERT(Uniforms.find(uniform) != Uniforms.end());
     glProgramUniformMatrix3fv(programID, Uniforms[uniform], 1, GL_FALSE, glm::value_ptr(mat));

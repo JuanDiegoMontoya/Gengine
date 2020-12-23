@@ -26,26 +26,31 @@ uint64_t xorshf96()
   return z;
 }
 
+double rng()
+{
+  uint64_t bits = 1023ull << 52ull | xorshf96() & 0xfffffffffffffull;
+  return *reinterpret_cast<double*>(&bits) - 1.0;
+}
+
 double rng(double low, double high)
 {
-  uint64_t big = 1023ull << 52ull | xorshf96() & 0xfffffffffffffull;
-  double dub = *reinterpret_cast<double*>(&big) - 1.0;
-  return Utils::map(dub, 0.0, 1.0, low, high);
+  return Utils::map(rng(), 0.0, 1.0, low, high);
 }
 
 
 void ParticleSystem::Update(Scene& scene, float dt)
 {
   // TODO: make the fence after rendering commands are issued
-  GFX::Fence fence;
-  fence.Sync();
+  // also, double/triple particle buffers
+  //GFX::Fence fence;
+  //fence.Sync();
 
   using namespace Components;
-  auto view = scene.GetRegistry().view<ParticleEmitter>();
-  std::for_each(std::execution::seq, view.begin(), view.end(),
+  auto view = scene.GetRegistry().view<ParticleEmitter, Transform>();
+  std::for_each(std::execution::par_unseq, view.begin(), view.end(),
     [&view, dt](entt::entity entity)
     {
-      auto& emitter = view.get<ParticleEmitter>(entity);
+      auto [emitter, transform] = view.get<ParticleEmitter, Transform>(entity);
 
       // update emitter
       emitter.timer -= dt;
@@ -75,9 +80,6 @@ void ParticleSystem::Update(Scene& scene, float dt)
           particle.life = rng(emitter.minLife, emitter.maxLife);
           //printf("life: %f\n", particle.life);
           particle.alive = true;
-          particle.pos.x = rng(emitter.minParticleOffset.x, emitter.maxParticleOffset.x);
-          particle.pos.y = rng(emitter.minParticleOffset.y, emitter.maxParticleOffset.y);
-          particle.pos.z = rng(emitter.minParticleOffset.z, emitter.maxParticleOffset.z);
           particle.velocity.x = rng(emitter.minParticleVelocity.x, emitter.maxParticleVelocity.x);
           particle.velocity.y = rng(emitter.minParticleVelocity.y, emitter.maxParticleVelocity.y);
           particle.velocity.z = rng(emitter.minParticleVelocity.z, emitter.maxParticleVelocity.z);
@@ -86,8 +88,16 @@ void ParticleSystem::Update(Scene& scene, float dt)
           particle.accel.z = rng(emitter.minParticleAccel.z, emitter.maxParticleAccel.z);
           particle.scale.x = rng(emitter.minParticleScale.x, emitter.maxParticleScale.x);
           particle.scale.y = rng(emitter.minParticleScale.y, emitter.maxParticleScale.y);
-
-          particle.color = glm::vec4(rng(0, 1), rng(0, 1), rng(0, 1), rng(0, 1));
+          particle.color.r = rng(emitter.minParticleColor.r, emitter.maxParticleColor.r);
+          particle.color.g = rng(emitter.minParticleColor.g, emitter.maxParticleColor.g);
+          particle.color.b = rng(emitter.minParticleColor.b, emitter.maxParticleColor.b);
+          particle.color.a = rng(emitter.minParticleColor.a, emitter.maxParticleColor.a);
+          particle.pos.x = rng(emitter.minParticleOffset.x, emitter.maxParticleOffset.x);
+          particle.pos.y = rng(emitter.minParticleOffset.y, emitter.maxParticleOffset.y);
+          particle.pos.z = rng(emitter.minParticleOffset.z, emitter.maxParticleOffset.z);
+          particle.pos.w = 1.0f;
+          glm::mat4 md = glm::translate(glm::scale(glm::mat4(1), transform.GetScale()), transform.GetTranslation());
+          particle.pos = md * particle.pos;
         }
       }
 

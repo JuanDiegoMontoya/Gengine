@@ -264,16 +264,16 @@ namespace Components
 
   struct ParticleEmitter
   {
+    // std430 layout
     struct Particle
     {
       glm::vec4 pos{};
-      glm::vec4 scale{};
       glm::vec4 velocity{};
       glm::vec4 accel{};
       glm::vec4 color{};
       float life{};
       int alive{};
-      float p1{}, p2{}; // std430 padding
+      glm::vec2 scale{};
     };
 
     ParticleEmitter(uint32_t maxp, std::string tex) : maxParticles(maxp)
@@ -300,25 +300,27 @@ namespace Components
     ParticleEmitter& operator=(ParticleEmitter&& rhs) noexcept
     {
       ASSERT(this->maxParticles == rhs.maxParticles);
-      minParticleOffset = rhs.minParticleOffset;
-      maxParticleOffset = rhs.maxParticleOffset;
-      minParticleVelocity = rhs.minParticleVelocity;
-      maxParticleVelocity = rhs.maxParticleVelocity;
-      minParticleAccel = rhs.minParticleAccel;
-      maxParticleAccel = rhs.maxParticleAccel;
-      minParticleScale = rhs.minParticleScale;
-      maxParticleScale = rhs.maxParticleScale;
-      timer = rhs.timer;
-      interval = rhs.interval;
-      minLife = rhs.minLife;
-      maxLife = rhs.maxLife;
-      numParticles = rhs.numParticles;
-      particles = rhs.particles;
-      particleBuffer = rhs.particleBuffer;
-      texture = rhs.texture;
+      this->minParticleOffset = rhs.minParticleOffset;
+      this->maxParticleOffset = rhs.maxParticleOffset;
+      this->minParticleVelocity = rhs.minParticleVelocity;
+      this->maxParticleVelocity = rhs.maxParticleVelocity;
+      this->minParticleAccel = rhs.minParticleAccel;
+      this->maxParticleAccel = rhs.maxParticleAccel;
+      this->minParticleScale = rhs.minParticleScale;
+      this->maxParticleScale = rhs.maxParticleScale;
+      this->minParticleColor = rhs.minParticleColor;
+      this->maxParticleColor = rhs.maxParticleColor;
+      this->timer = rhs.timer;
+      this->interval = rhs.interval;
+      this->minLife = rhs.minLife;
+      this->maxLife = rhs.maxLife;
+      this->numParticles = rhs.numParticles;
+      this->particles = rhs.particles;
+      this->particleBuffer = rhs.particleBuffer;
+      this->texture = rhs.texture;
       rhs.texture = nullptr;
       rhs.particleBuffer = nullptr;
-      freedIndices.swap(rhs.freedIndices);
+      this->freedIndices.swap(rhs.freedIndices);
       return *this;
     }
 
@@ -338,6 +340,8 @@ namespace Components
     glm::vec3 maxParticleAccel{ 1 };
     glm::vec2 minParticleScale{ .1 };
     glm::vec2 maxParticleScale{ 1 };
+    glm::vec4 minParticleColor{ 1 };
+    glm::vec4 maxParticleColor{ 1 };
 
     float timer{ 0.0f };
     float interval{ 0.1f };

@@ -2,6 +2,7 @@
 #include <ostream>
 #include <glm/glm.hpp>
 #include "Flags.h"
+#include <entt/src/core/hashed_string.hpp>
 
 namespace Utils
 {
@@ -188,11 +189,22 @@ namespace Utils
   }
 }
 
-
 inline std::ostream& operator<<(std::ostream& o, glm::ivec3 v)
 {
   return o << '('
     << v.x << ", "
     << v.y << ", "
     << v.z << ')';
+}
+
+namespace std
+{
+  template<>
+  struct hash<entt::hashed_string>
+  {
+    inline std::size_t operator()(const entt::hashed_string& hs) const
+    {
+      return hs.value();
+    }
+  };
 }

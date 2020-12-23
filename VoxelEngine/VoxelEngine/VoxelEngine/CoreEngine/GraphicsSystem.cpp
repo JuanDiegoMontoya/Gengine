@@ -9,6 +9,7 @@
 #include <CoreEngine/Renderer.h>
 #include <CoreEngine/Mesh.h>
 #include <execution>
+#include <glm/gtx/norm.hpp>
 
 #include <imgui/imgui.h>
 
@@ -61,10 +62,25 @@ void GraphicsSystem::StartFrame()
   glClearDepth(0.0f);
   auto cc = glm::vec3(.529f, .808f, .922f);
   glClearColor(cc.r, cc.g, cc.b, 1.f);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glDepthMask(GL_TRUE);
   glEnable(GL_DEPTH_TEST);
-  glDepthFunc(GL_GREATER);
+  glDepthFunc(GL_GEQUAL);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glEnable(GL_FRAMEBUFFER_SRGB); // gamma correction
+
+  ImGui::Begin("Graphics");
+  ImGui::Text("Active Meshes");
+  for (const auto& p : MeshManager::handleMap_)
+  {
+    ImGui::Text("%s, ID: %u, refcount: %u", p.first.data(), p.first.value(), p.second.use_count());
+  }
+  ImGui::Separator();
+  ImGui::Text("Active Materials");
+  for (const auto& p : MaterialManager::handleMap_)
+  {
+    ImGui::Text("ID: %d, refcount: %u", p.first, p.second.use_count());
+  }
+  ImGui::End();
 }
 
 void GraphicsSystem::DrawOpaque(Scene& scene, float dt)
@@ -79,7 +95,7 @@ void GraphicsSystem::DrawOpaque(Scene& scene, float dt)
     using namespace Components;
     auto group = scene.GetRegistry().group<BatchedMesh>(entt::get<Transform, Material>);
     Renderer::BeginBatch(group.size());
-    std::for_each(std::execution::par_unseq, group.begin(), group.end(),
+    std::for_each(std::execution::par, group.begin(), group.end(),
       [&group](entt::entity entity)
       {
         auto [mesh, transform, material] = group.get<BatchedMesh, Transform, Material>(entity);
@@ -88,7 +104,6 @@ void GraphicsSystem::DrawOpaque(Scene& scene, float dt)
 
       Renderer::RenderBatch();
   }
-
 }
 
 void GraphicsSystem::DrawTransparent(Scene& scene, float dt)
@@ -97,14 +112,28 @@ void GraphicsSystem::DrawTransparent(Scene& scene, float dt)
   for (Components::Camera* camera : camList)
   {
     CameraSystem::ActiveCamera = camera;
-
+    
     // draw particles
     using namespace Components;
     auto view = scene.GetRegistry().view<ParticleEmitter, Transform>();
+    auto compare = [&camera](const auto& p1, const auto& p2)
+      {
+        if (p1.second->GetTranslation() != p2.second->GetTranslation())
+        {
+          return glm::length2(p1.second->GetTranslation() - camera->GetWorldPos()) >
+            glm::length2(p2.second->GetTranslation() - camera->GetWorldPos());
+        }
+        return p1.first < p2.first;
+      };
+    std::set<std::pair<ParticleEmitter*, Transform*>, decltype(compare)> emitters(compare);
     for (auto entity : view)
     {
       auto [emitter, transform] = view.get<ParticleEmitter, Transform>(entity);
-      Renderer::RenderParticleEmitter(emitter, transform);
+      emitters.emplace(std::pair<ParticleEmitter*, Transform*>(&emitter, &transform));
+    }
+    for (const auto& [emitter, transform] : emitters)
+    {
+      Renderer::RenderParticleEmitter(*emitter, *transform);
     }
   }
 }

@@ -43,7 +43,7 @@ private:
 	// maps handles to VERTEX and INDEX information in the respective dynamic buffers
 	// used to retrieve important offset and size info for meshes
 	using DBaT = GFX::DynamicBuffer<>::allocationData<>;
-	static inline std::unordered_map<uint32_t, DrawElementsIndirectCommand> meshBufferInfo;
+	static inline std::map<entt::id_type, DrawElementsIndirectCommand> meshBufferInfo;
 
 	struct BatchDrawCommand
 	{
