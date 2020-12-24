@@ -85,7 +85,8 @@ void OnStart(Scene* scene)
     //player.AddComponent<Components::NativeScriptComponent>().Bind<PhysicsPlayerController>();
     player.AddComponent<Components::NativeScriptComponent>().Bind<KinematicPlayerController>();
     //player.AddComponent<Components::Camera>(Camera::ActiveCamera);
-    player.AddComponent<Components::Camera>(player).SetPos({ 0, .65, 0 });
+    auto& cam = player.AddComponent<Components::Camera>(player);
+    cam.SetPos({ 0, .65, 0 });
     Physics::CapsuleCollider collider(0.3, 0.5);
     //Physics::BoxCollider collider({ 1, 1, 1 });
     player.AddComponent<Components::CharacterController>(player, Physics::MaterialType::PLAYER, collider);
@@ -244,7 +245,9 @@ void OnStart(Scene* scene)
       auto& tr = entity.AddComponent<Components::Transform>();
       tr.SetTranslation({ 2, 0, -2 });
       tr.SetScale({ 1, 1, 1 });
-      entity.AddComponent<Components::BatchedMesh>().handle = MeshManager::GetMeshBatched("teapot");
+      auto& mesh = entity.AddComponent<Components::BatchedMesh>();
+      mesh.handle = MeshManager::GetMeshBatched("teapot");
+      //mesh.renderFlag = (uint64_t)RenderFlags::NoRender;
       entity.AddComponent<Components::Material>().handle = batchMaterial;
       //entity.AddComponent<Components::NativeScriptComponent>().Bind<TestObj>();
       Components::ParticleEmitter emitter(50000, "stone.png");
@@ -269,10 +272,10 @@ void OnStart(Scene* scene)
       emitter.minParticleColor = { .75, .75, 0, .4 };
       emitter.maxParticleColor = { 1, .75, 0, .8 };
 #endif
+      //emitter.renderFlag = (uint64_t)RenderFlags::NoRender;
       entity.AddComponent<Components::ParticleEmitter>(std::move(emitter));
     }
   }
-
 
   // make an entity for each object in the maya mesh
   //bool l, o;

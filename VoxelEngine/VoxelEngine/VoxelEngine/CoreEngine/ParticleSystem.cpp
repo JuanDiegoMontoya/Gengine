@@ -42,8 +42,8 @@ void ParticleSystem::Update(Scene& scene, float dt)
 {
   // TODO: make the fence after rendering commands are issued
   // also, double/triple particle buffers
-  //GFX::Fence fence;
-  //fence.Sync();
+  GFX::Fence fence;
+  fence.Sync();
 
   using namespace Components;
   auto view = scene.GetRegistry().view<ParticleEmitter, Transform>();

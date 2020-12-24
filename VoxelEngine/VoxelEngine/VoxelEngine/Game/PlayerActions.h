@@ -4,6 +4,7 @@
 #include <Voxels/VoxelManager.h>
 #include <imgui/imgui.h>
 #include <Voxels/prefab.h>
+#include <CoreEngine/Mesh.h>
 
 class PlayerActions : public ScriptableEntity
 {
@@ -80,14 +81,14 @@ public:
 
     selected = (BlockType)glm::clamp((int)selected + (int)Input::GetScrollOffset().y, 0, (int)Block::PropertiesTable.size() - 1);
 
-    float size = 100.0f;
+    float size = 150.0f;
     ImGui::SetNextWindowBgAlpha(0.0f);
     ImGui::SetNextWindowSize(ImVec2(size * 1.25f, size * 1.7f));
     ImGui::SetNextWindowPos(ImVec2(32.0f, 1017 - size * 1.55f - 32.0f));
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
     ImGui::Begin("Held Block", 0, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove);
     //ImGui::Begin("Held Block");
-    ImGui::Text("%s", Block::PropertiesTable[(int)selected].name);
+    ImGui::Text("Block Type:  %s\nPrefab Type: %s", Block::PropertiesTable[(int)selected].name, prefabName);
     ImGui::End();
     ImGui::PopStyleVar();
 
@@ -155,13 +156,23 @@ public:
             if (block.GetType() == BlockType::bAir)
               return false;
 
-            if (Input::IsKeyDown(GLFW_KEY_J) || Input::IsKeyDown(GLFW_KEY_K) || Input::IsKeyDown(GLFW_KEY_L))
+            if (Input::IsKeyDown(GLFW_KEY_H) || Input::IsKeyDown(GLFW_KEY_J) || Input::IsKeyDown(GLFW_KEY_K) || Input::IsKeyDown(GLFW_KEY_L))
             {
-              Prefab prefab = PrefabManager::GetPrefab("OakTree");
-              if (Input::IsKeyDown(GLFW_KEY_K))
+              if (Input::IsKeyDown(GLFW_KEY_J))
+              {
+                prefab = PrefabManager::GetPrefab("OakTree");
+                prefabName = "OakTree";
+              }
+              else if (Input::IsKeyDown(GLFW_KEY_K))
+              {
                 prefab = PrefabManager::GetPrefab("OakTreeBig");
-              else if (Input::IsKeyDown(GLFW_KEY_L))
+                prefabName = "OakTreeBig";
+              }
+              if (Input::IsKeyDown(GLFW_KEY_L))
+              {
                 prefab = PrefabManager::GetPrefab("Error");
+                prefabName = "Error";
+              }
 
               bool spawn = true;
 
@@ -184,7 +195,7 @@ public:
                   if (prefab.GetPlacementType() != PlacementType::NoOverwriting || voxels->GetBlock((glm::ivec3)(pos + side) + prefab.blocks[i].first).GetType() == BlockType::bAir)
                   {
                     if (prefab.blocks[i].second.GetPriority() >= voxels->GetBlock((glm::ivec3)(pos + side) + prefab.blocks[i].first).GetPriority())
-                      voxels->SetBlockType((glm::ivec3)(pos + side) + prefab.blocks[i].first, prefab.blocks[i].second.GetType());
+                      voxels->UpdateBlock((glm::ivec3)(pos + side) + prefab.blocks[i].first, prefab.blocks[i].second.GetType());
                   }
                 }
               }
@@ -290,4 +301,6 @@ public:
   float timer = 0.0f;
   BlockType selected = BlockType::bStone;
   VoxelManager* voxels{};
+  Prefab prefab = PrefabManager::GetPrefab("Error");
+  std::string prefabName = "Error";
 };

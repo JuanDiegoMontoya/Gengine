@@ -6,6 +6,21 @@
 
 using MeshID = entt::id_type;
 
+enum class RenderFlags : uint64_t
+{
+		NoRender = 1,
+		Default = 2,
+		Unused1 = 4,
+		Unused2 = 8,
+		Unused3 = 16,
+		Unused4 = 32,
+		Unused5 = 64,
+		Unused6 = 128,
+		Unused7 = 256,
+		Unused8 = 512,
+		Unused9 = 1024,
+};
+
 struct Vertex
 {
 	Vertex(glm::vec3 pVertex = glm::vec3(), glm::vec3 pNormal = glm::vec3(), glm::vec2 pTexCoords = glm::vec2()) :

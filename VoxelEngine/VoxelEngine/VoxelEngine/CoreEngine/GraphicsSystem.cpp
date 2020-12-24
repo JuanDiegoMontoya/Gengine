@@ -99,10 +99,13 @@ void GraphicsSystem::DrawOpaque(Scene& scene, float dt)
       [&group](entt::entity entity)
       {
         auto [mesh, transform, material] = group.get<BatchedMesh, Transform, Material>(entity);
-        Renderer::Submit(transform, mesh, material);
+        if ((CameraSystem::ActiveCamera->cullingMask & mesh.renderFlag) != mesh.renderFlag) // Mesh not set to be culled
+        {
+          Renderer::Submit(transform, mesh, material);
+        }
       });
 
-      Renderer::RenderBatch();
+    Renderer::RenderBatch();
   }
 }
 
@@ -112,25 +115,33 @@ void GraphicsSystem::DrawTransparent(Scene& scene, float dt)
   for (Components::Camera* camera : camList)
   {
     CameraSystem::ActiveCamera = camera;
-    
+
     // draw particles
     using namespace Components;
     auto view = scene.GetRegistry().view<ParticleEmitter, Transform>();
     auto compare = [&camera](const auto& p1, const auto& p2)
+    {
+      if (p1.second->GetTranslation() != p2.second->GetTranslation())
       {
-        if (p1.second->GetTranslation() != p2.second->GetTranslation())
+        auto len = glm::length2(p1.second->GetTranslation() - camera->GetWorldPos()) -
+          glm::length2(p2.second->GetTranslation() - camera->GetWorldPos());
+        if (glm::abs(len) > .001f)
         {
-          return glm::length2(p1.second->GetTranslation() - camera->GetWorldPos()) >
-            glm::length2(p2.second->GetTranslation() - camera->GetWorldPos());
+          return len > 0.0f;
         }
-        return p1.first < p2.first;
-      };
-    std::set<std::pair<ParticleEmitter*, Transform*>, decltype(compare)> emitters(compare);
+      }
+      return p1.first < p2.first;
+    };
+    std::vector<std::pair<ParticleEmitter*, Transform*>> emitters;
     for (auto entity : view)
     {
       auto [emitter, transform] = view.get<ParticleEmitter, Transform>(entity);
-      emitters.emplace(std::pair<ParticleEmitter*, Transform*>(&emitter, &transform));
+      if ((CameraSystem::ActiveCamera->cullingMask & emitter.renderFlag) != emitter.renderFlag) // Emitter not set to be culled
+      {
+        emitters.push_back(std::pair<ParticleEmitter*, Transform*>(&emitter, &transform));
+      }
     }
+    std::sort(emitters.begin(), emitters.end(), compare);
     for (const auto& [emitter, transform] : emitters)
     {
       Renderer::RenderParticleEmitter(*emitter, *transform);
@@ -143,7 +154,7 @@ void GraphicsSystem::EndFrame()
   glDisable(GL_FRAMEBUFFER_SRGB);
   glDepthFunc(GL_LESS);
   glDisable(GL_DEPTH_TEST);
-  
+
   glBlitNamedFramebuffer(fbo, 0,
     0, 0, fboWidth, fboHeight,
     0, 0, windowWidth, windowHeight,

@@ -20,7 +20,7 @@ ChunkRenderer::ChunkRenderer()
   // allocate big buffer
   // TODO: vary the allocation size based on some user setting
   allocator = std::make_unique<GFX::DynamicBuffer<AABB16>>(100'000'000, 2 * sizeof(GLint));
-    
+
   /* :::::::::::BUFFER FORMAT:::::::::::
                           CHUNK 1                                    CHUNK 2                   NULL                   CHUNK 3
           | cpos, encoded+lighting, encoded+lighting, ... | cpos, encoded+lighting, ... | null (any length) | cpos, encoded+lighting, ... |
@@ -81,7 +81,7 @@ ChunkRenderer::ChunkRenderer()
 ChunkRenderer::~ChunkRenderer()
 {
 }
- 
+
 void ChunkRenderer::GenerateDrawCommandsGPU()
 {
   //PERF_BENCHMARK_START;
@@ -124,7 +124,7 @@ void ChunkRenderer::GenerateDrawCommandsGPU()
   allocBuffer->Bind<GFX::Target::SSBO>(0);
   dib->Bind<GFX::Target::SSBO>(1);
   drawCountGPU->Bind<GFX::Target::SSBO>(2);
-    
+
   {
     int numBlocks = (allocs.size() + blockSize - 1) / blockSize;
     glDispatchCompute(numBlocks, 1, 1);
@@ -207,7 +207,7 @@ void ChunkRenderer::Draw()
   RenderOcclusion();
   //RenderRest();
 }
-  
+
 void ChunkRenderer::RenderVisible()
 {
   if (!dib)
@@ -262,7 +262,7 @@ void ChunkRenderer::RenderOcclusion()
 
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, dib->GetID());
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, dib->GetID());
-    
+
   // copy # of chunks being drawn (parameter buffer) to instance count (DIB)
   dibCull->Bind<GFX::Target::DIB>();
   vaoCull->Bind();

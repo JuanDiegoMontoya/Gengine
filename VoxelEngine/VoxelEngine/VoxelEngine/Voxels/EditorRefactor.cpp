@@ -4,6 +4,9 @@
 #include <CoreEngine/Camera.h>
 #include <CoreEngine/shader.h>
 #include <CoreEngine/Renderer.h>
+#include <CoreEngine/Scene.h>
+#include <CoreEngine/Components.h>
+#include <Game/PlayerActions.h>
 
 #include <fstream>
 #include <functional>
@@ -55,12 +58,20 @@ void Editor::SaveRegion()
 
 void Editor::LoadRegion()
 {
-  std::ifstream is("./resources/Prefabs/" + std::string(lName) + ".bin", std::ios::binary);
-  cereal::BinaryInputArchive archive(is);
-  Prefab oldPfb;
-  archive(oldPfb);
-
-  //WorldGen::GeneratePrefab(oldPfb, hposition);
+  auto view = voxels.scene_.GetRegistry().view<Components::Tag>();
+  Entity player;
+  for (auto entity : view)
+  {
+    auto tag = view.get<Components::Tag>(entity);
+    if (tag.tag == "PlayerSub")
+    {
+      player = { entity, &voxels.scene_ };
+      break;
+    }
+  }
+  auto scriptInstance = dynamic_cast<PlayerActions*>(player.GetComponent<Components::NativeScriptComponent>().Instance);
+  scriptInstance->prefab = PrefabManager::LoadPrefabFromFile("./resources/Prefabs/" + std::string(lName) + ".bin");
+  scriptInstance->prefabName = std::string(lName);
 }
 
 void Editor::CancelSelection()
