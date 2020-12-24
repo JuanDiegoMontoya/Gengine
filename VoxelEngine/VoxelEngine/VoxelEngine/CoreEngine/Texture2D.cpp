@@ -55,10 +55,16 @@ namespace GFX
     glGenerateTextureMipmap(rendererID_);
   }
 
-  Texture2D::Texture2D(Texture2D&& rhs) noexcept
-    : rendererID_(rhs.rendererID_), dim_(rhs.dim_)
+  Texture2D& Texture2D::operator=(Texture2D&& rhs) noexcept
   {
-    rhs.rendererID_ = 0;
+    if (&rhs == this) return *this;
+    return *new (this) Texture2D(std::move(rhs));
+  }
+
+  Texture2D::Texture2D(Texture2D&& rhs) noexcept
+  {
+    this->rendererID_ = std::exchange(rhs.rendererID_, 0);
+    this->dim_ = rhs.dim_;
   }
 
   Texture2D::~Texture2D()

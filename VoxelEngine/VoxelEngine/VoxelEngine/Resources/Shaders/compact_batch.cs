@@ -66,7 +66,6 @@ void main()
   uint index = gl_GlobalInvocationID.x;
   uint stride = gl_NumWorkGroups.x * gl_WorkGroupSize.x;
 
-
   for (uint i = index; i < inDrawData.length(); i += stride)
   {
     InDrawInfo alloc = inDrawData[i];

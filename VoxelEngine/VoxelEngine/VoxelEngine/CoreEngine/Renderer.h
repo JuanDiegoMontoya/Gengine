@@ -5,55 +5,65 @@
 #include "Components.h"
 #include <CoreEngine/DynamicBuffer.h>
 #include <shared_mutex>
+#include <CoreEngine/Fence.h>
 
 class Shader;
+namespace GFX
+{
+  class Fence;
+}
 
 class Renderer
 {
 public:
-	static void Init();
-	static void CompileShaders();
+  static void Init();
+  static void CompileShaders();
 
-	static void BeginBatch(uint32_t size);
-	static void Submit(const Components::Transform& model, const Components::BatchedMesh& mesh, const Components::Material& mat);
-	static void RenderBatch();
-	static void RenderParticleEmitter(const Components::ParticleEmitter& emitter, const Components::Transform& model);
+  static void BeginBatch(uint32_t size);
+  static void Submit(const Components::Transform& model, const Components::BatchedMesh& mesh, const Components::Material& mat);
+  static void RenderBatch();
+  static void RenderParticleEmitter(const Components::ParticleEmitter& emitter, const Components::Transform& model);
 
-	// generic drawing functions (TODO: move)
-	static void DrawAxisIndicator();
-	static void DrawQuad();
-	static void DrawCube();
+  // generic drawing functions (TODO: move)
+  static void DrawAxisIndicator();
+  static void DrawQuad();
+  static void DrawCube();
 
 private:
-	// std140
-	struct UniformData
-	{
-		glm::mat4 model;
-	};
-	static void RenderBatchHelper(MaterialID material, const std::vector<UniformData>& uniformBuffer);
+  friend class MeshManager;
+  friend class ParticleSystem;
+  friend class GraphicsSystem;
 
-	// batched+instanced rendering stuff (ONE MATERIAL SUPPORTED ATM)
-	friend class MeshManager;
-	static inline std::unique_ptr<GFX::DynamicBuffer<>> vertexBuffer;
-	static inline std::unique_ptr<GFX::DynamicBuffer<>> indexBuffer;
+  // std140
+  struct UniformData
+  {
+    glm::mat4 model;
+  };
+  static void RenderBatchHelper(MaterialID material, const std::vector<UniformData>& uniformBuffer);
 
-	// per-vertex layout
-	static inline std::unique_ptr<GFX::VAO> batchVAO;
+  // batched+instanced rendering stuff (ONE MATERIAL SUPPORTED ATM)
+  static inline std::unique_ptr<GFX::DynamicBuffer<>> vertexBuffer;
+  static inline std::unique_ptr<GFX::DynamicBuffer<>> indexBuffer;
 
-	// maps handles to VERTEX and INDEX information in the respective dynamic buffers
-	// used to retrieve important offset and size info for meshes
-	using DBaT = GFX::DynamicBuffer<>::allocationData<>;
-	static inline std::map<entt::id_type, DrawElementsIndirectCommand> meshBufferInfo;
+  // per-vertex layout
+  static inline std::unique_ptr<GFX::VAO> batchVAO;
 
-	struct BatchDrawCommand
-	{
-		MeshID mesh;
-		MaterialID material;
-		glm::mat4 modelUniform;
-	};
-	static inline std::vector<BatchDrawCommand> userCommands;
-	static inline std::atomic_uint32_t cmdIndex{ 0 };
+  // maps handles to VERTEX and INDEX information in the respective dynamic buffers
+  // used to retrieve important offset and size info for meshes
+  using DBaT = GFX::DynamicBuffer<>::allocationData<>;
+  static inline std::map<entt::id_type, DrawElementsIndirectCommand> meshBufferInfo;
 
-	static inline std::unique_ptr<GFX::VAO> particleVao;
-	static inline std::unique_ptr<GFX::StaticBuffer> particleVertices;
+  struct BatchDrawCommand
+  {
+    MeshID mesh;
+    MaterialID material;
+    glm::mat4 modelUniform;
+  };
+  static inline std::vector<BatchDrawCommand> userCommands;
+  static inline std::atomic_uint32_t cmdIndex{ 0 };
+
+  static inline std::unique_ptr<GFX::VAO> particleVao;
+  static inline std::unique_ptr<GFX::StaticBuffer> particleVertices;
+
+  static inline std::unique_ptr<GFX::Fence> particleFence;
 };

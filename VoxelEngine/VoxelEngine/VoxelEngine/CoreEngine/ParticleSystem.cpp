@@ -7,7 +7,7 @@
 #include <algorithm>
 #include "utilities.h"
 #include <random>
-#include "Fence.h"
+#include "Renderer.h"
 
 static thread_local uint64_t x = 123456789, y = 362436069, z = 521288629;
 
@@ -42,8 +42,10 @@ void ParticleSystem::Update(Scene& scene, float dt)
 {
   // TODO: make the fence after rendering commands are issued
   // also, double/triple particle buffers
-  GFX::Fence fence;
-  fence.Sync();
+  if (Renderer::particleFence)
+  {
+    Renderer::particleFence->Sync();
+  }
 
   using namespace Components;
   auto view = scene.GetRegistry().view<ParticleEmitter, Transform>();
@@ -66,19 +68,16 @@ void ParticleSystem::Update(Scene& scene, float dt)
           {
             index = emitter.freedIndices.front();
             emitter.freedIndices.pop();
-            //printf("Spawned particle A\n");
           }
           else
           {
             index = emitter.numParticles;
-            //printf("Spawned particle B\n");
           }
 
           emitter.numParticles++;
 
           auto& particle = emitter.particles[index];
           particle.life = rng(emitter.minLife, emitter.maxLife);
-          //printf("life: %f\n", particle.life);
           particle.alive = true;
           particle.velocity.x = rng(emitter.minParticleVelocity.x, emitter.maxParticleVelocity.x);
           particle.velocity.y = rng(emitter.minParticleVelocity.y, emitter.maxParticleVelocity.y);

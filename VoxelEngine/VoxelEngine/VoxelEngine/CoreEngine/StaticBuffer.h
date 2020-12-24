@@ -36,10 +36,10 @@ namespace GFX
     // copies another buffer's data store and contents
     StaticBuffer(const StaticBuffer& other);
     StaticBuffer(StaticBuffer&& other) noexcept;
+    StaticBuffer& operator=(StaticBuffer&& other) noexcept;
     ~StaticBuffer();
 
     StaticBuffer& operator=(const StaticBuffer&) = delete;
-    StaticBuffer& operator=(StaticBuffer&&) = delete;
     bool operator==(const StaticBuffer&) const = default;
 
     // updates a subset of the buffer's data store

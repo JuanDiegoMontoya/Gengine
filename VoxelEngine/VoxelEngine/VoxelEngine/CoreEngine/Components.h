@@ -276,8 +276,8 @@ namespace Components
 
     ParticleEmitter(uint32_t maxp, std::string tex) : maxParticles(maxp)
     {
-      Particle* tp = new Particle[maxParticles];
-      particleBuffer = new GFX::StaticBuffer(tp, sizeof(Particle) * maxParticles,
+      auto tp = std::make_unique<Particle[]>(maxParticles);
+      particleBuffer = std::make_unique<GFX::StaticBuffer>(tp.get(), sizeof(Particle) * maxParticles,
         GFX::BufferFlag::MAP_PERSISTENT |
         GFX::BufferFlag::MAP_COHERENT |
         GFX::BufferFlag::DYNAMIC_STORAGE |
@@ -285,52 +285,43 @@ namespace Components
         GFX::BufferFlag::MAP_WRITE);
       particles = reinterpret_cast<Particle*>(particleBuffer->GetMappedPointer());
 
-      texture = new GFX::Texture2D(tex);
-      delete[] tp;
+      texture = std::make_unique<GFX::Texture2D>(tex);
     }
 
-    ParticleEmitter(const ParticleEmitter&) = delete;
-    ParticleEmitter& operator=(const ParticleEmitter&) = delete;
-    ParticleEmitter(ParticleEmitter&& rhs) noexcept : maxParticles(rhs.maxParticles)
+    ParticleEmitter(ParticleEmitter&& rhs) noexcept
     {
-      *this = std::move(rhs);
+      minParticleOffset = std::move(rhs.minParticleOffset);
+      maxParticleOffset = std::move(rhs.maxParticleOffset);
+      minParticleVelocity = std::move(rhs.minParticleVelocity);
+      maxParticleVelocity = std::move(rhs.maxParticleVelocity);
+      minParticleAccel = std::move(rhs.minParticleAccel);
+      maxParticleAccel = std::move(rhs.maxParticleAccel);
+      minParticleScale = std::move(rhs.minParticleScale);
+      maxParticleScale = std::move(rhs.maxParticleScale);
+      minParticleColor = std::move(rhs.minParticleColor);
+      maxParticleColor = std::move(rhs.maxParticleColor);
+      timer = std::move(rhs.timer);
+      interval = std::move(rhs.interval);
+      minLife = std::move(rhs.minLife);
+      maxLife = std::move(rhs.maxLife);
+      numParticles = std::move(rhs.numParticles);
+      particles = std::move(rhs.particles);
+      renderFlag = std::move(rhs.renderFlag);
+      particleBuffer = std::move(rhs.particleBuffer);
+      freeStackBuffer = std::move(rhs.freeStackBuffer);
+      texture = std::move(rhs.texture);
+      maxParticles = std::move(rhs.maxParticles);
+      freedIndices = std::move(rhs.freedIndices);
     }
     ParticleEmitter& operator=(ParticleEmitter&& rhs) noexcept
     {
-      ASSERT(this->maxParticles == rhs.maxParticles);
-      renderFlag = rhs.renderFlag;
-      minParticleOffset = rhs.minParticleOffset;
-      maxParticleOffset = rhs.maxParticleOffset;
-      minParticleVelocity = rhs.minParticleVelocity;
-      maxParticleVelocity = rhs.maxParticleVelocity;
-      minParticleAccel = rhs.minParticleAccel;
-      maxParticleAccel = rhs.maxParticleAccel;
-      minParticleScale = rhs.minParticleScale;
-      maxParticleScale = rhs.maxParticleScale;
-      minParticleColor = rhs.minParticleColor;
-      maxParticleColor = rhs.maxParticleColor;
-      timer = rhs.timer;
-      interval = rhs.interval;
-      minLife = rhs.minLife;
-      maxLife = rhs.maxLife;
-      numParticles = rhs.numParticles;
-      particles = rhs.particles;
-      particleBuffer = rhs.particleBuffer;
-      texture = rhs.texture;
-      rhs.texture = nullptr;
-      rhs.particleBuffer = nullptr;
-      this->freedIndices.swap(rhs.freedIndices);
-      return *this;
+      if (&rhs == this) return *this;
+      return *new (this) ParticleEmitter(std::move(rhs));
     }
+    ~ParticleEmitter() = default;
 
-
-    ~ParticleEmitter()
-    {
-      delete particleBuffer;
-      delete texture;
-    }
-
-    uint64_t renderFlag = (uint64_t)RenderFlags::Default;
+    ParticleEmitter(const ParticleEmitter&) = delete;
+    ParticleEmitter& operator=(const ParticleEmitter&) = delete;
 
     // initial particle offset
     glm::vec3 minParticleOffset{ -1 };
@@ -346,20 +337,22 @@ namespace Components
 
     float timer{ 0.0f };
     float interval{ 0.1f };
-    //float minTimeScale{ 1.0f };
-    //float maxTimeScale{ 1.0f };
     float minLife{ 1 };
     float maxLife{ 1 };
 
     uint32_t numParticles{ 0 };
-    const uint32_t maxParticles;
     Particle* particles{};
+
+    uint64_t renderFlag = (uint64_t)RenderFlags::Default;
 
   private:
     friend class Renderer;
     friend class ParticleSystem;
-    GFX::StaticBuffer* particleBuffer{};
-    GFX::Texture2D* texture{};
+
+    std::unique_ptr<GFX::StaticBuffer> particleBuffer{};
+    std::unique_ptr<GFX::StaticBuffer> freeStackBuffer{};
+    std::unique_ptr<GFX::Texture2D> texture{};
+    uint32_t maxParticles; // const
     std::queue<int> freedIndices;
   };
 

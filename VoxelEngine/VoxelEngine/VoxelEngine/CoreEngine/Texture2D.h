@@ -9,6 +9,7 @@ namespace GFX
   public:
     Texture2D(std::string_view path);
     Texture2D(const Texture2D& rhs) = delete;
+    Texture2D& operator=(Texture2D&& rhs) noexcept;
     Texture2D(Texture2D&& rhs) noexcept;
     ~Texture2D();
 

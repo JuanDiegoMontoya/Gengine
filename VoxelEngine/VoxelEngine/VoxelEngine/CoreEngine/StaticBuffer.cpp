@@ -26,6 +26,12 @@ namespace GFX
     rendererID_ = std::exchange(other.rendererID_, 0);
   }
 
+  StaticBuffer& StaticBuffer::operator=(StaticBuffer&& other) noexcept
+  {
+    if (&other == this) return *this;
+    return *new (this) StaticBuffer(std::move(other));
+  }
+
   StaticBuffer::~StaticBuffer()
   {
     ASSERT_MSG(!IsMapped(), "Buffer should not be mapped at time of destruction.");

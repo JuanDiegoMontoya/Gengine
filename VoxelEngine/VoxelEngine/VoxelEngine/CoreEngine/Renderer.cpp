@@ -71,7 +71,7 @@ void Renderer::BeginBatch(uint32_t size)
 void Renderer::Submit(const Components::Transform& model, const Components::BatchedMesh& mesh, const Components::Material& mat)
 {
   auto index = cmdIndex.fetch_add(1, std::memory_order::memory_order_acq_rel);
-  userCommands[index] = BatchDrawCommand { .mesh = mesh.handle->handle, .material = mat.handle->handle, .modelUniform = model.GetModel() };
+  userCommands[index] = BatchDrawCommand{ .mesh = mesh.handle->handle, .material = mat.handle->handle, .modelUniform = model.GetModel() };
 }
 
 void Renderer::RenderBatch()

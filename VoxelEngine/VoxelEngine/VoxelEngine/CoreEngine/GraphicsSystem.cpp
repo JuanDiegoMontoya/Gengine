@@ -147,6 +147,8 @@ void GraphicsSystem::DrawTransparent(Scene& scene, float dt)
       Renderer::RenderParticleEmitter(*emitter, *transform);
     }
   }
+
+  Renderer::particleFence.reset(new GFX::Fence());
 }
 
 void GraphicsSystem::EndFrame()
