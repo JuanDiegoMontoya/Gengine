@@ -6,19 +6,17 @@
 #include <execution>
 #include <algorithm>
 #include "utilities.h"
-#include <random>
 #include "Renderer.h"
 
 static thread_local uint64_t x = 123456789, y = 362436069, z = 521288629;
 
 uint64_t xorshf96()
 {
-  uint64_t t;
   x ^= x << 16;
   x ^= x >> 5;
   x ^= x << 1;
 
-  t = x;
+  uint64_t t = x;
   x = y;
   y = z;
   z = t ^ x ^ y;
@@ -40,7 +38,6 @@ double rng(double low, double high)
 
 void ParticleSystem::Update(Scene& scene, float dt)
 {
-  // TODO: make the fence after rendering commands are issued
   // also, double/triple particle buffers
   if (Renderer::particleFence)
   {
@@ -95,7 +92,8 @@ void ParticleSystem::Update(Scene& scene, float dt)
           particle.pos.y = rng(emitter.minParticleOffset.y, emitter.maxParticleOffset.y);
           particle.pos.z = rng(emitter.minParticleOffset.z, emitter.maxParticleOffset.z);
           particle.pos.w = 1.0f;
-          glm::mat4 md = glm::translate(glm::scale(glm::mat4(1), transform.GetScale()), transform.GetTranslation());
+          //glm::mat4 md = glm::translate(glm::scale(glm::mat4(1), transform.GetScale()), transform.GetTranslation());
+          glm::mat4 md = transform.GetModel();
           particle.pos = md * particle.pos;
         }
       }

@@ -1,3 +1,6 @@
+#ifndef PARTICLE_H
+#define PARTICLE_H
+
 struct Particle
 {
   vec4 pos;
@@ -8,3 +11,5 @@ struct Particle
   int alive;
   vec2 scale;
 };
+
+#endif // PARTICLE_H

@@ -1,3 +1,6 @@
+#ifndef DRAWARRAYSCOMMAND_H
+#define DRAWARRAYSCOMMAND_H
+
 struct DrawArraysCommand
 {
   uint count;
@@ -5,3 +8,5 @@ struct DrawArraysCommand
   uint first;
   uint baseInstance;
 };
+
+#endif // DRAWARRAYSCOMMAND_H
