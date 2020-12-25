@@ -390,6 +390,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">EnginePCH.h</PrecompiledHeaderFile>
     </ClCompile>
     <ClCompile Include="Game\main.cpp" />
+    <ClCompile Include="Game\PlayerActions.cpp" />
     <ClCompile Include="Game\WorldGen.cpp" />
     <ClCompile Include="Utilities\ImGuiExt.cpp" />
     <ClCompile Include="Voxels\biome.cpp" />

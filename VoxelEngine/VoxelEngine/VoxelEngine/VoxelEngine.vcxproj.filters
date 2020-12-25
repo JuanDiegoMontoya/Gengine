@@ -456,6 +456,7 @@
     <ClCompile Include="CoreEngine\ParticleSystem.cpp">
       <Filter>CoreEngine\Systems</Filter>
     </ClCompile>
+    <ClCompile Include="Game\PlayerActions.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Voxels\BlockStorage.inl">

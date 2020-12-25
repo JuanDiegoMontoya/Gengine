@@ -19,6 +19,12 @@ public:
 
   virtual void OnUpdate(float dt) override
   {
+    if (Input::IsKeyPressed(GLFW_KEY_GRAVE_ACCENT))
+    {
+      activeCursor = !activeCursor;
+      Input::SetCursorVisible(activeCursor);
+    }
+
     auto& cam = GetComponent<Components::Camera>();// *CameraSystem::ActiveCamera;
     const auto& transform = GetComponent<Components::Transform>();
     //cam.SetPos(transform.GetTranslation()); // TODO: TEMP BULLSHIT
@@ -135,9 +141,12 @@ public:
     }
 
     // mouse look controls
-    auto pyr = cam.GetEuler(); // Pitch, Yaw, Roll
-    cam.SetYaw(pyr.y + Input::GetScreenOffset().x);
-    cam.SetPitch(glm::clamp(pyr.x + Input::GetScreenOffset().y, -89.0f, 89.0f));
+    if (!activeCursor)
+    {
+      auto pyr = cam.GetEuler(); // Pitch, Yaw, Roll
+      cam.SetYaw(pyr.y + Input::GetScreenOffset().x);
+      cam.SetPitch(glm::clamp(pyr.x + Input::GetScreenOffset().y, -89.0f, 89.0f));
+    }
     //pyr = CameraSystem::GetEuler(); // oof
 
     //glm::vec3 temp;
@@ -173,4 +182,7 @@ public:
   const float tick = 1.0f / 200.0f;
   float accumulator = 0;
   Physics::ControllerCollisionFlags flags{};
+
+  // misc
+  bool activeCursor{ false };
 };

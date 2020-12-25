@@ -14,6 +14,7 @@ void DebugSystem::Init(GLFWwindow* win)
   ImGui_ImplGlfw_InitForOpenGL(window, false);
   ImGui_ImplOpenGL3_Init();
   ImGui::StyleColorsDark();
+  Input::window = window;
 }
 
 void DebugSystem::End()
@@ -31,13 +32,6 @@ void DebugSystem::StartFrame(Scene& scene, float dt)
 
 void DebugSystem::Update(Scene& scene, float dt)
 {
-  if (activeCursor)
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-  else
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-  if (Input::IsKeyPressed(GLFW_KEY_GRAVE_ACCENT))
-    activeCursor = !activeCursor;
-
   {
     ImGui::Begin("Graphs", 0, activeCursor ? 0 : ImGuiWindowFlags_NoMouseInputs);
     ImGui::PlotVar("Frametime (ms)", dt * 1000.0, 0, .05 * 1000, 240, ImVec2(300, 100));

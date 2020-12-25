@@ -72,6 +72,10 @@ public:
   static void RemoveInputAxis(entt::hashed_string action);
   static float GetInputAxis(entt::hashed_string action);
 
+  static void SetCursorVisible(bool state);
+
+  static inline GLFWwindow* window;
+
 private:
   static inline glm::vec2 screenPos;
   static inline glm::vec2 screenOffset;

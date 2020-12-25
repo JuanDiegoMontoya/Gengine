@@ -98,12 +98,7 @@ GLFWwindow* init_glfw_context()
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
   glViewport(0, 0, window_width, window_height - 63);
-
-  //glEnable(GL_BLEND);
-  //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  //glEnable(GL_BLEND_COLOR);
-
-  //glClearColor(0.3f, 0.3f, 0.5f, 1.0f);
+  glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
   return window;
 }
