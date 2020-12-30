@@ -1,8 +1,7 @@
 #version 460 core
 layout (location = 0) uniform mat4 u_viewProj;
-//layout (location = 1) uniform mat4 u_model;
-layout (location = 2) uniform vec3 u_cameraRight;
-layout (location = 3) uniform vec3 u_cameraUp;
+layout (location = 1) uniform vec3 u_cameraRight;
+layout (location = 2) uniform vec3 u_cameraUp;
 
 layout (location = 0) out vec2 vTexCoord;
 layout (location = 1) out vec4 vColor;
@@ -38,6 +37,6 @@ void main()
     u_cameraUp * aPos.y * particle.scale.y;
 
   // Output position of the vertex
-  gl_Position = u_viewProj * vec4(vertexPosition_worldspace, 1.0f);
+  gl_Position = u_viewProj * vec4(vertexPosition_worldspace, 1.0);
   //gl_Position = u_viewProj * u_model * vec4((vec3(aPos, 0.0) * vec3(particle.scale.xy, 0.0)) + particle.pos.xyz, 1.0);
 }

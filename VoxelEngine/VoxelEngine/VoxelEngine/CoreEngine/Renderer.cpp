@@ -126,6 +126,7 @@ void Renderer::RenderBatch()
   userCommands.clear();
 }
 
+
 void Renderer::RenderBatchHelper(MaterialID mat, const std::vector<UniformData>& uniforms)
 {
   // generate SSBO w/ uniforms
@@ -168,33 +169,29 @@ void Renderer::RenderBatchHelper(MaterialID mat, const std::vector<UniformData>&
   batchVAO->Unbind();
 }
 
-void Renderer::RenderParticleEmitter(const Components::ParticleEmitter& emitter, const Components::Transform& model)
+void Renderer::BeginRenderParticleEmitter()
 {
   glDepthMask(GL_FALSE);
   glDisable(GL_CULL_FACE);
   auto& shader = Shader::shaders["particle"];
   shader->Use();
+  particleVao->Bind();
+  //glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+}
 
-  glm::mat4 vp = CameraSystem::GetViewProj();
+void Renderer::RenderParticleEmitter(const Components::ParticleEmitter& emitter, const Components::Transform& model)
+{
+  auto& shader = Shader::shaders["particle"];
+
   const auto& v = CameraSystem::GetView();
-  glm::mat4 md = glm::translate(glm::scale(glm::mat4(1), model.GetScale()), model.GetTranslation());
-  //glm::mat4 md = model.GetModel() * glm::inverse(glm::mat4_cast(model.GetRotation()));
-  shader->setMat4("u_viewProj", vp);
-  //shader->setMat4("u_model", md);
+  shader->setMat4("u_viewProj", CameraSystem::GetViewProj());
   shader->setInt("u_sprite", 0);
   shader->setVec3("u_cameraRight", v[0][0], v[1][0], v[2][0]);
   shader->setVec3("u_cameraUp", v[0][1], v[1][1], v[2][1]);
   emitter.texture->Bind(0);
   emitter.particleBuffer->Bind<GFX::Target::SSBO>(0);
 
-  //glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-  particleVao->Bind();
-  glDrawArraysInstanced(GL_TRIANGLE_FAN, 0, 4, emitter.numParticles);
-  particleVao->Unbind();
-  emitter.particleBuffer->Unbind<GFX::Target::SSBO>();
-  shader->Unuse();
-  glEnable(GL_CULL_FACE);
-  glDepthMask(GL_TRUE);
+  glDrawArraysInstanced(GL_TRIANGLE_FAN, 0, 4, emitter.maxParticles);
 }
 
 void Renderer::Init()
@@ -238,35 +235,7 @@ void Renderer::Init()
   glVertexArrayVertexBuffer(batchVAO->GetID(), 0, vertexBuffer->GetGPUHandle(), 0, sizeof(Vertex));
   glVertexArrayElementBuffer(batchVAO->GetID(), indexBuffer->GetGPUHandle());
 
-  //GLfloat vertices[] =
-  //{
-  //  -.5, -.5, 0,   0, 0,
-  //   .5,  .5, 0,   1, 1,
-  //  -.5,  .5, 0,   0, 1,
-  //  -.5, -.5, 0,   0, 0,
-  //   .5, -.5, 0,   1, 0,
-  //   .5,  .5, 0,   1, 1
-  //};
-  //GLfloat vertices[] =
-  //{
-  //   0.5f,  0.5f, 0.0f, 1.0f, 1.0f,
-  //   0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
-  //  -0.5f, -0.5f, 0.0f, 0.0f, 0.0f,
-  //  -0.5f,  0.5f, 0.0f, 0.0f, 1.0f
-  //};
-  //particleVertices = std::make_unique<GFX::StaticBuffer>(vertices, sizeof(vertices));
-  //particleVertices = std::make_unique<GFX::StaticBuffer>(nullptr, 0);
   particleVao = std::make_unique<GFX::VAO>();
-  //glEnableVertexArrayAttrib(particleVao->GetID(), 0); // pos
-  //glEnableVertexArrayAttrib(particleVao->GetID(), 1); // uv
-
-  //glVertexArrayAttribFormat(particleVao->GetID(), 0, 3, GL_FLOAT, GL_FALSE, 0);
-  //glVertexArrayAttribFormat(particleVao->GetID(), 1, 2, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat));
-
-  //glVertexArrayAttribBinding(particleVao->GetID(), 0, 0);
-  //glVertexArrayAttribBinding(particleVao->GetID(), 1, 0);
-
-  //glVertexArrayVertexBuffer(particleVao->GetID(), 0, particleVertices->GetID(), 0, 5 * sizeof(GLfloat));
 
   /*Layout layout = Window::layout;
 
@@ -313,6 +282,10 @@ void Renderer::CompileShaders()
   //Shader::shaders["chunk_splat"] = new Shader("chunk_splat.vs", "chunk_splat.fs");
   Shader::shaders["compact_batch"].emplace(Shader(
     { { "compact_batch.cs", GL_COMPUTE_SHADER } }));
+  Shader::shaders["update_particle_emitter"].emplace(Shader(
+    { { "update_particle_emitter.cs", GL_COMPUTE_SHADER } }));
+  Shader::shaders["update_particle"].emplace(Shader(
+    { { "update_particle.cs", GL_COMPUTE_SHADER } }));
   //Shader::shaders["compact_batch"] = new Shader(0, "compact_batch.cs");
   Shader::shaders["textured_array"].emplace(Shader(
     {

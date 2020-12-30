@@ -250,13 +250,13 @@ void OnStart(Scene* scene)
       //mesh.renderFlag = (uint64_t)RenderFlags::NoRender;
       entity.AddComponent<Components::Material>().handle = batchMaterial;
       //entity.AddComponent<Components::NativeScriptComponent>().Bind<TestObj>();
-      Components::ParticleEmitter emitter(50000, "stone.png");
+      Components::ParticleEmitter emitter(150, "stone.png");
 #if 1
       emitter.minLife = 1.0f;
       emitter.maxLife = 2.0f;
-      emitter.interval = .00005;
-      emitter.minParticleAccel = { -8, -4, -2 };
-      emitter.maxParticleAccel = { 8, -10, 2 };
+      emitter.interval = .01;
+      emitter.minParticleAccel = { -1, -1, -1 };
+      emitter.maxParticleAccel = { 1, 1, 1 };
       emitter.minParticleScale = { .01, .01 };
       emitter.maxParticleScale = { .05, .05 };
       emitter.minParticleColor = { .75, .75, 0, .4 };

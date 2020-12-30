@@ -33,13 +33,13 @@ void DebugSystem::StartFrame(Scene& scene, float dt)
 void DebugSystem::Update(Scene& scene, float dt)
 {
   {
-    ImGui::Begin("Graphs", 0, activeCursor ? 0 : ImGuiWindowFlags_NoMouseInputs);
+    ImGui::Begin("Graphs");
     ImGui::PlotVar("Frametime (ms)", dt * 1000.0, 0, .05 * 1000, 240, ImVec2(300, 100));
     ImGui::End();
   }
 
   {
-    ImGui::Begin("Stuff", 0, activeCursor ? 0 : ImGuiWindowFlags_NoMouseInputs);
+    ImGui::Begin("Stuff");
 
     static int fakeLag = 0;
     static double frameTimeExp = 0;
@@ -52,7 +52,9 @@ void DebugSystem::Update(Scene& scene, float dt)
 
     ImGui::SliderInt("Fake Lag", &fakeLag, 0, 50, "%d ms");
     if (fakeLag > 0)
+    {
       std::this_thread::sleep_for(std::chrono::milliseconds(fakeLag));
+    }
 
     ImGui::End();
   }

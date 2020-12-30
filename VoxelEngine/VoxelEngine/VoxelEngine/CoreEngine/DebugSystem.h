@@ -14,6 +14,5 @@ public:
   void EndFrame(Scene& scene, float dt);
 
 private:
-  bool activeCursor = false;
   GLFWwindow* window;
 };

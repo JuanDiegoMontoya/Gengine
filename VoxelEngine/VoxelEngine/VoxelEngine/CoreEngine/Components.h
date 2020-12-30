@@ -146,7 +146,7 @@ namespace Components
     const auto& GetTranslation() const { return translation; }
     const auto& GetRotation() const { return rotation; }
     const auto& GetScale() const { return scale; }
-    const auto& GetModel() const
+    auto GetModel() const
     {
       /*return model;*/
       return glm::translate(glm::mat4(1), translation) * glm::mat4_cast(rotation) * glm::scale(glm::mat4(1), scale);
@@ -206,12 +206,12 @@ namespace Components
 
     void AddCullingFlag(RenderFlags renderFlag)
     {
-        cullingMask |= (uint64_t)renderFlag;
+      cullingMask |= (uint64_t)renderFlag;
     }
 
     void RemoveCullingFlag(RenderFlags renderFlag)
     {
-        cullingMask &= ~(uint64_t)renderFlag;
+      cullingMask &= ~(uint64_t)renderFlag;
     }
 
     void SetPos(glm::vec3 pos) { translation = pos; }
@@ -224,18 +224,18 @@ namespace Components
 
     const auto& GetWorldPos()
     {
-        Transform& tr = entity.GetComponent<Components::Transform>();
-        return tr.GetTranslation() + translation;
+      Transform& tr = entity.GetComponent<Components::Transform>();
+      return tr.GetTranslation() + translation;
     }
 
-    const auto& GetLocalPos()  { return translation; }
+    const auto& GetLocalPos() { return translation; }
 
     const auto& GetForward()
     {
-        dir.x = cos(glm::radians(pitch_)) * cos(glm::radians(yaw_));
-        dir.y = sin(glm::radians(pitch_));
-        dir.z = cos(glm::radians(pitch_)) * sin(glm::radians(yaw_));
-        return dir;
+      dir.x = cos(glm::radians(pitch_)) * cos(glm::radians(yaw_));
+      dir.y = sin(glm::radians(pitch_));
+      dir.z = cos(glm::radians(pitch_)) * sin(glm::radians(yaw_));
+      return dir;
     }
 
     glm::vec3	dir{ 0 };
@@ -262,33 +262,56 @@ namespace Components
 
   struct ParticleEmitter
   {
-    // std430 layout
-    struct Particle
+    struct Particle // std430 layout
     {
-      glm::vec4 pos{};
-      glm::vec4 velocity{};
-      glm::vec4 accel{};
-      glm::vec4 color{};
-      float life{};
-      int alive{};
-      glm::vec2 scale{};
+      glm::vec4 pos{ -1 };
+      glm::vec4 velocity{ 1 };
+      glm::vec4 accel{ 1 };
+      glm::vec4 color{ 0 };
+      float life{ 0 };
+      int alive{ 0 };
+      glm::vec2 scale{ 1 };
     };
+
+
 
     ParticleEmitter(uint32_t maxp, std::string tex) : maxParticles(maxp)
     {
       auto tp = std::make_unique<Particle[]>(maxParticles);
       particleBuffer = std::make_unique<GFX::StaticBuffer>(tp.get(), sizeof(Particle) * maxParticles,
-        GFX::BufferFlag::MAP_PERSISTENT |
-        GFX::BufferFlag::MAP_COHERENT |
-        GFX::BufferFlag::DYNAMIC_STORAGE |
-        GFX::BufferFlag::MAP_READ |
-        GFX::BufferFlag::MAP_WRITE);
-      particles = reinterpret_cast<Particle*>(particleBuffer->GetMappedPointer());
+        GFX::BufferFlag::DYNAMIC_STORAGE);
 
+#if 0
+      const size_t bytes = sizeof(int32_t) + maxParticles * sizeof(int32_t);
+      uint8_t* mem = new uint8_t[bytes];
+      reinterpret_cast<int32_t&>(mem[0]) = maxParticles;
+      int32_t val = 0;
+      for (size_t i = sizeof(int32_t); i < bytes; i += sizeof(int32_t))
+      {
+        reinterpret_cast<int32_t&>(mem[i]) = val++;
+      }
+      freeStackBuffer = std::make_unique<GFX::StaticBuffer>(mem, bytes,
+        GFX::BufferFlag::DYNAMIC_STORAGE | GFX::BufferFlag::CLIENT_STORAGE);
+      delete[] mem;
+#else
+      const size_t bytes = maxParticles * sizeof(int32_t);
+      uint8_t* mem = new uint8_t[bytes];
+      int32_t val = 0;
+      for (size_t i = 0; i < bytes; i += sizeof(int32_t))
+      {
+        reinterpret_cast<int32_t&>(mem[i]) = val++;
+      }
+      freeStackBuffer = std::make_unique<GFX::StaticBuffer>(mem, bytes);
+      delete[] mem;
+      int32_t num = maxParticles;
+      freeStackCount = std::make_unique<GFX::StaticBuffer>(&num, sizeof(int32_t),
+        GFX::BufferFlag::DYNAMIC_STORAGE | GFX::BufferFlag::CLIENT_STORAGE);
+#endif
       texture = std::make_unique<GFX::Texture2D>(tex);
     }
 
     ParticleEmitter(ParticleEmitter&& rhs) noexcept
+      : maxParticles(rhs.maxParticles)
     {
       minParticleOffset = std::move(rhs.minParticleOffset);
       maxParticleOffset = std::move(rhs.maxParticleOffset);
@@ -305,13 +328,12 @@ namespace Components
       minLife = std::move(rhs.minLife);
       maxLife = std::move(rhs.maxLife);
       numParticles = std::move(rhs.numParticles);
-      particles = std::move(rhs.particles);
       renderFlag = std::move(rhs.renderFlag);
       particleBuffer = std::move(rhs.particleBuffer);
       freeStackBuffer = std::move(rhs.freeStackBuffer);
+      freeStackCount = std::move(rhs.freeStackCount);
       texture = std::move(rhs.texture);
-      maxParticles = std::move(rhs.maxParticles);
-      freedIndices = std::move(rhs.freedIndices);
+      //maxParticles = std::move(rhs.maxParticles);
     }
     ParticleEmitter& operator=(ParticleEmitter&& rhs) noexcept
     {
@@ -341,7 +363,7 @@ namespace Components
     float maxLife{ 1 };
 
     uint32_t numParticles{ 0 };
-    Particle* particles{};
+    const uint32_t maxParticles; // const
 
     uint64_t renderFlag = (uint64_t)RenderFlags::Default;
 
@@ -351,9 +373,8 @@ namespace Components
 
     std::unique_ptr<GFX::StaticBuffer> particleBuffer{};
     std::unique_ptr<GFX::StaticBuffer> freeStackBuffer{};
+    std::unique_ptr<GFX::StaticBuffer> freeStackCount{};
     std::unique_ptr<GFX::Texture2D> texture{};
-    uint32_t maxParticles; // const
-    std::queue<int> freedIndices;
   };
 
   struct Parent

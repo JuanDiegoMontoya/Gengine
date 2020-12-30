@@ -66,7 +66,9 @@ void PlayerActions::OnUpdate(float dt)
       child.AddComponent<Components::ParticleEmitter>(std::move(emitter2));
     }
   }
-  if (Input::IsKeyPressed(GLFW_KEY_E))
+
+  ImGui::Begin("Particle Emitter Settings");
+  if (ImGui::Button("Spawn Emitter"))
   {
     Entity ent = CreateEntity("Arrow");
     ent.AddComponent<Components::Transform>().SetTranslation(cam.GetWorldPos() + (cam.GetForward() * 1.5f));
@@ -74,7 +76,7 @@ void PlayerActions::OnUpdate(float dt)
     ent.AddComponent<Components::Material>().handle = MaterialManager::GetMaterial("batchMaterial");
     auto collider = Physics::BoxCollider(glm::vec3(.5f));
     Components::DynamicPhysics phys(ent, Physics::MaterialType::TERRAIN, collider);
-    ent.AddComponent<Components::DynamicPhysics>(std::move(phys)).Interface().AddForce(cam.GetForward() * 300.f);
+    ent.AddComponent<Components::DynamicPhysics>(std::move(phys)).Interface().AddForce(cam.GetForward() * 0.f);
 
     Components::ParticleEmitter emitter(maxParticles, "smoke.png");
     emitter.minLife = minLife;
@@ -82,6 +84,8 @@ void PlayerActions::OnUpdate(float dt)
     emitter.interval = interval;
     emitter.minParticleOffset = minParticleOffset;
     emitter.maxParticleOffset = maxParticleOffset;
+    emitter.minParticleVelocity = minParticleVelocity;
+    emitter.maxParticleVelocity = maxParticleVelocity;
     emitter.minParticleAccel = minParticleAccel;
     emitter.maxParticleAccel = maxParticleAccel;
     emitter.minParticleScale = minParticleScale;
@@ -90,10 +94,12 @@ void PlayerActions::OnUpdate(float dt)
     emitter.maxParticleColor = maxParticleColor;
     ent.AddComponent<Components::ParticleEmitter>(std::move(emitter));
   }
-
-  ImGui::Begin("Particle Emitter Settings");
   ImGui::DragInt("Max particles", &maxParticles, 100, 0, 1'000'000);
-  ImGui::DragFloat("Interval", &interval, .003f, 0.000001f, 1.f, "%.6f", 2.f);
+  if (ImGui::Button("Compute interval"))
+  {
+    interval = ((maxLife + minLife) / 2.0f) / maxParticles;
+  }
+  ImGui::DragFloat("Interval", &interval, .003f, 0.00000001f, 1.f, "%.8f", 2.f);
   ImGui::DragFloat4("Min color", glm::value_ptr(minParticleColor), 0.01f, 0.f, 1.f);
   ImGui::DragFloat4("Max color", glm::value_ptr(maxParticleColor), 0.01f, 0.f, 1.f);
   ImGui::DragFloat("Min life", &minLife, .05f, 0.f, 5.f);

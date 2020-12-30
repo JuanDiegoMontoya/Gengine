@@ -1,40 +1,43 @@
 #version 460 core
 
 #include "particle.h"
-#include "DrawArraysCommand.h"
-layout (std430, binding = 0) buffer data
+#include "noise.h"
+
+struct EmitterSettings
+{
+  float minLife;
+  float maxLife;
+  vec3 minParticleOffset;
+  vec3 maxParticleOffset;
+  vec3 minParticleVelocity;
+  vec3 maxParticleVelocity;
+  vec3 minParticleAccel;
+  vec3 maxParticleAccel;
+  vec2 minParticleScale;
+  vec2 maxParticleScale;
+  vec4 minParticleColor;
+  vec4 maxParticleColor;
+};
+
+layout (std430, binding = 0) coherent buffer data
 {
   Particle particles[];
 };
 
 layout (std430, binding = 1) coherent buffer stack
 {
-  DrawArraysCommand cmd;
-  int freeCount;
-  uint indices[];
+  int indices[];
 };
 
-layout (std430, binding = 2) buffer emitter
+layout (std430, binding = 2) coherent buffer count
 {
-  coherent uint numParticles;
-  readonly int maxParticles;
-  readonly float minLife;
-  readonly float maxLife;
-  readonly vec4 minParticleOffset;
-  readonly vec4 maxParticleOffset;
-  readonly vec4 minParticleVelocity;
-  readonly vec4 maxParticleVelocity;
-  readonly vec4 minParticleAccel;
-  readonly vec4 maxParticleAccel;
-  readonly vec2 minParticleScale;
-  readonly vec2 maxParticleScale;
-  readonly vec4 minParticleColor;
-  readonly vec4 maxParticleColor;
-}
+  int freeCount;
+};
 
-uniform int u_particlesToSpawn;
-uniform float u_time;
-uniform mat4 u_model;
+layout (location = 0) uniform int u_particlesToSpawn;
+layout (location = 1) uniform float u_time;
+layout (location = 2) uniform mat4 u_model;
+layout (location = 3) uniform EmitterSettings u_emitter; // also uses the next 11 uniform locations (12 total)
 
 float map(float val, float r1s, float r1e, float r2s, float r2e)
 {
@@ -52,7 +55,7 @@ vec4 map(vec4 val, vec4 r1s, vec4 r1e, vec4 r2s, vec4 r2e)
 {
   return (val - r1s) / (r1e - r1s) * (r2e - r2s) + r2s;
 }
-float tseed = 0.0;
+float tseed = 5.0;
 float rng(float low, float high)
 {
   tseed += 1.0;
@@ -71,33 +74,19 @@ vec4 rng(vec4 low, vec4 high)
   return vec4(rng(low.xyz, high.xyz), rng(low.w, high.w));
 }
 
-void MakeParticle(out Particle particle)
+Particle MakeParticle()
 {
-  // particle.velocity.x = rng(minParticleVelocity.x, maxParticleVelocity.x);
-  // particle.velocity.y = rng(minParticleVelocity.y, maxParticleVelocity.y);
-  // particle.velocity.z = rng(minParticleVelocity.z, maxParticleVelocity.z);
-  // particle.accel.x = rng(minParticleAccel.x, maxParticleAccel.x);
-  // particle.accel.y = rng(minParticleAccel.y, maxParticleAccel.y);
-  // particle.accel.z = rng(minParticleAccel.z, maxParticleAccel.z);
-  // particle.scale.x = rng(minParticleScale.x, maxParticleScale.x);
-  // particle.scale.y = rng(minParticleScale.y, maxParticleScale.y);
-  // particle.color.r = rng(minParticleColor.r, maxParticleColor.r);
-  // particle.color.g = rng(minParticleColor.g, maxParticleColor.g);
-  // particle.color.b = rng(minParticleColor.b, maxParticleColor.b);
-  // particle.color.a = rng(minParticleColor.a, maxParticleColor.a);
-  // particle.pos.x = rng(minParticleOffset.x, maxParticleOffset.x);
-  // particle.pos.y = rng(minParticleOffset.y, maxParticleOffset.y);
-  // particle.pos.z = rng(minParticleOffset.z, maxParticleOffset.z);
-  // glm::mat4 md = glm::translate(glm::scale(glm::mat4(1), transform.GetScale()), transform.GetTranslation());
-  particle.life = rng(minLife, maxLife);
+  Particle particle;
   particle.alive = 1;
-  particle.velocity.xyz = rng(minParticleVelocity.xyz, maxParticleVelocity.xyz);
-  particle.accel.xyz = rng(minParticleAccel.xyz, maxParticleAccel.xyz);
-  particle.scale.xy = rng(minParticleScale.xy, maxParticleScale.xy);
-  particle.color.rgba = rng(minParticleColor.rgba, maxParticleColor.rgba);
-  particle.pos.xyz = rng(minParticleOffset.xyz, maxParticleOffset.xyz);
-  particle.pos.w = 1.0f;
-  particle.pos = u_model * particle.pos;
+  particle.life = rng(u_emitter.minLife, u_emitter.maxLife);
+  particle.velocity.xyz = rng(u_emitter.minParticleVelocity.xyz, u_emitter.maxParticleVelocity.xyz);
+  particle.accel.xyz = rng(u_emitter.minParticleAccel.xyz, u_emitter.maxParticleAccel.xyz);
+  particle.scale.xy = rng(u_emitter.minParticleScale.xy, u_emitter.maxParticleScale.xy);
+  particle.color.rgba = rng(u_emitter.minParticleColor.rgba, u_emitter.maxParticleColor.rgba);
+  vec3 pos = rng(u_emitter.minParticleOffset.xyz, u_emitter.maxParticleOffset.xyz);
+  particle.pos = u_model * vec4(pos, 1.0);
+
+  return particle;
 }
 
 layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
@@ -108,22 +97,15 @@ void main()
 
   for (uint i = start; i < u_particlesToSpawn; i += stride)
   {
-    // undo increment and return if max particles reached
-    int num = atomicAdd(numParticles, 1);
-    if (num > maxParticles)
+    // undo decrement and use end of array if nothing in freelist
+    int indexIndex = atomicAdd(freeCount, -1) - 1;
+    if (indexIndex < 0)
     {
-      atomicAdd(numParticles, -1);
+      atomicAdd(freeCount, 1);
       return;
     }
 
-    // undo decrement and use end of array if nothing in freelist
-    int newParticleIndex = atomicAdd(freeCount, -1);
-    if (newParticleIndex < 0)
-    {
-      atomicAdd(freeCount, 1);
-      newParticleIndex = num;
-    }
-
-    MakeParticle(particles[newParticleIndex]);
+    particles[indices[indexIndex]] = MakeParticle();
+    indices[indexIndex] = 9001;
   }
 }

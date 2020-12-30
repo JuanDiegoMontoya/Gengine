@@ -22,6 +22,7 @@ public:
   static void BeginBatch(uint32_t size);
   static void Submit(const Components::Transform& model, const Components::BatchedMesh& mesh, const Components::Material& mat);
   static void RenderBatch();
+  static void BeginRenderParticleEmitter();
   static void RenderParticleEmitter(const Components::ParticleEmitter& emitter, const Components::Transform& model);
 
   // generic drawing functions (TODO: move)
@@ -63,7 +64,4 @@ private:
   static inline std::atomic_uint32_t cmdIndex{ 0 };
 
   static inline std::unique_ptr<GFX::VAO> particleVao;
-  static inline std::unique_ptr<GFX::StaticBuffer> particleVertices;
-
-  static inline std::unique_ptr<GFX::Fence> particleFence;
 };

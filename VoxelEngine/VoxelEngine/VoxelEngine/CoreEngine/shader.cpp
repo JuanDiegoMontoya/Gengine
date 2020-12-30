@@ -315,7 +315,7 @@ void Shader::initUniforms()
       pname1[written - 3] = '\0';
     GLint loc = glGetUniformLocation(programID, pname1);
     Uniforms.emplace(pname1, loc);
-    delete[] pname1;
+    //delete[] pname1;
   }
 
   delete[] pname;

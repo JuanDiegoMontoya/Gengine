@@ -1,38 +1,37 @@
 #version 460 core
 
 #include "particle.h"
-#include "DrawArraysCommand.h"
-layout (std430, binding = 0) buffer data
+layout (std430, binding = 0) coherent buffer data
 {
   Particle particles[];
 };
 
-layout (std430, binding = 1) buffer stack
+layout (std430, binding = 1) coherent buffer stack
 {
-  DrawArraysCommand cmd;
-  int freeCount;
-  uint indices[];
+  int indices[];
 };
 
-uniform float u_dt;
+layout (std430, binding = 2) coherent buffer count
+{
+  int freeCount;
+};
+
+uniform float u_dt = 0.001;
 
 void UpdateParticle(inout Particle particle, int i)
 {
-  if (particle.alive)
+  if (particle.alive != 0)
   {
-    particle.life -= u_dt;
     particle.velocity += particle.accel * u_dt;
     particle.pos += particle.velocity * u_dt;
-    if (particle.life < 0)
+    if (particle.life <= 0.0)
     {
-      particle.color.a = 0;
+      particle.color = vec4(0.0, 1.0, 1.0, 0.0);
       particle.alive = 0;
-      //emitter.numParticles--;
-      //emitter.freedIndices.push(i);
-      atomicAdd(cmd.instanceCount, -1);
       int index = atomicAdd(freeCount, 1);
       indices[index] = i;
     }
+    particle.life -= u_dt;
   }
 }
 
@@ -41,10 +40,9 @@ void main()
 {
   uint start = gl_GlobalInvocationID.x;
   uint stride = gl_NumWorkGroups.x * gl_WorkGroupSize.x;
-  //uint particlesPerThread = 
 
-  for (uint i = start; i < particles.length(); i += stride)
+  for (int i = int(start); i < particles.length(); i += int(stride))
   {
-    UpdateParticle(particles[i], i);
+    UpdateParticle(particles[i], int(i));
   }
 }

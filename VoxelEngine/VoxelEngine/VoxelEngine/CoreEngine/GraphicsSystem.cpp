@@ -142,13 +142,12 @@ void GraphicsSystem::DrawTransparent(Scene& scene, float dt)
       }
     }
     std::sort(emitters.begin(), emitters.end(), compare);
+    Renderer::BeginRenderParticleEmitter();
     for (const auto& [emitter, transform] : emitters)
     {
       Renderer::RenderParticleEmitter(*emitter, *transform);
     }
   }
-
-  Renderer::particleFence.reset(new GFX::Fence());
 }
 
 void GraphicsSystem::EndFrame()
