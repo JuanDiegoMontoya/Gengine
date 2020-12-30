@@ -6,6 +6,7 @@
 #include <Utilities/Timer.h>
 #include <Voxels/VoxelManager.h>
 #include <Voxels/prefab.h>
+#include <FastNoise2/include/FastNoise/FastNoise.h>
 
 namespace
 {
@@ -59,6 +60,12 @@ void WorldGen::GenerateWorld()
   //noisey->SetPerturbAmp(0.4);
   //noisey->SetPerturbFrequency(0.4);
 
+  //FastNoise::SmartNode<> fnGenerator = FastNoise::NewFromEncodedNodeTree("GgAUAMP1KD8NAAQAAAAAAFBACQAAmpmZPgEEAAAAAAAAAJBBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+  //FastNoise::SmartNode<> fnGenerator = FastNoise::NewFromEncodedNodeTree("IgAIABIAAgAAADMzE0ARAAAAAEAaABQAw/UoPw0ABAAAAAAAIEAJAAAAAAA/AQQAAAAAAFyPOkEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAzcxMPgBxPQo/AQcA");
+  FastNoise::SmartNode<> fnGenerator = FastNoise::NewFromEncodedNodeTree("GgAUAMP1KD8NAAQAAAAAAFBACQAAmpmZPgEEAAAAAAAAAJBBAAAAAAAAAAAAAAAACtcjvQAAAAAAAAAA");
+  //FastNoise::SmartNode<> fnGenerator = FastNoise::NewFromEncodedNodeTree("DQAFAAAAAAAAQAgAAAAAAD8=");
+
+
   auto& chunks = voxels.chunks_;
   std::for_each(std::execution::par, chunks.begin(), chunks.end(),
     [&](Chunk* chunk)
@@ -66,26 +73,24 @@ void WorldGen::GenerateWorld()
     if (chunk)
     {
       glm::ivec3 st = chunk->GetPos() * Chunk::CHUNK_SIZE;
-      float* noiseSet = noisey->GetCubicFractalSet(st.z, 0, st.x, 
-        Chunk::CHUNK_SIZE, 1, Chunk::CHUNK_SIZE, 1);
+      float* noiseSet = new float[Chunk::CHUNK_SIZE_CUBED];
+      //noiseSet = noisey->GetCubicFractalSet(st.z, 0, st.x, Chunk::CHUNK_SIZE, 1, Chunk::CHUNK_SIZE, 1);
+      fnGenerator->GenUniformGrid3D(noiseSet, st.x, st.y, st.z, Chunk::CHUNK_SIZE, Chunk::CHUNK_SIZE, Chunk::CHUNK_SIZE, .005, 1338);
       /*float* riverNoiseSet = noisey->GetPerlinSet(st.z, 0, st.x,
         Chunk::CHUNK_SIZE, 1, Chunk::CHUNK_SIZE, 1);*/
       //int idx = 0;
 
       //printf(".");
       glm::ivec3 pos, wpos;
+      int idx = 0;
       for (pos.z = 0; pos.z < Chunk::CHUNK_SIZE; pos.z++)
       {
-        int zcsq = pos.z * Chunk::CHUNK_SIZE;
         for (pos.y = 0; pos.y < Chunk::CHUNK_SIZE; pos.y++)
         {
-          //int yczcsq = pos.y * Chunk::CHUNK_SIZE + zcsq;
           for (pos.x = 0; pos.x < Chunk::CHUNK_SIZE; pos.x++)
           {
-            //int index = pos.x + yczcsq;
-            int idx = pos.x + zcsq;
             wpos = ChunkHelpers::chunkPosToWorldPos(pos, chunk->GetPos());
-            float waterHeight = 10.0f;
+            float waterHeight = 2.0f;
 
             //double density = noise.GetValue(wpos.x, wpos.y, wpos.z); // chunks are different
             //double density = noise.GetValue(pos.x, pos.y, pos.z); // same chunk every time
@@ -95,41 +100,46 @@ void WorldGen::GenerateWorld()
             //  voxels.SetBlockType(wpos, BlockType::bStone);
             //continue;
 
-            float height = (noiseSet[idx] + .1f) * 100;
+            //float height = (noiseSet[idx] + .1f) * 10;
+            float density = noiseSet[idx++];
+            if (density < .0)
+            {
+              voxels.SetBlockType(wpos, BlockType::bGrass);
+            }
             /*if (wpos.y < height)
             {
                 voxels.SetBlockType(wpos, BlockType::bGrass);
                 if (Utils::noise(pos) < .05f)
                     voxels.SetBlockType(wpos, BlockType::bDirt);
             }*/
-            if (wpos.y < height && wpos.y >= (height - 1))
-            {
-              voxels.SetBlockType(wpos, BlockType::bGrass);
-              if (Utils::noise(pos) < .01f)
-              {
-                voxels.SetBlockType(wpos, BlockType::bDirt);
-                if (height > waterHeight)
-                {
-                  Prefab prefab = PrefabManager::GetPrefab("OakTree");
-                  glm::ivec3 offset = { 0, 1, 0 };
-                  for (unsigned i = 0; i < prefab.blocks.size(); i++)
-                  {
-                    if (auto block = voxels.TryGetBlock(wpos + offset + prefab.blocks[i].first))
-                      if (prefab.blocks[i].second.GetPriority() >= block->GetPriority())
-                        voxels.SetBlockType(wpos + offset + prefab.blocks[i].first, prefab.blocks[i].second.GetType());
-                  }
-                }
-              }
-            }
-            if (wpos.y < (height - 1))
-            {
-                voxels.SetBlockType(wpos, BlockType::bDirt);
-                if (Utils::noise(pos) < .01f)
-                    voxels.SetBlockType(wpos, BlockType::bStone);
-            }
+            //if (wpos.y < height && wpos.y >= (height - 1))
+            //{
+            //  voxels.SetBlockType(wpos, BlockType::bGrass);
+            //  if (Utils::noise(pos) < .01f)
+            //  {
+            //    voxels.SetBlockType(wpos, BlockType::bDirt);
+            //    if (height > waterHeight)
+            //    {
+            //      Prefab prefab = PrefabManager::GetPrefab("OakTree");
+            //      glm::ivec3 offset = { 0, 1, 0 };
+            //      for (unsigned i = 0; i < prefab.blocks.size(); i++)
+            //      {
+            //        if (auto block = voxels.TryGetBlock(wpos + offset + prefab.blocks[i].first))
+            //          if (prefab.blocks[i].second.GetPriority() >= block->GetPriority())
+            //            voxels.SetBlockType(wpos + offset + prefab.blocks[i].first, prefab.blocks[i].second.GetType());
+            //      }
+            //    }
+            //  }
+            //}
+            //if (wpos.y < (height - 1))
+            //{
+            //    voxels.SetBlockType(wpos, BlockType::bDirt);
+            //    if (Utils::noise(pos) < .01f)
+            //        voxels.SetBlockType(wpos, BlockType::bStone);
+            //}
 
-            if (wpos.y >= height && wpos.y <= waterHeight)
-              voxels.SetBlockType(wpos, BlockType::bBglass);
+            //if (wpos.y >= height && wpos.y <= waterHeight)
+            //  voxels.SetBlockType(wpos, BlockType::bBglass);
 
             //if (density < -.02)
             //{
@@ -149,7 +159,8 @@ void WorldGen::GenerateWorld()
         }
       }
 
-      FastNoiseSIMD::FreeNoiseSet(noiseSet);
+      //FastNoiseSIMD::FreeNoiseSet(noiseSet);
+      delete[] noiseSet;
     }
     else
     {

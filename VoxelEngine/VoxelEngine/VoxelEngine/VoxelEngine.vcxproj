@@ -477,12 +477,12 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(ProjectDir)3rdParty\assimp-3.3.1\include;$(ProjectDir)3rdParty;$(ProjectDir)3rdParty\shaderc\include;$(ProjectDir)3rdParty\glew-2.1.0\include;$(ProjectDir);$(ProjectDir)3rdParty\entt\src;$(ProjectDir)3rdParty\stb;$(ProjectDir)3rdParty\glfw-3.3-win64\include;$(ProjectDir)3rdParty\cereal-1.2.2\include;$(ProjectDir)3rdParty\PhysX\include;$(ProjectDir)3rdParty\PhysX\sharedinclude;$(ProjectDir)3rdParty\zlib-1.2.11;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)3rdParty\assimp-3.3.1\include;$(ProjectDir)3rdParty;$(ProjectDir)3rdParty\shaderc\include;$(ProjectDir)3rdParty\glew-2.1.0\include;$(ProjectDir);$(ProjectDir)3rdParty\entt\src;$(ProjectDir)3rdParty\stb;$(ProjectDir)3rdParty\glfw-3.3-win64\include;$(ProjectDir)3rdParty\cereal-1.2.2\include;$(ProjectDir)3rdParty\PhysX\include;$(ProjectDir)3rdParty\PhysX\sharedinclude;$(ProjectDir)3rdParty\zlib-1.2.11;$(ProjectDir)3rdParty\FastNoise2\include;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
     <PreBuildEventUseInBuild>false</PreBuildEventUseInBuild>
     <CustomBuildBeforeTargets>
     </CustomBuildBeforeTargets>
     <CustomBuildAfterTargets>PreBuildEvent</CustomBuildAfterTargets>
-    <LibraryPath>$(ProjectDir)3rdParty\assimp-3.3.1\lib\x64;$(ProjectDir)3rdParty\glew-2.1.0\lib\Release\x64;$(ProjectDir)3rdParty\glfw-3.3-win64\lib-vc2019;$(ProjectDir)3rdParty\shaderc\lib;$(ProjectDir)3rdParty\zlib-1.2.11\zlib123dllx64\static_x64;$(ProjectDir)3rdParty\PhysX\bin\x64\debug;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(ProjectDir)3rdParty\assimp-3.3.1\lib\x64;$(ProjectDir)3rdParty\glew-2.1.0\lib\Release\x64;$(ProjectDir)3rdParty\glfw-3.3-win64\lib-vc2019;$(ProjectDir)3rdParty\shaderc\lib;$(ProjectDir)3rdParty\zlib-1.2.11\zlib123dllx64\static_x64;$(ProjectDir)3rdParty\PhysX\bin\x64\debug;$(ProjectDir)3rdParty\FastNoise2\bin\Debug;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -494,12 +494,12 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(ProjectDir)3rdParty\assimp-3.3.1\include;$(ProjectDir)3rdParty;$(ProjectDir)3rdParty\shaderc\include;$(ProjectDir)3rdParty\glew-2.1.0\include;$(ProjectDir);$(ProjectDir)3rdParty\entt\src;$(ProjectDir)3rdParty\stb;$(ProjectDir)3rdParty\glfw-3.3-win64\include;$(ProjectDir)3rdParty\cereal-1.2.2\include;$(ProjectDir)3rdParty\PhysX\include;$(ProjectDir)3rdParty\PhysX\sharedinclude;$(ProjectDir)3rdParty\zlib-1.2.11;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)3rdParty\assimp-3.3.1\include;$(ProjectDir)3rdParty;$(ProjectDir)3rdParty\shaderc\include;$(ProjectDir)3rdParty\glew-2.1.0\include;$(ProjectDir);$(ProjectDir)3rdParty\entt\src;$(ProjectDir)3rdParty\stb;$(ProjectDir)3rdParty\glfw-3.3-win64\include;$(ProjectDir)3rdParty\cereal-1.2.2\include;$(ProjectDir)3rdParty\PhysX\include;$(ProjectDir)3rdParty\PhysX\sharedinclude;$(ProjectDir)3rdParty\zlib-1.2.11;$(ProjectDir)3rdParty\FastNoise2\include;$(IncludePath)</IncludePath>
     <PreBuildEventUseInBuild>false</PreBuildEventUseInBuild>
     <CustomBuildBeforeTargets>
     </CustomBuildBeforeTargets>
     <CustomBuildAfterTargets>PreBuildEvent</CustomBuildAfterTargets>
-    <LibraryPath>$(ProjectDir)3rdParty\assimp-3.3.1\lib\x64;$(ProjectDir)3rdParty\glew-2.1.0\lib\Release\x64;$(ProjectDir)3rdParty\glfw-3.3-win64\lib-vc2019;$(ProjectDir)3rdParty\shaderc\lib;$(ProjectDir)3rdParty\zlib-1.2.11\zlib123dllx64\static_x64;$(ProjectDir)3rdParty\PhysX\bin\x64\debug;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(ProjectDir)3rdParty\assimp-3.3.1\lib\x64;$(ProjectDir)3rdParty\glew-2.1.0\lib\Release\x64;$(ProjectDir)3rdParty\glfw-3.3-win64\lib-vc2019;$(ProjectDir)3rdParty\shaderc\lib;$(ProjectDir)3rdParty\zlib-1.2.11\zlib123dllx64\static_x64;$(ProjectDir)3rdParty\PhysX\bin\x64\debug;$(ProjectDir)3rdParty\FastNoise2\bin\Release;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -548,7 +548,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>opengl32.lib;glfw3dll.lib;glew32.lib;shaderc_combined.lib;zlibstat.lib;ws2_32.lib;assimp.lib;LowLevel_static_64.lib;LowLevelAABB_static_64.lib;LowLevelDynamics_static_64.lib;PhysX_64.lib;PhysXCommon_64.lib;PhysXFoundation_64.lib;PhysXPvdSDK_static_64.lib;PhysXTask_static_64.lib;SceneQuery_static_64.lib;SimulationController_static_64.lib;PhysXCooking_64.lib;PhysXExtensions_static_64.lib;PhysXCharacterKinematic_static_64.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;glfw3dll.lib;glew32.lib;shaderc_combined.lib;zlibstat.lib;ws2_32.lib;assimp.lib;LowLevel_static_64.lib;LowLevelAABB_static_64.lib;LowLevelDynamics_static_64.lib;PhysX_64.lib;PhysXCommon_64.lib;PhysXFoundation_64.lib;PhysXPvdSDK_static_64.lib;PhysXTask_static_64.lib;SceneQuery_static_64.lib;SimulationController_static_64.lib;PhysXCooking_64.lib;PhysXExtensions_static_64.lib;PhysXCharacterKinematic_static_64.lib;FastNoise.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
       <Command>
@@ -633,7 +633,7 @@ copy "$(ProjectDir)3rdParty\PhysX\bin\x64\debug\PhysXDevice64.dll" "$(TargetDir)
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>opengl32.lib;glfw3dll.lib;glew32.lib;shaderc_combined.lib;zlibstat.lib;ws2_32.lib;assimp.lib;LowLevel_static_64.lib;LowLevelAABB_static_64.lib;LowLevelDynamics_static_64.lib;PhysX_64.lib;PhysXCommon_64.lib;PhysXFoundation_64.lib;PhysXPvdSDK_static_64.lib;PhysXTask_static_64.lib;SceneQuery_static_64.lib;SimulationController_static_64.lib;PhysXCooking_64.lib;PhysXExtensions_static_64.lib;PhysXCharacterKinematic_static_64.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;glfw3dll.lib;glew32.lib;shaderc_combined.lib;zlibstat.lib;ws2_32.lib;assimp.lib;LowLevel_static_64.lib;LowLevelAABB_static_64.lib;LowLevelDynamics_static_64.lib;PhysX_64.lib;PhysXCommon_64.lib;PhysXFoundation_64.lib;PhysXPvdSDK_static_64.lib;PhysXTask_static_64.lib;SceneQuery_static_64.lib;SimulationController_static_64.lib;PhysXCooking_64.lib;PhysXExtensions_static_64.lib;PhysXCharacterKinematic_static_64.lib;FastNoise.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
       <Command>
