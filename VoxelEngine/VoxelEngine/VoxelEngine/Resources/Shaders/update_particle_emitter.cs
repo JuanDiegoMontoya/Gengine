@@ -19,19 +19,15 @@ struct EmitterSettings
   vec4 maxParticleColor;
 };
 
-layout (std430, binding = 0) coherent buffer data
+layout (std430, binding = 0) buffer data
 {
   Particle particles[];
 };
 
 layout (std430, binding = 1) coherent buffer stack
 {
-  int indices[];
-};
-
-layout (std430, binding = 2) coherent buffer count
-{
   int freeCount;
+  int indices[];
 };
 
 layout (location = 0) uniform int u_particlesToSpawn;
@@ -97,7 +93,7 @@ void main()
 
   for (uint i = start; i < u_particlesToSpawn; i += stride)
   {
-    // undo decrement and use end of array if nothing in freelist
+    // undo decrement and return if nothing in freelist
     int indexIndex = atomicAdd(freeCount, -1) - 1;
     if (indexIndex < 0)
     {
@@ -106,6 +102,5 @@ void main()
     }
 
     particles[indices[indexIndex]] = MakeParticle();
-    indices[indexIndex] = 9001;
   }
 }

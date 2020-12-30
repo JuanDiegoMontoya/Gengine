@@ -1,22 +1,18 @@
 #version 460 core
 
 #include "particle.h"
-layout (std430, binding = 0) coherent buffer data
+layout (std430, binding = 0) buffer data
 {
   Particle particles[];
 };
 
 layout (std430, binding = 1) coherent buffer stack
 {
+  int freeCount;
   int indices[];
 };
 
-layout (std430, binding = 2) coherent buffer count
-{
-  int freeCount;
-};
-
-uniform float u_dt = 0.001;
+uniform float u_dt;
 
 void UpdateParticle(inout Particle particle, int i)
 {
@@ -26,7 +22,7 @@ void UpdateParticle(inout Particle particle, int i)
     particle.pos += particle.velocity * u_dt;
     if (particle.life <= 0.0)
     {
-      particle.color = vec4(0.0, 1.0, 1.0, 0.0);
+      particle.color.a = 0.0;
       particle.alive = 0;
       int index = atomicAdd(freeCount, 1);
       indices[index] = i;

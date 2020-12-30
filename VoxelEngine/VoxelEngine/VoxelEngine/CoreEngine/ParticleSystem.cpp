@@ -51,7 +51,6 @@ void ParticleSystem::Update(Scene& scene, float dt)
     // set a few variables in a few buffers... (emitter and particle updates can be swapped, probably)
     emitter.particleBuffer->Bind<GFX::Target::SSBO>(0);
     emitter.freeStackBuffer->Bind<GFX::Target::SSBO>(1);
-    emitter.freeStackCount->Bind<GFX::Target::SSBO>(2);
 
     emitter.timer += dt;
     unsigned particlesToSpawn = 0;
@@ -95,26 +94,22 @@ void ParticleSystem::Update(Scene& scene, float dt)
   }
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
+  // update particles in the emitter
+  auto& particle_shader = Shader::shaders["update_particle"];
+  particle_shader->Use();
+  particle_shader->setFloat("u_dt", dt);
+
+  for (entt::entity entity : view)
   {
-    // update particles in the emitter
-    auto& particle_shader = Shader::shaders["update_particle"];
-    particle_shader->Use();
-    auto view = scene.GetRegistry().view<ParticleEmitter, Transform>();
-    for (entt::entity entity : view)
+    auto [emitter, transform] = view.get<ParticleEmitter, Transform>(entity);
+
+    emitter.particleBuffer->Bind<GFX::Target::SSBO>(0);
+    emitter.freeStackBuffer->Bind<GFX::Target::SSBO>(1);
+
     {
-      auto [emitter, transform] = view.get<ParticleEmitter, Transform>(entity);
-
-      emitter.particleBuffer->Bind<GFX::Target::SSBO>(0);
-      emitter.freeStackBuffer->Bind<GFX::Target::SSBO>(1);
-      emitter.freeStackCount->Bind<GFX::Target::SSBO>(2);
-
-      particle_shader->setFloat("u_dt", dt);
-
-      {
-        int numGroupsa = (emitter.maxParticles + localSize - 1) / localSize;
-        glDispatchCompute(numGroupsa, 1, 1);
-      }
+      int numGroupsa = (emitter.maxParticles + localSize - 1) / localSize;
+      glDispatchCompute(numGroupsa, 1, 1);
     }
-    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
   }
+  glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 }

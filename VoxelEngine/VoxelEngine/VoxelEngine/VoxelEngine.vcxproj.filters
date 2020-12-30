@@ -459,6 +459,9 @@
     <ClCompile Include="Game\PlayerActions.cpp">
       <Filter>Game</Filter>
     </ClCompile>
+    <ClCompile Include="CoreEngine\Components.cpp">
+      <Filter>CoreEngine\ECS</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Voxels\BlockStorage.inl">

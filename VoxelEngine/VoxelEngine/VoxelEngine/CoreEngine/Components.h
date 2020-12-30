@@ -7,12 +7,14 @@
 #include <CoreEngine/Material.h>
 #include <CoreEngine/Physics.h>
 
-// TODO: temp and bad
-#include "Texture2D.h"
-#include "StaticBuffer.h"
-#include <queue>
 
 struct MeshHandle;
+
+namespace GFX
+{
+  class Texture2D;
+  class StaticBuffer;
+}
 
 namespace Components
 {
@@ -262,86 +264,10 @@ namespace Components
 
   struct ParticleEmitter
   {
-    struct Particle // std430 layout
-    {
-      glm::vec4 pos{ -1 };
-      glm::vec4 velocity{ 1 };
-      glm::vec4 accel{ 1 };
-      glm::vec4 color{ 0 };
-      float life{ 0 };
-      int alive{ 0 };
-      glm::vec2 scale{ 1 };
-    };
-
-
-
-    ParticleEmitter(uint32_t maxp, std::string tex) : maxParticles(maxp)
-    {
-      auto tp = std::make_unique<Particle[]>(maxParticles);
-      particleBuffer = std::make_unique<GFX::StaticBuffer>(tp.get(), sizeof(Particle) * maxParticles,
-        GFX::BufferFlag::DYNAMIC_STORAGE);
-
-#if 0
-      const size_t bytes = sizeof(int32_t) + maxParticles * sizeof(int32_t);
-      uint8_t* mem = new uint8_t[bytes];
-      reinterpret_cast<int32_t&>(mem[0]) = maxParticles;
-      int32_t val = 0;
-      for (size_t i = sizeof(int32_t); i < bytes; i += sizeof(int32_t))
-      {
-        reinterpret_cast<int32_t&>(mem[i]) = val++;
-      }
-      freeStackBuffer = std::make_unique<GFX::StaticBuffer>(mem, bytes,
-        GFX::BufferFlag::DYNAMIC_STORAGE | GFX::BufferFlag::CLIENT_STORAGE);
-      delete[] mem;
-#else
-      const size_t bytes = maxParticles * sizeof(int32_t);
-      uint8_t* mem = new uint8_t[bytes];
-      int32_t val = 0;
-      for (size_t i = 0; i < bytes; i += sizeof(int32_t))
-      {
-        reinterpret_cast<int32_t&>(mem[i]) = val++;
-      }
-      freeStackBuffer = std::make_unique<GFX::StaticBuffer>(mem, bytes);
-      delete[] mem;
-      int32_t num = maxParticles;
-      freeStackCount = std::make_unique<GFX::StaticBuffer>(&num, sizeof(int32_t),
-        GFX::BufferFlag::DYNAMIC_STORAGE | GFX::BufferFlag::CLIENT_STORAGE);
-#endif
-      texture = std::make_unique<GFX::Texture2D>(tex);
-    }
-
-    ParticleEmitter(ParticleEmitter&& rhs) noexcept
-      : maxParticles(rhs.maxParticles)
-    {
-      minParticleOffset = std::move(rhs.minParticleOffset);
-      maxParticleOffset = std::move(rhs.maxParticleOffset);
-      minParticleVelocity = std::move(rhs.minParticleVelocity);
-      maxParticleVelocity = std::move(rhs.maxParticleVelocity);
-      minParticleAccel = std::move(rhs.minParticleAccel);
-      maxParticleAccel = std::move(rhs.maxParticleAccel);
-      minParticleScale = std::move(rhs.minParticleScale);
-      maxParticleScale = std::move(rhs.maxParticleScale);
-      minParticleColor = std::move(rhs.minParticleColor);
-      maxParticleColor = std::move(rhs.maxParticleColor);
-      timer = std::move(rhs.timer);
-      interval = std::move(rhs.interval);
-      minLife = std::move(rhs.minLife);
-      maxLife = std::move(rhs.maxLife);
-      numParticles = std::move(rhs.numParticles);
-      renderFlag = std::move(rhs.renderFlag);
-      particleBuffer = std::move(rhs.particleBuffer);
-      freeStackBuffer = std::move(rhs.freeStackBuffer);
-      freeStackCount = std::move(rhs.freeStackCount);
-      texture = std::move(rhs.texture);
-      //maxParticles = std::move(rhs.maxParticles);
-    }
-    ParticleEmitter& operator=(ParticleEmitter&& rhs) noexcept
-    {
-      if (&rhs == this) return *this;
-      return *new (this) ParticleEmitter(std::move(rhs));
-    }
+    ParticleEmitter(uint32_t maxp, std::string tex);
+    ParticleEmitter(ParticleEmitter&& rhs) noexcept;
+    ParticleEmitter& operator=(ParticleEmitter&& rhs) noexcept;
     ~ParticleEmitter() = default;
-
     ParticleEmitter(const ParticleEmitter&) = delete;
     ParticleEmitter& operator=(const ParticleEmitter&) = delete;
 
@@ -373,7 +299,6 @@ namespace Components
 
     std::unique_ptr<GFX::StaticBuffer> particleBuffer{};
     std::unique_ptr<GFX::StaticBuffer> freeStackBuffer{};
-    std::unique_ptr<GFX::StaticBuffer> freeStackCount{};
     std::unique_ptr<GFX::Texture2D> texture{};
   };
 
@@ -433,7 +358,5 @@ namespace Components
       };
       DestroyScript = [](NativeScriptComponent* nsc) { delete nsc->Instance; nsc->Instance = nullptr; };
     }
-
-  private:
   };
 }
