@@ -7,8 +7,11 @@
 #include <CoreEngine/Camera.h>
 #include <CoreEngine/Texture2D.h>
 #include <CoreEngine/Mesh.h>
+#include <CoreEngine/TextureCube.h>
 
 #include <execution>
+
+GFX::TextureCube* cubicHair;
 
 static void GLAPIENTRY
 GLerrorCB(GLenum source,
@@ -175,7 +178,7 @@ void Renderer::BeginRenderParticleEmitter()
   glDisable(GL_CULL_FACE);
   auto& shader = Shader::shaders["particle"];
   shader->Use();
-  particleVao->Bind();
+  emptyVao->Bind();
   //glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 }
 
@@ -235,7 +238,18 @@ void Renderer::Init()
   glVertexArrayVertexBuffer(batchVAO->GetID(), 0, vertexBuffer->GetGPUHandle(), 0, sizeof(Vertex));
   glVertexArrayElementBuffer(batchVAO->GetID(), indexBuffer->GetGPUHandle());
 
-  particleVao = std::make_unique<GFX::VAO>();
+  emptyVao = std::make_unique<GFX::VAO>();
+
+  std::vector<std::string> faces =
+  {
+    "hw_glacier/glacier_rt.tga",
+    "hw_glacier/glacier_lf.tga",
+    "hw_glacier/glacier_up.tga",
+    "hw_glacier/glacier_dn.tga",
+    "hw_glacier/glacier_bk.tga",
+    "hw_glacier/glacier_ft.tga",
+  };
+  cubicHair = new GFX::TextureCube(std::span<std::string, 6>(faces.data(), faces.size()));
 
   /*Layout layout = Window::layout;
 
@@ -306,6 +320,11 @@ void Renderer::CompileShaders()
     {
       { "particle.vs", GL_VERTEX_SHADER },
       { "particle.fs", GL_FRAGMENT_SHADER }
+    }));
+  Shader::shaders["skybox"].emplace(Shader(
+    {
+      { "skybox.vs", GL_VERTEX_SHADER },
+      { "skybox.fs", GL_FRAGMENT_SHADER }
     }));
 
   Shader::shaders["sun"].emplace(Shader("flat_sun.vs", "flat_sun.fs"));
@@ -398,4 +417,21 @@ void Renderer::DrawCube()
   }
   blockHoverVao->Bind();
   glDrawArrays(GL_TRIANGLES, 0, 36);
+}
+
+void Renderer::DrawSkybox()
+{
+  auto& shdr = Shader::shaders["skybox"];
+  glDepthMask(GL_FALSE);
+  glDisable(GL_CULL_FACE);
+  shdr->Use();
+  shdr->setMat4("u_proj", CameraSystem::GetProj());
+  shdr->setMat4("u_modview", glm::translate(CameraSystem::GetView(), CameraSystem::GetPos()));
+  shdr->setInt("u_skybox", 0);
+  cubicHair->Bind(0);
+  //glActiveTexture(GL_TEXTURE0);
+  //glBindTexture(GL_TEXTURE_CUBE_MAP, skybox);
+  glDrawArrays(GL_TRIANGLE_STRIP, 0, 14);
+  glDepthMask(GL_TRUE);
+  glEnable(GL_CULL_FACE);
 }

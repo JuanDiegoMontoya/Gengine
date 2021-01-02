@@ -41,7 +41,7 @@ void ParticleSystem::Update(Scene& scene, float dt)
   static Timer timer;
   auto& emitter_shader = Shader::shaders["update_particle_emitter"];
   emitter_shader->Use();
-  const int localSize = 64; // maybe should query shader for this value
+  const int localSize = 128; // maybe should query shader for this value
   using namespace Components;
   auto view = scene.GetRegistry().view<ParticleEmitter, Transform>();
   for (entt::entity entity : view)
@@ -86,10 +86,8 @@ void ParticleSystem::Update(Scene& scene, float dt)
       emitter_shader->setVec4("u_emitter.maxParticleColor", emitter.maxParticleColor);
 #pragma endregion setting uniforms
 
-      {
-        int numGroups = (particlesToSpawn + localSize - 1) / localSize;
-        glDispatchCompute(numGroups, 1, 1);
-      }
+      int numGroups = (particlesToSpawn + localSize - 1) / localSize;
+      glDispatchCompute(numGroups, 1, 1);
     }
   }
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
@@ -106,10 +104,8 @@ void ParticleSystem::Update(Scene& scene, float dt)
     emitter.particleBuffer->Bind<GFX::Target::SSBO>(0);
     emitter.freeStackBuffer->Bind<GFX::Target::SSBO>(1);
 
-    {
-      int numGroupsa = (emitter.maxParticles + localSize - 1) / localSize;
-      glDispatchCompute(numGroupsa, 1, 1);
-    }
+    int numGroupsa = (emitter.maxParticles + localSize - 1) / localSize;
+    glDispatchCompute(numGroupsa, 1, 1);
   }
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 }

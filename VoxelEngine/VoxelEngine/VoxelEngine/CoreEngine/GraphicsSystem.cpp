@@ -81,6 +81,8 @@ void GraphicsSystem::StartFrame()
     ImGui::Text("ID: %d, refcount: %u", p.first, p.second.use_count());
   }
   ImGui::End();
+
+  Renderer::DrawSkybox();
 }
 
 void GraphicsSystem::DrawOpaque(Scene& scene, float dt)

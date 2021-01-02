@@ -20,8 +20,7 @@ Components::ParticleEmitter::ParticleEmitter(uint32_t maxp, std::string tex)
   };
 
   auto tp = std::make_unique<Particle[]>(maxParticles);
-  particleBuffer = std::make_unique<GFX::StaticBuffer>(tp.get(), sizeof(Particle) * maxParticles,
-    GFX::BufferFlag::DYNAMIC_STORAGE);
+  particleBuffer = std::make_unique<GFX::StaticBuffer>(tp.get(), sizeof(Particle) * maxParticles, GFX::BufferFlag::NONE);
 
   const size_t bytes = sizeof(int32_t) + maxParticles * sizeof(int32_t);
   uint8_t* mem = new uint8_t[bytes];

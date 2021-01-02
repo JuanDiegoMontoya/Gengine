@@ -30,6 +30,8 @@ public:
   static void DrawQuad();
   static void DrawCube();
 
+  static void DrawSkybox();
+
 private:
   friend class MeshManager;
   friend class ParticleSystem;
@@ -63,5 +65,5 @@ private:
   static inline std::vector<BatchDrawCommand> userCommands;
   static inline std::atomic_uint32_t cmdIndex{ 0 };
 
-  static inline std::unique_ptr<GFX::VAO> particleVao;
+  static inline std::unique_ptr<GFX::VAO> emptyVao;
 };
