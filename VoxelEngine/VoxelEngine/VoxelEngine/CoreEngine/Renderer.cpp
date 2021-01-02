@@ -11,8 +11,6 @@
 
 #include <execution>
 
-GFX::TextureCube* cubicHair;
-
 static void GLAPIENTRY
 GLerrorCB(GLenum source,
   GLenum type,
@@ -240,17 +238,6 @@ void Renderer::Init()
 
   emptyVao = std::make_unique<GFX::VAO>();
 
-  std::vector<std::string> faces =
-  {
-    "hw_glacier/glacier_rt.tga",
-    "hw_glacier/glacier_lf.tga",
-    "hw_glacier/glacier_up.tga",
-    "hw_glacier/glacier_dn.tga",
-    "hw_glacier/glacier_bk.tga",
-    "hw_glacier/glacier_ft.tga",
-  };
-  cubicHair = new GFX::TextureCube(std::span<std::string, 6>(faces.data(), faces.size()));
-
   /*Layout layout = Window::layout;
 
   int width = layout.width;
@@ -428,9 +415,7 @@ void Renderer::DrawSkybox()
   shdr->setMat4("u_proj", CameraSystem::GetProj());
   shdr->setMat4("u_modview", glm::translate(CameraSystem::GetView(), CameraSystem::GetPos()));
   shdr->setInt("u_skybox", 0);
-  cubicHair->Bind(0);
-  //glActiveTexture(GL_TEXTURE0);
-  //glBindTexture(GL_TEXTURE_CUBE_MAP, skybox);
+  CameraSystem::ActiveCamera->skybox->Bind(0);
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 14);
   glDepthMask(GL_TRUE);
   glEnable(GL_CULL_FACE);

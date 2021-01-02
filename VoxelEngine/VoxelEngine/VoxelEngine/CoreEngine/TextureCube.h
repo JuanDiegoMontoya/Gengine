@@ -1,13 +1,14 @@
 #pragma once
 #include <string>
 #include <glm/glm.hpp>
+#include <span>
 
 namespace GFX
 {
   class TextureCube
   {
   public:
-    TextureCube(std::span<std::string, 6> paths);
+    TextureCube(std::span<const std::string, 6> paths);
     TextureCube(const TextureCube& rhs) = delete;
     TextureCube& operator=(TextureCube&& rhs) noexcept;
     TextureCube(TextureCube&& rhs) noexcept;

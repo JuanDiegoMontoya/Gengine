@@ -16,6 +16,7 @@
 #include <CoreEngine/Renderer.h>
 #include <CoreEngine/Camera.h>
 #include <Voxels/prefab.h>
+#include <CoreEngine/TextureCube.h>
 
 #include <iostream>
 #include <Game/FlyingPlayerController.h>
@@ -78,6 +79,15 @@ void OnStart(Scene* scene)
 
 
   {
+    std::vector<std::string> faces =
+    {
+      "hw_glacier/glacier_rt.tga",
+      "hw_glacier/glacier_lf.tga",
+      "hw_glacier/glacier_up.tga",
+      "hw_glacier/glacier_dn.tga",
+      "hw_glacier/glacier_bk.tga",
+      "hw_glacier/glacier_ft.tga",
+    };
     Entity player = scene->CreateEntity("player");
     player.AddComponent<Components::Transform>().SetRotation(glm::rotate(glm::mat4(1), glm::pi<float>() / 2.f, { 0, 0, 1 }));
     player.GetComponent<Components::Transform>().SetTranslation({ -5, 2, -5 });
@@ -86,6 +96,8 @@ void OnStart(Scene* scene)
     player.AddComponent<Components::NativeScriptComponent>().Bind<KinematicPlayerController>();
     //player.AddComponent<Components::Camera>(Camera::ActiveCamera);
     auto& cam = player.AddComponent<Components::Camera>(player);
+    //cam.skybox = std::make_unique<GFX::TextureCube>(std::span<const std::string, 6>(faces.data(), faces.size()));
+    cam.skybox = new GFX::TextureCube(std::span<const std::string, 6>(faces.data(), faces.size()));
     cam.SetPos({ 0, .65, 0 });
     Physics::CapsuleCollider collider(0.3, 0.5);
     //Physics::BoxCollider collider({ 1, 1, 1 });

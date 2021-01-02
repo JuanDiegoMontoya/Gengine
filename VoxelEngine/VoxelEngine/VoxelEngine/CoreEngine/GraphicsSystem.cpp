@@ -82,7 +82,17 @@ void GraphicsSystem::StartFrame()
   }
   ImGui::End();
 
-  Renderer::DrawSkybox();
+  const auto& camList = CameraSystem::GetCameraList();
+  for (Components::Camera* camera : camList)
+  {
+    if (!camera->skybox)
+    {
+      continue;
+    }
+    CameraSystem::ActiveCamera = camera;
+    CameraSystem::Update(0);
+    Renderer::DrawSkybox();
+  }
 }
 
 void GraphicsSystem::DrawOpaque(Scene& scene, float dt)

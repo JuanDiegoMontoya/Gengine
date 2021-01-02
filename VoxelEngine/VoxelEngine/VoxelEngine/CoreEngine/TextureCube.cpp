@@ -8,7 +8,7 @@
 
 namespace GFX
 {
-  TextureCube::TextureCube(std::span<std::string, 6> faces)
+  TextureCube::TextureCube(std::span<const std::string, 6> faces)
   {
     //stbi_set_flip_vertically_on_load(true);
 

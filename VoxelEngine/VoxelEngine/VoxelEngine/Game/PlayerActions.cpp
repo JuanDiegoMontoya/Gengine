@@ -15,7 +15,7 @@ void PlayerActions::OnDestroy()
 
 void PlayerActions::OnUpdate(float dt)
 {
-  auto cam = GetComponent<Components::Parent>().entity.GetComponent<Components::Camera>();
+  auto& cam = GetComponent<Components::Parent>().entity.GetComponent<Components::Camera>();
 
 
   if (Input::IsKeyPressed(GLFW_KEY_V))

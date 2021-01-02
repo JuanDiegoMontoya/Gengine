@@ -7,12 +7,15 @@
 #include <CoreEngine/Material.h>
 #include <CoreEngine/Physics.h>
 
+// oawie
+#include <CoreEngine/TextureCube.h>
 
 struct MeshHandle;
 
 namespace GFX
 {
   class Texture2D;
+  class TextureCube;
   class StaticBuffer;
 }
 
@@ -258,7 +261,7 @@ namespace Components
     float zNear = 0.1f;
     float zFar = 1000.0f;
 
-    GLuint skybox = 0;
+    GFX::TextureCube* skybox{};
     GLuint renderTexture = 0;
   };
 
