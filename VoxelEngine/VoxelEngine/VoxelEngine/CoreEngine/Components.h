@@ -261,7 +261,7 @@ namespace Components
     float zNear = 0.1f;
     float zFar = 1000.0f;
 
-    GFX::TextureCube* skybox{};
+    std::unique_ptr<GFX::TextureCube> skybox{};
     GLuint renderTexture = 0;
   };
 

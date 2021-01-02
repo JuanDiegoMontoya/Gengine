@@ -49,6 +49,7 @@ namespace GFX
     //  i++;
     //}
 
+    stbi_set_flip_vertically_on_load(false);
     glGenTextures(1, &rendererID_);
     glBindTexture(GL_TEXTURE_CUBE_MAP, rendererID_);
     int width, height, nrChannels;
