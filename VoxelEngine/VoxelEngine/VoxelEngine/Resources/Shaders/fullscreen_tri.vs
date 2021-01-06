@@ -1,4 +1,7 @@
 #version 460 core
+
+layout (location = 0) out vec2 vTexCoord;
+
 // (0, 2) 01
 // (0, 0) 00
 // (2, 0) 10
@@ -11,5 +14,7 @@ vec2 CreateTri(uint vertexID) // GL_TRIANGLES
 
 void main()
 {
-  gl_Position = vec4(CreateTri(gl_VertexID) * 2.0, 1.0, 1.0);
+  vec2 pos = CreateTri(gl_VertexID); 
+  vTexCoord = pos * 2.0;
+  gl_Position = vec4(pos * 4.0 - 1.0, 1.0, 1.0); // xy in [-1, 3]
 }

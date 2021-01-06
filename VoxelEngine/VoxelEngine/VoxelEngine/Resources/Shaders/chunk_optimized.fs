@@ -1,12 +1,14 @@
-#version 450 core
+#version 460 core
+
+#include "noise.h"
 
 // material properties
 //in vec4 vColor;
-in vec3 vPos;
-in vec3 vNormal;
-in vec3 vTexCoord;
-in vec4 vLighting; // RGBSun
-in vec3 vBlockPos;
+layout (location = 0) in vec3 vPos;
+layout (location = 1) in vec3 vNormal;
+layout (location = 2) in vec3 vTexCoord;
+layout (location = 3) in vec4 vLighting; // RGBSun
+layout (location = 4) in vec3 vBlockPos;
 
 layout(location = 1) uniform vec3 viewPos;   // world space
 layout(location = 2) uniform float sunAngle; // cos sun angle to normal of horizon, 0-1
@@ -32,46 +34,6 @@ float FogCalculation()
   float dist = distance(vPos, viewPos);
   return clamp(map(dist, fogStart, fogEnd, 0.0, 1.0), 0.0, 1.0);
 }
-
-// noise from https://gist.github.com/patriciogonzalezvivo/670c22f3966e662d2f83
-float mod289(float x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
-vec4 mod289(vec4 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
-vec4 perm(vec4 x) { return mod289(((x * 34.0) + 1.0) * x); }
-float noise(vec3 p)
-{
-  vec3 a = floor(p);
-  vec3 d = p - a;
-  d = d * d * (3.0 - 2.0 * d);
-
-  vec4 b = a.xxyy + vec4(0.0, 1.0, 0.0, 1.0);
-  vec4 k1 = perm(b.xyxy);
-  vec4 k2 = perm(k1.xyxy + b.zzww);
-
-  vec4 c = k2 + a.zzzz;
-  vec4 k3 = perm(c);
-  vec4 k4 = perm(c + 1.0);
-
-  vec4 o1 = fract(k3 * (1.0 / 41.0));
-  vec4 o2 = fract(k4 * (1.0 / 41.0));
-
-  vec4 o3 = o2 * d.z + o1 * (1.0 - d.z);
-  vec2 o4 = o3.yw * d.x + o3.xz * (1.0 - d.x);
-
-  return o4.y * d.y + o4.x * (1.0 - d.y);
-}
-
-vec3 random3(vec3 c)
-{
-  float j = 4096.0*sin(dot(c,vec3(17.0, 59.4, 15.0)));
-  vec3 r;
-  r.z = fract(512.0*j);
-  j *= .125;
-  r.x = fract(512.0*j);
-  j *= .125;
-  r.y = fract(512.0*j);
-  return r-0.5;
-}
-
 
 #define RNG_OFFSET 1
 #define USE_KERNEL 0 // if false, will use blue noise
@@ -127,7 +89,4 @@ void main()
   // fog is applied last
   tempColor = mix(tempColor, fogColor, FogCalculation());
   fragColor = vec4(tempColor, 1.0); // alpha is always 100% or 0% (per fragment)
-  //fragColor.xyz = fragColor.xyz * .1 + random3(vBlockPos / 10).xyz;
-  //fragColor.rgb = texColor + fragColor.rgb * .0001;
-  //fragColor = vec4(.0001 * tempColor + lighting.aaa, 1.0);
 }

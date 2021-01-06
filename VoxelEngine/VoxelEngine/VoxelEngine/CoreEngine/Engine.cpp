@@ -62,8 +62,9 @@ void Engine::Run()
     physicsSystem->Update(*activeScene_, dt_);
     debugSystem->Update(*activeScene_, dt_);
 
-    debugSystem->EndFrame(*activeScene_, dt_);
     graphicsSystem->EndFrame();
+    debugSystem->EndFrame(*activeScene_, dt_); // render UI on top of everything else
+    graphicsSystem->SwapBuffers();
   }
 
   graphicsSystem->Shutdown();

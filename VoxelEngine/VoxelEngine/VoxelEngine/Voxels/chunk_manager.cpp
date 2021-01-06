@@ -144,10 +144,9 @@ void ChunkManager::UpdateBlock(const glm::ivec3& wpos, Block bl, bool indirect)
   //{
   //  lightPropagateAdd(wpos + glm::ivec3(0, 1, 0), block->GetLight());
   //}
-
+  
   // check if added block emits light
-  glm::uvec3 emit2 = Block::PropertiesTable[bl.GetTypei()].emittance;
-  if (emit2 != glm::uvec3(0))
+  if (glm::uvec3 emit2 = bl.GetEmittance(); emit2 != glm::uvec3(0))
   {
     lightPropagateAdd(wpos, Light(Block::PropertiesTable[bl.GetTypei()].emittance));
   }
@@ -337,8 +336,10 @@ void ChunkManager::lightPropagateAdd(glm::ivec3 wpos, Light nLight, bool skipsel
       bool enqueue = false;
       for (int ci = 0; ci < 4; ci++)
       {
-        // neighbor must have light level 2 less than current to be updated
-        if (nlight.Get()[ci] + 2 > lightLevel.Get()[ci])
+        // neighbor must have light level 2 or less than current to be updated
+        // AND isn't sunlight going down (in which case it can update any lights lesser in strength)
+        if (nlight.Get()[ci] + 2 > lightLevel.Get()[ci] && !(ci == 3 && nlight.Get()[3] + 1 == lightLevel.Get()[3] && dir == glm::ivec3(0, -1, 0)))
+        //if (nlight.Get()[ci] + 2 > lightLevel.Get()[ci])
         {
           continue;
         }
@@ -382,7 +383,7 @@ void ChunkManager::lightPropagateRemove(glm::ivec3 wpos, bool noqueue)
   Light light = wblock.GetLight();
   lightRemovalQueue.push({ wpos, light });
 
-  if (wblock.GetVisibility() == Visibility::Opaque)
+  //if (wblock.GetVisibility() == Visibility::Opaque || wblock.GetEmittance())
   {
     voxelManager.SetBlockLight(wpos, Light({ 0, 0, 0, 0 }));
   }
@@ -391,7 +392,7 @@ void ChunkManager::lightPropagateRemove(glm::ivec3 wpos, bool noqueue)
 
   const glm::ivec3 dirs[] = 
     { { 1, 0, 0 },
-      { -1, 0, 0 },
+      {-1, 0, 0 },
       { 0, 1, 0 },
       { 0,-1, 0 },
       { 0, 0, 1 },
@@ -414,17 +415,18 @@ void ChunkManager::lightPropagateRemove(glm::ivec3 wpos, bool noqueue)
       glm::u8vec4 nue(0);
       bool enqueueRemove = false;
       bool enqueueReadd = false;
-      for (int ci = 0; ci < 4; ci++) // iterate 3 colors (not sunlight)
+      for (int ci = 0; ci < 4; ci++) // iterate 4 colors (including sunlight)
       {
         // remove light if there is any and if it is weaker than this node's light value, OR if max sunlight and going down
-        if (nlightv[ci] > 0 && ((nlightv[ci] == lightv[ci] - 1)) || (dir == glm::ivec3(0, -1, 0) && ci == 3 && nlightv[3] == 0xF))
+        if (nlightv[ci] > 0 && ((nlightv[ci] == lightv[ci] - 1)) || (ci == 3 && dir == glm::ivec3(0, -1, 0) && nlightv[3] == 0xF))
         {
           enqueueRemove = true;
           nlightv[ci] = 0;
           voxelManager.SetBlockLight(blockPos, nlightv);
         }
         // re-propagate near light that is equal to or brighter than this after setting it all to 0
-        else if (nlightv[ci] > lightv[ci])
+        // OR if it is sunlight of any strength, NOT down from this position
+        else if (nlightv[ci] > lightv[ci] || (ci == 3 && nlightv[3] > 0 && dir != glm::ivec3(0, -1, 0)))
         {
           enqueueReadd = true;
           nue[ci] = nlightv[ci];

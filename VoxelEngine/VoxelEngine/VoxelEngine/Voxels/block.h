@@ -57,6 +57,17 @@ enum class BlockType : uint16_t // upgrade when over 2^16 block types
   bRglass,
   bGglass,
   bBglass,
+  bDevValue100,
+  bDevValue90,
+  bDevValue80,
+  bDevValue70,
+  bDevValue60,
+  bDevValue50,
+  bDevValue40,
+  bDevValue30,
+  bDevValue20,
+  bDevValue10,
+  bDevValue00,
 
   bCount
 };

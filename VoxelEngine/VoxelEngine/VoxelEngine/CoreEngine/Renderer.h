@@ -32,6 +32,9 @@ public:
 
   static void DrawSkybox();
 
+  static void StartFrame();
+  static void EndFrame();
+
 private:
   friend class MeshManager;
   friend class ParticleSystem;
@@ -66,4 +69,13 @@ private:
   static inline std::atomic_uint32_t cmdIndex{ 0 };
 
   static inline std::unique_ptr<GFX::VAO> emptyVao;
+
+  // HDR inverse-z framebuffer stuff
+  static inline unsigned fbo;
+  static inline int windowWidth = 1920, windowHeight = 1080;
+  static inline int fboWidth = 1920, fboHeight = 1080;
+  static inline GLuint color, depth;
+  static inline float exposure = 1.0f;
+  static inline bool tonemapping = true;
+  static inline bool gammaCorrection = false;
 };

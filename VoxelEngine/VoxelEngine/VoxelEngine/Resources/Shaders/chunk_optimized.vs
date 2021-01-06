@@ -20,11 +20,11 @@ layout (location = 2) in ivec3 u_pos; // (per instance)
 layout(location = 0) uniform mat4 u_viewProj;
 
 
-out vec3 vPos;
-out vec3 vNormal;
-out vec3 vTexCoord;
-out vec4 vLighting; // RGBSun
-out flat vec3 vBlockPos;
+layout (location = 0) out vec3 vPos;
+layout (location = 1) out vec3 vNormal;
+layout (location = 2) out vec3 vTexCoord;
+layout (location = 3) out vec4 vLighting; // RGBSun
+layout (location = 4) out flat vec3 vBlockPos;
 
 //out vec4 vColor;
 

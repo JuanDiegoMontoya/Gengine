@@ -170,6 +170,7 @@ void ChunkRenderer::DrawBuffers()
   glEnable(GL_DEPTH_TEST);
 }
 
+#include <imgui/imgui.h>
 void ChunkRenderer::Draw()
 {
   glEnable(GL_CULL_FACE);
@@ -181,7 +182,8 @@ void ChunkRenderer::Draw()
 
   //Camera* cam = Camera::ActiveCamera;
   //float angle = glm::max(glm::dot(-glm::normalize(NuRenderer::activeSun_->GetDir()), glm::vec3(0, 1, 0)), 0.f);
-  float angle = 1.0f;
+  static float angle = 1.0f;
+  ImGui::SliderFloat("Sunlight strength", &angle, 0.f, 5.f);
   currShader->setFloat("sunAngle", angle);
 
   // undo gamma correction for sky color

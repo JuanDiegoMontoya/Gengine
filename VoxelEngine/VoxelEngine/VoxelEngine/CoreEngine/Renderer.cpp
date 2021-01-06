@@ -197,6 +197,23 @@ void Renderer::RenderParticleEmitter(const Components::ParticleEmitter& emitter,
 
 void Renderer::Init()
 {
+  glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
+
+  const int levels = glm::floor(glm::log2(glm::max(fboWidth, fboHeight))) + 1;
+  glCreateTextures(GL_TEXTURE_2D, 1, &color);
+  glTextureStorage2D(color, levels, GL_RGBA16F, fboWidth, fboHeight);
+
+  glCreateTextures(GL_TEXTURE_2D, 1, &depth);
+  glTextureStorage2D(depth, 1, GL_DEPTH_COMPONENT32F, fboWidth, fboHeight);
+
+  glCreateFramebuffers(1, &fbo);
+  glNamedFramebufferTexture(fbo, GL_COLOR_ATTACHMENT0, color, 0);
+  glNamedFramebufferTexture(fbo, GL_DEPTH_ATTACHMENT, depth, 0);
+  if (GLenum status = glCheckNamedFramebufferStatus(fbo, GL_FRAMEBUFFER); status != GL_FRAMEBUFFER_COMPLETE)
+  {
+    fprintf(stderr, "glCheckNamedFramebufferStatus: %x\n", status);
+  }
+
   glEnable(GL_DEBUG_OUTPUT);
   glEnable(GL_DEPTH_TEST);
 
@@ -313,6 +330,11 @@ void Renderer::CompileShaders()
       { "skybox.vs", GL_VERTEX_SHADER },
       { "skybox.fs", GL_FRAGMENT_SHADER }
     }));
+  Shader::shaders["tonemap"].emplace(Shader(
+    {
+      { "fullscreen_tri.vs", GL_VERTEX_SHADER },
+      { "tonemap.fs", GL_FRAGMENT_SHADER }
+    }));
 
   Shader::shaders["sun"].emplace(Shader("flat_sun.vs", "flat_sun.fs"));
   Shader::shaders["axis"].emplace(Shader("axis.vs", "axis.fs"));
@@ -416,7 +438,60 @@ void Renderer::DrawSkybox()
   shdr->setMat4("u_modview", glm::translate(CameraSystem::GetView(), CameraSystem::GetPos()));
   shdr->setInt("u_skybox", 0);
   CameraSystem::ActiveCamera->skybox->Bind(0);
+  emptyVao->Bind();
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 14);
   glDepthMask(GL_TRUE);
   glEnable(GL_CULL_FACE);
+}
+
+#include <imgui/imgui.h>
+void Renderer::StartFrame()
+{
+  glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+  glClearDepth(0.0f);
+  auto cc = glm::vec3(.529f, .808f, .922f);
+  glClearColor(cc.r, cc.g, cc.b, 1.f);
+  glDepthMask(GL_TRUE);
+  glEnable(GL_DEPTH_TEST);
+  glDepthFunc(GL_GEQUAL);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  ImGui::Begin("Tonemapping");
+  ImGui::Checkbox("Enabled", &tonemapping);
+  ImGui::Checkbox("Gamma correction", &gammaCorrection);
+  ImGui::SliderFloat("Exposure", &exposure, .01f, 5.0f, "%.2f");
+  ImGui::End();
+}
+
+void Renderer::EndFrame()
+{
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+  if (tonemapping)
+  {
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    glViewport(0, 0, fboWidth, fboHeight);
+    auto& shdr = Shader::shaders["tonemap"];
+    glDepthMask(GL_FALSE);
+    glDisable(GL_CULL_FACE);
+    shdr->Use();
+    //shdr->setFloat("u_exposure", exposure);
+    shdr->setInt("u_hdrBuffer", 1);
+    shdr->setFloat("u_gammaCorrection", gammaCorrection);
+    glBindTextureUnit(1, color);
+    glGenerateTextureMipmap(color);
+    emptyVao->Bind();
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+    glDepthMask(GL_TRUE);
+    glEnable(GL_CULL_FACE);
+  }
+  else
+  {
+    glBlitNamedFramebuffer(fbo, 0,
+      0, 0, fboWidth, fboHeight,
+      0, 0, windowWidth, windowHeight,
+      GL_COLOR_BUFFER_BIT, GL_LINEAR);
+  }
+
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
