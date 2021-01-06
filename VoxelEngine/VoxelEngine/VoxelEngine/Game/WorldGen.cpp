@@ -62,8 +62,9 @@ void WorldGen::GenerateWorld()
 
   //FastNoise::SmartNode<> fnGenerator = FastNoise::NewFromEncodedNodeTree("GgAUAMP1KD8NAAQAAAAAAFBACQAAmpmZPgEEAAAAAAAAAJBBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
   //FastNoise::SmartNode<> fnGenerator = FastNoise::NewFromEncodedNodeTree("IgAIABIAAgAAADMzE0ARAAAAAEAaABQAw/UoPw0ABAAAAAAAIEAJAAAAAAA/AQQAAAAAAFyPOkEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAzcxMPgBxPQo/AQcA");
-  FastNoise::SmartNode<> fnGenerator = FastNoise::NewFromEncodedNodeTree("GgAUAMP1KD8NAAQAAAAAAFBACQAAmpmZPgEEAAAAAAAAAJBBAAAAAAAAAAAAAAAACtcjvQAAAAAAAAAA");
+  //FastNoise::SmartNode<> fnGenerator = FastNoise::NewFromEncodedNodeTree("GgAUAMP1KD8NAAQAAAAAAFBACQAAmpmZPgEEAAAAAAAAAJBBAAAAAAAAAAAAAAAACtcjvQAAAAAAAAAA");
   //FastNoise::SmartNode<> fnGenerator = FastNoise::NewFromEncodedNodeTree("DQAFAAAAAAAAQAgAAAAAAD8=");
+  FastNoise::SmartNode<> fnGenerator = FastNoise::NewFromEncodedNodeTree("FADD9Sg/DQAEAAAAAAAgQAkAAAAAAD8=");
 
 
   auto& chunks = voxels.chunks_;
@@ -73,9 +74,9 @@ void WorldGen::GenerateWorld()
     if (chunk)
     {
       glm::ivec3 st = chunk->GetPos() * Chunk::CHUNK_SIZE;
-      float* noiseSet = new float[Chunk::CHUNK_SIZE_CUBED];
+      float* noiseSet = new float[Chunk::CHUNK_SIZE_SQRED];
       //noiseSet = noisey->GetCubicFractalSet(st.z, 0, st.x, Chunk::CHUNK_SIZE, 1, Chunk::CHUNK_SIZE, 1);
-      fnGenerator->GenUniformGrid3D(noiseSet, st.x, st.y, st.z, Chunk::CHUNK_SIZE, Chunk::CHUNK_SIZE, Chunk::CHUNK_SIZE, .005, 1338);
+      fnGenerator->GenUniformGrid2D(noiseSet, st.x, st.z, Chunk::CHUNK_SIZE, Chunk::CHUNK_SIZE, .02, 1337);
       /*float* riverNoiseSet = noisey->GetPerlinSet(st.z, 0, st.x,
         Chunk::CHUNK_SIZE, 1, Chunk::CHUNK_SIZE, 1);*/
       //int idx = 0;
@@ -85,12 +86,13 @@ void WorldGen::GenerateWorld()
       int idx = 0;
       for (pos.z = 0; pos.z < Chunk::CHUNK_SIZE; pos.z++)
       {
-        for (pos.y = 0; pos.y < Chunk::CHUNK_SIZE; pos.y++)
+        for (pos.x = 0; pos.x < Chunk::CHUNK_SIZE; pos.x++)
         {
-          for (pos.x = 0; pos.x < Chunk::CHUNK_SIZE; pos.x++)
+          int height = (int)((noiseSet[idx++] + .1f) * 10) + 1;
+          for (pos.y = 0; pos.y < Chunk::CHUNK_SIZE; pos.y++)
           {
             wpos = ChunkHelpers::chunkPosToWorldPos(pos, chunk->GetPos());
-            float waterHeight = 2.0f;
+            int waterHeight = 2;
 
             //double density = noise.GetValue(wpos.x, wpos.y, wpos.z); // chunks are different
             //double density = noise.GetValue(pos.x, pos.y, pos.z); // same chunk every time
@@ -101,45 +103,45 @@ void WorldGen::GenerateWorld()
             //continue;
 
             //float height = (noiseSet[idx] + .1f) * 10;
-            float density = noiseSet[idx++];
-            if (density < .0)
+            //float density = noiseSet[idx++];
+            /*if (density < .0)
             {
               voxels.SetBlockType(wpos, BlockType::bGrass);
-            }
-            /*if (wpos.y < height)
+            }*/
+            if (wpos.y < height)
             {
                 voxels.SetBlockType(wpos, BlockType::bGrass);
                 if (Utils::noise(pos) < .05f)
                     voxels.SetBlockType(wpos, BlockType::bDirt);
-            }*/
-            //if (wpos.y < height && wpos.y >= (height - 1))
-            //{
-            //  voxels.SetBlockType(wpos, BlockType::bGrass);
-            //  if (Utils::noise(pos) < .01f)
-            //  {
-            //    voxels.SetBlockType(wpos, BlockType::bDirt);
-            //    if (height > waterHeight)
-            //    {
-            //      Prefab prefab = PrefabManager::GetPrefab("OakTree");
-            //      glm::ivec3 offset = { 0, 1, 0 };
-            //      for (unsigned i = 0; i < prefab.blocks.size(); i++)
-            //      {
-            //        if (auto block = voxels.TryGetBlock(wpos + offset + prefab.blocks[i].first))
-            //          if (prefab.blocks[i].second.GetPriority() >= block->GetPriority())
-            //            voxels.SetBlockType(wpos + offset + prefab.blocks[i].first, prefab.blocks[i].second.GetType());
-            //      }
-            //    }
-            //  }
-            //}
-            //if (wpos.y < (height - 1))
-            //{
-            //    voxels.SetBlockType(wpos, BlockType::bDirt);
-            //    if (Utils::noise(pos) < .01f)
-            //        voxels.SetBlockType(wpos, BlockType::bStone);
-            //}
+            }
+            if (wpos.y < height && wpos.y >= (height - 1))
+            {
+              voxels.SetBlockType(wpos, BlockType::bGrass);
+              if (Utils::noise(pos) < .01f)
+              {
+                voxels.SetBlockType(wpos, BlockType::bDirt);
+                if (height > waterHeight)
+                {
+                  Prefab prefab = PrefabManager::GetPrefab("OakTree");
+                  glm::ivec3 offset = { 0, 1, 0 };
+                  for (unsigned i = 0; i < prefab.blocks.size(); i++)
+                  {
+                    if (auto block = voxels.TryGetBlock(wpos + offset + prefab.blocks[i].first))
+                      if (prefab.blocks[i].second.GetPriority() >= block->GetPriority())
+                        voxels.SetBlockType(wpos + offset + prefab.blocks[i].first, prefab.blocks[i].second.GetType());
+                  }
+                }
+              }
+            }
+            if (wpos.y < (height - 1))
+            {
+                voxels.SetBlockType(wpos, BlockType::bDirt);
+                if (Utils::noise(pos) < .01f)
+                    voxels.SetBlockType(wpos, BlockType::bStone);
+            }
 
-            //if (wpos.y >= height && wpos.y <= waterHeight)
-            //  voxels.SetBlockType(wpos, BlockType::bBglass);
+            if (wpos.y >= height && wpos.y <= waterHeight)
+              voxels.SetBlockType(wpos, BlockType::bBglass);
 
             //if (density < -.02)
             //{
@@ -154,7 +156,7 @@ void WorldGen::GenerateWorld()
             //  voxels.SetBlockType(wpos, BlockType::bStone);
             //}
 
-            //printf("%f\n", height / 100.f);
+            //printf("%i\n", height);
           }
         }
       }

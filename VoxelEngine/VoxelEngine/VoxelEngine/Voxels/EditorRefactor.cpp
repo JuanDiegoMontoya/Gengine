@@ -70,7 +70,7 @@ void Editor::LoadRegion()
     }
   }
   auto scriptInstance = dynamic_cast<PlayerActions*>(player.GetComponent<Components::NativeScriptComponent>().Instance);
-  scriptInstance->prefab = PrefabManager::LoadPrefabFromFile("./resources/Prefabs/" + std::string(lName) + ".bin");
+  scriptInstance->prefab = PrefabManager::LoadPrefabFromFile(std::string(lName));
   scriptInstance->prefabName = std::string(lName);
 }
 
