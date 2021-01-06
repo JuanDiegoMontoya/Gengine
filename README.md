@@ -9,19 +9,20 @@ A code-oriented game engine designed to be efficient, extensible, and simple to 
 - Entity transformation hierarchy
 - Model loading
 - Dynamic physics and collision API leveraging PhysX
+- Animated particles
 
 ## Graphics
 - OpenGL 4.6-based renderer for minimal driver overhead.
 
 ## To Do
 - Extend physics API with collision callbacks, filtering, etc.
-- More graphical features like skeletal animation, particles, transparency, etc.
+- More graphical features like skeletal animation, transparency, etc.
 
 ## Dependencies
 - assimp
 - cereal
 - entt
-- FastNoiseSIMD
+- FastNoise2
 - glew
 - glfw
 - glm
