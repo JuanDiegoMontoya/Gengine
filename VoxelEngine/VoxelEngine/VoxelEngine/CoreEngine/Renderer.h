@@ -33,7 +33,7 @@ public:
   static void DrawSkybox();
 
   static void StartFrame();
-  static void EndFrame();
+  static void EndFrame(float dt);
 
 private:
   friend class MeshManager;
@@ -74,8 +74,12 @@ private:
   static inline unsigned fbo;
   static inline int windowWidth = 1920, windowHeight = 1080;
   static inline int fboWidth = 1920, fboHeight = 1080;
-  static inline GLuint color, depth;
+  static inline GLuint color;
+  static inline GLuint depth;
   static inline float exposure = 1.0f;
+  static inline float targetLuminance = .5f;
+  static inline float adjustmentSpeed = 2.0f;
   static inline bool tonemapping = true;
   static inline bool gammaCorrection = false;
+  static inline std::unique_ptr<GFX::StaticBuffer> exposureBufferA, exposureBufferB;
 };

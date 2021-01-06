@@ -128,9 +128,9 @@ void GraphicsSystem::DrawTransparent(Scene& scene, float dt)
   }
 }
 
-void GraphicsSystem::EndFrame()
+void GraphicsSystem::EndFrame(float dt)
 {
-  Renderer::EndFrame();
+  Renderer::EndFrame(dt);
 }
 
 void GraphicsSystem::SwapBuffers()

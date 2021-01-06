@@ -12,7 +12,7 @@ public:
   void StartFrame();
   void DrawOpaque(Scene& scene, float dt);
   void DrawTransparent(Scene& scene, float dt);
-  void EndFrame();
+  void EndFrame(float dt);
   void SwapBuffers();
 
   GLFWwindow* GetWindow() { return window; }

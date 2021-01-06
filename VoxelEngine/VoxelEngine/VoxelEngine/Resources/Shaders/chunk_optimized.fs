@@ -10,16 +10,16 @@ layout (location = 2) in vec3 vTexCoord;
 layout (location = 3) in vec4 vLighting; // RGBSun
 layout (location = 4) in vec3 vBlockPos;
 
-layout(location = 1) uniform vec3 viewPos;   // world space
-layout(location = 2) uniform float sunAngle; // cos sun angle to normal of horizon, 0-1
-layout(location = 3) uniform sampler2D textureAtlas;
+layout (location = 1) uniform vec3 viewPos;   // world space
+layout (location = 2) uniform float sunAngle; // cos sun angle to normal of horizon, 0-1
+layout (location = 3) uniform sampler2D textureAtlas;
 
-layout(location = 4) uniform float fogStart; // world space
-layout(location = 5) uniform float fogEnd;   // world space
-layout(location = 6) uniform vec3 fogColor;
+layout (location = 4) uniform float fogStart; // world space
+layout (location = 5) uniform float fogEnd;   // world space
+layout (location = 6) uniform vec3 fogColor;
 
-layout(location = 7) uniform sampler2DArray textures;
-layout(location = 8) uniform sampler2D blueNoise;
+layout (location = 7) uniform sampler2DArray textures;
+layout (location = 8) uniform sampler2D blueNoise;
 
 out vec4 fragColor;
 
@@ -78,7 +78,10 @@ void main()
 
   // dithering happens here
   if (texColor.a < 1 && (clipTransparency(texColor.a) || texColor.a == 0))
+  {
+    //texColor.a = 0;
     discard;
+  }
 
   vec3 tempColor = texColor.rgb;
 
