@@ -78,8 +78,8 @@ private:
   static inline GLuint depth;
   static inline float exposure = 1.0f;
   static inline float targetLuminance = .5f;
-  static inline float adjustmentSpeed = 2.0f;
+  static inline float adjustmentSpeed = 0.5f;
   static inline bool tonemapping = true;
-  static inline bool gammaCorrection = false;
-  static inline std::unique_ptr<GFX::StaticBuffer> exposureBufferA, exposureBufferB;
+  static inline bool gammaCorrection = true;
+  static inline std::unique_ptr<GFX::StaticBuffer> exposureBuffer;
 };

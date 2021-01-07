@@ -12,8 +12,8 @@ namespace GFX
   {
     const GLsizei layerCount = textures.size();
     glCreateTextures(GL_TEXTURE_2D_ARRAY, 1, &rendererID_);
-    glTextureStorage3D(rendererID_, 1, GL_RGBA8, dim.x, dim.y, layerCount);
-
+    glTextureStorage3D(rendererID_, 1, GL_SRGB8_ALPHA8, dim.x, dim.y, layerCount);
+    
     stbi_set_flip_vertically_on_load(true);
 
     int i = 0;

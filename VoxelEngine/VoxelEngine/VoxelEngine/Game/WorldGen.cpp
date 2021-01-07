@@ -141,7 +141,7 @@ void WorldGen::GenerateWorld()
             }
 
             if (wpos.y >= height && wpos.y <= waterHeight)
-              voxels.SetBlockType(wpos, BlockType::bBglass);
+              voxels.SetBlockType(wpos, BlockType::bWater);
 
             //if (density < -.02)
             //{

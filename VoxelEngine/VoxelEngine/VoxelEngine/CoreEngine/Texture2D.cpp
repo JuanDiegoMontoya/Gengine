@@ -39,7 +39,7 @@ namespace GFX
     glTextureParameteri(rendererID_, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
 
-    glTextureStorage2D(rendererID_, 1, GL_RGBA8, dim_.x, dim_.y);
+    glTextureStorage2D(rendererID_, 1, GL_SRGB8_ALPHA8, dim_.x, dim_.y);
     glTextureSubImage2D(
       rendererID_,
       0,              // mip level 0

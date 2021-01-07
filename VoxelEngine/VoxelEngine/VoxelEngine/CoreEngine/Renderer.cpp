@@ -200,7 +200,7 @@ void Renderer::Init()
   glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
 
   const int levels = glm::floor(glm::log2(glm::max(fboWidth, fboHeight))) + 1;
-  glCreateTextures(GL_TEXTURE_2D, 2, &color);
+  glCreateTextures(GL_TEXTURE_2D, 1, &color);
   glTextureStorage2D(color, levels, GL_RGBA16F, fboWidth, fboHeight);
 
   glCreateTextures(GL_TEXTURE_2D, 1, &depth);
@@ -214,8 +214,7 @@ void Renderer::Init()
     fprintf(stderr, "glCheckNamedFramebufferStatus: %x\n", status);
   }
 
-  exposureBufferA = std::make_unique<GFX::StaticBuffer>(&exposure, sizeof(float), GFX::BufferFlag::NONE);
-  exposureBufferB = std::make_unique<GFX::StaticBuffer>(&exposure, sizeof(float), GFX::BufferFlag::NONE);
+  exposureBuffer = std::make_unique<GFX::StaticBuffer>(&exposure, 2 * sizeof(float), GFX::BufferFlag::NONE);
 
   glEnable(GL_DEBUG_OUTPUT);
   glEnable(GL_DEPTH_TEST);
@@ -338,6 +337,8 @@ void Renderer::CompileShaders()
       { "fullscreen_tri.vs", GL_VERTEX_SHADER },
       { "tonemap.fs", GL_FRAGMENT_SHADER }
     }));
+  Shader::shaders["calc_exposure"].emplace(Shader(
+    { { "calc_exposure.cs", GL_COMPUTE_SHADER } }));
 
   Shader::shaders["sun"].emplace(Shader("flat_sun.vs", "flat_sun.fs"));
   Shader::shaders["axis"].emplace(Shader("axis.vs", "axis.fs"));
@@ -467,12 +468,13 @@ void Renderer::StartFrame()
   ImGui::SliderFloat("Adjustment Speed", &adjustmentSpeed, .1f, 10.0f, "%.2f");
   if (ImGui::Button("Recompile"))
   {
-    Shader::shaders.erase("tonemap");
     Shader::shaders["tonemap"].emplace(Shader(
       {
         { "fullscreen_tri.vs", GL_VERTEX_SHADER },
         { "tonemap.fs", GL_FRAGMENT_SHADER }
       }));
+    Shader::shaders["calc_exposure"].emplace(Shader(
+      { { "calc_exposure.cs", GL_COMPUTE_SHADER } }));
   }
   ImGui::End();
 }
@@ -483,6 +485,18 @@ void Renderer::EndFrame(float dt)
 
   if (tonemapping)
   {
+    glBindTextureUnit(1, color);
+    glGenerateTextureMipmap(color);
+    exposureBuffer->Bind<GFX::Target::SSBO>(0);
+    auto& cshdr = Shader::shaders["calc_exposure"];
+    cshdr->Use();
+    cshdr->setFloat("u_targetLuminance", targetLuminance);
+    cshdr->setFloat("u_dt", dt);
+    cshdr->setFloat("u_adjustmentSpeed", adjustmentSpeed);
+    cshdr->setInt("u_hdrBuffer", 1);
+    glDispatchCompute(1, 1, 1);
+    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glViewport(0, 0, fboWidth, fboHeight);
     auto& shdr = Shader::shaders["tonemap"];
@@ -490,19 +504,10 @@ void Renderer::EndFrame(float dt)
     glDisable(GL_CULL_FACE);
     shdr->Use();
     shdr->setFloat("u_exposureFactor", exposure);
-    shdr->setFloat("u_targetLuminance", targetLuminance);
-    shdr->setInt("u_hdrBuffer", 1);
     shdr->setFloat("u_gammaCorrection", gammaCorrection);
-    shdr->setFloat("u_dt", dt);
-    shdr->setFloat("u_adjustmentSpeed", adjustmentSpeed);
-    glBindTextureUnit(1, color);
-    glGenerateTextureMipmap(color);
-    exposureBufferA->Bind<GFX::Target::SSBO>(0);
-    exposureBufferB->Bind<GFX::Target::SSBO>(1);
+    shdr->setInt("u_hdrBuffer", 1);
     emptyVao->Bind();
     glDrawArrays(GL_TRIANGLES, 0, 3);
-    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-    std::swap(exposureBufferA, exposureBufferB);
     glDepthMask(GL_TRUE);
     glEnable(GL_CULL_FACE);
   }
