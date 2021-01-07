@@ -54,8 +54,8 @@ vec4 map(vec4 val, vec4 r1s, vec4 r1e, vec4 r2s, vec4 r2e)
 float tseed = 0.0;
 float rng(float low, float high)
 {
-  tseed += 1.61803398874989484820459;
-  return map(gold_noise(gl_GlobalInvocationID.xy + u_time, u_time + tseed), 0.0, 1.0, low, high);
+  tseed += 1.0;
+  return clamp(map(gold_noise(gl_GlobalInvocationID.xy + u_time, u_time + tseed), 0.0, 1.0, low, high), low, high);
 }
 vec2 rng(vec2 low, vec2 high)
 {

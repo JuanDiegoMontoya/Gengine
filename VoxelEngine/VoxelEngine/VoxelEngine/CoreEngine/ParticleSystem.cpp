@@ -70,7 +70,7 @@ void ParticleSystem::Update(Scene& scene, float dt)
     {
 #pragma region uniforms
       emitter_shader->setInt("u_particlesToSpawn", particlesToSpawn);
-      emitter_shader->setFloat("u_time", timer.elapsed());
+      emitter_shader->setFloat("u_time", timer.elapsed() + 1.61803);
       emitter_shader->setMat4("u_model", transform.GetModel());
       emitter_shader->setFloat("u_emitter.minLife", emitter.minLife);
       emitter_shader->setFloat("u_emitter.maxLife", emitter.maxLife);
@@ -108,4 +108,7 @@ void ParticleSystem::Update(Scene& scene, float dt)
     glDispatchCompute(numGroupsa, 1, 1);
   }
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
+  // reset timer every 10 seconds to avoid precision issues
+  if (timer.elapsed() > 10.0) timer.reset();
 }
