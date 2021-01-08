@@ -78,14 +78,32 @@ void OnStart(Scene* scene)
   std::cout << "User function, initial scene name: " << scene->GetName() << '\n';
 
 
+  //const std::vector<std::string> faces =
+  //{
+  //  "hw_glacier/glacier_rt.tga",
+  //  "hw_glacier/glacier_lf.tga",
+  //  "hw_glacier/glacier_up.tga",
+  //  "hw_glacier/glacier_dn.tga",
+  //  "hw_glacier/glacier_bk.tga",
+  //  "hw_glacier/glacier_ft.tga",
+  //};
+  //const std::vector<std::string> faces =
+  //{
+  //  "night_sky_hdr/px.hdr",
+  //  "night_sky_hdr/nx.hdr",
+  //  "night_sky_hdr/py.hdr",
+  //  "night_sky_hdr/ny.hdr",
+  //  "night_sky_hdr/pz.hdr",
+  //  "night_sky_hdr/nz.hdr",
+  //};
   const std::vector<std::string> faces =
   {
-    "hw_glacier/glacier_rt.tga",
-    "hw_glacier/glacier_lf.tga",
-    "hw_glacier/glacier_up.tga",
-    "hw_glacier/glacier_dn.tga",
-    "hw_glacier/glacier_bk.tga",
-    "hw_glacier/glacier_ft.tga",
+    "autumn_sky_hdr/px.hdr",
+    "autumn_sky_hdr/nx.hdr",
+    "autumn_sky_hdr/py.hdr",
+    "autumn_sky_hdr/ny.hdr",
+    "autumn_sky_hdr/pz.hdr",
+    "autumn_sky_hdr/nz.hdr",
   };
   {
     Entity player = scene->CreateEntity("player");

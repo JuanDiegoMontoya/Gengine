@@ -62,11 +62,12 @@ namespace GFX
         std::cout << "Failed to load texture " << faces[i] << ", using fallback.\n";
         tex = texPath + "error.png";
       }
-      unsigned char* data = stbi_load(tex.c_str(), &width, &height, &nrChannels, 0);
+      //unsigned char* data = stbi_load(tex.c_str(), &width, &height, &nrChannels, 3);
+      float* data = stbi_loadf(tex.c_str(), &width, &height, &nrChannels, 3);
       if (data)
       {
         glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
-          0, GL_SRGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+          0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, data);
       }
       else
       {

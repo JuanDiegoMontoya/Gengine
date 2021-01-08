@@ -48,7 +48,7 @@ void DebugSystem::Update(Scene& scene, float dt)
     frameTimeExp = alpha * dt + (1.0 - alpha) * frameTimeExp;
     alpha = glm::clamp((float)dt, 0.0f, 1.0f);
 
-    ImGui::Text("FPS: %.0f (%.1f ms)", 1.f / frameTimeExp, frameTimeExp * 1000);
+    ImGui::Text("FPS: %.0f (%.2f ms)", 1.f / frameTimeExp, frameTimeExp * 1000);
 
     ImGui::SliderInt("Fake Lag", &fakeLag, 0, 50, "%d ms");
     if (fakeLag > 0)

@@ -193,8 +193,8 @@ void ChunkRenderer::Draw()
     glm::pow(.922f, 2.2f));
   //currShader->setVec3("viewPos", cam->GetPos());
   currShader->setVec3("viewPos", CameraSystem::GetPos());
-  currShader->setFloat("fogStart", 500.0f);
-  currShader->setFloat("fogEnd", 3000.0f);
+  currShader->setFloat("fogStart", 400.0f);
+  currShader->setFloat("fogEnd", 2000.0f);
   currShader->setVec3("fogColor", skyColor);
   //currShader->setMat4("u_viewProj", cam->GetProj() * cam->GetView());
   currShader->setMat4("u_viewProj", CameraSystem::GetProj() * CameraSystem::GetView());

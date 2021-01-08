@@ -464,6 +464,8 @@ void Renderer::StartFrame()
   ImGui::Checkbox("Enabled", &tonemapping);
   ImGui::Checkbox("Gamma Correction", &gammaCorrection);
   ImGui::SliderFloat("Exposure", &exposure, .5f, 2.0f, "%.2f");
+  ImGui::SliderFloat("Min Exposure", &minExposure, .1f, 10.0f, "%.2f");
+  ImGui::SliderFloat("Max Exposure", &maxExposure, .1f, 10.0f, "%.2f");
   ImGui::SliderFloat("Target Luminance", &targetLuminance, .1f, 10.0f, "%.2f", 2.f);
   ImGui::SliderFloat("Adjustment Speed", &adjustmentSpeed, .1f, 10.0f, "%.2f");
   if (ImGui::Button("Recompile"))
@@ -491,6 +493,8 @@ void Renderer::EndFrame(float dt)
     auto& cshdr = Shader::shaders["calc_exposure"];
     cshdr->Use();
     cshdr->setFloat("u_targetLuminance", targetLuminance);
+    cshdr->setFloat("u_minExposure", minExposure);
+    cshdr->setFloat("u_maxExposure", maxExposure);
     cshdr->setFloat("u_dt", dt);
     cshdr->setFloat("u_adjustmentSpeed", adjustmentSpeed);
     cshdr->setInt("u_hdrBuffer", 1);
@@ -518,6 +522,4 @@ void Renderer::EndFrame(float dt)
       0, 0, windowWidth, windowHeight,
       GL_COLOR_BUFFER_BIT, GL_LINEAR);
   }
-
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
