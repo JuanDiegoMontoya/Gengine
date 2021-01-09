@@ -20,9 +20,8 @@ void main()
   readExposure = writeExposure;
   writeExposure = temp;
 
-  // sample center of highest mip level (1x1)
   const vec3 color = textureLod(u_hdrBuffer, vec2(.5), textureQueryLevels(u_hdrBuffer) - 1).rgb;
-  const float luminance = (color.r * 0.3) + (color.g * 0.59) + (color.b * 0.11);
+  const float luminance = dot(color, vec3(.3, .59, .11));
   
   float exposureTarget = clamp(u_targetLuminance / luminance, u_minExposure, u_maxExposure);
   writeExposure = mix(readExposure, exposureTarget, u_dt * u_adjustmentSpeed);

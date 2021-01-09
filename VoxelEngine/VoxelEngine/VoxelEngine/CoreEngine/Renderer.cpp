@@ -463,7 +463,7 @@ void Renderer::StartFrame()
   ImGui::Begin("Tonemapping");
   ImGui::Checkbox("Enabled", &tonemapping);
   ImGui::Checkbox("Gamma Correction", &gammaCorrection);
-  ImGui::SliderFloat("Exposure", &exposure, .5f, 2.0f, "%.2f");
+  ImGui::SliderFloat("Exposure Factor", &exposure, .5f, 2.0f, "%.2f");
   ImGui::SliderFloat("Min Exposure", &minExposure, .1f, 10.0f, "%.2f");
   ImGui::SliderFloat("Max Exposure", &maxExposure, .1f, 10.0f, "%.2f");
   ImGui::SliderFloat("Target Luminance", &targetLuminance, .1f, 10.0f, "%.2f", 2.f);
@@ -484,6 +484,10 @@ void Renderer::StartFrame()
 void Renderer::EndFrame(float dt)
 {
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  if (gammaCorrection)
+  {
+    glEnable(GL_FRAMEBUFFER_SRGB);
+  }
 
   if (tonemapping)
   {
@@ -508,7 +512,6 @@ void Renderer::EndFrame(float dt)
     glDisable(GL_CULL_FACE);
     shdr->Use();
     shdr->setFloat("u_exposureFactor", exposure);
-    shdr->setFloat("u_gammaCorrection", gammaCorrection);
     shdr->setInt("u_hdrBuffer", 1);
     emptyVao->Bind();
     glDrawArrays(GL_TRIANGLES, 0, 3);
@@ -522,4 +525,5 @@ void Renderer::EndFrame(float dt)
       0, 0, windowWidth, windowHeight,
       GL_COLOR_BUFFER_BIT, GL_LINEAR);
   }
+  glDisable(GL_FRAMEBUFFER_SRGB);
 }

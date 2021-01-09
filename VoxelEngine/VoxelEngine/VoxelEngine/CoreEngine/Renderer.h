@@ -79,7 +79,7 @@ private:
   static inline float exposure = 1.0f;
   static inline float minExposure = 0.3f;
   static inline float maxExposure = 3.0f;
-  static inline float targetLuminance = .5f;
+  static inline float targetLuminance = .22f;
   static inline float adjustmentSpeed = 0.5f;
   static inline bool tonemapping = true;
   static inline bool gammaCorrection = true;

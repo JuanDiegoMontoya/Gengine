@@ -174,7 +174,7 @@ void PlayerActions::checkTestButton()
     for (int i = 0; i < 100; i++)
     {
       //voxels->MeshChunk({ rand() % 5, rand() % 5, rand() % 5 });
-      voxels->UpdateBlock({ rand() % 100, rand() % 100, rand() % 100 }, Block(BlockType::bStone));
+      voxels->UpdateBlock({ rand() % 50, rand() % 20 + 30, rand() % 50 }, Block(BlockType::bStone));
     }
   }
 }
