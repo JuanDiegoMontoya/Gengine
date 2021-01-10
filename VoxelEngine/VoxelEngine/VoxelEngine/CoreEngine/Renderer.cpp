@@ -213,7 +213,10 @@ void Renderer::Init()
   {
     fprintf(stderr, "glCheckNamedFramebufferStatus: %x\n", status);
   }
-
+  size_t pow2Size = glm::exp2(glm::ceil(glm::log2(double(fboWidth * fboHeight)))); // next power of 2
+  std::vector<float> zeros(pow2Size, 0);
+  floatBufferIn = std::make_unique<GFX::StaticBuffer>(zeros.data(), pow2Size * sizeof(float), GFX::BufferFlag::CLIENT_STORAGE | GFX::BufferFlag::DYNAMIC_STORAGE);
+  floatBufferOut = std::make_unique<GFX::StaticBuffer>(zeros.data(), pow2Size * sizeof(float), GFX::BufferFlag::CLIENT_STORAGE);
   exposureBuffer = std::make_unique<GFX::StaticBuffer>(&exposure, 2 * sizeof(float), GFX::BufferFlag::NONE);
 
   glEnable(GL_DEBUG_OUTPUT);
@@ -339,6 +342,10 @@ void Renderer::CompileShaders()
     }));
   Shader::shaders["calc_exposure"].emplace(Shader(
     { { "calc_exposure.cs", GL_COMPUTE_SHADER } }));
+  Shader::shaders["linearize_log_lum_tex"].emplace(Shader(
+    { { "linearize_tex.cs", GL_COMPUTE_SHADER } }));
+  Shader::shaders["reduce_sum"].emplace(Shader(
+    { { "reduce_sum.cs", GL_COMPUTE_SHADER } }));
 
   Shader::shaders["sun"].emplace(Shader("flat_sun.vs", "flat_sun.fs"));
   Shader::shaders["axis"].emplace(Shader("axis.vs", "axis.fs"));
@@ -491,32 +498,118 @@ void Renderer::EndFrame(float dt)
 
   if (tonemapping)
   {
-    glBindTextureUnit(1, color);
-    glGenerateTextureMipmap(color);
-    exposureBuffer->Bind<GFX::Target::SSBO>(0);
-    auto& cshdr = Shader::shaders["calc_exposure"];
-    cshdr->Use();
-    cshdr->setFloat("u_targetLuminance", targetLuminance);
-    cshdr->setFloat("u_minExposure", minExposure);
-    cshdr->setFloat("u_maxExposure", maxExposure);
-    cshdr->setFloat("u_dt", dt);
-    cshdr->setFloat("u_adjustmentSpeed", adjustmentSpeed);
-    cshdr->setInt("u_hdrBuffer", 1);
-    glDispatchCompute(1, 1, 1);
-    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+    glBindTextureUnit(1, color); // HDR buffer
 
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    glViewport(0, 0, fboWidth, fboHeight);
-    auto& shdr = Shader::shaders["tonemap"];
-    glDepthMask(GL_FALSE);
-    glDisable(GL_CULL_FACE);
-    shdr->Use();
-    shdr->setFloat("u_exposureFactor", exposure);
-    shdr->setInt("u_hdrBuffer", 1);
-    emptyVao->Bind();
-    glDrawArrays(GL_TRIANGLES, 0, 3);
-    glDepthMask(GL_TRUE);
-    glEnable(GL_CULL_FACE);
+    //{
+    //  // put the log of each pixel's luminance of the hdr texture into a flat float buffer before reduction
+    //  auto& lshdr = Shader::shaders["linearize_log_lum_tex"];
+    //  lshdr->Use();
+    //  lshdr->setInt("u_hdrBuffer", 1);
+    //  floatBufferIn->Bind<GFX::Target::SSBO>(0);
+    //  const uint32_t W_P_T = 1; // WORK_PER_THREAD
+    //  const uint32_t N_L_T = 256; // NUM_LOCAL_THREADS
+    //  const uint32_t numPixels = fboWidth * fboHeight;
+    //  const uint32_t numGroupsL =
+    //    glm::floor((numPixels + (N_L_T * W_P_T) - 1) / (N_L_T * W_P_T));
+    //  glDispatchCompute(numGroupsL, 1, 1);
+    //  glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+    //}
+    std::vector<float> nums(fboWidth * fboHeight, glm::log(2.0f));
+    floatBufferIn->SubData(nums.data(), nums.size() * sizeof(float));
+
+    {
+      auto& rshdr = Shader::shaders["reduce_sum"];
+      rshdr->Use();
+      const uint32_t WORKGROUP_SIZE = 256;
+      //uint32_t size = fboWidth * fboHeight;
+      uint32_t size = glm::exp2(glm::ceil(glm::log2(fboWidth * fboHeight))); // next power of 2
+      const uint32_t threadsPerBlock = WORKGROUP_SIZE;
+      int totalBlocks = (size + (threadsPerBlock - 1)) / threadsPerBlock;
+      bool turn = true;
+      while (true)
+      {
+        rshdr->setUInt("u_n", size);
+        if (turn)
+        {
+          floatBufferIn->Bind<GFX::Target::SSBO>(0);
+          floatBufferOut->Bind<GFX::Target::SSBO>(1);
+          glDispatchCompute(totalBlocks, 1, 1);
+          glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+          //reduce0<<<totalBlocks, threadsPerBlock, threadsPerBlock * sizeof(int)>>>(input, output, size);
+          turn = false;
+        }
+        else
+        {
+          floatBufferIn->Bind<GFX::Target::SSBO>(1);
+          floatBufferOut->Bind<GFX::Target::SSBO>(0);
+          glDispatchCompute(totalBlocks, 1, 1);
+          glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+          //reduce0<<<totalBlocks, threadsPerBlock, threadsPerBlock * sizeof(int)>>>(output, input, size);
+          turn = true;
+        }
+        if (totalBlocks == 1) break;
+
+        size = totalBlocks;
+        totalBlocks = ceil((double)totalBlocks / threadsPerBlock);
+      }
+      //int numInputElements = fboWidth * fboHeight;
+      //int numOutputElements = numInputElements;
+      //do
+      //{
+      //  numOutputElements = numInputElements / WORKGROUP_SIZE;
+      //  if (numInputElements % WORKGROUP_SIZE)
+      //    numOutputElements++;
+      //  rshdr->setUInt("u_n", numInputElements);
+      //  floatBufferIn->Bind<GFX::Target::SSBO>(0);
+      //  floatBufferOut->Bind<GFX::Target::SSBO>(1);
+      //  glDispatchCompute(numOutputElements, 1, 1);
+      //  glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+      //  //reductionDouble<<<numOutputElements, threadsPerBlock>>>(dev_vec, dev_vecOut, numInputElements);
+      //  numInputElements = numOutputElements;
+      //  if (numOutputElements > 1)
+      //  {
+      //    rshdr->setUInt("u_n", numInputElements);
+      //    floatBufferIn->Bind<GFX::Target::SSBO>(1);
+      //    floatBufferOut->Bind<GFX::Target::SSBO>(0);
+      //    glDispatchCompute(numOutputElements, 1, 1);
+      //    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+      //    //reductionDouble<<<numOutputElements, threadsPerBlock>>>(dev_vecOut, dev_vec, numInputElements);
+      //  }
+      //} while (numOutputElements > 1);
+    }
+
+    float data{};
+    glGetNamedBufferSubData(floatBufferIn->GetID(), 0, sizeof(float), &data);
+    printf("Lum: %f\n", glm::exp(data));
+
+    {
+      //glGenerateTextureMipmap(color);
+      exposureBuffer->Bind<GFX::Target::SSBO>(0);
+      floatBufferOut->Bind<GFX::Target::SSBO>(1);
+      auto& cshdr = Shader::shaders["calc_exposure"];
+      cshdr->Use();
+      cshdr->setFloat("u_targetLuminance", targetLuminance);
+      cshdr->setFloat("u_minExposure", minExposure);
+      cshdr->setFloat("u_maxExposure", maxExposure);
+      cshdr->setFloat("u_dt", dt);
+      cshdr->setFloat("u_adjustmentSpeed", adjustmentSpeed);
+      cshdr->setInt("u_hdrBuffer", 1);
+      glDispatchCompute(1, 1, 1);
+      glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
+      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+      glViewport(0, 0, fboWidth, fboHeight);
+      auto& shdr = Shader::shaders["tonemap"];
+      glDepthMask(GL_FALSE);
+      glDisable(GL_CULL_FACE);
+      shdr->Use();
+      shdr->setFloat("u_exposureFactor", exposure);
+      shdr->setInt("u_hdrBuffer", 1);
+      emptyVao->Bind();
+      glDrawArrays(GL_TRIANGLES, 0, 3);
+      glDepthMask(GL_TRUE);
+      glEnable(GL_CULL_FACE);
+    }
   }
   else
   {

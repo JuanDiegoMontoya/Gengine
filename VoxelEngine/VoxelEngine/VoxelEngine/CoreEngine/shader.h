@@ -74,7 +74,7 @@ public:
     ASSERT(Uniforms.find(uniform) != Uniforms.end());
     glProgramUniform1i(programID, Uniforms[uniform], value);
   }
-  void setUInt(entt::hashed_string uniform, int value)
+  void setUInt(entt::hashed_string uniform, unsigned int value)
   {
     ASSERT(Uniforms.find(uniform) != Uniforms.end());
     glProgramUniform1ui(programID, Uniforms[uniform], value);
