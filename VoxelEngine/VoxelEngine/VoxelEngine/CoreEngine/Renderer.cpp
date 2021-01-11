@@ -214,7 +214,7 @@ void Renderer::Init()
     fprintf(stderr, "glCheckNamedFramebufferStatus: %x\n", status);
   }
   size_t pow2Size = glm::exp2(glm::ceil(glm::log2(double(fboWidth * fboHeight)))); // next power of 2
-  std::vector<float> zeros(pow2Size, 0);
+  std::vector<float> zeros(pow2Size, 0.0f);
   floatBufferIn = std::make_unique<GFX::StaticBuffer>(zeros.data(), pow2Size * sizeof(float), GFX::BufferFlag::CLIENT_STORAGE | GFX::BufferFlag::DYNAMIC_STORAGE);
   floatBufferOut = std::make_unique<GFX::StaticBuffer>(zeros.data(), pow2Size * sizeof(float), GFX::BufferFlag::CLIENT_STORAGE);
   exposureBuffer = std::make_unique<GFX::StaticBuffer>(&exposure, 2 * sizeof(float), GFX::BufferFlag::NONE);
@@ -259,6 +259,7 @@ void Renderer::Init()
   glVertexArrayElementBuffer(batchVAO->GetID(), indexBuffer->GetGPUHandle());
 
   emptyVao = std::make_unique<GFX::VAO>();
+  compute_test();
 
   /*Layout layout = Window::layout;
 
@@ -500,27 +501,35 @@ void Renderer::EndFrame(float dt)
   {
     glBindTextureUnit(1, color); // HDR buffer
 
-    //{
-    //  // put the log of each pixel's luminance of the hdr texture into a flat float buffer before reduction
-    //  auto& lshdr = Shader::shaders["linearize_log_lum_tex"];
-    //  lshdr->Use();
-    //  lshdr->setInt("u_hdrBuffer", 1);
-    //  floatBufferIn->Bind<GFX::Target::SSBO>(0);
-    //  const uint32_t W_P_T = 1; // WORK_PER_THREAD
-    //  const uint32_t N_L_T = 256; // NUM_LOCAL_THREADS
-    //  const uint32_t numPixels = fboWidth * fboHeight;
-    //  const uint32_t numGroupsL =
-    //    glm::floor((numPixels + (N_L_T * W_P_T) - 1) / (N_L_T * W_P_T));
-    //  glDispatchCompute(numGroupsL, 1, 1);
-    //  glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-    //}
-    std::vector<float> nums(fboWidth * fboHeight, glm::log(2.0f));
-    floatBufferIn->SubData(nums.data(), nums.size() * sizeof(float));
+    {
+      // put the log of each pixel's luminance of the hdr texture into a flat float buffer before reduction
+      auto& lshdr = Shader::shaders["linearize_log_lum_tex"];
+      lshdr->Use();
+      lshdr->setInt("u_hdrBuffer", 1);
+      floatBufferIn->Bind<GFX::Target::SSBO>(0);
+      const uint32_t W_P_T = 1; // WORK_PER_THREAD
+      const uint32_t N_L_T = 256; // NUM_LOCAL_THREADS
+      const uint32_t numPixels = fboWidth * fboHeight;
+      const uint32_t numGroupsL =
+        glm::floor((numPixels + (N_L_T * W_P_T) - 1) / (N_L_T * W_P_T));
+      glDispatchCompute(numGroupsL, 1, 1);
+      glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+    }
+    //std::vector<float> nums(fboWidth * fboHeight, log(0.1234f));
+    //floatBufferIn->SubData(nums.data(), nums.size() * sizeof(float));
 
     {
       auto& rshdr = Shader::shaders["reduce_sum"];
       rshdr->Use();
-      const uint32_t WORKGROUP_SIZE = 256;
+
+      //uint32_t size = fboWidth * fboHeight; // next power of 2
+      //rshdr->setUInt("u_n", size);
+      //floatBufferIn->Bind<GFX::Target::SSBO>(0);
+      //floatBufferOut->Bind<GFX::Target::SSBO>(1);
+      //glDispatchCompute(1, 1, 1);
+      //glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
+      const uint32_t WORKGROUP_SIZE = 2048;
       //uint32_t size = fboWidth * fboHeight;
       uint32_t size = glm::exp2(glm::ceil(glm::log2(fboWidth * fboHeight))); // next power of 2
       const uint32_t threadsPerBlock = WORKGROUP_SIZE;
@@ -552,6 +561,7 @@ void Renderer::EndFrame(float dt)
         size = totalBlocks;
         totalBlocks = ceil((double)totalBlocks / threadsPerBlock);
       }
+
       //int numInputElements = fboWidth * fboHeight;
       //int numOutputElements = numInputElements;
       //do
@@ -578,9 +588,9 @@ void Renderer::EndFrame(float dt)
       //} while (numOutputElements > 1);
     }
 
-    float data{};
-    glGetNamedBufferSubData(floatBufferIn->GetID(), 0, sizeof(float), &data);
-    printf("Lum: %f\n", glm::exp(data));
+    //float data{};
+    //glGetNamedBufferSubData(floatBufferOut->GetID(), 0, sizeof(float), &data);
+    //printf("Lum: %f\n", exp(data / (fboWidth * fboHeight)));
 
     {
       //glGenerateTextureMipmap(color);
@@ -619,4 +629,99 @@ void Renderer::EndFrame(float dt)
       GL_COLOR_BUFFER_BIT, GL_LINEAR);
   }
   glDisable(GL_FRAMEBUFFER_SRGB);
+}
+
+void compute_test()
+{
+  const uint64_t WIDTH = 200;
+  const uint64_t HEIGHT = 100;
+
+  size_t pow2Size = glm::exp2(glm::ceil(glm::log2(double(WIDTH * HEIGHT)))); // next power of 2
+  std::vector<float> zeros(pow2Size, 0.0f);
+  GFX::StaticBuffer inData(zeros.data(), pow2Size * sizeof(float), GFX::BufferFlag::CLIENT_STORAGE | GFX::BufferFlag::DYNAMIC_STORAGE);
+  GFX::StaticBuffer outData(zeros.data(), pow2Size * sizeof(float), GFX::BufferFlag::CLIENT_STORAGE | GFX::BufferFlag::DYNAMIC_STORAGE);
+
+  // create a test image with pixels of all the same color
+  std::vector<glm::vec4> pixels(WIDTH * HEIGHT, glm::vec4(1.5f));
+  float sum = 0.0f;
+  std::for_each(pixels.begin(), pixels.end(), [&sum](glm::vec4& pix) { pix += glm::sin(sum += .1f); });
+  GLuint testTex;
+  glCreateTextures(GL_TEXTURE_2D, 1, &testTex);
+  glTextureStorage2D(testTex, 1, GL_RGBA16F, WIDTH, HEIGHT);
+  glTextureSubImage2D(testTex, 0, 0, 0, WIDTH, HEIGHT, GL_RGBA, GL_FLOAT, pixels.data());
+  glBindTextureUnit(1, testTex);
+
+  // check that texture was uploaded correctly
+  std::vector<glm::vec4> pixelsOut(WIDTH * HEIGHT, glm::vec4(0));
+  glGetTextureSubImage(testTex, 0, 0, 0, 0, WIDTH, HEIGHT, 1, GL_RGBA, GL_FLOAT, pixelsOut.size() * sizeof(glm::vec4), pixelsOut.data());
+  for (int i = 0; i < WIDTH * HEIGHT; i++)
+  {
+    ASSERT(glm::all(glm::epsilonEqual(pixels[i], pixelsOut[i], glm::vec4(.01f))));
+  }
+
+  // take the natural log of each pixel's lumiance, then store it in a flat buffer
+  {
+    // put the log of each pixel's luminance of the hdr texture into a flat float buffer before reduction
+    auto& lshdr = Shader::shaders["linearize_log_lum_tex"];
+    lshdr->Use();
+    lshdr->setInt("u_hdrBuffer", 1);
+    inData.Bind<GFX::Target::SSBO>(0);
+    const uint32_t N_L_T = 256; // NUM_LOCAL_THREADS
+    const uint32_t numPixels = WIDTH * HEIGHT;
+    const uint32_t numGroupsL =
+      glm::floor((numPixels + (N_L_T) - 1) / (N_L_T));
+    glDispatchCompute(numGroupsL, 1, 1);
+    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+  }
+
+  // check previous CS invocation with simple scalar code
+  std::vector<float> bufferOut(WIDTH * HEIGHT, 0.0f);
+  glGetNamedBufferSubData(inData.GetID(), 0, bufferOut.size() * sizeof(float), bufferOut.data());
+  for (int i = 0; i < WIDTH * HEIGHT; i++)
+  {
+    float lum = glm::dot(glm::vec3(pixels[i]), glm::vec3(.3f, .59f, .11f));
+    ASSERT(glm::epsilonEqual(bufferOut[i], glm::log(lum), .001f));
+  }
+
+  {
+    auto& rshdr = Shader::shaders["reduce_sum"];
+    rshdr->Use();
+
+    const uint32_t WORKGROUP_SIZE = 2048;
+    uint32_t size = pow2Size;
+    const uint32_t threadsPerBlock = WORKGROUP_SIZE;
+    int totalBlocks = (size + threadsPerBlock - 1) / threadsPerBlock;
+    bool turn = true;
+    while (true)
+    {
+      rshdr->setUInt("u_n", size);
+      if (turn)
+      {
+        inData.Bind<GFX::Target::SSBO>(0);
+        outData.Bind<GFX::Target::SSBO>(1);
+        glDispatchCompute(totalBlocks, 1, 1);
+        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+        //reduce0<<<totalBlocks, threadsPerBlock, threadsPerBlock * sizeof(int)>>>(input, output, size);
+        turn = false;
+      }
+      else
+      {
+        inData.Bind<GFX::Target::SSBO>(1);
+        outData.Bind<GFX::Target::SSBO>(0);
+        glDispatchCompute(totalBlocks, 1, 1);
+        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+        //reduce0<<<totalBlocks, threadsPerBlock, threadsPerBlock * sizeof(int)>>>(output, input, size);
+        turn = true;
+      }
+      if (totalBlocks == 1) break;
+
+      size = totalBlocks;
+      totalBlocks = ceil((double)totalBlocks / threadsPerBlock);
+    }
+  }
+
+  //float data{};
+  //glGetNamedBufferSubData(floatBufferOut->GetID(), 0, sizeof(float), &data);
+  //printf("Lum: %f\n", exp(data / (fboWidth * fboHeight)));
+
 }

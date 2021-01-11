@@ -1,5 +1,5 @@
 #version 460 core
-#define WORKGROUP_SIZE 256
+#define WORKGROUP_SIZE 1024
 
 layout (location = 0) uniform uint u_n;
 
@@ -12,6 +12,15 @@ layout (std430, binding = 1) buffer out_data
 {
   writeonly float odata[];
 };
+
+// layout (local_size_x = WORKGROUP_SIZE, local_size_y = 1, local_size_z = 1) in;
+// void main()
+// {
+//   float sum = 0.0;
+//   for (int i = 0; i < u_n; i++)
+//     sum += idata[i];
+//   odata[0] = sum;
+// }
 
 #if 1
 shared float sdata[WORKGROUP_SIZE];
