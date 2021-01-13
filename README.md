@@ -12,7 +12,7 @@ A code-oriented game engine designed to be efficient, extensible, and simple to 
 
 ## Graphics
 - OpenGL 4.6-based renderer for minimal driver overhead
-- Arbitrarily many animated and GPU-acclerated particles
+- Arbitrarily many animated and GPU-accelerated particles
 - Flood fill voxel lighting with four color channels (red, green, blue, sunlight)
 - HDR, tonemapping, and automatic exposure adjustment
 
