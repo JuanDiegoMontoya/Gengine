@@ -345,8 +345,18 @@ void Renderer::CompileShaders()
     { { "calc_exposure.cs", GL_COMPUTE_SHADER } }));
   Shader::shaders["linearize_log_lum_tex"].emplace(Shader(
     { { "linearize_tex.cs", GL_COMPUTE_SHADER } }));
-  Shader::shaders["reduce_sum"].emplace(Shader(
+  Shader::shaders["reduce_sum_1024"].emplace(Shader(
     { { "reduce_sum.cs", GL_COMPUTE_SHADER } }));
+  Shader::shaders["reduce_sum_512"].emplace(Shader(
+    { { "reduce_sum.cs", GL_COMPUTE_SHADER, {{"#define WORKGROUP_SIZE 1024", "#define WORKGROUP_SIZE 512"}} } }));
+  Shader::shaders["reduce_sum_256"].emplace(Shader(
+    { { "reduce_sum.cs", GL_COMPUTE_SHADER, {{"#define WORKGROUP_SIZE 1024", "#define WORKGROUP_SIZE 256"}} } }));
+  Shader::shaders["reduce_sum_128"].emplace(Shader(
+    { { "reduce_sum.cs", GL_COMPUTE_SHADER, {{"#define WORKGROUP_SIZE 1024", "#define WORKGROUP_SIZE 128"}} } }));
+  Shader::shaders["reduce_sum_64"].emplace(Shader(
+    { { "reduce_sum.cs", GL_COMPUTE_SHADER, {{"#define WORKGROUP_SIZE 1024", "#define WORKGROUP_SIZE 64"}} } }));
+  Shader::shaders["reduce_sum_32"].emplace(Shader(
+    { { "reduce_sum.cs", GL_COMPUTE_SHADER, {{"#define WORKGROUP_SIZE 1024", "#define WORKGROUP_SIZE 32"}} } }));
 
   Shader::shaders["sun"].emplace(Shader("flat_sun.vs", "flat_sun.fs"));
   Shader::shaders["axis"].emplace(Shader("axis.vs", "axis.fs"));
@@ -529,7 +539,7 @@ void Renderer::EndFrame(float dt)
       //glDispatchCompute(1, 1, 1);
       //glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
-      const uint32_t WORKGROUP_SIZE = 2048;
+      const uint32_t WORKGROUP_SIZE = 1024;
       //uint32_t size = fboWidth * fboHeight;
       uint32_t size = glm::exp2(glm::ceil(glm::log2(fboWidth * fboHeight))); // next power of 2
       const uint32_t threadsPerBlock = WORKGROUP_SIZE;
@@ -631,18 +641,53 @@ void Renderer::EndFrame(float dt)
   glDisable(GL_FRAMEBUFFER_SRGB);
 }
 
+size_t invoke_compute(GFX::StaticBuffer& in, GFX::StaticBuffer& out, size_t size)
+{
+  size_t blockSize{};
+  auto& rshdr = [size, &blockSize]() -> auto&
+  {
+    if (size > 1024)
+    {
+      blockSize = 1024;
+      return Shader::shaders["reduce_sum_1024"];
+    }
+
+    blockSize = size;
+    switch (size)
+    {
+    case 1024: return Shader::shaders["reduce_sum_1024"];
+    case 512: return Shader::shaders["reduce_sum_512"];
+    case 256: return Shader::shaders["reduce_sum_256"];
+    case 128: return Shader::shaders["reduce_sum_128"];
+    case 64: return Shader::shaders["reduce_sum_64"];
+    default: return Shader::shaders["reduce_sum_32"];
+    }
+  }();
+  rshdr->Use();
+  rshdr->setUInt("u_n", size);
+  in.Bind<GFX::Target::SSBO>(0);
+  out.Bind<GFX::Target::SSBO>(1);
+  int totalBlocks = (size + blockSize - 1) / blockSize;
+  glDispatchCompute(totalBlocks, 1, 1);
+  glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
+  return totalBlocks;
+}
+
 void compute_test()
 {
-  const uint64_t WIDTH = 200;
-  const uint64_t HEIGHT = 100;
+  const uint64_t WIDTH = 1920;
+  const uint64_t HEIGHT = 1080;
 
   size_t pow2Size = glm::exp2(glm::ceil(glm::log2(double(WIDTH * HEIGHT)))); // next power of 2
+  //size_t pow2Size = (WIDTH * HEIGHT) + (WIDTH * HEIGHT) % 1024; // next multiple of 1024
+  //size_t pow2Size = 1024*1024;
   std::vector<float> zeros(pow2Size, 0.0f);
   GFX::StaticBuffer inData(zeros.data(), pow2Size * sizeof(float), GFX::BufferFlag::CLIENT_STORAGE | GFX::BufferFlag::DYNAMIC_STORAGE);
   GFX::StaticBuffer outData(zeros.data(), pow2Size * sizeof(float), GFX::BufferFlag::CLIENT_STORAGE | GFX::BufferFlag::DYNAMIC_STORAGE);
 
   // create a test image with pixels of all the same color
-  std::vector<glm::vec4> pixels(WIDTH * HEIGHT, glm::vec4(1.5f));
+  std::vector<glm::vec4> pixels(WIDTH * HEIGHT, glm::vec4(1.5));
   float sum = 0.0f;
   std::for_each(pixels.begin(), pixels.end(), [&sum](glm::vec4& pix) { pix += glm::sin(sum += .1f); });
   GLuint testTex;
@@ -659,6 +704,9 @@ void compute_test()
     ASSERT(glm::all(glm::epsilonEqual(pixels[i], pixelsOut[i], glm::vec4(.01f))));
   }
 
+  GFX::Fence fencea;
+  fencea.Sync();
+  Timer timerLin;
   // take the natural log of each pixel's lumiance, then store it in a flat buffer
   {
     // put the log of each pixel's luminance of the hdr texture into a flat float buffer before reduction
@@ -668,60 +716,34 @@ void compute_test()
     inData.Bind<GFX::Target::SSBO>(0);
     const uint32_t N_L_T = 256; // NUM_LOCAL_THREADS
     const uint32_t numPixels = WIDTH * HEIGHT;
-    const uint32_t numGroupsL =
-      glm::floor((numPixels + (N_L_T) - 1) / (N_L_T));
+    const uint32_t numGroupsL = (numPixels + N_L_T - 1) / N_L_T;
     glDispatchCompute(numGroupsL, 1, 1);
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
   }
-
+  GFX::Fence fence;
+  fence.Sync();
+  printf("Linearize time + overhead: %fms\n", timerLin.elapsed() * 1000);
   // check previous CS invocation with simple scalar code
   std::vector<float> bufferOut(WIDTH * HEIGHT, 0.0f);
   glGetNamedBufferSubData(inData.GetID(), 0, bufferOut.size() * sizeof(float), bufferOut.data());
-  for (int i = 0; i < WIDTH * HEIGHT; i++)
+  //for (int i = 0; i < WIDTH * HEIGHT; i++)
+  //{
+  //  float lum = glm::dot(glm::vec3(pixels[i]), glm::vec3(.3f, .59f, .11f));
+  //  ASSERT(glm::epsilonEqual(bufferOut[i], glm::log(lum), .001f));
+  //}
+
+  Timer timer;
+  while (pow2Size > 1)
   {
-    float lum = glm::dot(glm::vec3(pixels[i]), glm::vec3(.3f, .59f, .11f));
-    ASSERT(glm::epsilonEqual(bufferOut[i], glm::log(lum), .001f));
+    pow2Size = invoke_compute(inData, outData, pow2Size);
+    if (pow2Size > 1) std::swap(inData, outData);
   }
-
-  {
-    auto& rshdr = Shader::shaders["reduce_sum"];
-    rshdr->Use();
-
-    const uint32_t WORKGROUP_SIZE = 2048;
-    uint32_t size = pow2Size;
-    const uint32_t threadsPerBlock = WORKGROUP_SIZE;
-    int totalBlocks = (size + threadsPerBlock - 1) / threadsPerBlock;
-    bool turn = true;
-    while (true)
-    {
-      rshdr->setUInt("u_n", size);
-      if (turn)
-      {
-        inData.Bind<GFX::Target::SSBO>(0);
-        outData.Bind<GFX::Target::SSBO>(1);
-        glDispatchCompute(totalBlocks, 1, 1);
-        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-        //reduce0<<<totalBlocks, threadsPerBlock, threadsPerBlock * sizeof(int)>>>(input, output, size);
-        turn = false;
-      }
-      else
-      {
-        inData.Bind<GFX::Target::SSBO>(1);
-        outData.Bind<GFX::Target::SSBO>(0);
-        glDispatchCompute(totalBlocks, 1, 1);
-        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-        //reduce0<<<totalBlocks, threadsPerBlock, threadsPerBlock * sizeof(int)>>>(output, input, size);
-        turn = true;
-      }
-      if (totalBlocks == 1) break;
-
-      size = totalBlocks;
-      totalBlocks = ceil((double)totalBlocks / threadsPerBlock);
-    }
-  }
-
-  //float data{};
-  //glGetNamedBufferSubData(floatBufferOut->GetID(), 0, sizeof(float), &data);
-  //printf("Lum: %f\n", exp(data / (fboWidth * fboHeight)));
-
+  float gpuSum{};
+  glGetNamedBufferSubData(outData.GetID(), 0, sizeof(float), &gpuSum);
+  //float gpuData[256];
+  //glGetNamedBufferSubData(outData.GetID(), 0, 256 * sizeof(float), gpuData);
+  //float gpuSum = std::accumulate(std::begin(gpuData), std::end(gpuData), 0);
+  double timed = timer.elapsed();
+  float cpuSum = std::reduce(std::execution::par, bufferOut.begin(), bufferOut.end());
+  printf("CPU: %f\nGPU: %f\nTime: %.3fms", cpuSum, gpuSum, timed * 1000.0);
 }

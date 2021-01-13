@@ -13,9 +13,9 @@ void main()
 {
   const uvec2 texSize = textureSize(u_hdrBuffer, 0);
   const uint numPixels = texSize.x * texSize.y;
-  const uint numThreads = gl_NumWorkGroups.x * gl_WorkGroupSize.x;
   const uint start = gl_GlobalInvocationID.x;
-  ivec2 coords = ivec2(uint(start % texSize.x), uint(start / texSize.x));
+  if (start >= numPixels) return;
+  ivec2 coords = ivec2(int(start % texSize.x), int(start / texSize.x));
   vec3 color = texelFetch(u_hdrBuffer, coords, 0).rgb;
   float log_lum = log(dot(color, vec3(.3, .59, .11)));
   idata[start] = log_lum;

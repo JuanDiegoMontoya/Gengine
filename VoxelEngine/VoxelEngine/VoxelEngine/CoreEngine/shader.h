@@ -13,13 +13,20 @@
 #pragma warning(push)
 #pragma warning(disable : 4267) // 8->4 byte int conversion
 
+struct ShaderInfo
+{
+  ShaderInfo(std::string p, GLenum t, std::vector<std::pair<std::string, std::string>> r = {}) : path(p), type(t), replace(r) {}
+
+  std::string path{};
+  GLenum type{};
+  std::vector<std::pair<std::string, std::string>> replace{};
+};
+
 // encapsulates shaders by storing uniforms and its GPU memory location
 // also stores the program's name and both shader paths for recompiling
 class Shader
 {
 public:
-  using glShaderType = GLint;
-
   // standard constructor
   Shader(
     std::optional<std::string> vertexPath,
@@ -32,7 +39,7 @@ public:
   Shader(int, std::string computePath);
 
   // universal SPIR-V constructor (takes a list of paths and shader types)
-  Shader(std::vector<std::pair<std::string, glShaderType>> shaders);
+  Shader(std::vector<ShaderInfo> shaders);
 
   // default constructor (currently no uses)
   Shader()
@@ -178,6 +185,7 @@ private:
     spvPreprocessAndCompile(
       shaderc::Compiler& compiler,
       const shaderc::CompileOptions options,
+      const std::vector<std::pair<std::string, std::string>>& replace,
       std::string path,
       shaderc_shader_kind a);
 

@@ -84,6 +84,7 @@ namespace GFX
     // TODO: this function doesn't work
     bool IsMapped()
     {
+      if (!rendererID_) return false;
       GLint mapped{ GL_FALSE };
       glGetNamedBufferParameteriv(rendererID_, GL_BUFFER_MAPPED, &mapped);
       return mapped;
