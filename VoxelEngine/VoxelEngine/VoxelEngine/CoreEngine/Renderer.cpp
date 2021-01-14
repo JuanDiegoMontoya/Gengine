@@ -664,7 +664,7 @@ size_t invoke_compute(GFX::StaticBuffer& in, GFX::StaticBuffer& out, size_t size
     }
   }();
   rshdr->Use();
-  if (blockSize < 64)
+  //if (blockSize < 64)
   {
     rshdr->setUInt("u_n", size);
   }
@@ -680,7 +680,7 @@ size_t invoke_compute(GFX::StaticBuffer& in, GFX::StaticBuffer& out, size_t size
 
 void compute_test()
 {
-  const uint64_t WIDTH = 2 * 1920;
+  const uint64_t WIDTH = 1 * 1920;
   const uint64_t HEIGHT = 1080;
 
   size_t pow2Size = glm::exp2(glm::ceil(glm::log2(double(WIDTH * HEIGHT)))); // next power of 2
@@ -735,21 +735,22 @@ void compute_test()
   //  float lum = glm::dot(glm::vec3(pixels[i]), glm::vec3(.3f, .59f, .11f));
   //  ASSERT(glm::epsilonEqual(bufferOut[i], glm::log(lum), .001f));
   //}
-
-  Timer timer;
-  constexpr size_t minSize = 1; // GPU will not reduce to fewer than this number of elements
+  GFX::TimerQuery qt;
+  constexpr size_t minSize = 32; // GPU will not reduce to fewer than this number of elements
   while (pow2Size > minSize)
   {
     pow2Size = invoke_compute(inData, outData, pow2Size);
     if (pow2Size > minSize) std::swap(inData, outData);
   }
+  double timed = qt.Elapsed() / 1000000000.0;
   //float gpuSum{};
   //glGetNamedBufferSubData(outData.GetID(), 0, sizeof(float), &gpuSum);
   std::array<float, minSize> gpuData;
   glGetNamedBufferSubData(outData.GetID(), 0, pow2Size * sizeof(float), gpuData.data());
   float gpuSum = std::reduce(std::execution::par_unseq, gpuData.begin(), gpuData.begin() + pow2Size);
-  double timed = timer.elapsed();
-  timer.reset();
+  //double timed = timer.elapsed();
+  //timer.reset();
+  Timer timer;
   float cpuSum = std::reduce(std::execution::par_unseq, bufferOut.begin(), bufferOut.end());
   double cpuTime = timer.elapsed();
   printf("CPU: %f\nGPU: %f\nCPU time: %.3fms\nGPU time: %.3fms", cpuSum, gpuSum, cpuTime * 1000.0, timed * 1000.0);
