@@ -15,13 +15,39 @@ layout (std430, binding = 1) buffer out_data
 };
 
 shared float partial_sum[WORKGROUP_SIZE];
+
+void warpReduce(uint t)
+{
+	partial_sum[t] += partial_sum[t + 32];
+  memoryBarrierShared();
+	partial_sum[t] += partial_sum[t + 16];
+  memoryBarrierShared();
+	partial_sum[t] += partial_sum[t + 8];
+  memoryBarrierShared();
+	partial_sum[t] += partial_sum[t + 4];
+  memoryBarrierShared();
+	partial_sum[t] += partial_sum[t + 2];
+  memoryBarrierShared();
+	partial_sum[t] += partial_sum[t + 1];
+}
+
 layout (local_size_x = WORKGROUP_SIZE, local_size_y = 1, local_size_z = 1) in;
 void main()
 {
   const uint tid = gl_GlobalInvocationID.x;
   const uint local_tid = gl_LocalInvocationID.x;
+  const uint i = gl_WorkGroupID.x * (gl_WorkGroupSize.x * 2) + gl_LocalInvocationID.x;
 
-  partial_sum[local_tid] = tid < u_n ? idata[tid] : 0.0;
+  // TODO: remove bounds checks here once CPU is able to sum final elements
+  if (WORKGROUP_SIZE == 32)
+  {
+    partial_sum[local_tid] = i < u_n ? idata[i] : 0.0;
+    partial_sum[local_tid] += (i + gl_WorkGroupSize.x) < u_n ? idata[i + gl_WorkGroupSize.x] :  0.0;
+  }
+  else
+  {
+    partial_sum[local_tid] = idata[i] + idata[i + gl_WorkGroupSize.x];
+  }
   barrier();
 
   for (uint s = gl_WorkGroupSize.x / 2; s > 0; s >>= 1)
@@ -31,6 +57,11 @@ void main()
       partial_sum[local_tid] += partial_sum[local_tid + s];
     }
     barrier();
+  }
+
+  if (local_tid < 32)
+  {
+    //warpReduce(local_tid);
   }
 
   if (local_tid == 0)
