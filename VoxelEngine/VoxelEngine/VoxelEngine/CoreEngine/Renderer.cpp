@@ -213,11 +213,12 @@ void Renderer::Init()
   {
     fprintf(stderr, "glCheckNamedFramebufferStatus: %x\n", status);
   }
-  size_t pow2Size = glm::exp2(glm::ceil(glm::log2(double(fboWidth * fboHeight)))); // next power of 2
-  std::vector<float> zeros(pow2Size, 0.0f);
-  floatBufferIn = std::make_unique<GFX::StaticBuffer>(zeros.data(), pow2Size * sizeof(float), GFX::BufferFlag::CLIENT_STORAGE | GFX::BufferFlag::DYNAMIC_STORAGE);
-  floatBufferOut = std::make_unique<GFX::StaticBuffer>(zeros.data(), pow2Size * sizeof(float), GFX::BufferFlag::CLIENT_STORAGE);
-  exposureBuffer = std::make_unique<GFX::StaticBuffer>(&exposure, 2 * sizeof(float), GFX::BufferFlag::NONE);
+  //size_t pow2Size = glm::exp2(glm::ceil(glm::log2(double(fboWidth * fboHeight)))); // next power of 2
+  std::vector<int> zeros(NUM_BUCKETS, 0);
+  //floatBufferIn = std::make_unique<GFX::StaticBuffer>(zeros.data(), pow2Size * sizeof(float), GFX::BufferFlag::CLIENT_STORAGE | GFX::BufferFlag::DYNAMIC_STORAGE);
+  //floatBufferOut = std::make_unique<GFX::StaticBuffer>(zeros.data(), pow2Size * sizeof(float), GFX::BufferFlag::CLIENT_STORAGE);
+  exposureBuffer = std::make_unique<GFX::StaticBuffer>(&exposure, 2 * sizeof(float));
+  histogramBuffer = std::make_unique<GFX::StaticBuffer>(zeros.data(), NUM_BUCKETS * sizeof(int));
 
   glEnable(GL_DEBUG_OUTPUT);
   glEnable(GL_DEPTH_TEST);
@@ -259,7 +260,7 @@ void Renderer::Init()
   glVertexArrayElementBuffer(batchVAO->GetID(), indexBuffer->GetGPUHandle());
 
   emptyVao = std::make_unique<GFX::VAO>();
-  compute_test();
+  //compute_test();
 
   /*Layout layout = Window::layout;
 
@@ -345,6 +346,8 @@ void Renderer::CompileShaders()
     { { "calc_exposure.cs", GL_COMPUTE_SHADER } }));
   Shader::shaders["linearize_log_lum_tex"].emplace(Shader(
     { { "linearize_tex.cs", GL_COMPUTE_SHADER } }));
+  Shader::shaders["generate_histogram"].emplace(Shader(
+    { { "generate_histogram.cs", GL_COMPUTE_SHADER } }));
   Shader::shaders["reduce_sum_1024"].emplace(Shader(
     { { "reduce_sum.cs", GL_COMPUTE_SHADER } }));
   Shader::shaders["reduce_sum_512"].emplace(Shader(
@@ -512,124 +515,56 @@ void Renderer::EndFrame(float dt)
     glBindTextureUnit(1, color); // HDR buffer
 
     {
-      // put the log of each pixel's luminance of the hdr texture into a flat float buffer before reduction
-      auto& lshdr = Shader::shaders["linearize_log_lum_tex"];
-      lshdr->Use();
-      lshdr->setInt("u_hdrBuffer", 1);
-      floatBufferIn->Bind<GFX::Target::SSBO>(0);
-      const uint32_t W_P_T = 1; // WORK_PER_THREAD
-      const uint32_t N_L_T = 256; // NUM_LOCAL_THREADS
-      const uint32_t numPixels = fboWidth * fboHeight;
-      const uint32_t numGroupsL =
-        glm::floor((numPixels + (N_L_T * W_P_T) - 1) / (N_L_T * W_P_T));
-      glDispatchCompute(numGroupsL, 1, 1);
+      auto& hshdr = Shader::shaders["generate_histogram"];
+      hshdr->Use();
+      hshdr->setInt("u_hdrBuffer", 1);
+      hshdr->setFloat("u_targetLuminance", targetLuminance);
+      hshdr->setFloat("u_minExposure", minExposure);
+      hshdr->setFloat("u_maxExposure", maxExposure);
+      const int X_SIZE = 32;
+      const int Y_SIZE = 32;
+      int xgroups = (fboWidth + X_SIZE - 1) / X_SIZE;
+      int ygroups = (fboHeight + Y_SIZE - 1) / Y_SIZE;
+      histogramBuffer->Bind<GFX::Target::SSBO>(0);
+      glDispatchCompute(xgroups, ygroups, 1);
       glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
     }
-    //std::vector<float> nums(fboWidth * fboHeight, log(0.1234f));
-    //floatBufferIn->SubData(nums.data(), nums.size() * sizeof(float));
 
-    {
-      auto& rshdr = Shader::shaders["reduce_sum"];
-      rshdr->Use();
+    //float expo{};
+    //glGetNamedBufferSubData(exposureBuffer->GetID(), 0, sizeof(float), &expo);
+    //printf("Exposure: %f\n", expo);
 
-      //uint32_t size = fboWidth * fboHeight; // next power of 2
-      //rshdr->setUInt("u_n", size);
-      //floatBufferIn->Bind<GFX::Target::SSBO>(0);
-      //floatBufferOut->Bind<GFX::Target::SSBO>(1);
-      //glDispatchCompute(1, 1, 1);
-      //glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-
-      const uint32_t WORKGROUP_SIZE = 1024;
-      //uint32_t size = fboWidth * fboHeight;
-      uint32_t size = glm::exp2(glm::ceil(glm::log2(fboWidth * fboHeight))); // next power of 2
-      const uint32_t threadsPerBlock = WORKGROUP_SIZE;
-      int totalBlocks = (size + (threadsPerBlock - 1)) / threadsPerBlock;
-      bool turn = true;
-      while (true)
-      {
-        rshdr->setUInt("u_n", size);
-        if (turn)
-        {
-          floatBufferIn->Bind<GFX::Target::SSBO>(0);
-          floatBufferOut->Bind<GFX::Target::SSBO>(1);
-          glDispatchCompute(totalBlocks, 1, 1);
-          glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-          //reduce0<<<totalBlocks, threadsPerBlock, threadsPerBlock * sizeof(int)>>>(input, output, size);
-          turn = false;
-        }
-        else
-        {
-          floatBufferIn->Bind<GFX::Target::SSBO>(1);
-          floatBufferOut->Bind<GFX::Target::SSBO>(0);
-          glDispatchCompute(totalBlocks, 1, 1);
-          glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-          //reduce0<<<totalBlocks, threadsPerBlock, threadsPerBlock * sizeof(int)>>>(output, input, size);
-          turn = true;
-        }
-        if (totalBlocks == 1) break;
-
-        size = totalBlocks;
-        totalBlocks = ceil((double)totalBlocks / threadsPerBlock);
-      }
-
-      //int numInputElements = fboWidth * fboHeight;
-      //int numOutputElements = numInputElements;
-      //do
-      //{
-      //  numOutputElements = numInputElements / WORKGROUP_SIZE;
-      //  if (numInputElements % WORKGROUP_SIZE)
-      //    numOutputElements++;
-      //  rshdr->setUInt("u_n", numInputElements);
-      //  floatBufferIn->Bind<GFX::Target::SSBO>(0);
-      //  floatBufferOut->Bind<GFX::Target::SSBO>(1);
-      //  glDispatchCompute(numOutputElements, 1, 1);
-      //  glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-      //  //reductionDouble<<<numOutputElements, threadsPerBlock>>>(dev_vec, dev_vecOut, numInputElements);
-      //  numInputElements = numOutputElements;
-      //  if (numOutputElements > 1)
-      //  {
-      //    rshdr->setUInt("u_n", numInputElements);
-      //    floatBufferIn->Bind<GFX::Target::SSBO>(1);
-      //    floatBufferOut->Bind<GFX::Target::SSBO>(0);
-      //    glDispatchCompute(numOutputElements, 1, 1);
-      //    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-      //    //reductionDouble<<<numOutputElements, threadsPerBlock>>>(dev_vecOut, dev_vec, numInputElements);
-      //  }
-      //} while (numOutputElements > 1);
-    }
-
-    //float data{};
-    //glGetNamedBufferSubData(floatBufferOut->GetID(), 0, sizeof(float), &data);
-    //printf("Lum: %f\n", exp(data / (fboWidth * fboHeight)));
-
+    // TODO: do this step on the CPU!
     {
       //glGenerateTextureMipmap(color);
       exposureBuffer->Bind<GFX::Target::SSBO>(0);
-      floatBufferOut->Bind<GFX::Target::SSBO>(1);
+      histogramBuffer->Bind<GFX::Target::SSBO>(1);
+      //floatBufferOut->Bind<GFX::Target::SSBO>(1);
       auto& cshdr = Shader::shaders["calc_exposure"];
       cshdr->Use();
-      cshdr->setFloat("u_targetLuminance", targetLuminance);
-      cshdr->setFloat("u_minExposure", minExposure);
-      cshdr->setFloat("u_maxExposure", maxExposure);
+      //cshdr->setFloat("u_targetLuminance", targetLuminance);
       cshdr->setFloat("u_dt", dt);
       cshdr->setFloat("u_adjustmentSpeed", adjustmentSpeed);
       cshdr->setInt("u_hdrBuffer", 1);
+      cshdr->setFloat("u_minExposure", minExposure);
+      cshdr->setFloat("u_maxExposure", maxExposure);
+      cshdr->setFloat("u_targetLuminance", targetLuminance);
       glDispatchCompute(1, 1, 1);
       glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-
-      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-      glViewport(0, 0, fboWidth, fboHeight);
-      auto& shdr = Shader::shaders["tonemap"];
-      glDepthMask(GL_FALSE);
-      glDisable(GL_CULL_FACE);
-      shdr->Use();
-      shdr->setFloat("u_exposureFactor", exposure);
-      shdr->setInt("u_hdrBuffer", 1);
-      emptyVao->Bind();
-      glDrawArrays(GL_TRIANGLES, 0, 3);
-      glDepthMask(GL_TRUE);
-      glEnable(GL_CULL_FACE);
     }
+
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    glViewport(0, 0, fboWidth, fboHeight);
+    auto& shdr = Shader::shaders["tonemap"];
+    glDepthMask(GL_FALSE);
+    glDisable(GL_CULL_FACE);
+    shdr->Use();
+    shdr->setFloat("u_exposureFactor", exposure);
+    shdr->setInt("u_hdrBuffer", 1);
+    emptyVao->Bind();
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+    glDepthMask(GL_TRUE);
+    glEnable(GL_CULL_FACE);
   }
   else
   {
@@ -754,4 +689,26 @@ void compute_test()
   float cpuSum = std::reduce(std::execution::par_unseq, bufferOut.begin(), bufferOut.end());
   double cpuTime = timer.elapsed();
   printf("CPU: %f\nGPU: %f\nCPU time: %.3fms\nGPU time: %.3fms", cpuSum, gpuSum, cpuTime * 1000.0, timed * 1000.0);
+}
+
+void histogram_test()
+{
+  const uint64_t WIDTH = 1 * 1920;
+  const uint64_t HEIGHT = 1080;
+
+  size_t size = WIDTH * HEIGHT;
+  const size_t NUM_BUCKETS = 128;
+  std::vector<int> zeros(size, 0.0f);
+  GFX::StaticBuffer histogram(zeros.data(), NUM_BUCKETS * sizeof(int));
+  //GFX::StaticBuffer outData(zeros.data(), pow2Size * sizeof(float), GFX::BufferFlag::CLIENT_STORAGE | GFX::BufferFlag::DYNAMIC_STORAGE);
+
+  // create a test image with pixels of all the same color
+  std::vector<glm::vec4> pixels(WIDTH * HEIGHT, glm::vec4(1.5));
+  float sum = 0.0f;
+  std::for_each(pixels.begin(), pixels.end(), [&sum](glm::vec4& pix) { pix += glm::sin(sum += .1f); });
+  GLuint testTex;
+  glCreateTextures(GL_TEXTURE_2D, 1, &testTex);
+  glTextureStorage2D(testTex, 1, GL_RGBA16F, WIDTH, HEIGHT);
+  glTextureSubImage2D(testTex, 0, 0, 0, WIDTH, HEIGHT, GL_RGBA, GL_FLOAT, pixels.data());
+  glBindTextureUnit(1, testTex);
 }

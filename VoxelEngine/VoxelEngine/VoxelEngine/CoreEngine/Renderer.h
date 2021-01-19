@@ -86,7 +86,10 @@ private:
   static inline bool tonemapping = true;
   static inline bool gammaCorrection = true;
   static inline std::unique_ptr<GFX::StaticBuffer> exposureBuffer;
+  static inline std::unique_ptr<GFX::StaticBuffer> histogramBuffer;
+  static inline const int NUM_BUCKETS = 256;
   static inline std::unique_ptr<GFX::StaticBuffer> floatBufferIn, floatBufferOut;
 };
 
 void compute_test();
+void histogram_test();

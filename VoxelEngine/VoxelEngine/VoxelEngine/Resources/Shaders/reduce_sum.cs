@@ -16,6 +16,7 @@ layout (std430, binding = 1) buffer out_data
 
 shared float sdata[WORKGROUP_SIZE];
 
+// TODO: use subgroup ops
 void warpReduce(uint tid)
 {
   if (WORKGROUP_SIZE >= 64){ sdata[tid] += sdata[tid + 32]; memoryBarrierShared(); }
