@@ -49,8 +49,9 @@ void Editor::SaveRegion()
       }
     }
   }
-      
+  
   // append the prefab to some file
+  newPfb.name = sName;
   std::ofstream os("./resources/Prefabs/" + std::string(sName) + ".bin", std::ios::binary);
   cereal::BinaryOutputArchive archive(os);
   archive(newPfb);
@@ -71,7 +72,7 @@ void Editor::LoadRegion()
   }
   auto scriptInstance = dynamic_cast<PlayerActions*>(player.GetComponent<Components::NativeScriptComponent>().Instance);
   scriptInstance->prefab = PrefabManager::LoadPrefabFromFile(std::string(lName));
-  scriptInstance->prefabName = std::string(lName);
+  scriptInstance->prefabName = scriptInstance->prefab.name;
 }
 
 void Editor::CancelSelection()

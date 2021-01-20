@@ -2,6 +2,7 @@
 #include <Voxels/block.h>
 #include <unordered_map>
 #include <Utilities/Serialize.h>
+#include <cereal/types/string.hpp>
 
 enum class PlacementType : uint16_t
 {
@@ -33,11 +34,12 @@ struct Prefab
   // blocks and their positions relative to the spawn point of the prefab
   std::vector<std::pair<glm::ivec3, Block>> blocks;
   PlacementType type;
+  std::string name;
 
   template <class Archive>
   void serialize(Archive& ar)
   {
-    ar(blocks);
+    ar(blocks, name);
   }
 };
 
