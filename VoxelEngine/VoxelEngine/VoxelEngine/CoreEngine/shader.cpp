@@ -3,6 +3,7 @@
 #include <sstream>
 #include <fstream>
 #include <iostream>
+#include <regex>
 
 class IncludeHandler : public shaderc::CompileOptions::IncluderInterface
 {
@@ -119,7 +120,7 @@ Shader::Shader(int, std::string computePath)
 }
 
 
-Shader::Shader(std::vector<std::pair<std::string, GLint>> shaders)
+Shader::Shader(std::vector<ShaderInfo> shaders)
 {
 #if DE_BUG
   std::unordered_map<int, int> types;
@@ -145,7 +146,7 @@ Shader::Shader(std::vector<std::pair<std::string, GLint>> shaders)
   }
 #endif
 
-  const std::unordered_map<glShaderType, shaderc_shader_kind> gl2shadercTypes =
+  const std::unordered_map<GLenum, shaderc_shader_kind> gl2shadercTypes =
   {
     { GL_VERTEX_SHADER, shaderc_vertex_shader },
     { GL_FRAGMENT_SHADER, shaderc_fragment_shader },
@@ -162,20 +163,20 @@ Shader::Shader(std::vector<std::pair<std::string, GLint>> shaders)
   options.SetSourceLanguage(shaderc_source_language_glsl);
   options.SetTargetEnvironment(shaderc_target_env_opengl, 450);
   options.SetIncluder(std::make_unique<IncludeHandler>());
+  options.SetWarningsAsErrors();
   options.SetAutoMapLocations(true);
   options.SetAutoBindUniforms(true);
-  //auto vertRes = spvPreprocessAndCompile(compiler, options, vertexPath.value(), shaderc_vertex_shader);
-  //auto fragRes = spvPreprocessAndCompile(compiler, options, fragmentPath.value(), shaderc_fragment_shader);
-  //if (!vertRes || !fragRes)
-  //  return;
 
   std::vector<GLuint> shaderIDs;
-
-  for (auto& [shaderPath, shaderType] : shaders)
+  for (auto& [shaderPath, shaderType, replace] : shaders)
   {
     // preprocess shader
-    auto compileResult = spvPreprocessAndCompile(compiler, options, shaderPath, gl2shadercTypes.at(shaderType));
-
+    auto compileResult = spvPreprocessAndCompile(compiler,
+      options,
+      replace,
+      shaderPath,
+      gl2shadercTypes.at(shaderType));
+    
     // cleanup existing shaders
     if (compileResult.size() == 0)
     {
@@ -220,13 +221,13 @@ Shader::Shader(std::vector<std::pair<std::string, GLint>> shaders)
   {
     glGetProgramInfoLog(programID, 512, NULL, infoLog);
     printf("Failed to link shader program.\nFiles:\n");
-    for (auto [path, type] : shaders)
+    for (auto [path, type, repl] : shaders)
       std::printf("%s\n", path.c_str());
     std::cout << "Failed to link shader program\n" << infoLog << std::endl;
   }
 
   std::vector<std::string_view> strs;
-  for (const auto& [shaderPath, shaderType] : shaders)
+  for (const auto& [shaderPath, shaderType, replace] : shaders)
     strs.push_back(shaderPath);
   checkLinkStatus(strs);
 
@@ -350,11 +351,16 @@ std::vector<uint32_t>
   Shader::spvPreprocessAndCompile(
     shaderc::Compiler& compiler,
     const shaderc::CompileOptions options,
+    const std::vector<std::pair<std::string, std::string>>& replace,
     std::string path,
     shaderc_shader_kind shaderType)
 {
   // vert/frag required
-  const std::string rawSrc = loadFile(path);
+  std::string rawSrc = loadFile(path);
+  for (const auto& [search, replacement] : replace)
+  {
+    rawSrc = std::regex_replace(rawSrc, std::regex(search), replacement);
+  }
 
   auto PreprocessResult = compiler.PreprocessGlsl(
     rawSrc, shaderType, path.c_str(), options);

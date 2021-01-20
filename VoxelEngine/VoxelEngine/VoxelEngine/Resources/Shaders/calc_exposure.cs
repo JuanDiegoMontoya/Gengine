@@ -1,4 +1,5 @@
 #version 460 core
+#define NUM_BUCKETS 256
 
 layout (std430, binding = 0) buffer exposures
 {
@@ -6,13 +7,24 @@ layout (std430, binding = 0) buffer exposures
   float writeExposure;
 };
 
-layout (location = 0) uniform float u_targetLuminance = 0.5;
-layout (location = 1) uniform float u_dt;
-layout (location = 2) uniform float u_adjustmentSpeed;
-layout (location = 3) uniform sampler2D u_hdrBuffer;
-layout (location = 4) uniform float u_minExposure;
-layout (location = 5) uniform float u_maxExposure;
+layout (std430, binding = 1) buffer histogram
+{
+  coherent int buckets[NUM_BUCKETS];
+};
 
+layout (location = 0) uniform float u_dt;
+layout (location = 1) uniform float u_adjustmentSpeed;
+layout (location = 2) uniform sampler2D u_hdrBuffer;
+layout (location = 3) uniform float u_minExposure;
+layout (location = 4) uniform float u_maxExposure;
+layout (location = 5) uniform float u_targetLuminance = 0.22;
+
+float map(float val, float r1s, float r1e, float r2s, float r2e)
+{
+  return (val - r1s) / (r1e - r1s) * (r2e - r2s) + r2s;
+}
+
+// TODO: test performance of this kernel vs simply running it on the CPU
 layout (local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 void main()
 {
@@ -20,9 +32,18 @@ void main()
   readExposure = writeExposure;
   writeExposure = temp;
 
-  const vec3 color = textureLod(u_hdrBuffer, vec2(.5), textureQueryLevels(u_hdrBuffer) - 1).rgb;
-  const float luminance = dot(color, vec3(.3, .59, .11));
+  uint sum = 0;
+  for (int i = 0; i < NUM_BUCKETS; i++)
+  {
+    sum += buckets[i] * (i + 1);
+    buckets[i] = 0;
+  }
   
-  float exposureTarget = clamp(u_targetLuminance / luminance, u_minExposure, u_maxExposure);
+  ivec2 texSize = textureSize(u_hdrBuffer, 0);
+  uint numPixels = texSize.x * texSize.y;
+  float lowLum = u_targetLuminance / u_maxExposure;
+  float maxLum = u_targetLuminance / u_minExposure;
+  float meanLuminance = exp(map(float(sum) / float(numPixels), 0.0, NUM_BUCKETS, log(lowLum), log(maxLum)));
+  float exposureTarget = u_targetLuminance / meanLuminance;
   writeExposure = mix(readExposure, exposureTarget, u_dt * u_adjustmentSpeed);
 }

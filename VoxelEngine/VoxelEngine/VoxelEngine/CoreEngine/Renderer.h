@@ -72,8 +72,10 @@ private:
 
   // HDR inverse-z framebuffer stuff
   static inline unsigned fbo;
-  static inline int windowWidth = 1920, windowHeight = 1080;
-  static inline int fboWidth = 1920, fboHeight = 1080;
+  static inline int windowWidth = 1920, windowHeight = 1017;
+  static inline int fboWidth = 1920, fboHeight = 1017;
+  //static inline int windowWidth = 10, windowHeight = 10;
+  //static inline int fboWidth = 10, fboHeight = 10;
   static inline GLuint color;
   static inline GLuint depth;
   static inline float exposure = 1.0f;
@@ -84,4 +86,10 @@ private:
   static inline bool tonemapping = true;
   static inline bool gammaCorrection = true;
   static inline std::unique_ptr<GFX::StaticBuffer> exposureBuffer;
+  static inline std::unique_ptr<GFX::StaticBuffer> histogramBuffer;
+  static inline const int NUM_BUCKETS = 256;
+  static inline std::unique_ptr<GFX::StaticBuffer> floatBufferIn, floatBufferOut;
 };
+
+void compute_test();
+void histogram_test();

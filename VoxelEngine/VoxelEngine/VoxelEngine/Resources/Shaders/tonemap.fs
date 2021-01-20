@@ -32,7 +32,6 @@ void main()
 {
   const float gamma = 2.2;
   
-  // Reinhard tonemapping operator 
   vec3 hdrColor = texture(u_hdrBuffer, vTexCoord).rgb;
   vec3 mapped = ACESFitted(hdrColor) * u_exposureFactor * readExposure;
   

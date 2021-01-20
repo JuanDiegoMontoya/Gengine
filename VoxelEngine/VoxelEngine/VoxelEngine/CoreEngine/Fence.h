@@ -40,4 +40,21 @@ namespace GFX
   private:
     GLsync sync_;
   };
+
+  class TimerQuery
+  {
+  public:
+    TimerQuery();
+    ~TimerQuery();
+    TimerQuery(const TimerQuery&) = delete;
+    TimerQuery& operator=(const TimerQuery&) = delete;
+    TimerQuery(TimerQuery&&) noexcept = delete;
+    TimerQuery& operator=(TimerQuery&&) noexcept = delete;
+
+    // returns how (in ns) we blocked for (invalidates this object) (BLOCKS)
+    uint64_t Elapsed();
+
+  private:
+    GLuint queries[2];
+  };
 }
