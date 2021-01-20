@@ -5,8 +5,8 @@
 
 struct SerializableBitArray
 {
-  uint32_t numBits;
-  std::vector<uint8_t> bytes;
+  uint32_t numBits{};
+  std::vector<uint8_t> bytes{};
 };
 
 // specialized wrapper around std::vector<bool>

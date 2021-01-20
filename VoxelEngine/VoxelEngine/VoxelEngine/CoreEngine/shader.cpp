@@ -37,8 +37,8 @@ public:
   }
 
 private:
-  std::string* content;
-  std::string* source_name;
+  std::string* content{};
+  std::string* source_name{};
 };
 
 
@@ -188,7 +188,7 @@ Shader::Shader(std::vector<ShaderInfo> shaders)
     // "compile" (upload binary) shader
     GLuint shaderID = glCreateShader(shaderType);
     shaderIDs.push_back(shaderID);
-    glShaderBinary(1, &shaderID, GL_SHADER_BINARY_FORMAT_SPIR_V, compileResult.data(), compileResult.size() * sizeof(uint32_t));
+    glShaderBinary(1, &shaderID, GL_SHADER_BINARY_FORMAT_SPIR_V, compileResult.data(), static_cast<GLsizei>(compileResult.size() * sizeof(uint32_t)));
     glSpecializeShader(shaderID, "main", 0, 0, 0);
 
     // check if shader compilation succeeded
@@ -269,16 +269,17 @@ GLint Shader::compileShader(shaderType type, const std::vector<std::string>& src
 
   const GLchar** strings = new const GLchar*[src.size()];
   for (int i = 0; i < src.size(); i++)
+  {
     strings[i] = src[i].data();
+  }
 
-  glShaderSource(shader, src.size(), strings, NULL);
+  glShaderSource(shader, static_cast<GLsizei>(src.size()), strings, NULL);
   glCompileShader(shader);
 
   glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
   if (!success)
   {
     glGetShaderInfoLog(shader, 512, NULL, infoLog);
-    // TODO: parse info log to determine files in which errors ocurred
 
     std::cout << "File: " << path << std::endl;
     std::cout << "Error compiling shader of type " << type << '\n' << infoLog << std::endl;
@@ -288,6 +289,7 @@ GLint Shader::compileShader(shaderType type, const std::vector<std::string>& src
     // compile successful
   }
 
+  delete[] strings;
   return shader;
 }
 

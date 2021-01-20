@@ -4,10 +4,10 @@
 
 namespace GFX
 {
-  StaticBuffer::StaticBuffer(const void* data, GLuint size, BufferFlags flags)
+  StaticBuffer::StaticBuffer(const void* data, size_t size, BufferFlags flags)
   {
     glCreateBuffers(1, &rendererID_);
-    glNamedBufferStorage(rendererID_, std::max(size, 1u), data, static_cast<GLbitfield>(flags));
+    glNamedBufferStorage(rendererID_, std::max(size, 1ull), data, static_cast<GLbitfield>(flags));
   }
 
   StaticBuffer::StaticBuffer(const StaticBuffer& other)

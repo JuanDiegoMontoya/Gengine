@@ -64,7 +64,7 @@ GLerrorCB(GLenum source,
 }
 
 //glm::mat4 MVP = CameraSystem::GetViewProj() * modelMatrix;
-void Renderer::BeginBatch(uint32_t size)
+void Renderer::BeginBatch(size_t size)
 {
   userCommands.resize(size);
 }
@@ -166,7 +166,7 @@ void Renderer::RenderBatchHelper(MaterialID mat, const std::vector<UniformData>&
   shader->setMat4("u_viewProj", vp);
 
   batchVAO->Bind();
-  glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, (void*)0, commands.size(), 0);
+  glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, (void*)0, static_cast<GLsizei>(commands.size()), 0);
   batchVAO->Unbind();
 }
 
@@ -199,9 +199,9 @@ void Renderer::Init()
 {
   glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
 
-  const int levels = glm::floor(glm::log2(glm::max(fboWidth, fboHeight))) + 1;
+  //const int levels = glm::floor(glm::log2(glm::max(fboWidth, fboHeight))) + 1;
   glCreateTextures(GL_TEXTURE_2D, 1, &color);
-  glTextureStorage2D(color, levels, GL_RGBA16F, fboWidth, fboHeight);
+  glTextureStorage2D(color, 1, GL_RGBA16F, fboWidth, fboHeight);
 
   glCreateTextures(GL_TEXTURE_2D, 1, &depth);
   glTextureStorage2D(depth, 1, GL_DEPTH_COMPONENT32F, fboWidth, fboHeight);
@@ -485,8 +485,8 @@ void Renderer::StartFrame()
   ImGui::Checkbox("Enabled", &tonemapping);
   ImGui::Checkbox("Gamma Correction", &gammaCorrection);
   ImGui::SliderFloat("Exposure Factor", &exposure, .5f, 2.0f, "%.2f");
-  ImGui::SliderFloat("Min Exposure", &minExposure, .1f, 10.0f, "%.2f");
-  ImGui::SliderFloat("Max Exposure", &maxExposure, .1f, 10.0f, "%.2f");
+  ImGui::SliderFloat("Min Exposure", &minExposure, .01f, 30.0f, "%.2f", 2.f);
+  ImGui::SliderFloat("Max Exposure", &maxExposure, .01f, 30.0f, "%.2f", 2.f);
   ImGui::SliderFloat("Target Luminance", &targetLuminance, .1f, 10.0f, "%.2f", 2.f);
   ImGui::SliderFloat("Adjustment Speed", &adjustmentSpeed, .1f, 10.0f, "%.2f");
   if (ImGui::Button("Recompile"))
@@ -601,13 +601,13 @@ size_t invoke_compute(GFX::StaticBuffer& in, GFX::StaticBuffer& out, size_t size
   rshdr->Use();
   //if (blockSize < 64)
   {
-    rshdr->setUInt("u_n", size);
+    rshdr->setUInt("u_n", static_cast<unsigned>(size));
   }
   in.Bind<GFX::Target::SSBO>(0);
   out.Bind<GFX::Target::SSBO>(1);
-  int totalBlocks = (size + blockSize - 1) / blockSize;
+  size_t totalBlocks = (size + blockSize - 1) / blockSize;
   totalBlocks = totalBlocks / 2 + totalBlocks % 2;
-  glDispatchCompute(totalBlocks, 1, 1);
+  glDispatchCompute(static_cast<GLuint>(totalBlocks), 1, 1);
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
   return totalBlocks;
@@ -618,7 +618,7 @@ void compute_test()
   const uint64_t WIDTH = 1 * 1920;
   const uint64_t HEIGHT = 1080;
 
-  size_t pow2Size = glm::exp2(glm::ceil(glm::log2(double(WIDTH * HEIGHT)))); // next power of 2
+  size_t pow2Size = size_t(glm::exp2(glm::ceil(glm::log2(double(WIDTH * HEIGHT))))); // next power of 2
   //size_t pow2Size = (WIDTH * HEIGHT) + (WIDTH * HEIGHT) % 1024; // next multiple of 1024
   //size_t pow2Size = 1024*1024;
   std::vector<float> zeros(pow2Size, 0.0f);
@@ -637,7 +637,7 @@ void compute_test()
 
   // check that texture was uploaded correctly
   std::vector<glm::vec4> pixelsOut(WIDTH * HEIGHT, glm::vec4(0));
-  glGetTextureSubImage(testTex, 0, 0, 0, 0, WIDTH, HEIGHT, 1, GL_RGBA, GL_FLOAT, pixelsOut.size() * sizeof(glm::vec4), pixelsOut.data());
+  glGetTextureSubImage(testTex, 0, 0, 0, 0, WIDTH, HEIGHT, 1, GL_RGBA, GL_FLOAT, static_cast<GLsizei>(pixelsOut.size() * sizeof(glm::vec4)), pixelsOut.data());
   for (int i = 0; i < WIDTH * HEIGHT; i++)
   {
     ASSERT(glm::all(glm::epsilonEqual(pixels[i], pixelsOut[i], glm::vec4(.01f))));
@@ -698,7 +698,7 @@ void histogram_test()
 
   size_t size = WIDTH * HEIGHT;
   const size_t NUM_BUCKETS = 128;
-  std::vector<int> zeros(size, 0.0f);
+  std::vector<int> zeros(size, 0);
   GFX::StaticBuffer histogram(zeros.data(), NUM_BUCKETS * sizeof(int));
   //GFX::StaticBuffer outData(zeros.data(), pow2Size * sizeof(float), GFX::BufferFlag::CLIENT_STORAGE | GFX::BufferFlag::DYNAMIC_STORAGE);
 

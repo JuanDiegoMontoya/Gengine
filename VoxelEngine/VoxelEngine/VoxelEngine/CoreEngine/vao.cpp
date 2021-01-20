@@ -23,7 +23,8 @@ namespace GFX
     for (size_t i = 0; i < elements.size(); i++)
     {
       const auto& element = elements[i];
-      glEnableVertexAttribArray(i);
+      glEnableVertexAttribArray(static_cast<GLuint>(i));
+#pragma warning(suppress : 4312)
       glVertexAttribPointer(i, element.count, element.type, element.normalized,
         layout.GetStride(), (const void*)offset);
       offset += element.count * VBOElement::TypeSize(element.type);

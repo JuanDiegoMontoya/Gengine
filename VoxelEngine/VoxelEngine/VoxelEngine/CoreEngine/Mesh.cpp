@@ -68,7 +68,7 @@ void MeshManager::GenBatchedHandle_GL(entt::hashed_string handle, const std::vec
 	DrawElementsIndirectCommand cmd{};
 	cmd.baseVertex = vinfo.offset / Renderer::vertexBuffer->align_;
 	cmd.instanceCount = 0;
-	cmd.count = indices.size();
+	cmd.count = static_cast<GLuint>(indices.size());
 	cmd.firstIndex = iinfo.offset / Renderer::indexBuffer->align_;
 	//cmd.baseInstance = ?; // only knowable after all user draw calls are submitted
 	Renderer::meshBufferInfo[handle] = cmd;

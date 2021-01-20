@@ -160,7 +160,7 @@ void Physics::PhysicsManager::Init()
 #endif
   PxTolerancesScale tolerances;
   tolerances.length = 1;
-  tolerances.speed = 15.81;
+  tolerances.speed = 15.81f;
   gPhysics = PxCreatePhysics(PX_PHYSICS_VERSION, *gFoundation, tolerances, true, gPvd);
   gCooking = PxCreateCooking(PX_PHYSICS_VERSION, *gFoundation, PxCookingParams(tolerances));
   PxInitExtensions(*gPhysics, gPvd);
@@ -380,11 +380,11 @@ physx::PxRigidStatic* Physics::PhysicsManager::AddStaticActorGeneric(MaterialTyp
   gCooking->setParams(params);
 
   PxTriangleMeshDesc meshDesc;
-  meshDesc.points.count = collider.vertices.size();
+  meshDesc.points.count = static_cast<PxU32>(collider.vertices.size());
   meshDesc.points.stride = sizeof(glm::vec3);
   meshDesc.points.data = collider.vertices.data();
 
-  meshDesc.triangles.count = collider.indices.size() / 3;
+  meshDesc.triangles.count = static_cast<PxU32>(collider.indices.size() / 3);
   meshDesc.triangles.stride = 3 * sizeof(uint32_t);
   meshDesc.triangles.data = collider.indices.data();
 
@@ -426,7 +426,7 @@ physx::PxController* Physics::PhysicsManager::AddCharacterControllerEntity(Entit
   desc.material = gMaterials[(int)material];
   desc.height = 2.f * collider.halfHeight;
   desc.radius = collider.radius;
-  desc.contactOffset = .01;
+  desc.contactOffset = .01f;
   
   PxLockWrite lkw(&gCManager->getScene());
   PxController* controller = gCManager->createController(desc);

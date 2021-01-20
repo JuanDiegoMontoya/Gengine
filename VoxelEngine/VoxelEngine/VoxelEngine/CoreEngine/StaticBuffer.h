@@ -31,7 +31,7 @@ namespace GFX
   class StaticBuffer
   {
   public:
-    StaticBuffer(const void* data, GLuint size, BufferFlags flags = BufferFlag::DYNAMIC_STORAGE);
+    StaticBuffer(const void* data, size_t size, BufferFlags flags = BufferFlag::DYNAMIC_STORAGE);
 
     // copies another buffer's data store and contents
     StaticBuffer(const StaticBuffer& other);

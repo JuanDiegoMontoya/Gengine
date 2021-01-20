@@ -33,11 +33,11 @@ void Editor::SaveRegion()
     glm::max(wpositions[0].y, glm::max(wpositions[1].y, wpositions[2].y)),
     glm::max(wpositions[0].z, glm::max(wpositions[1].z, wpositions[2].z)));
   Prefab newPfb;
-  for (int x = min.x; x <= max.x; x++)
+  for (int x = int(min.x); x <= int(max.x); x++)
   {
-    for (int y = min.y; y <= max.y; y++)
+    for (int y = int(min.y); y <= int(max.y); y++)
     {
-      for (int z = min.z; z <= max.z; z++)
+      for (int z = int(min.z); z <= int(max.z); z++)
       {
         // TODO: make bottom-middle of prefab be the origin
         Block b = voxels.GetBlock(glm::ivec3(x, y, z));
@@ -71,8 +71,9 @@ void Editor::LoadRegion()
     }
   }
   auto scriptInstance = dynamic_cast<PlayerActions*>(player.GetComponent<Components::NativeScriptComponent>().Instance);
-  scriptInstance->prefab = PrefabManager::LoadPrefabFromFile(std::string(lName));
-  scriptInstance->prefabName = scriptInstance->prefab.name;
+  Prefab prefab = PrefabManager::LoadPrefabFromFile(std::string(lName));
+  scriptInstance->prefab = prefab;
+  scriptInstance->prefabName = prefab.name;
 }
 
 void Editor::CancelSelection()
@@ -177,7 +178,6 @@ void Editor::DrawSelection()
     glm::mat4 tPos = glm::translate(glm::mat4(1), pos + .5f);
     glm::mat4 tScale = glm::scale(glm::mat4(1), scale + 1.f);
 
-    const auto cam = CameraSystem::ActiveCamera;
     GLint polygonMode;
     glGetIntegerv(GL_POLYGON_MODE, &polygonMode);
     glDisable(GL_CULL_FACE);
@@ -205,7 +205,7 @@ void Editor::Update()
       CameraSystem::GetPos(),
       CameraSystem::GetFront(),
       pickLength,
-      [&](glm::vec3 pos, Block block, glm::vec3 side)->bool
+      [&](glm::vec3 pos, Block block, [[maybe_unused]] glm::vec3 side)->bool
     {
       if (block.GetType() == BlockType::bAir)
         return false;

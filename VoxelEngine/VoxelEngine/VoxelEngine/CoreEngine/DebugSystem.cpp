@@ -34,7 +34,7 @@ void DebugSystem::Update(Scene& scene, float dt)
 {
   {
     ImGui::Begin("Graphs");
-    ImGui::PlotVar("Frametime (ms)", dt * 1000.0, 0, .05 * 1000, 240, ImVec2(300, 100));
+    ImGui::PlotVar("Frametime (ms)", dt * 1000.0f, 0.f, .05f * 1000.f, 240, ImVec2(300, 100));
     ImGui::End();
   }
 

@@ -67,7 +67,7 @@ public: // TODO: TEMPORARY
   Concurrency::concurrent_unordered_set<Chunk*> mesher_queue_;
   //std::mutex chunk_mesher_mutex_;
   std::vector<std::unique_ptr<std::thread>> chunk_mesher_threads_;
-  std::atomic_int debug_cur_pool_left = 0;
+  std::atomic_size_t debug_cur_pool_left = 0;
 
   std::vector<std::unique_ptr<std::thread>> indirect_update_queue_;
 

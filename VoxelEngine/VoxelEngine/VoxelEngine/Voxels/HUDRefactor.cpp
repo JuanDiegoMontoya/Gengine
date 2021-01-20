@@ -9,8 +9,8 @@
 
 void HUD::Update()
 {
-  int ofs = Input::GetScrollOffset().y;
-  int num = int(selected_) + ofs;
+  int ofs = static_cast<int>(Input::GetScrollOffset().y);
+  int num = static_cast<int>(selected_) + ofs;
   //if (num >= int(BlockType::bCount) || num < 0)
   //  ofs = 0;
   if (ofs)

@@ -33,7 +33,7 @@ public:
   glm::vec3 maxParticleVelocity{ 1 };
   glm::vec3 minParticleAccel{ -1 };
   glm::vec3 maxParticleAccel{ 1 };
-  glm::vec2 minParticleScale{ .1 };
+  glm::vec2 minParticleScale{ .1f };
   glm::vec2 maxParticleScale{ 1 };
   glm::vec4 minParticleColor{ 1 };
   glm::vec4 maxParticleColor{ 1 };
@@ -41,4 +41,5 @@ public:
   float minLife{ 1 };
   float maxLife{ 1 };
   int maxParticles{ 100 };
+  bool fly = false;
 };

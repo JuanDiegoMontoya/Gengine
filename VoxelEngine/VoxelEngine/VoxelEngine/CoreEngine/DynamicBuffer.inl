@@ -26,7 +26,7 @@ namespace GFX
 
 
   template<typename UserT>
-  uint64_t DynamicBuffer<UserT>::Allocate(const void* data, uint32_t size, UserT userdata)
+  uint64_t DynamicBuffer<UserT>::Allocate(const void* data, size_t size, UserT userdata)
   {
     size += (align_ - (size % align_)) % align_;
     // find smallest NULL allocation that will fit

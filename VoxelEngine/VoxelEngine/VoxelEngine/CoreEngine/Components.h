@@ -227,7 +227,7 @@ namespace Components
 
     glm::vec3 GetEuler() { return { pitch_, yaw_, roll_ }; }
 
-    const auto& GetWorldPos()
+    glm::vec3 GetWorldPos()
     {
       Transform& tr = entity.GetComponent<Components::Transform>();
       return tr.GetTranslation() + translation;
@@ -235,7 +235,7 @@ namespace Components
 
     const auto& GetLocalPos() { return translation; }
 
-    const auto& GetForward()
+    auto GetForward()
     {
       dir.x = cos(glm::radians(pitch_)) * cos(glm::radians(yaw_));
       dir.y = sin(glm::radians(pitch_));
@@ -281,7 +281,7 @@ namespace Components
     glm::vec3 maxParticleVelocity{ 1 };
     glm::vec3 minParticleAccel{ -1 };
     glm::vec3 maxParticleAccel{ 1 };
-    glm::vec2 minParticleScale{ .1 };
+    glm::vec2 minParticleScale{ .1f };
     glm::vec2 maxParticleScale{ 1 };
     glm::vec4 minParticleColor{ 1 };
     glm::vec4 maxParticleColor{ 1 };

@@ -64,7 +64,9 @@ namespace ChunkHelpers
 
     // decode normal
     GLuint normalIdx = (encoded >> 11) & 0x7; // = 0b111
-    normal = faces[normalIdx];
+    ASSERT(normalIdx <= 5);
+    if (normalIdx <= 5)
+      normal = faces[normalIdx];
 
     // decode texture index and UV
     GLuint textureIdx = (encoded >> 2) & 0x1FF; // = 0b1111111111

@@ -21,7 +21,7 @@ namespace GFX
 
     // allocates a chunk of memory in the data store, returns handle to memory
     // the handle is used to free the chunk when the user is done with it
-    uint64_t Allocate(const void* data, uint32_t size, UserT userdata = {});
+    uint64_t Allocate(const void* data, size_t size, UserT userdata = {});
 
     // frees a chunk of memory being "pointed" to by a handle
     // returns true if the memory was able to be freed, false otherwise

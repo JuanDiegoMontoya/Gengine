@@ -3,6 +3,8 @@
 #include <CoreEngine/Mesh.h>
 #include <CoreEngine/Components.h>
 #include <CoreEngine/Camera.h>
+#include <Game/FlyingPlayerController.h>
+#include <Game/KinematicPlayerController.h>
 
 void PlayerActions::OnCreate()
 {
@@ -123,7 +125,7 @@ void PlayerActions::OnUpdate(float dt)
 
   float size = 150.0f;
   ImGui::SetNextWindowBgAlpha(0.0f);
-  ImGui::SetNextWindowSize(ImVec2(size * 1.5f, size * 1.7f));
+  ImGui::SetNextWindowSize(ImVec2(size * 2.25f, size * 1.7f));
   ImGui::SetNextWindowPos(ImVec2(32.0f, 1017 - size * 1.55f - 32.0f));
   ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
   ImGui::Begin("Held Block", 0, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove);
@@ -164,6 +166,19 @@ void PlayerActions::OnUpdate(float dt)
 
       return true;
     });
+  //if (ImGui::Button("Toggle Flying"))
+  //{
+  //  fly = !fly;
+  //  this->GetComponent<Components::NativeScriptComponent>().DestroyScript();
+  //  if (fly)
+  //  {
+  //    this->GetComponent<Components::NativeScriptComponent>().Bind<FlyingPlayerController>();
+  //  }
+  //  else
+  //  {
+  //    this->GetComponent<Components::NativeScriptComponent>().Bind<KinematicPlayerController>();
+  //  }
+  //}
   ImGui::End();
 }
 

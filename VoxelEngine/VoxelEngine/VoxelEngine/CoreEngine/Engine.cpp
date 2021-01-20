@@ -35,7 +35,7 @@ void Engine::Run()
   Timer timer;
   while (running_)
   {
-    dt_ = timer.elapsed();
+    dt_ = static_cast<float>(timer.elapsed());
     timer.reset();
 
     Input::Update();

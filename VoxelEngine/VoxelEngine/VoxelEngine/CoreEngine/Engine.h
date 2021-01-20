@@ -26,7 +26,7 @@ private:
   friend class Application;
   void Stop() { running_ = false; }
 
-  double dt_{};
+  float dt_{};
   std::vector<std::unique_ptr<Scene>> scenes_;
   Scene* activeScene_ = nullptr;
 
