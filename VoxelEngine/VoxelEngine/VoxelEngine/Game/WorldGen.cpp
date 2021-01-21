@@ -164,30 +164,31 @@ void WorldGen::GenerateWorld()
     }
   });
 
-  //std::vector<glm::ivec3> lightBlocks;
+  std::vector<glm::ivec3> lightBlocks;
 
-  //// Place starting house after generating world
-  //Prefab prefab = PrefabManager::GetPrefab("placeholder_house");
-  //glm::ivec3 wpos = glm::ivec3{ 23, 2, 48 };
-  //for (unsigned i = 0; i < prefab.blocks.size(); i++)
-  //{
-  //  if (auto block = voxels.TryGetBlock(wpos + prefab.blocks[i].first))
-  //  {
-  //    voxels.SetBlockType(wpos + prefab.blocks[i].first, prefab.blocks[i].second.GetType());
-  //    if (prefab.blocks[i].second.GetEmittance() != glm::u8vec4{ 0,0,0,0 })
-  //      lightBlocks.push_back(wpos + prefab.blocks[i].first);
-  //  }
-  //}
+  // Place starting house after generating world
+  Prefab prefab = PrefabManager::GetPrefab("placeholder_house");
+  glm::ivec3 wpos = glm::ivec3{ 23, 2, 48 };
+  for (unsigned i = 0; i < prefab.blocks.size(); i++)
+  {
+    if (auto block = voxels.TryGetBlock(wpos + prefab.blocks[i].first))
+    {
+      voxels.SetBlockType(wpos + prefab.blocks[i].first, prefab.blocks[i].second.GetType());
+      if (prefab.blocks[i].second.GetEmittance() != glm::u8vec4{ 0,0,0,0 })
+        lightBlocks.push_back(wpos + prefab.blocks[i].first);
+    }
+  }
 
-  //for (int i = 0; i < lightBlocks.size(); i++)
-  //{
-  //  ChunkHelpers::localpos pos = ChunkHelpers::worldPosToLocalPos(lightBlocks[i]);
-  //  Block tmp = voxels.GetBlock(lightBlocks[i]);
-  //  voxels.SetBlock(lightBlocks[i], Block());
-  //  voxels.SetBlock(lightBlocks[i], { tmp.GetType(), tmp.GetEmittance() });
-  //  //Chunk* chunk = voxels.GetChunk(pos.chunk_pos);
-  //  //voxels.chunkManager_->lightPropagateAdd(lightBlocks[i], .GetLightRef());
-  //}
+  for (int i = 0; i < lightBlocks.size(); i++)
+  {
+    ChunkHelpers::localpos pos = ChunkHelpers::worldPosToLocalPos(lightBlocks[i]);
+    Block tmp = voxels.GetBlock(lightBlocks[i]);
+    //voxels.SetBlock(lightBlocks[i], Block());
+    //voxels.SetBlock(lightBlocks[i], { tmp.GetType(), tmp.GetEmittance() });
+    voxels.UpdateBlock(lightBlocks[i], { tmp.GetType(), tmp.GetEmittance() });
+    //Chunk* chunk = voxels.GetChunk(pos.chunk_pos);
+    //voxels.chunkManager_->lightPropagateAdd(lightBlocks[i], .GetLightRef());
+  }
 
   printf("Generating chunks took %f seconds\n", timer.elapsed());
 }

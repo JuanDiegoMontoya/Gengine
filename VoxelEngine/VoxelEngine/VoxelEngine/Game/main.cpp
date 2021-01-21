@@ -87,24 +87,24 @@ void OnStart(Scene* scene)
   //  "hw_glacier/glacier_bk.tga",
   //  "hw_glacier/glacier_ft.tga",
   //};
-  //const std::vector<std::string> faces =
-  //{
-  //  "night_sky_hdr/px.hdr",
-  //  "night_sky_hdr/nx.hdr",
-  //  "night_sky_hdr/py.hdr",
-  //  "night_sky_hdr/ny.hdr",
-  //  "night_sky_hdr/pz.hdr",
-  //  "night_sky_hdr/nz.hdr",
-  //};
   const std::vector<std::string> faces =
   {
-    "autumn_sky_hdr/px.hdr",
-    "autumn_sky_hdr/nx.hdr",
-    "autumn_sky_hdr/py.hdr",
-    "autumn_sky_hdr/ny.hdr",
-    "autumn_sky_hdr/pz.hdr",
-    "autumn_sky_hdr/nz.hdr",
+    "night_sky_hdr/px.hdr",
+    "night_sky_hdr/nx.hdr",
+    "night_sky_hdr/py.hdr",
+    "night_sky_hdr/ny.hdr",
+    "night_sky_hdr/pz.hdr",
+    "night_sky_hdr/nz.hdr",
   };
+  //const std::vector<std::string> faces =
+  //{
+  //  "autumn_sky_hdr/px.hdr",
+  //  "autumn_sky_hdr/nx.hdr",
+  //  "autumn_sky_hdr/py.hdr",
+  //  "autumn_sky_hdr/ny.hdr",
+  //  "autumn_sky_hdr/pz.hdr",
+  //  "autumn_sky_hdr/nz.hdr",
+  //};
   {
     Entity player = scene->CreateEntity("player");
     player.AddComponent<Components::Transform>().SetRotation(glm::rotate(glm::mat4(1), glm::pi<float>() / 2.f, { 0, 0, 1 }));
