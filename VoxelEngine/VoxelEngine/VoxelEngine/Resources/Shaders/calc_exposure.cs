@@ -1,5 +1,5 @@
 #version 460 core
-#define NUM_BUCKETS 256
+#define NUM_BUCKETS 128
 
 layout (std430, binding = 0) buffer exposures
 {
@@ -15,8 +15,8 @@ layout (std430, binding = 1) buffer histogram
 layout (location = 0) uniform float u_dt;
 layout (location = 1) uniform float u_adjustmentSpeed;
 layout (location = 2) uniform sampler2D u_hdrBuffer;
-layout (location = 3) uniform float u_minExposure;
-layout (location = 4) uniform float u_maxExposure;
+layout (location = 3) uniform float u_logLowLum;
+layout (location = 4) uniform float u_logMaxLum;
 layout (location = 5) uniform float u_targetLuminance = 0.22;
 
 float map(float val, float r1s, float r1e, float r2s, float r2e)
@@ -41,9 +41,7 @@ void main()
   
   ivec2 texSize = textureSize(u_hdrBuffer, 0);
   uint numPixels = texSize.x * texSize.y;
-  float lowLum = u_targetLuminance / u_maxExposure;
-  float maxLum = u_targetLuminance / u_minExposure;
-  float meanLuminance = exp(map(float(sum) / float(numPixels), 0.0, NUM_BUCKETS, log(lowLum), log(maxLum)));
+  float meanLuminance = exp(map(float(sum) / float(numPixels), 0.0, NUM_BUCKETS, u_logLowLum, u_logMaxLum));
   float exposureTarget = u_targetLuminance / meanLuminance;
   writeExposure = mix(readExposure, exposureTarget, u_dt * u_adjustmentSpeed);
 }

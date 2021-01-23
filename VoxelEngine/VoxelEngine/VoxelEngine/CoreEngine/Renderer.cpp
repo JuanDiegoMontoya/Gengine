@@ -514,13 +514,15 @@ void Renderer::EndFrame(float dt)
   {
     glBindTextureUnit(1, color); // HDR buffer
 
+    const float logLowLum = glm::log(targetLuminance / maxExposure);
+    const float logMaxLum = glm::log(targetLuminance / minExposure);
+
     {
       auto& hshdr = Shader::shaders["generate_histogram"];
       hshdr->Use();
       hshdr->setInt("u_hdrBuffer", 1);
-      hshdr->setFloat("u_targetLuminance", targetLuminance);
-      hshdr->setFloat("u_minExposure", minExposure);
-      hshdr->setFloat("u_maxExposure", maxExposure);
+      hshdr->setFloat("u_logLowLum", logLowLum);
+      hshdr->setFloat("u_logMaxLum", logMaxLum);
       const int X_SIZE = 32;
       const int Y_SIZE = 32;
       int xgroups = (fboWidth + X_SIZE - 1) / X_SIZE;
@@ -546,8 +548,8 @@ void Renderer::EndFrame(float dt)
       cshdr->setFloat("u_dt", dt);
       cshdr->setFloat("u_adjustmentSpeed", adjustmentSpeed);
       cshdr->setInt("u_hdrBuffer", 1);
-      cshdr->setFloat("u_minExposure", minExposure);
-      cshdr->setFloat("u_maxExposure", maxExposure);
+      cshdr->setFloat("u_logLowLum", logLowLum);
+      cshdr->setFloat("u_logMaxLum", logMaxLum);
       cshdr->setFloat("u_targetLuminance", targetLuminance);
       glDispatchCompute(1, 1, 1);
       glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
