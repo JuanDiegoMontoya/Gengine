@@ -92,9 +92,9 @@ int main(int argc, char* argv[])
     }
   }
 
-  std::cout << "You dumb fuck, you can't follow the simplest of instructions.\nJust put:\n\nTemplateGenerator [] []\n\nwhere each one of the box brackets is replaced with:\n"
-    << "E for a new Event\nM for a new Manager\nS for a new System\n\nThe other box bracket is replaced with whatever fuckin name you want that makes sense.\nIt just has to be more than 1 character plz.\n"
-    << "\nHave a good day and don't fuck it up next time.\n";
+  std::cout << "Error.\nJust put:\n\nTemplateGenerator [] []\n\nwhere each one of the box brackets is replaced with:\n"
+    << "E for a new Event\nM for a new Manager\nS for a new System\n\nThe other box bracket is replaced with whatever name you want.\nIt just has to be more than 1 character plz.\n"
+    << "\nHave a good day and don't screw it up next time.\n";
   return 1;
 }
 
