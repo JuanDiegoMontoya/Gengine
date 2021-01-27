@@ -105,6 +105,15 @@ void OnStart(Scene* scene)
   //  "autumn_sky_hdr/pz.hdr",
   //  "autumn_sky_hdr/nz.hdr",
   //};
+  //const std::vector<std::string> faces =
+  //{
+  //  "miramar/rt.tga",
+  //  "miramar/lf.tga",
+  //  "miramar/up.tga",
+  //  "miramar/dn.tga",
+  //  "miramar/bk.tga",
+  //  "miramar/ft.tga",
+  //};
   {
     Entity player = scene->CreateEntity("player");
     player.AddComponent<Components::Transform>().SetRotation(glm::rotate(glm::mat4(1), glm::pi<float>() / 2.f, { 0, 0, 1 }));
