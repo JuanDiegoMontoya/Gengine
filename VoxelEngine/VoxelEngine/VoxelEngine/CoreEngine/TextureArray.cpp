@@ -49,8 +49,8 @@ namespace GFX
 
     // sets the anisotropic filtering texture paramter to the highest supported by the system
     // TODO: make this parameter user-selectable
-    //GLfloat a;
-    //glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &a);
+    GLfloat a;
+    glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &a);
     glTextureParameterf(rendererID_, GL_TEXTURE_MAX_ANISOTROPY, 1.0f);
 
     // TODO: play with this parameter for optimal looks, maybe make it user-selectable
@@ -60,7 +60,7 @@ namespace GFX
     glTextureParameteri(rendererID_, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
     // use OpenGL to generate mipmaps for us
-    //glGenerateTextureMipmap(rendererID_);
+    glGenerateTextureMipmap(rendererID_);
   }
 
 
