@@ -5,6 +5,7 @@
 #include <CoreEngine/Camera.h>
 #include <Game/FlyingPlayerController.h>
 #include <Game/KinematicPlayerController.h>
+#include <CoreEngine/Engine.h>
 
 void PlayerActions::OnCreate()
 {
@@ -17,6 +18,11 @@ void PlayerActions::OnDestroy()
 
 void PlayerActions::OnUpdate(float dt)
 {
+  if (Input::IsKeyPressed(GLFW_KEY_P))
+  {
+    GetScene()->GetEngine().IsPaused() ? GetScene()->GetEngine().Unpause() : GetScene()->GetEngine().Pause();
+  }
+
   auto& cam = GetComponent<Components::Parent>().entity.GetComponent<Components::Camera>();
 
 

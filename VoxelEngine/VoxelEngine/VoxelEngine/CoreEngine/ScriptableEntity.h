@@ -19,6 +19,11 @@ public:
 		return entity_.HasComponent<T>();
 	}
 
+	Scene* GetScene()
+	{
+		return entity_.scene_;
+	}
+
 	Entity CreateEntity(std::string_view name = "")
 	{
 		return entity_.scene_->CreateEntity(name);

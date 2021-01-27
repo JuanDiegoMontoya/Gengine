@@ -19,7 +19,7 @@ ChunkRenderer::ChunkRenderer()
 
   // allocate big buffer
   // TODO: vary the allocation size based on some user setting
-  allocator = std::make_unique<GFX::DynamicBuffer<AABB16>>(100'000'000, 2 * sizeof(GLint));
+  allocator = std::make_unique<GFX::DynamicBuffer<AABB16>>(1'000'000'000, 2 * sizeof(GLint));
 
   /* :::::::::::BUFFER FORMAT:::::::::::
                           CHUNK 1                                    CHUNK 2                   NULL                   CHUNK 3

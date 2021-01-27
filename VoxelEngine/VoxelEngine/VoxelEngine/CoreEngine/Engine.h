@@ -21,6 +21,9 @@ public:
   void AddScene(Scene* scene);// { scenes.push_back(std::make_unique<Scene>(scene)); }
   void SetActiveScene(std::string_view name);// { activeScene = scene; }
   void SetActiveScene(unsigned index);
+  void Pause() { paused_ = true; }
+  void Unpause() { paused_ = false; }
+  bool IsPaused() const { return paused_; }
 
 private:
   friend class Application;
@@ -34,6 +37,7 @@ private:
   void(*drawCallback)(float) = nullptr;
 
   bool running_ = true;
+  bool paused_ = false;
 
   std::unique_ptr<GraphicsSystem> graphicsSystem;
   std::unique_ptr<DebugSystem> debugSystem;

@@ -38,6 +38,8 @@ void Engine::Run()
     dt_ = static_cast<float>(timer.elapsed());
     timer.reset();
 
+    if (paused_) dt_ = 0;
+
     Input::Update();
     debugSystem->StartFrame(*activeScene_, dt_);
 

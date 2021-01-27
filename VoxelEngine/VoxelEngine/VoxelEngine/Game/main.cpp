@@ -87,24 +87,24 @@ void OnStart(Scene* scene)
   //  "hw_glacier/glacier_bk.tga",
   //  "hw_glacier/glacier_ft.tga",
   //};
-  const std::vector<std::string> faces =
-  {
-    "night_sky_hdr/px.hdr",
-    "night_sky_hdr/nx.hdr",
-    "night_sky_hdr/py.hdr",
-    "night_sky_hdr/ny.hdr",
-    "night_sky_hdr/pz.hdr",
-    "night_sky_hdr/nz.hdr",
-  };
   //const std::vector<std::string> faces =
   //{
-  //  "autumn_sky_hdr/px.hdr",
-  //  "autumn_sky_hdr/nx.hdr",
-  //  "autumn_sky_hdr/py.hdr",
-  //  "autumn_sky_hdr/ny.hdr",
-  //  "autumn_sky_hdr/pz.hdr",
-  //  "autumn_sky_hdr/nz.hdr",
+  //  "night_sky_hdr/px.hdr",
+  //  "night_sky_hdr/nx.hdr",
+  //  "night_sky_hdr/py.hdr",
+  //  "night_sky_hdr/ny.hdr",
+  //  "night_sky_hdr/pz.hdr",
+  //  "night_sky_hdr/nz.hdr",
   //};
+  const std::vector<std::string> faces =
+  {
+    "autumn_sky_hdr/px.hdr",
+    "autumn_sky_hdr/nx.hdr",
+    "autumn_sky_hdr/py.hdr",
+    "autumn_sky_hdr/ny.hdr",
+    "autumn_sky_hdr/pz.hdr",
+    "autumn_sky_hdr/nz.hdr",
+  };
   //const std::vector<std::string> faces =
   //{
   //  "miramar/rt.tga",
@@ -210,10 +210,10 @@ void OnStart(Scene* scene)
     }
     if (1) // boxes physics test
     {
-      for (int i = 0; i < 1; i++)
+      for (int i = 0; i < 100; i++)
       {
         Entity entity = scene->CreateEntity("physics entity" + std::to_string(i));
-        entity.AddComponent<Components::Transform>().SetTranslation({ -15, 50 + i, 10 + (float(i) / 50.f) });
+        entity.AddComponent<Components::Transform>().SetTranslation({ 35, 50 + i, 30 + (float(i) / 50.f) });
         //entity.AddComponent<Components::Transform>().SetTranslation({ -15, 50, 10 });
         glm::vec3 scale{ 1, .4f, glm::clamp(1 + i * (.02f), .1f, 10.f) };
         entity.GetComponent<Components::Transform>().SetScale(scale);
@@ -224,12 +224,12 @@ void OnStart(Scene* scene)
         entity.AddComponent<Components::DynamicPhysics>(std::move(phys));
       }
     }
-    if (0) // spheres physics test
+    if (1) // spheres physics test
     {
       for (int i = 0; i < 50; i++)
       {
         Entity entity = scene->CreateEntity("physics entity" + std::to_string(i));
-        entity.AddComponent<Components::Transform>().SetTranslation({ +30, 50 + i, 10 + (float(i) / 50.f) });
+        entity.AddComponent<Components::Transform>().SetTranslation({ +30, 50 + i, 30 + (float(i) / 50.f) });
         //entity.AddComponent<Components::Transform>().SetTranslation({ -15, 50, 10 });
         glm::vec3 scale{ 1, 1, 1 };
         entity.GetComponent<Components::Transform>().SetScale(scale * .5f);
