@@ -1,18 +1,29 @@
 #version 460 core
-
 #include "particle.h"
+#include "DrawArraysCommand.h"
+
 layout (std430, binding = 0) buffer data
 {
   Particle particles[];
 };
 
-layout (std430, binding = 1) coherent buffer stack
+layout (std430, binding = 1) buffer stack
 {
-  int freeCount;
+  coherent int freeCount;
   int indices[];
 };
 
-uniform float u_dt;
+layout (std430, binding = 2) coherent buffer indirectCommand
+{
+  DrawArraysCommand cmd;
+};
+
+layout (std430, binding = 3) buffer drawindices
+{
+  uint drawIndices[];
+};
+
+layout (location = 0) uniform float u_dt;
 
 void UpdateParticle(inout Particle particle, int i)
 {
@@ -26,6 +37,11 @@ void UpdateParticle(inout Particle particle, int i)
       particle.alive = 0;
       int index = atomicAdd(freeCount, 1);
       indices[index] = i;
+    }
+    else // particle is alive, so we will render it (add its index to drawIndices)
+    {
+      uint indexIndex = atomicAdd(cmd.instanceCount, 1);
+      drawIndices[indexIndex] = i;
     }
     particle.life -= u_dt;
   }

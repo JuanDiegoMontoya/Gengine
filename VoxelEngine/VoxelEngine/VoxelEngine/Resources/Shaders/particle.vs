@@ -12,6 +12,11 @@ layout (std430, binding = 0) readonly buffer data
   Particle particles[];
 };
 
+layout (std430, binding = 1) readonly buffer drawindices
+{
+  uint drawIndices[];
+};
+
 // vertices in [0, 1]
 vec2 CreateQuad(in uint vertexID) // triangle fan
 {
@@ -22,11 +27,11 @@ vec2 CreateQuad(in uint vertexID) // triangle fan
 void main()
 {
   vec2 aTexCoord = CreateQuad(gl_VertexID);
-  vec2 aPos = aTexCoord * 0.5;
+  vec2 aPos = aTexCoord - 0.5;
   
   int index = gl_InstanceID;
   
-  Particle particle = particles[index];
+  Particle particle = particles[drawIndices[index]];
   
   vTexCoord = aTexCoord;
   vColor = particle.color;

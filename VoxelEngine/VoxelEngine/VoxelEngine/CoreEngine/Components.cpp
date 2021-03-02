@@ -1,6 +1,7 @@
 #include "EnginePCH.h"
 #include "Components.h"
 #include "StaticBuffer.h"
+#include "GraphicsIncludes.h"
 
 // TODO: temp and bad
 #include "Texture2D.h"
@@ -30,9 +31,18 @@ Components::ParticleEmitter::ParticleEmitter(uint32_t maxp, std::string tex)
   {
     reinterpret_cast<int32_t&>(mem[i]) = val++;
   }
-  freeStackBuffer = std::make_unique<GFX::StaticBuffer>(mem, bytes,
-    GFX::BufferFlag::DYNAMIC_STORAGE | GFX::BufferFlag::CLIENT_STORAGE);
+  freeStackBuffer = std::make_unique<GFX::StaticBuffer>(mem, bytes, GFX::BufferFlag::NONE);
   delete[] mem;
+
+  DrawArraysIndirectCommand cmd
+  {
+    .count = 4,
+    .instanceCount = 0,
+    .first = 0,
+    .baseInstance = 0
+  };
+  indirectDrawBuffer = std::make_unique<GFX::StaticBuffer>(&cmd, sizeof(cmd));
+  indicesBuffer = std::make_unique<GFX::StaticBuffer>(nullptr, sizeof(GLuint) * maxParticles);
 
   texture = std::make_unique<GFX::Texture2D>(tex);
 }
@@ -58,6 +68,8 @@ Components::ParticleEmitter::ParticleEmitter(ParticleEmitter&& rhs) noexcept
   renderFlag = std::move(rhs.renderFlag);
   particleBuffer = std::move(rhs.particleBuffer);
   freeStackBuffer = std::move(rhs.freeStackBuffer);
+  indicesBuffer = std::move(rhs.indicesBuffer);
+  indirectDrawBuffer = std::move(rhs.indirectDrawBuffer);
   texture = std::move(rhs.texture);
 }
 

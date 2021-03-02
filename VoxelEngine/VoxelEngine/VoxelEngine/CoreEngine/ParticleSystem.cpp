@@ -84,7 +84,7 @@ void ParticleSystem::Update(Scene& scene, float dt)
       emitter_shader->setVec2("u_emitter.maxParticleScale", emitter.maxParticleScale);
       emitter_shader->setVec4("u_emitter.minParticleColor", emitter.minParticleColor);
       emitter_shader->setVec4("u_emitter.maxParticleColor", emitter.maxParticleColor);
-#pragma endregion setting uniforms
+#pragma endregion
 
       int numGroups = (particlesToSpawn + localSize - 1) / localSize;
       glDispatchCompute(numGroups, 1, 1);
@@ -101,11 +101,17 @@ void ParticleSystem::Update(Scene& scene, float dt)
   {
     auto [emitter, transform] = view.get<ParticleEmitter, Transform>(entity);
 
+    GLuint zero{ 0 };
+    glClearNamedBufferSubData(emitter.indirectDrawBuffer->GetID(), GL_R32UI, offsetof(DrawArraysIndirectCommand, instanceCount),
+      sizeof(GLuint), GL_RED, GL_UNSIGNED_INT, &zero);
+
     emitter.particleBuffer->Bind<GFX::Target::SSBO>(0);
     emitter.freeStackBuffer->Bind<GFX::Target::SSBO>(1);
+    emitter.indirectDrawBuffer->Bind<GFX::Target::SSBO>(2);
+    emitter.indicesBuffer->Bind<GFX::Target::SSBO>(3);
 
-    int numGroupsa = (emitter.maxParticles + localSize - 1) / localSize;
-    glDispatchCompute(numGroupsa, 1, 1);
+    int numGroups = (emitter.maxParticles + localSize - 1) / localSize;
+    glDispatchCompute(numGroups, 1, 1);
   }
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 

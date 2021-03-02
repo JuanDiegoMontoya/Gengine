@@ -105,6 +105,7 @@ void OnStart(Scene* scene)
     "autumn_sky_hdr/pz.hdr",
     "autumn_sky_hdr/nz.hdr",
   };
+
   //const std::vector<std::string> faces =
   //{
   //  "miramar/rt.tga",

@@ -302,6 +302,8 @@ namespace Components
 
     std::unique_ptr<GFX::StaticBuffer> particleBuffer{};
     std::unique_ptr<GFX::StaticBuffer> freeStackBuffer{};
+    std::unique_ptr<GFX::StaticBuffer> indirectDrawBuffer{};
+    std::unique_ptr<GFX::StaticBuffer> indicesBuffer{};
     std::unique_ptr<GFX::Texture2D> texture{};
   };
 

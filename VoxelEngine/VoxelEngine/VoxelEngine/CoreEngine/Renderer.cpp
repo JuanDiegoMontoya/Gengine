@@ -191,8 +191,10 @@ void Renderer::RenderParticleEmitter(const Components::ParticleEmitter& emitter,
   shader->setVec3("u_cameraUp", v[0][1], v[1][1], v[2][1]);
   emitter.texture->Bind(0);
   emitter.particleBuffer->Bind<GFX::Target::SSBO>(0);
-
-  glDrawArraysInstanced(GL_TRIANGLE_FAN, 0, 4, emitter.maxParticles);
+  emitter.indicesBuffer->Bind<GFX::Target::SSBO>(1);
+  emitter.indirectDrawBuffer->Bind<GFX::Target::DIB>();
+  //glDrawArraysInstanced(GL_TRIANGLE_FAN, 0, 4, emitter.maxParticles);
+  glDrawArraysIndirect(GL_TRIANGLE_FAN, 0);
 }
 
 void Renderer::Init()
@@ -516,6 +518,8 @@ void Renderer::EndFrame(float dt)
 
     const float logLowLum = glm::log(targetLuminance / maxExposure);
     const float logMaxLum = glm::log(targetLuminance / minExposure);
+    const int computePixelsX = fboWidth / 4;
+    const int computePixelsY = fboHeight / 4;
 
     {
       auto& hshdr = Shader::shaders["generate_histogram"];
@@ -523,10 +527,10 @@ void Renderer::EndFrame(float dt)
       hshdr->setInt("u_hdrBuffer", 1);
       hshdr->setFloat("u_logLowLum", logLowLum);
       hshdr->setFloat("u_logMaxLum", logMaxLum);
-      const int X_SIZE = 32;
-      const int Y_SIZE = 32;
-      int xgroups = (fboWidth + X_SIZE - 1) / X_SIZE;
-      int ygroups = (fboHeight + Y_SIZE - 1) / Y_SIZE;
+      const int X_SIZE = 8;
+      const int Y_SIZE = 8;
+      int xgroups = (computePixelsX + X_SIZE - 1) / X_SIZE;
+      int ygroups = (computePixelsY + Y_SIZE - 1) / Y_SIZE;
       histogramBuffer->Bind<GFX::Target::SSBO>(0);
       glDispatchCompute(xgroups, ygroups, 1);
       glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
@@ -547,10 +551,10 @@ void Renderer::EndFrame(float dt)
       //cshdr->setFloat("u_targetLuminance", targetLuminance);
       cshdr->setFloat("u_dt", dt);
       cshdr->setFloat("u_adjustmentSpeed", adjustmentSpeed);
-      cshdr->setInt("u_hdrBuffer", 1);
       cshdr->setFloat("u_logLowLum", logLowLum);
       cshdr->setFloat("u_logMaxLum", logMaxLum);
       cshdr->setFloat("u_targetLuminance", targetLuminance);
+      cshdr->setInt("u_numPixels", computePixelsX * computePixelsY);
       glDispatchCompute(1, 1, 1);
       glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
     }

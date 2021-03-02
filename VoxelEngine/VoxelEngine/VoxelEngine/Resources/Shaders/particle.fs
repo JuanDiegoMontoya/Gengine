@@ -8,9 +8,9 @@ layout (location = 0) out vec4 fragColor;
 
 void main()
 {
-    fragColor = (texture(u_sprite, vTexCoord) * vColor);
-    if (fragColor.a < .01)
-    {
-        discard;
-    }
+  fragColor = (texture(u_sprite, vTexCoord) * vColor);
+  // if (fragColor.a < .01)
+  // {
+  //   discard;
+  // }
 }
