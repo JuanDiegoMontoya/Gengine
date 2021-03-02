@@ -33,7 +33,7 @@ A code-oriented game engine designed to be efficient, extensible, and simple to 
 - glm
 - PhysX
 - shaderc
-- std
+- stb_image
 - zlib
 
 ## Gallery
