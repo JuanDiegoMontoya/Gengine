@@ -3,7 +3,7 @@ Gallery at the bottom!
 A code-oriented game engine designed to be efficient, extensible, and simple to use. It is being developed with the goal of making a specific game, so some features may be missing or lacking. 
 
 ## Features
-- Voxel engine (see [the 3D Voxel Engine repo](https://github.com/JuanDiegoMontoya/3D_Voxel_Engine) for more detail)
+- Voxel engine (see [the Voxel Engine repo](https://github.com/JuanDiegoMontoya/3D_Voxel_Engine) for more detail)
 - Batch renderer
 - ECS
 - Entity scripting
