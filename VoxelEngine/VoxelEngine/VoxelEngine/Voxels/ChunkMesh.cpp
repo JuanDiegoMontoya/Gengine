@@ -31,13 +31,15 @@ void ChunkMesh::BuildBuffers()
 
   // nothing emitted, don't try to make buffers
   if (pointCount_ == 0)
+  {
     return;
+  }
   
   // free oldest allocations until there is enough space to allocate this buffer
   while ((bufferHandle = voxelManager_.chunkRenderer_->allocator->Allocate(
     interleavedArr.data(), 
     interleavedArr.size() * sizeof(GLint), 
-    this->parent->GetAABB())) == NULL)
+    this->parentCopy->GetAABB())) == NULL)
   {
     voxelManager_.chunkRenderer_->allocator->FreeOldest();
   }
@@ -61,47 +63,53 @@ void ChunkMesh::BuildMesh()
 {
   high_resolution_clock::time_point benchmark_clock_ = high_resolution_clock::now();
 
+  // make a copy of each of the parent and neighboring chunks so that they can be read without being updating while we mesh
+  delete parentCopy;
+  parentChunk->Lock();
+  parentCopy = new Chunk(*parentChunk);
+  parentChunk->Unlock();
+
   for (int i = 0; i < fCount; i++)
   {
-    nearChunks[i] = voxelManager_.GetChunk(
-      parent->GetPos() + ChunkHelpers::faces[i]);
+    delete nearChunks[i];
+    nearChunks[i] = nullptr;
+    const Chunk* near = voxelManager_.GetChunk(parentCopy->GetPos() + ChunkHelpers::faces[i]);
+    if (near)
+    {
+      near->Lock();
+      nearChunks[i] = new Chunk(*near);
+      near->Unlock();
+    }
   }
 
   {
     std::lock_guard lk(mtx);
 
-    glm::ivec3 ap = parent->GetPos() * Chunk::CHUNK_SIZE;
+    glm::ivec3 ap = parentCopy->GetPos() * Chunk::CHUNK_SIZE;
     interleavedArr.push_back(ap.x);
     interleavedArr.push_back(ap.y);
     interleavedArr.push_back(ap.z);
     interleavedArr.push_back(0xDEADBEEF); // necessary padding
 
-    glm::ivec3 pos;
-    for (pos.z = 0; pos.z < Chunk::CHUNK_SIZE; pos.z++)
+    for (size_t i = 0; i < Chunk::CHUNK_SIZE_CUBED; i++)
     {
-      // precompute first flat index part
-      int zcsq = pos.z * Chunk::CHUNK_SIZE_SQRED;
-      for (pos.y = 0; pos.y < Chunk::CHUNK_SIZE; pos.y++)
+      // skip fully transparent blocks
+      BlockType block = parentCopy->BlockTypeAt(i);
+      if (Block::PropertiesTable[uint16_t(block)].visibility == Visibility::Invisible)
       {
-        // precompute second flat index part
-        int yczcsq = pos.y * Chunk::CHUNK_SIZE + zcsq;
-        for (pos.x = 0; pos.x < Chunk::CHUNK_SIZE; pos.x++)
-        {
-          // this is what we would be doing every innermost iteration
-          //int index = x + y * CHUNK_SIZE + z * CHUNK_SIZE_SQRED;
-          // we only need to do addition
-          int index = pos.x + yczcsq;
+        continue;
+      }
 
-          // skip fully transparent blocks
-          BlockType block = parent->BlockTypeAt(index);
-          if (Block::PropertiesTable[uint16_t(block)].visibility == Visibility::Invisible)
-            continue;
-
-          voxelReady_ = true;
-          for (int f = Far; f < fCount; f++)
-            buildBlockFace(f, pos, block);
-          //buildBlockVertices_normal({ x, y, z }, block);
-        }
+      voxelReady_ = true;
+      glm::vec3 pos
+      {
+        i % Chunk::CHUNK_SIZE,
+        (i / Chunk::CHUNK_SIZE) % Chunk::CHUNK_SIZE,
+        i / (Chunk::CHUNK_SIZE_SQRED)
+      };
+      for (int f = Far; f < fCount; f++)
+      {
+        buildBlockFace(f, pos, block);
       }
     }
 
@@ -111,7 +119,7 @@ void ChunkMesh::BuildMesh()
     tActor = reinterpret_cast<physx::PxRigidActor*>(
       Physics::PhysicsManager::AddStaticActorGeneric(
         Physics::MaterialType::TERRAIN, tCollider, 
-        glm::translate(glm::mat4(1), glm::vec3(parent->GetPos() * Chunk::CHUNK_SIZE))));
+        glm::translate(glm::mat4(1), glm::vec3(parentCopy->GetPos() * Chunk::CHUNK_SIZE))));
 
     //printf("%f: Meshed\n", glfwGetTime());
   }
@@ -144,12 +152,12 @@ inline void ChunkMesh::buildBlockFace(
 
   nearblock.block_pos = blockPos + faces[face];
 
-  const Chunk* nearChunk = parent;
+  const Chunk* nearChunk = parentCopy;
 
   // if neighbor is out of this chunk, find which chunk it is in
   if (any(lessThan(nearblock.block_pos, ivec3(0))) || any(greaterThanEqual(nearblock.block_pos, ivec3(Chunk::CHUNK_SIZE))))
   {
-    fastWorldPosToLocalPos(chunkPosToWorldPos(nearblock.block_pos, parent->GetPos()), nearblock);
+    fastWorldPosToLocalPos(chunkPosToWorldPos(nearblock.block_pos, parentCopy->GetPos()), nearblock);
     nearChunk = nearChunks[face];
   }
 
@@ -269,7 +277,7 @@ inline int ChunkMesh::vertexFaceAO(const glm::vec3& lpos, const glm::vec3& corne
       sideDir[i] = sidesDir[i];
       vec3 sidePos = lpos + sideDir + norm;
       if (all(greaterThanEqual(sidePos, vec3(0))) && all(lessThan(sidePos, vec3(Chunk::CHUNK_SIZE))))
-        if (parent->BlockAt(ivec3(sidePos)).GetType() != BlockType::bAir)
+        if (parentCopy->BlockAt(ivec3(sidePos)).GetType() != BlockType::bAir)
           occluded++;
     }
   }
@@ -280,7 +288,7 @@ inline int ChunkMesh::vertexFaceAO(const glm::vec3& lpos, const glm::vec3& corne
 
   vec3 cornerPos = lpos + (cornerDir * 2.0f);
   if (all(greaterThanEqual(cornerPos, vec3(0))) && all(lessThan(cornerPos, vec3(Chunk::CHUNK_SIZE))))
-    if (parent->BlockAt(ivec3(cornerPos)).GetType() != BlockType::bAir)
+    if (parentCopy->BlockAt(ivec3(cornerPos)).GetType() != BlockType::bAir)
       occluded++;
 
   return 3 - occluded;

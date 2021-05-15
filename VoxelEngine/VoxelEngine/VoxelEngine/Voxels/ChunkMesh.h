@@ -13,7 +13,7 @@ class VoxelManager;
 class ChunkMesh
 {
 public:
-  ChunkMesh(Chunk* p, const VoxelManager& vm) : parent(p), voxelManager_(vm) {}
+  ChunkMesh(Chunk* p, const VoxelManager& vm) : parentChunk(p), voxelManager_(vm) {}
   ~ChunkMesh();
 
   void BuildBuffers();
@@ -51,8 +51,9 @@ private:
   };
 
   const VoxelManager& voxelManager_;
-  const Chunk* parent = nullptr;
-  const Chunk* nearChunks[6]{ nullptr };
+  const Chunk* parentChunk = nullptr;
+  Chunk* parentCopy = nullptr;
+  const Chunk* nearChunks[6]{};
 
   std::unique_ptr<GFX::StaticBuffer> encodedStuffVbo_;
   std::unique_ptr<GFX::StaticBuffer> lightingVbo_;

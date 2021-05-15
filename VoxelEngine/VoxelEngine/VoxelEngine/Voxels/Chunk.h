@@ -46,7 +46,7 @@ public:
   static constexpr int CHUNK_SIZE       = 32;
   static constexpr int CHUNK_SIZE_SQRED = CHUNK_SIZE * CHUNK_SIZE;
   static constexpr int CHUNK_SIZE_CUBED = CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE;
-  static constexpr int CHUNK_SIZE_LOG2  = 5; // log2(32) = 5
+  static constexpr int CHUNK_SIZE_LOG2  = 5;
   static constexpr int BLOCKS_PER_X = 1;
   static constexpr int BLOCKS_PER_Y = CHUNK_SIZE;
   static constexpr int BLOCKS_PER_Z = CHUNK_SIZE_SQRED;
@@ -69,12 +69,12 @@ public:
   void SetBlockTypeAtNoLock(const glm::ivec3& localPos, BlockType type);
   void SetLightAtNoLock(const glm::ivec3& localPos, Light light);
 
-  inline void Lock()
+  inline void Lock() const
   {
     mutex_.lock();
   }
 
-  inline void Unlock()
+  inline void Unlock() const
   {
     mutex_.unlock();
   }
