@@ -109,7 +109,7 @@ void ChunkManager::UpdateChunk(const glm::ivec3 wpos)
 }
 
 
-void ChunkManager::UpdateBlock(const glm::ivec3& wpos, Block bl, bool indirect)
+void ChunkManager::UpdateBlock(const glm::ivec3& wpos, Block bl)
 {
   ChunkHelpers::localpos p = ChunkHelpers::worldPosToLocalPos(wpos);
   //BlockPtr block = Chunk::AtWorld(wpos);
@@ -124,14 +124,7 @@ void ChunkManager::UpdateBlock(const glm::ivec3& wpos, Block bl, bool indirect)
     remBlock = chunk->BlockAt(p.block_pos); // remBlock would've been 0 block cuz null, so it's fix here
   }
 
-  if (indirect == false)
-  {
-    chunk->SetBlockTypeAt(p.block_pos, bl.GetType());
-  }
-  else
-  {
-    chunk->SetBlockTypeAtIndirect(p.block_pos, bl.GetType());
-  }
+  chunk->SetBlockTypeAt(p.block_pos, bl.GetType());
 
   // check if removed block emitted light
   if (bl.GetVisibility() == Visibility::Opaque || remBlock.GetVisibility() == Visibility::Opaque)
@@ -155,7 +148,7 @@ void ChunkManager::UpdateBlock(const glm::ivec3& wpos, Block bl, bool indirect)
   UpdateChunk(chunk);
 
   // check if adjacent to opaque blocks in nearby chunks, then update those chunks if it is
-  const glm::ivec3 dirs[] =
+  constexpr glm::ivec3 dirs[] =
   {
     {-1, 0, 0 },
     { 1, 0, 0 },

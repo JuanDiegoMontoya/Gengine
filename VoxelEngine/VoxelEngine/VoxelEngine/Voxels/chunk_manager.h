@@ -34,7 +34,7 @@ public:
   void Update();
   void UpdateChunk(Chunk* chunk);
   void UpdateChunk(const glm::ivec3 wpos); // update chunk at block position
-  void UpdateBlock(const glm::ivec3& wpos, Block bl, bool indirect = false);
+  void UpdateBlock(const glm::ivec3& wpos, Block bl);
   //void UpdateBlockIndirect(const glm::ivec3& wpos, Block block);
   void UpdateBlockCheap(const glm::ivec3& wpos, Block block);
   void ReloadAllChunks(); // for when big things change

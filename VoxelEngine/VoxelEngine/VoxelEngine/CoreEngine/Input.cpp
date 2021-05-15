@@ -14,6 +14,7 @@
 #include <iostream>
 #endif
 
+#pragma optimize("", off)
 
 void Input::Update()
 {

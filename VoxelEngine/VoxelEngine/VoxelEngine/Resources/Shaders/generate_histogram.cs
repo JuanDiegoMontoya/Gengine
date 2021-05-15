@@ -33,4 +33,19 @@ void main()
   float luminance = dot(color, vec3(.3, .59, .11));
   int bucket = clamp(int(map(log(luminance), u_logLowLum, u_logMaxLum, 0.0, float(NUM_BUCKETS - 1))), 0, NUM_BUCKETS - 1);
   atomicAdd(buckets[bucket], 1);
+  // const uint numWrites = NUM_BUCKETS / WORKGROUPSIZE;
+  // const uint start = gl_LocalInvocationIndex * numWrites;
+  // for (uint i = start; i < start + numWrites; i++)
+  // {
+  //   shbuckets[i] = 0;
+  // }
+  // barrier();
+  // atomicAdd(shbuckets[bucket], 1);
+  // barrier();
+  // for (uint i = start; i < start + numWrites; i++)
+  // {
+  //   int val = shbuckets[i];
+  //   if (val != 0)
+  //     atomicAdd(buckets[i], val);
+  // }
 }

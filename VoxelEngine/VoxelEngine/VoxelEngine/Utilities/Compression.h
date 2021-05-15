@@ -6,6 +6,7 @@
 #include <zlib.h>
 #include <memory>
 #include <CoreEngine/GAssert.h>
+#include <concepts>
 
 namespace Compression
 {
@@ -104,7 +105,9 @@ namespace Compression
       curElement.count++;
     }
     if (curElement.count > 0)
+    {
       data.push_back(curElement);
+    }
 
     return data;
   }

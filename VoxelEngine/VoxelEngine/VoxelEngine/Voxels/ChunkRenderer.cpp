@@ -71,6 +71,7 @@ ChunkRenderer::ChunkRenderer()
   {
     texs.push_back(std::string(prop.name) + ".png");
   }
+  //std::span texSpan(texs.data(), texs.size());
   textures = std::make_unique<GFX::TextureArray>(std::span(texs.data(), texs.size()), glm::ivec2(32));
 
   blueNoise64 = std::make_unique<GFX::Texture2D>("BlueNoise/64_64/LDR_LLL1_0.png");

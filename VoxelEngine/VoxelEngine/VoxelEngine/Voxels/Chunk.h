@@ -57,63 +57,26 @@ public:
   ################################*/
   inline const glm::ivec3& GetPos() const { return pos_; }
 
-  inline Block BlockAt(const glm::ivec3& p) const
+  Block BlockAt(const glm::ivec3& p) const;
+  Block BlockAt(int index) const;
+  BlockType BlockTypeAt(const glm::ivec3& p) const;
+  BlockType BlockTypeAt(int index) const;
+  void SetBlockTypeAt(const glm::ivec3& lpos, BlockType type);
+  void SetLightAt(const glm::ivec3& lpos, Light light);
+  Light LightAt(const glm::ivec3& p) const;
+  Light LightAt(int index) const;
+
+  void SetBlockTypeAtNoLock(const glm::ivec3& localPos, BlockType type);
+  void SetLightAtNoLock(const glm::ivec3& localPos, Light light);
+
+  inline void Lock()
   {
-    return storage.GetBlock(ID3D(p.x, p.y, p.z, CHUNK_SIZE, CHUNK_SIZE));
+    mutex_.lock();
   }
 
-  inline Block BlockAt(int index) const
+  inline void Unlock()
   {
-    return storage.GetBlock(index);
-  }
-
-  inline BlockType BlockTypeAt(const glm::ivec3& p) const
-  {
-    return storage.GetBlockType(ID3D(p.x, p.y, p.z, CHUNK_SIZE, CHUNK_SIZE));
-  }
-
-  inline BlockType BlockTypeAt(int index) const
-  {
-    return storage.GetBlockType(index);
-  }
-
-  inline void SetBlockTypeAt(const glm::ivec3& lpos, BlockType type)
-  {
-    int index = ID3D(lpos.x, lpos.y, lpos.z, CHUNK_SIZE, CHUNK_SIZE);
-    storage.SetBlock(index, type);
-  }
-
-  inline void SetLightAt(const glm::ivec3& lpos, Light light)
-  {
-    int index = ID3D(lpos.x, lpos.y, lpos.z, CHUNK_SIZE, CHUNK_SIZE);
-    storage.SetLight(index, light);
-  }
-
-  inline Light LightAt(const glm::ivec3& p) const
-  {
-    return storage.GetLight(ID3D(p.x, p.y, p.z, CHUNK_SIZE, CHUNK_SIZE));
-  }
-
-  inline Light LightAt(int index) const
-  {
-    return storage.GetLight(index);
-  }
-
-
-  inline void SetBlockTypeAtIndirect(const glm::ivec3& lpos, BlockType type)
-  {
-    std::lock_guard lk(indirectMtx_);
-    int index = ID3D(lpos.x, lpos.y, lpos.z, CHUNK_SIZE, CHUNK_SIZE);
-    auto light = LightAt(index);
-    updateQueue_.push_back({ index, Block(type, light) });
-  }
-
-  inline void SetLightAtIndirect(const glm::ivec3& lpos, Light light)
-  {
-    std::lock_guard lk(indirectMtx_);
-    int index = ID3D(lpos.x, lpos.y, lpos.z, CHUNK_SIZE, CHUNK_SIZE);
-    auto block = BlockTypeAt(index);
-    updateQueue_.push_back({ index, Block(block, light) });
+    mutex_.unlock();
   }
 
   void BuildMesh()
@@ -123,7 +86,6 @@ public:
 
   void BuildBuffers()
   {
-    //mesh.BuildBuffers();
     mesh.BuildBuffers();
   }
 
@@ -155,8 +117,61 @@ private:
   PaletteBlockStorage<CHUNK_SIZE_CUBED> storage;
   ChunkMesh mesh;
 
-  // for deferred block updates
-  std::vector<std::pair<int, Block>> updateQueue_;
-  //concurrency::concurrent_vector<std::pair<int, Block>> updateQueue_;
-  std::shared_mutex indirectMtx_;
+  mutable std::shared_mutex mutex_;
 };
+
+
+
+inline Block Chunk::BlockAt(const glm::ivec3& p) const
+{
+  return storage.GetBlock(ID3D(p.x, p.y, p.z, CHUNK_SIZE, CHUNK_SIZE));
+}
+
+inline Block Chunk::BlockAt(int index) const
+{
+  return storage.GetBlock(index);
+}
+
+inline BlockType Chunk::BlockTypeAt(const glm::ivec3& p) const
+{
+  return storage.GetBlockType(ID3D(p.x, p.y, p.z, CHUNK_SIZE, CHUNK_SIZE));
+}
+
+inline BlockType Chunk::BlockTypeAt(int index) const
+{
+  return storage.GetBlockType(index);
+}
+
+inline void Chunk::SetBlockTypeAt(const glm::ivec3& lpos, BlockType type)
+{
+  int index = ID3D(lpos.x, lpos.y, lpos.z, CHUNK_SIZE, CHUNK_SIZE);
+  storage.SetBlock(index, type);
+}
+
+inline void Chunk::SetLightAt(const glm::ivec3& lpos, Light light)
+{
+  int index = ID3D(lpos.x, lpos.y, lpos.z, CHUNK_SIZE, CHUNK_SIZE);
+  storage.SetLight(index, light);
+}
+
+inline Light Chunk::LightAt(const glm::ivec3& p) const
+{
+  return storage.GetLight(ID3D(p.x, p.y, p.z, CHUNK_SIZE, CHUNK_SIZE));
+}
+
+inline Light Chunk::LightAt(int index) const
+{
+  return storage.GetLight(index);
+}
+
+inline void Chunk::SetBlockTypeAtNoLock(const glm::ivec3& localPos, BlockType type)
+{
+  int index = ID3D(localPos.x, localPos.y, localPos.z, CHUNK_SIZE, CHUNK_SIZE);
+  storage.SetBlock(index, type);
+}
+
+inline void Chunk::SetLightAtNoLock(const glm::ivec3& localPos, Light light)
+{
+  int index = ID3D(localPos.x, localPos.y, localPos.z, CHUNK_SIZE, CHUNK_SIZE);
+  storage.SetLight(index, light);
+}

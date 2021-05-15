@@ -4,17 +4,6 @@
 #include <Utilities/Palette.h>
 #include <array>
 
-// abstract class for array-like block storage
-class DenseBlockStorage
-{
-public:
-  virtual Block GetBlock(int index) = 0;
-  virtual BlockType GetBlockType(int index) = 0;
-  virtual void SetBlockType(int index, BlockType) = 0;
-  virtual void SetLight(int index, Light) = 0;
-  virtual Light GetLight(int index) = 0;
-};
-
 // uncompressed block storage for chunks
 template<unsigned Size>
 class ArrayBlockStorage
@@ -37,13 +26,9 @@ public:
 private:
 
   std::array<Block, Size> blocks_;
-  //Block* blocks_ = nullptr;
 };
 
-
-// https://www.reddit.com/r/VoxelGameDev/comments/9yu8qy/palettebased_compression_for_chunked_discrete/
-// compressed block storage
-// can't really return references w/o doing crazy proxy class stuff
+// palette-encoded block storage for efficient memory usage
 template<unsigned Size>
 class PaletteBlockStorage
 {
