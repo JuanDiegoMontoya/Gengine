@@ -373,6 +373,7 @@ int main()
   Application::SetDrawCallback(OnDraw);
 
   Application::Start();
+  voxelManager.reset();
   Application::Shutdown();
 
   return 0;

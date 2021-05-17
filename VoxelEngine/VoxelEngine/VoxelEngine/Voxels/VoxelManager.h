@@ -44,6 +44,8 @@ public:
   // Get information about the voxel world
   Chunk* GetChunk(const glm::ivec3& cpos);
   const Chunk* GetChunk(const glm::ivec3& cpos) const;
+  std::vector<Chunk*> GetChunksRegion(const glm::ivec3& lowCpos, const glm::ivec3& highCpos);
+  std::vector<Chunk*> GetChunksRegionWorldSpace(const glm::ivec3& lowWpos, const glm::ivec3& highWpos);
   Block GetBlock(const glm::ivec3& wpos) const;
   Block GetBlock(const ChunkHelpers::localpos& p) const;
   std::optional<Block> TryGetBlock(const glm::ivec3& wpos) const;
@@ -61,7 +63,8 @@ public:
   bool SetBlockLight(const glm::ivec3& wpos, Light light);
 
   // Regenerates the mesh of the chunk at the specified location
-  void MeshChunk(const glm::ivec3& cpos);
+  void UpdateChunk(const glm::ivec3& cpos);
+  void UpdateChunk(Chunk* chunk);
 
   // Utility functions
   void Raycast(glm::vec3 origin, glm::vec3 direction, float distance, std::function<bool(glm::vec3, Block, glm::vec3)> callback);
@@ -127,6 +130,35 @@ inline const Chunk* VoxelManager::GetChunk(const glm::ivec3& cpos) const
   //  return it->second;
   //return nullptr;
   return find(cpos);
+}
+
+inline std::vector<Chunk*> VoxelManager::GetChunksRegion(const glm::ivec3& lowCpos, const glm::ivec3& highCpos)
+{
+  auto low = glm::min(lowCpos, highCpos);
+  auto high = glm::max(lowCpos, highCpos);
+  std::vector<Chunk*> region;
+  region.reserve((high.x - low.x + 1) * (high.y - low.y + 1) * (high.z - low.z + 1));
+  for (int z = low.z; z <= high.z; z++)
+  {
+    for (int y = low.y; y <= high.y; y++)
+    {
+      for (int x = low.x; x <= high.x; x++)
+      {
+        if (auto found = find({ x, y, z }))
+        {
+          region.push_back(found);
+        }
+      }
+    }
+  }
+  return region;
+}
+
+inline std::vector<Chunk*> VoxelManager::GetChunksRegionWorldSpace(const glm::ivec3& lowWpos, const glm::ivec3& highWpos)
+{
+  auto lowCpos = ChunkHelpers::worldPosToLocalPos(lowWpos).chunk_pos;
+  auto highCpos = ChunkHelpers::worldPosToLocalPos(highWpos).chunk_pos;
+  return GetChunksRegion(lowCpos, highCpos);
 }
 
 inline Block VoxelManager::GetBlock(const glm::ivec3& wpos) const

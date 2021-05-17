@@ -192,10 +192,17 @@ void PlayerActions::checkTestButton()
 {
   if (Input::IsKeyDown(GLFW_KEY_G))
   {
+    auto chunks = voxels->GetChunksRegionWorldSpace({ 0, 30, 0 }, { 49, 49, 49 });
+    for (auto chunk : chunks) chunk->Lock();
     for (int i = 0; i < 100; i++)
     {
       //voxels->MeshChunk({ rand() % 5, rand() % 5, rand() % 5 });
-      voxels->UpdateBlock({ rand() % 50, rand() % 20 + 30, rand() % 50 }, Block(BlockType::bStone));
+      voxels->UpdateBlockCheap({ rand() % 50, rand() % 20 + 30, rand() % 50 }, Block(BlockType::bStone));
+    }
+    for (auto chunk : chunks)
+    {
+      voxels->UpdateChunk(chunk);
+      chunk->Unlock();
     }
   }
 }

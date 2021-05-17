@@ -12,11 +12,49 @@
 #include <queue>
 
 #include <CoreEngine/Camera.h>
+#include <ctpl_stl.h>
 
 class VoxelManager;
 //class ChunkLoadManager;
 
+template<typename T>
+class AtomicQueue
+{
+public:
+  AtomicQueue() {};
+  
+  void Push(const T& val)
+  {
+    std::lock_guard lck(mutex_);
+    queue_.push(val);
+  }
 
+  T Pop()
+  {
+    std::lock_guard lck(mutex_);
+    T val = queue_.front();
+    queue_.pop();
+    return val;
+  }
+
+  // single lock, low-overhead
+  template<typename Callback>
+  void ForEach(Callback fn, unsigned maxIterations = UINT32_MAX)
+  {
+    std::lock_guard lck(mutex_);
+    while (!queue_.empty() && maxIterations != 0)
+    {
+      T val = queue_.front();
+      queue_.pop();
+      fn(val);
+      maxIterations--;
+    }
+  }
+
+private:
+  std::queue<T> queue_;
+  mutable std::shared_mutex mutex_;
+};
 
 // Interfaces with the Chunk class to
 // manage how and when chunk block and mesh data is generated, and
@@ -27,8 +65,9 @@ class ChunkManager
 {
 public:
   ChunkManager(VoxelManager& manager);
-  ~ChunkManager();
+  ~ChunkManager() {};
   void Init();
+  void Destroy();
 
   // interaction
   void Update();
@@ -38,8 +77,6 @@ public:
   //void UpdateBlockIndirect(const glm::ivec3& wpos, Block block);
   void UpdateBlockCheap(const glm::ivec3& wpos, Block block);
   void ReloadAllChunks(); // for when big things change
-
-  Chunk* GetChunk(const glm::ivec3& wpos);
 
 
   // TODO: move
@@ -51,54 +88,15 @@ public: // TODO: TEMPORARY
   // functions
   void checkUpdateChunkNearBlock(const glm::ivec3& pos, const glm::ivec3& near);
 
-  void chunk_deferred_update_task();
-
-  // generates actual blocks
-  void chunk_generator_thread_task();
-  //std::set<Chunk*, Utils::Chunk*KeyEq> generation_queue_;
-  Concurrency::concurrent_unordered_set<Chunk*> generation_queue_;
-  //std::mutex chunk_generation_mutex_;
-  std::vector<std::unique_ptr<std::thread>> chunk_generator_threads_;
-
-  // generates meshes for ANY UPDATED chunk
-  void chunk_mesher_thread_task();
-  //std::set<Chunk*, Utils::Chunk*KeyEq> mesher_queue_;
-  //std::set<Chunk*> mesher_queue_;
-  Concurrency::concurrent_unordered_set<Chunk*> mesher_queue_;
-  //std::mutex chunk_mesher_mutex_;
-  std::vector<std::unique_ptr<std::thread>> chunk_mesher_threads_;
-  std::atomic_size_t debug_cur_pool_left = 0;
-
-  std::vector<std::unique_ptr<std::thread>> indirect_update_queue_;
-
-  // NOT multithreaded task
-  void chunk_buffer_task();
-  //std::set<Chunk*, Utils::Chunk*KeyEq> buffer_queue_;
-  Concurrency::concurrent_unordered_set<Chunk*> buffer_queue_;
-  //std::mutex chunk_buffer_mutex_;
-
-  std::mutex t_mesher_mutex_;
-  Concurrency::concurrent_unordered_set<Chunk*> t_mesher_queue_;
-
-  // DEBUG does everything in a serial fashion
-  // chunk_buffer_task must be called after this
-  void chunk_gen_mesh_nobuffer();
-
+  //AtomicQueue<Chunk*> mesherQueueGood_;
+  ctpl::thread_pool mesherThreadPool_;
+  AtomicQueue<Chunk*> bufferQueueGood_;
+  
   std::unordered_set<Chunk*> delayed_update_queue_;
 
   // new light intensity to add
   void lightPropagateAdd(glm::ivec3 wpos, Light nLight, bool skipself = true, bool sunlight = false, bool noqueue = false);
   void lightPropagateRemove(glm::ivec3 wpos, bool noqueue = false);
-
-
-  // SUNLIGHT STUFF
-  
-  // returns true if block at max sunlight level
-
-  // vars
-  bool shutdownThreads = false;
-  //std::vector<Chunk*> updatedChunks_;
-  //std::vector<Chunk*> genChunkList_;
 
   VoxelManager& voxelManager;
 };

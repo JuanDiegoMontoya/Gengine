@@ -16,43 +16,18 @@
 ChunkManager::ChunkManager(VoxelManager& manager) 
   : voxelManager(manager)
 {
-  debug_cur_pool_left = 0;
 }
 
 
-ChunkManager::~ChunkManager()
+void ChunkManager::Destroy()
 {
-  shutdownThreads = true;
-  for (auto& t_ptr : chunk_generator_threads_)
-  {
-    t_ptr->join();
-  }
-  for (auto& t_ptr : chunk_mesher_threads_)
-  {
-    t_ptr->join();
-  }
+  mesherThreadPool_.stop(false);
 }
 
 
 void ChunkManager::Init()
 {
-  // run main thread on core 1
-  //SetThreadAffinityMask(GetCurrentThread(), 1);
-  // spawn chunk block generator threads
-  //for (int i = 0; i < 4; i++)
-  //{
-  //  chunk_generator_threads_.push_back(
-  //    new std::thread([this]() { chunk_generator_thread_task(); }));
-  //  //SetThreadAffinityMask(chunk_generator_threads_[i]->native_handle(), ~1);
-  //}
-
-  // spawn chunk mesh generator threads
-  for (int i = 0; i < 1; i++)
-  {
-    chunk_mesher_threads_.push_back(
-      std::make_unique<std::thread>([this]() { chunk_mesher_thread_task(); }));
-    //SetThreadAffinityMask(chunk_mesher_threads_[i]->native_handle(), ~1);
-  }
+  mesherThreadPool_.resize(8);
 }
 
 void ChunkManager::Update()
@@ -61,27 +36,13 @@ void ChunkManager::Update()
 
   // TODO: update a random selection of the chunks per frame
 
-  //std::for_each(
-  //  std::execution::par,
-  //  voxelManager.chunks_.begin(),
-  //  voxelManager.chunks_.end(),
-  //  [](auto& p)
-  //{
-  //  if (p.second)
-  //    p.second->Update();
-  //});
-
-  chunk_buffer_task();
-  //chunk_gen_mesh_nobuffer();
-  if (mesher_queue_.size() > 0)
-  {
-    std::lock_guard<std::mutex> lock1(t_mesher_mutex_);
-    mesher_queue_.swap(t_mesher_queue_);
-    //mesher_queue_.clear();
-  }
+  //chunk_buffer_task();
+  bufferQueueGood_.ForEach([](Chunk* chunk) { chunk->BuildBuffers(); }, 5);
 
   for (Chunk* chunk : delayed_update_queue_)
+  {
     UpdateChunk(chunk);
+  }
   delayed_update_queue_.clear();
 
   //PERF_BENCHMARK_END;
@@ -91,19 +52,20 @@ void ChunkManager::Update()
 void ChunkManager::UpdateChunk(Chunk* chunk)
 {
   ASSERT(chunk != nullptr);
-  //std::lock_guard<std::mutex> lock(chunk_mesher_mutex_);
-  mesher_queue_.insert(chunk);
+  mesherThreadPool_.push([chunk, this](int _)
+    {
+      chunk->BuildMesh();
+      bufferQueueGood_.Push(chunk);
+    });
 }
 
 
 void ChunkManager::UpdateChunk(const glm::ivec3 wpos)
 {
   auto cpos = ChunkHelpers::worldPosToLocalPos(wpos);
-  //auto cptr = Chunk::chunks[cpos.chunk_pos];
   auto cptr = voxelManager.GetChunk(cpos.chunk_pos);
   if (cptr)
   {
-    //std::lock_guard<std::mutex> lock(chunk_mesher_mutex_);
     UpdateChunk(cptr);
   }
 }
@@ -171,7 +133,7 @@ void ChunkManager::UpdateBlock(const glm::ivec3& wpos, Block bl)
 void ChunkManager::UpdateBlockCheap(const glm::ivec3& wpos, Block block)
 {
   auto l = ChunkHelpers::worldPosToLocalPos(wpos);
-  voxelManager.GetChunk(l.chunk_pos)->SetBlockTypeAt(l.block_pos, block.GetType());
+  voxelManager.GetChunk(l.chunk_pos)->SetBlockTypeAtNoLock(l.block_pos, block.GetType());
   //*Chunk::AtWorld(wpos) = block;
   //UpdatedChunk(Chunk::chunks[Chunk::worldBlockToLocalPos(wpos).chunk_pos]);
 }
@@ -189,13 +151,6 @@ void ChunkManager::ReloadAllChunks()
       //if (!isChunkInUpdateList(p.second))
       //  updatedChunks_.push_back(p.second);
   }
-}
-
-
-Chunk* ChunkManager::GetChunk(const glm::ivec3& wpos)
-{
-  auto l = ChunkHelpers::worldPosToLocalPos(wpos);
-  return voxelManager.GetChunk(l.chunk_pos);
 }
 
 
@@ -266,6 +221,7 @@ void ChunkManager::checkUpdateChunkNearBlock(const glm::ivec3& pos, const glm::i
     //  updatedChunks_.push_back(Chunk::chunks[p2.chunk_pos]);
 }
 
+// TODO: track chunks which are being modified, lock prior to modification
 
 // TODO: make lighting updates also check chunks around the cell 
 // (because lighting affects all neighboring blocks)
@@ -275,14 +231,26 @@ void ChunkManager::checkUpdateChunkNearBlock(const glm::ivec3& pos, const glm::i
 // skipself: chunk updating thing
 void ChunkManager::lightPropagateAdd(glm::ivec3 wpos, Light nLight, bool skipself, bool sunlight, bool noqueue)
 {
+  // lock all the surrounding chunks, which may be written to (we want to write to all of them in one atomic operation)
+  auto potentiallyModifiedSet = voxelManager.GetChunksRegionWorldSpace(wpos - Chunk::CHUNK_SIZE, wpos + Chunk::CHUNK_SIZE);
+  for (auto chunk : potentiallyModifiedSet)
+  {
+    chunk->Lock();
+  }
+
   // get existing light at the position
-  auto optL = voxelManager.TryGetBlock(wpos);
-  if (optL.has_value())
+  auto posLocal = ChunkHelpers::worldPosToLocalPos(wpos);
+  auto chunk = voxelManager.GetChunk(posLocal.chunk_pos);
+  //auto optL = voxelManager.TryGetBlock(wpos);
+  //if (optL.has_value())
+  if (chunk)
   {
     // if there is already light in the spot,
     // combine the two by taking the max values only
-    glm::u8vec4 t = glm::max(optL->GetLight().Get(), nLight.Get());
-    voxelManager.SetBlockLight(wpos, t);
+    //glm::u8vec4 t = glm::max(optL->GetLight().Get(), nLight.Get());
+    //voxelManager.SetBlockLight(wpos, t);
+    glm::u8vec4 t = glm::max(chunk->LightAtNoLock(posLocal.block_pos).Get(), nLight.Get());
+    chunk->SetLightAtNoLock(posLocal.block_pos, Light(t));
     //L.Set(t); //*L = t;
   }
   
@@ -294,7 +262,10 @@ void ChunkManager::lightPropagateAdd(glm::ivec3 wpos, Light nLight, bool skipsel
   {
     glm::ivec3 lightp = lightQueue.front(); // light position
     lightQueue.pop();
-    Light lightLevel = voxelManager.GetBlock(lightp).GetLight(); // node that will be giving light to others
+    auto lightPosLocal = ChunkHelpers::worldPosToLocalPos(lightp);
+    auto lchunk = voxelManager.GetChunk(lightPosLocal.chunk_pos);
+    Light lightLevel = lchunk->LightAtNoLock(lightPosLocal.block_pos);
+    //Light lightLevel = voxelManager.GetBlock(lightp).GetLight(); // node that will be giving light to others
     const glm::ivec3 dirs[] =
     {
       { 1, 0, 0 },
@@ -309,9 +280,15 @@ void ChunkManager::lightPropagateAdd(glm::ivec3 wpos, Light nLight, bool skipsel
     for (const auto& dir : dirs)
     {
       glm::ivec3 nlightPos = lightp + dir;
-      auto nblock = voxelManager.TryGetBlock(nlightPos);
-      if (!nblock) continue;
-      Light nlight = nblock->GetLight();
+      auto nlightPosLocal = ChunkHelpers::worldPosToLocalPos(nlightPos);
+      auto nchunk = voxelManager.GetChunk(nlightPosLocal.chunk_pos);
+      if (!nchunk) continue;
+      Block nblock = nchunk->BlockAtNoLock(nlightPosLocal.block_pos);
+      Light nlight = nblock.GetLight();
+
+      //auto nblock = voxelManager.TryGetBlock(nlightPos);
+      //if (!nblock) continue;
+      //Light nlight = nblock->GetLight();
 
       // add chunk to update queue if it exists
       if (!noqueue)
@@ -320,7 +297,7 @@ void ChunkManager::lightPropagateAdd(glm::ivec3 wpos, Light nLight, bool skipsel
       }
 
       // if neighbor is solid block, skip dat boi
-      if (Block::PropertiesTable[nblock->GetTypei()].visibility == Visibility::Opaque)
+      if (Block::PropertiesTable[nblock.GetTypei()].visibility == Visibility::Opaque)
       {
         continue;
       }
@@ -342,7 +319,8 @@ void ChunkManager::lightPropagateAdd(glm::ivec3 wpos, Light nLight, bool skipsel
         // then push the position of that light into the queue
         //glm::u8vec4 val = light.Get();
         // this line can be optimized to reduce amount of global block getting
-        glm::u8vec4 val = voxelManager.GetBlock(nlightPos).GetLight().Get();
+        glm::u8vec4 val = nchunk->LightAtNoLock(nlightPosLocal.block_pos).Get();
+        //glm::u8vec4 val = voxelManager.GetBlock(nlightPos).GetLight().Get();
         val[ci] = (lightLevel.Get()[ci] - 1);// *Block::PropertiesTable[block.GetTypei()].color[ci];
 
         // if sunlight, max light, and going down, then don't decrease power
@@ -351,7 +329,8 @@ void ChunkManager::lightPropagateAdd(glm::ivec3 wpos, Light nLight, bool skipsel
           val[3] = 0xF;
         }
 
-        voxelManager.SetBlockLight(nlightPos, val);
+        nchunk->SetLightAtNoLock(nlightPosLocal.block_pos, val);
+        //voxelManager.SetBlockLight(nlightPos, val);
         enqueue = true;
       }
       if (enqueue) // enqueue if any lighting system changed
@@ -359,6 +338,11 @@ void ChunkManager::lightPropagateAdd(glm::ivec3 wpos, Light nLight, bool skipsel
         lightQueue.push(nlightPos);
       }
     }
+  }
+
+  for (auto chunk : potentiallyModifiedSet)
+  {
+    chunk->Unlock();
   }
 
   // do not update this chunk again if it contained the placed light

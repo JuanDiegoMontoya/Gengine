@@ -59,12 +59,16 @@ public:
 
   Block BlockAt(const glm::ivec3& p) const;
   Block BlockAt(int index) const;
+  Block BlockAtNoLock(const glm::ivec3& p) const;
+  Block BlockAtNoLock(int index) const;
   BlockType BlockTypeAt(const glm::ivec3& p) const;
   BlockType BlockTypeAt(int index) const;
   void SetBlockTypeAt(const glm::ivec3& lpos, BlockType type);
   void SetLightAt(const glm::ivec3& lpos, Light light);
   Light LightAt(const glm::ivec3& p) const;
   Light LightAt(int index) const;
+  Light LightAtNoLock(const glm::ivec3& p) const;
+  Light LightAtNoLock(int index) const;
 
   void SetBlockTypeAtNoLock(const glm::ivec3& localPos, BlockType type);
   void SetLightAtNoLock(const glm::ivec3& localPos, Light light);
@@ -124,42 +128,75 @@ private:
 
 inline Block Chunk::BlockAt(const glm::ivec3& p) const
 {
-  return storage.GetBlock(ID3D(p.x, p.y, p.z, CHUNK_SIZE, CHUNK_SIZE));
+  int index = ID3D(p.x, p.y, p.z, CHUNK_SIZE, CHUNK_SIZE);
+  std::shared_lock lck(mutex_);
+  return storage.GetBlock(index);
 }
 
 inline Block Chunk::BlockAt(int index) const
+{
+  std::shared_lock lck(mutex_);
+  return storage.GetBlock(index);
+}
+
+inline Block Chunk::BlockAtNoLock(const glm::ivec3& p) const
+{
+  int index = ID3D(p.x, p.y, p.z, CHUNK_SIZE, CHUNK_SIZE);
+  return storage.GetBlock(index);
+}
+
+inline Block Chunk::BlockAtNoLock(int index) const
 {
   return storage.GetBlock(index);
 }
 
 inline BlockType Chunk::BlockTypeAt(const glm::ivec3& p) const
 {
-  return storage.GetBlockType(ID3D(p.x, p.y, p.z, CHUNK_SIZE, CHUNK_SIZE));
+  int index = ID3D(p.x, p.y, p.z, CHUNK_SIZE, CHUNK_SIZE);
+  std::shared_lock lck(mutex_);
+  return storage.GetBlockType(index);
 }
 
 inline BlockType Chunk::BlockTypeAt(int index) const
 {
+  std::shared_lock lck(mutex_);
   return storage.GetBlockType(index);
 }
 
 inline void Chunk::SetBlockTypeAt(const glm::ivec3& lpos, BlockType type)
 {
   int index = ID3D(lpos.x, lpos.y, lpos.z, CHUNK_SIZE, CHUNK_SIZE);
+  std::lock_guard lck(mutex_);
   storage.SetBlock(index, type);
 }
 
 inline void Chunk::SetLightAt(const glm::ivec3& lpos, Light light)
 {
   int index = ID3D(lpos.x, lpos.y, lpos.z, CHUNK_SIZE, CHUNK_SIZE);
+  std::lock_guard lck(mutex_);
   storage.SetLight(index, light);
 }
 
 inline Light Chunk::LightAt(const glm::ivec3& p) const
 {
-  return storage.GetLight(ID3D(p.x, p.y, p.z, CHUNK_SIZE, CHUNK_SIZE));
+  int index = ID3D(p.x, p.y, p.z, CHUNK_SIZE, CHUNK_SIZE);
+  std::shared_lock lck(mutex_);
+  return storage.GetLight(index);
 }
 
 inline Light Chunk::LightAt(int index) const
+{
+  std::shared_lock lck(mutex_);
+  return storage.GetLight(index);
+}
+
+inline Light Chunk::LightAtNoLock(const glm::ivec3& p) const
+{
+  int index = ID3D(p.x, p.y, p.z, CHUNK_SIZE, CHUNK_SIZE);
+  return storage.GetLight(index);
+}
+
+inline Light Chunk::LightAtNoLock(int index) const
 {
   return storage.GetLight(index);
 }

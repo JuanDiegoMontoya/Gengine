@@ -26,6 +26,8 @@ public:
   static inline bool debug_ignore_light_level = false;
   static inline std::atomic<double> accumtime = 0;
   static inline std::atomic<unsigned> accumcount = 0;
+  
+  std::atomic_bool needsBuffering_ = false;
 
 private:
   friend struct Chunk;

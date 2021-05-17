@@ -13,12 +13,13 @@
 #include <chrono>
 using namespace std::chrono;
 
-
 ChunkMesh::~ChunkMesh()
 {
   voxelManager_.chunkRenderer_->allocator->Free(bufferHandle);
   if (tActor)
+  {
     Physics::PhysicsManager::RemoveActorGeneric(tActor);
+  }
 }
 
 
@@ -26,11 +27,19 @@ void ChunkMesh::BuildBuffers()
 {
   std::lock_guard lk(mtx);
 
+  // optimization in case this function is called multiple times in a row
+  if (!needsBuffering_)
+  {
+    return;
+  }
+  needsBuffering_ = false;
+
   vertexCount_ = encodedStuffArr.size();
   voxelManager_.chunkRenderer_->allocator->Free(bufferHandle);
 
   // nothing emitted, don't try to make buffers
-  if (pointCount_ == 0)
+  //if (pointCount_ == 0)
+  if (vertexCount_ == 0)
   {
     return;
   }
@@ -39,7 +48,7 @@ void ChunkMesh::BuildBuffers()
   while ((bufferHandle = voxelManager_.chunkRenderer_->allocator->Allocate(
     interleavedArr.data(), 
     interleavedArr.size() * sizeof(GLint), 
-    this->parentCopy->GetAABB())) == NULL)
+    this->parentChunk->GetAABB())) == NULL)
   {
     voxelManager_.chunkRenderer_->allocator->FreeOldest();
   }
@@ -63,27 +72,32 @@ void ChunkMesh::BuildMesh()
 {
   high_resolution_clock::time_point benchmark_clock_ = high_resolution_clock::now();
 
-  // make a copy of each of the parent and neighboring chunks so that they can be read without being updating while we mesh
-  delete parentCopy;
-  parentChunk->Lock();
-  parentCopy = new Chunk(*parentChunk);
-  parentChunk->Unlock();
-
-  for (int i = 0; i < fCount; i++)
-  {
-    delete nearChunks[i];
-    nearChunks[i] = nullptr;
-    const Chunk* near = voxelManager_.GetChunk(parentCopy->GetPos() + ChunkHelpers::faces[i]);
-    if (near)
-    {
-      near->Lock();
-      nearChunks[i] = new Chunk(*near);
-      near->Unlock();
-    }
-  }
-
   {
     std::lock_guard lk(mtx);
+    needsBuffering_ = true;
+
+    // clear everything in case this function is called twice in a row
+    encodedStuffArr.clear();
+    lightingArr.clear();
+    interleavedArr.clear();
+    tCollider.vertices.clear();
+    tCollider.indices.clear();
+
+    // make a copy of each of the parent and neighboring chunks so that they can be read without being updating while we mesh
+    parentChunk->Lock();
+    parentCopy = new Chunk(*parentChunk);
+    parentChunk->Unlock();
+
+    for (int i = 0; i < fCount; i++)
+    {
+      const Chunk* near = voxelManager_.GetChunk(parentCopy->GetPos() + ChunkHelpers::faces[i]);
+      if (near)
+      {
+        near->Lock();
+        nearChunks[i] = new Chunk(*near);
+        near->Unlock();
+      }
+    }
 
     glm::ivec3 ap = parentCopy->GetPos() * Chunk::CHUNK_SIZE;
     interleavedArr.push_back(ap.x);
@@ -121,7 +135,13 @@ void ChunkMesh::BuildMesh()
         Physics::MaterialType::TERRAIN, tCollider, 
         glm::translate(glm::mat4(1), glm::vec3(parentCopy->GetPos() * Chunk::CHUNK_SIZE))));
 
-    //printf("%f: Meshed\n", glfwGetTime());
+    for (int i = 0; i < fCount; i++)
+    {
+      delete nearChunks[i];
+      nearChunks[i] = nullptr;
+    }
+    delete parentCopy;
+    parentCopy = nullptr;
   }
 
   duration<double> benchmark_duration_ = duration_cast<duration<double>>(high_resolution_clock::now() - benchmark_clock_);
@@ -199,7 +219,7 @@ inline void ChunkMesh::addQuad(const glm::ivec3& lpos, BlockType block, int face
 {
   if (voxelReady_)
   {
-    pointCount_++;
+    //pointCount_++;
     voxelReady_ = false;
   }
 

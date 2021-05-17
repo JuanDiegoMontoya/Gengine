@@ -13,6 +13,7 @@ VoxelManager::VoxelManager(Scene& scene) : scene_(scene)
 
 VoxelManager::~VoxelManager()
 {
+  chunkManager_->Destroy();
 }
 
 void VoxelManager::Update()
@@ -38,12 +39,17 @@ void VoxelManager::UpdateBlockCheap(const glm::ivec3& wpos, Block block)
   chunkManager_->UpdateBlockCheap(wpos, block);
 }
 
-void VoxelManager::MeshChunk(const glm::ivec3& cpos)
+void VoxelManager::UpdateChunk(const glm::ivec3& cpos)
 {
   //auto it = chunks_.find(cpos);
   //ASSERT(it != chunks_.end());
   //chunkManager_->UpdateChunk(it->second);
   chunkManager_->UpdateChunk(chunks_[flatten(cpos)]);
+}
+
+void VoxelManager::UpdateChunk(Chunk* chunk)
+{
+  chunkManager_->UpdateChunk(chunk);
 }
 
 
