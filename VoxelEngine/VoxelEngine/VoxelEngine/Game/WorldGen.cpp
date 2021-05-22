@@ -16,7 +16,7 @@ namespace
   glm::ivec3 highChunkDim{ 70, 4, 70 };
 #else
   glm::ivec3 lowChunkDim{ 0, 0, 0 };
-  glm::ivec3 highChunkDim{ 4, 4, 4 };
+  glm::ivec3 highChunkDim{ 4, 2, 4 };
 #endif
 }
 
@@ -222,8 +222,6 @@ void WorldGen::InitBuffers()
 }
 
 
-
-
 bool WorldGen::checkDirectSunlight(glm::ivec3 wpos)
 {
   auto p = ChunkHelpers::worldPosToLocalPos(wpos);
@@ -284,7 +282,7 @@ void WorldGen::InitializeSunlight()
 
         Light light = chunk->LightAt(lpos);
         light.SetS(0xF);
-        chunk->SetLightAt(lpos, light);
+        chunk->SetLightAtNoLock(lpos, light);
         glm::ivec3 wpos = ChunkHelpers::chunkPosToWorldPos(lpos, cpos);
         lightsToPropagate.push(std::move(wpos));
       }
@@ -321,22 +319,30 @@ void WorldGen::sunlightPropagateOnce(const glm::ivec3& wpos)
   for (int dir = 0; dir < 6; dir++)
   {
     glm::ivec3 neighborPos = wpos + dirs[dir];
-    std::optional<Block> neighbor = voxels.TryGetBlock(neighborPos);
-    if (!neighbor)
+    auto lpos = ChunkHelpers::worldPosToLocalPos(neighborPos);
+    Chunk* chunk = voxels.GetChunk(lpos.chunk_pos);
+
+    if (!chunk)
       continue;
 
-    if (Block::PropertiesTable[neighbor->GetTypei()].visibility == Visibility::Opaque)
+    Block neighbor = chunk->BlockAtNoLock(lpos.block_pos);
+
+    if (Block::PropertiesTable[neighbor.GetTypei()].visibility == Visibility::Opaque)
       continue;
 
-    Light neighborLight = neighbor->GetLight();
+    Light neighborLight = neighbor.GetLight();
 
     if (neighborLight.GetS() + 2 > curLight.GetS())
       continue;
 
     if (curLight.GetS() == 0xF && dir == down)
+    {
       neighborLight.SetS(0xF);
+    }
     else
+    {
       neighborLight.SetS(curLight.GetS() - 1);
+    }
     voxels.SetBlockLight(neighborPos, neighborLight);
     lightsToPropagate.push(neighborPos);
   }

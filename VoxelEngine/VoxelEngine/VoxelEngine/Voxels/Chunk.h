@@ -63,6 +63,8 @@ public:
   Block BlockAtNoLock(int index) const;
   BlockType BlockTypeAt(const glm::ivec3& p) const;
   BlockType BlockTypeAt(int index) const;
+  BlockType BlockTypeAtNoLock(const glm::ivec3& p) const;
+  BlockType BlockTypeAtNoLock(int index) const;
   void SetBlockTypeAt(const glm::ivec3& lpos, BlockType type);
   void SetLightAt(const glm::ivec3& lpos, Light light);
   Light LightAt(const glm::ivec3& p) const;
@@ -160,6 +162,17 @@ inline BlockType Chunk::BlockTypeAt(const glm::ivec3& p) const
 inline BlockType Chunk::BlockTypeAt(int index) const
 {
   std::shared_lock lck(mutex_);
+  return storage.GetBlockType(index);
+}
+
+inline BlockType Chunk::BlockTypeAtNoLock(const glm::ivec3& p) const
+{
+  int index = ID3D(p.x, p.y, p.z, CHUNK_SIZE, CHUNK_SIZE);
+  return storage.GetBlockType(index);
+}
+
+inline BlockType Chunk::BlockTypeAtNoLock(int index) const
+{
   return storage.GetBlockType(index);
 }
 

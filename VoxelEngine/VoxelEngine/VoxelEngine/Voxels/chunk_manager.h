@@ -41,6 +41,11 @@ public:
   template<typename Callback>
   void ForEach(Callback fn, unsigned maxIterations = UINT32_MAX)
   {
+    if (maxIterations == 0)
+    {
+      maxIterations = UINT32_MAX;
+    }
+
     std::lock_guard lck(mutex_);
     while (!queue_.empty() && maxIterations != 0)
     {
@@ -72,7 +77,7 @@ public:
   // interaction
   void Update();
   void UpdateChunk(Chunk* chunk);
-  void UpdateChunk(const glm::ivec3 wpos); // update chunk at block position
+  void UpdateChunk(const glm::ivec3& wpos); // update chunk at block position
   void UpdateBlock(const glm::ivec3& wpos, Block bl);
   //void UpdateBlockIndirect(const glm::ivec3& wpos, Block block);
   void UpdateBlockCheap(const glm::ivec3& wpos, Block block);
@@ -91,12 +96,10 @@ public: // TODO: TEMPORARY
   //AtomicQueue<Chunk*> mesherQueueGood_;
   ctpl::thread_pool mesherThreadPool_;
   AtomicQueue<Chunk*> bufferQueueGood_;
-  
-  std::unordered_set<Chunk*> delayed_update_queue_;
 
   // new light intensity to add
-  void lightPropagateAdd(glm::ivec3 wpos, Light nLight, bool skipself = true, bool sunlight = false, bool noqueue = false);
-  void lightPropagateRemove(glm::ivec3 wpos, bool noqueue = false);
+  std::vector<Chunk*> lightPropagateAdd(const glm::ivec3& wpos, Light nLight, bool skipself = true, bool sunlight = false, bool noqueue = false);
+  std::vector<Chunk*> lightPropagateRemove(const glm::ivec3& wpos, bool noqueue = false);
 
   VoxelManager& voxelManager;
 };
