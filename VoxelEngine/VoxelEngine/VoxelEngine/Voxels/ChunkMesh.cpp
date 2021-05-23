@@ -34,7 +34,6 @@ void ChunkMesh::BuildBuffers()
   }
   needsBuffering_ = false;
 
-  vertexCount_ = encodedStuffArr.size();
   voxelManager_.chunkRenderer_->allocator->Free(bufferHandle);
 
   // nothing emitted, don't try to make buffers
@@ -53,15 +52,11 @@ void ChunkMesh::BuildBuffers()
     voxelManager_.chunkRenderer_->allocator->FreeOldest();
   }
 
-  encodedStuffArr.clear();
-  lightingArr.clear();
   interleavedArr.clear();
 
   tCollider.vertices.clear();
   tCollider.indices.clear();
 
-  encodedStuffArr.shrink_to_fit();
-  lightingArr.shrink_to_fit();
   interleavedArr.shrink_to_fit();
   tCollider.vertices.shrink_to_fit();
   tCollider.indices.shrink_to_fit();
@@ -77,8 +72,7 @@ void ChunkMesh::BuildMesh()
     needsBuffering_ = true;
 
     // clear everything in case this function is called twice in a row
-    encodedStuffArr.clear();
-    lightingArr.clear();
+    vertexCount_ = 0;
     interleavedArr.clear();
     tCollider.vertices.clear();
     tCollider.indices.clear();
@@ -245,32 +239,33 @@ inline void ChunkMesh::addQuad(const glm::ivec3& lpos, BlockType block, int face
     tCollider.vertices.push_back(glm::vec3(finalVert));
 
     // compress attributes into 32 bits
-    GLuint encoded = Encode(finalVert, normalIdx, texIdx, cindex);
+    GLuint encoded = EncodeVertex(finalVert, normalIdx, texIdx, cindex);
     encodeds[cindex] = encoded;
 
-    int invOcclusion = 6;
+    int invOcclusion = 3;
     if (true) // TODO: make this an option in the future
-      invOcclusion = 2 * vertexFaceAO(lpos, vert, faces[face]);
+    {
+      invOcclusion = vertexFaceAO(lpos, vert, faces[face]);
+    }
     
     aoValues[cindex] = invOcclusion;
-    invOcclusion = 6 - invOcclusion;
     auto tLight = light;
-    tLight.Set(tLight.Get() - glm::min(tLight.Get(), glm::u8vec4(invOcclusion)));
     lighting = tLight.Raw();
     glm::ivec3 dirCent = glm::vec3(lpos) - glm::vec3(finalVert);
-    lightdeds[cindex] = EncodeLight(lighting, dirCent);
+    lightdeds[cindex] = EncodeLight(lighting, dirCent, invOcclusion);
   }
 
-  const GLuint indicesA[6] = { 0, 1, 3, 3, 1, 2 }; // normal indices
-  const GLuint indicesB[6] = { 0, 1, 2, 2, 3, 0 }; // anisotropy fix (flip tris)
+  constexpr GLuint indicesA[6] = { 0, 1, 3, 3, 1, 2 }; // normal indices
+  constexpr GLuint indicesB[6] = { 0, 1, 2, 2, 3, 0 }; // anisotropy fix (flip tris)
   const GLuint* indices = indicesA;
   // partially solve anisotropy issue
   if (aoValues[0] + aoValues[2] > aoValues[1] + aoValues[3])
+  {
     indices = indicesB;
+  }
   for (int i = 0; i < 6; i++)
   {
-    encodedStuffArr.push_back(encodeds[indices[i]]);
-    lightingArr.push_back(lightdeds[indices[i]]);
+    vertexCount_++;
     interleavedArr.push_back(encodeds[indices[i]]);
     interleavedArr.push_back(lightdeds[indices[i]]);
 
@@ -279,7 +274,6 @@ inline void ChunkMesh::addQuad(const glm::ivec3& lpos, BlockType block, int face
 }
 
 
-// minimize amount of searching in the global chunk map
 inline int ChunkMesh::vertexFaceAO(const glm::vec3& lpos, const glm::vec3& cornerDir, const glm::vec3& norm)
 {
   // TODO: make it work over chunk boundaries
@@ -297,7 +291,7 @@ inline int ChunkMesh::vertexFaceAO(const glm::vec3& lpos, const glm::vec3& corne
       sideDir[i] = sidesDir[i];
       vec3 sidePos = lpos + sideDir + norm;
       if (all(greaterThanEqual(sidePos, vec3(0))) && all(lessThan(sidePos, vec3(Chunk::CHUNK_SIZE))))
-        if (parentCopy->BlockAt(ivec3(sidePos)).GetType() != BlockType::bAir)
+        if (parentCopy->BlockAtNoLock(ivec3(sidePos)).GetType() != BlockType::bAir)
           occluded++;
     }
   }
@@ -308,7 +302,7 @@ inline int ChunkMesh::vertexFaceAO(const glm::vec3& lpos, const glm::vec3& corne
 
   vec3 cornerPos = lpos + (cornerDir * 2.0f);
   if (all(greaterThanEqual(cornerPos, vec3(0))) && all(lessThan(cornerPos, vec3(Chunk::CHUNK_SIZE))))
-    if (parentCopy->BlockAt(ivec3(cornerPos)).GetType() != BlockType::bAir)
+    if (parentCopy->BlockAtNoLock(ivec3(cornerPos)).GetType() != BlockType::bAir)
       occluded++;
 
   return 3 - occluded;

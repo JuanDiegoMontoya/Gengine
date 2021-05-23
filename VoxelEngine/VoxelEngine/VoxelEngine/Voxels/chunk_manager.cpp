@@ -213,13 +213,13 @@ void ChunkManager::checkUpdateChunkNearBlock(const glm::ivec3& pos, const glm::i
   }
 }
 
-
+// TODO: lock all chunks in a column, because sunlight can propagate infinitely far down
 // (because lighting affects all neighboring blocks)
 // ref https://www.seedofandromeda.com/blogs/29-fast-flood-fill-lighting-in-a-blocky-voxel-game-pt-1
 // wpos: world position
 // nLight: new lighting value
 // skipself: chunk updating thing
-std::vector<Chunk*> ChunkManager::lightPropagateAdd(const glm::ivec3& wpos, Light nLight, bool skipself, bool sunlight, bool noqueue)
+std::vector<Chunk*> ChunkManager::lightPropagateAdd(const glm::ivec3& wpos, Light nLight)
 {
   // lock all the surrounding chunks, which may be written to (we want to write to all of them in one atomic operation)
   auto potentiallyModifiedSet = voxelManager.GetChunksRegionWorldSpace(wpos - Chunk::CHUNK_SIZE, wpos + Chunk::CHUNK_SIZE);
@@ -330,7 +330,7 @@ std::vector<Chunk*> ChunkManager::lightPropagateAdd(const glm::ivec3& wpos, Ligh
 }
 
 
-std::vector<Chunk*> ChunkManager::lightPropagateRemove(const glm::ivec3& wpos, bool noqueue)
+std::vector<Chunk*> ChunkManager::lightPropagateRemove(const glm::ivec3& wpos)
 {
   auto potentiallyModifiedSet = voxelManager.GetChunksRegionWorldSpace(wpos - Chunk::CHUNK_SIZE, wpos + Chunk::CHUNK_SIZE);
   std::vector<Chunk*> definitelyModifiedSet;
@@ -342,7 +342,7 @@ std::vector<Chunk*> ChunkManager::lightPropagateRemove(const glm::ivec3& wpos, b
   std::queue<std::pair<glm::ivec3, Light>> lightRemovalQueue;
 
   auto posLocal = ChunkHelpers::worldPosToLocalPos(wpos);
-  auto chunk = voxelManager.GetChunk(posLocal.chunk_pos);
+  auto chunk = voxelManager.GetChunkNoCheck(posLocal.chunk_pos);
   Block wblock = chunk->BlockAtNoLock(posLocal.block_pos);
   Light light = wblock.GetLight();
 
@@ -370,13 +370,13 @@ std::vector<Chunk*> ChunkManager::lightPropagateRemove(const glm::ivec3& wpos, b
     lightRemovalQueue.pop();
 
     auto plightLocalPos = ChunkHelpers::worldPosToLocalPos(plight);
-    auto pchunk = voxelManager.GetChunk(plightLocalPos.chunk_pos);
+    auto pchunk = voxelManager.GetChunkNoCheck(plightLocalPos.chunk_pos);
 
     for (const auto& dir : dirs)
     {
       glm::ivec3 blockPos = plight + dir;
       auto nlightLocalPos = ChunkHelpers::worldPosToLocalPos(blockPos);
-      auto nchunk = voxelManager.GetChunk(nlightLocalPos.chunk_pos);
+      auto nchunk = voxelManager.GetChunkNoCheck(nlightLocalPos.chunk_pos);
       if (!nchunk) continue;
 
       const Light nearLight = nchunk->LightAtNoLock(nlightLocalPos.block_pos);
@@ -424,7 +424,7 @@ std::vector<Chunk*> ChunkManager::lightPropagateRemove(const glm::ivec3& wpos, b
   {
     const auto& [pos, light] = lightReadditionQueue.front();
     lightReadditionQueue.pop();
-    std::vector<Chunk*> readdedSet = lightPropagateAdd(pos, light, false);
+    std::vector<Chunk*> readdedSet = lightPropagateAdd(pos, light);
     definitelyModifiedSet.insert(std::end(definitelyModifiedSet), std::begin(readdedSet), std::end(readdedSet));
   }
 

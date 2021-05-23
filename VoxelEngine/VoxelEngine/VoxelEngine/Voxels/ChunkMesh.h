@@ -62,14 +62,12 @@ private:
   std::unique_ptr<GFX::StaticBuffer> posVbo_;
 
   // vertex data (held until buffers are sent to GPU)
-  std::vector<GLint> encodedStuffArr;
-  std::vector<GLint> lightingArr;
   std::vector<GLint> interleavedArr;
 
   Physics::MeshCollider tCollider{};
   physx::PxRigidActor* tActor = nullptr;
 
-  GLsizei vertexCount_ = 0; // number of block vertices
+  GLsizei vertexCount_ = 0;
   uint64_t bufferHandle = NULL;
 
   GLsizei pointCount_ = 0;

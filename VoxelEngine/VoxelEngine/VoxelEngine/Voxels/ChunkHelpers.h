@@ -17,10 +17,20 @@ namespace ChunkHelpers
   void fastWorldPosToLocalPos(const glm::ivec3& wpos, localpos& ret);
   inline glm::ivec3 chunkPosToWorldPos(const glm::ivec3& local, const glm::ivec3& cpos);
 
-  GLuint Encode(const glm::uvec3& modelPos, GLuint normalIdx, GLuint texIdx, GLuint cornerIdx);
+  GLuint EncodeVertex(const glm::uvec3& modelPos, GLuint normalIdx, GLuint texIdx, GLuint cornerIdx);
   void Decode(GLuint encoded, glm::uvec3& modelPos, glm::vec3& normal, glm::vec2& texCoord);
 
   GLuint EncodeSplat(const glm::uvec3& modelPos, const glm::vec3& color);
+
+  auto IndexFrom3D(auto x, auto y, auto z, auto h, auto w)
+  {
+    return x + h * (y + w * z);
+  }
+
+  auto IndexFrom2D(auto x, auto y, auto w)
+  {
+    return w * y + x;
+  }
 
   inline const glm::ivec3 faces[6] =
   {

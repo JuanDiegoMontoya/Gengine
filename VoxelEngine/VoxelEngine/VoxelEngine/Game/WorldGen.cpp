@@ -12,32 +12,17 @@
 namespace
 {
 #if 0
-  glm::ivec3 lowChunkDim{ 0, 0, 0 };
-  glm::ivec3 highChunkDim{ 70, 4, 70 };
+  glm::ivec3 worldDim{ 70, 4, 70 };
 #else
-  glm::ivec3 lowChunkDim{ 0, 0, 0 };
-  glm::ivec3 highChunkDim{ 4, 2, 4 };
+  glm::ivec3 worldDim{ 15, 2, 15 };
 #endif
 }
 
 // init chunks that we finna modify
 void WorldGen::Init()
 {
-  voxels.SetDim(highChunkDim);
   Timer timer;
-  for (int x = lowChunkDim.x; x < highChunkDim.x; x++)
-  {
-    //printf("\nX: %d", x);
-    for (int y = lowChunkDim.y; y < highChunkDim.y; y++)
-    {
-      //printf(" Y: %d", y);
-      for (int z = lowChunkDim.z; z < highChunkDim.z; z++)
-      {
-        Chunk* newChunk = new Chunk({ x, y, z }, voxels);
-        voxels.chunks_[voxels.flatten({ x, y, z })] = newChunk;
-      }
-    }
-  }
+  voxels.SetDim(worldDim);
   printf("Allocating chunks took %f seconds\n", timer.elapsed());
 }
 
@@ -67,10 +52,11 @@ void WorldGen::GenerateWorld()
   {
     if (chunk)
     {
-      glm::ivec3 st = chunk->GetPos() * Chunk::CHUNK_SIZE;
-      float* noiseSet = new float[Chunk::CHUNK_SIZE_SQRED];
+      const glm::ivec3 cpos = chunk->GetPos();
+      glm::ivec3 st = cpos * Chunk::CHUNK_SIZE;
+      std::array<float, Chunk::CHUNK_SIZE_SQRED> noiseSet;
       //noiseSet = noisey->GetCubicFractalSet(st.z, 0, st.x, Chunk::CHUNK_SIZE, 1, Chunk::CHUNK_SIZE, 1);
-      fnGenerator->GenUniformGrid2D(noiseSet, st.x, st.z, Chunk::CHUNK_SIZE, Chunk::CHUNK_SIZE, .02, 1337);
+      fnGenerator->GenUniformGrid2D(noiseSet.data(), st.x, st.z, Chunk::CHUNK_SIZE, Chunk::CHUNK_SIZE, .02, 1337);
       /*float* riverNoiseSet = noisey->GetPerlinSet(st.z, 0, st.x,
         Chunk::CHUNK_SIZE, 1, Chunk::CHUNK_SIZE, 1);*/
       //int idx = 0;
@@ -82,11 +68,11 @@ void WorldGen::GenerateWorld()
       {
         for (pos.x = 0; pos.x < Chunk::CHUNK_SIZE; pos.x++)
         {
-          int height = (int)((noiseSet[idx++] + .1f) * 10) + 1;
+          int height = (int)((noiseSet[idx++] + .1f) * 10) + 33;
           for (pos.y = 0; pos.y < Chunk::CHUNK_SIZE; pos.y++)
           {
-            wpos = ChunkHelpers::chunkPosToWorldPos(pos, chunk->GetPos());
-            int waterHeight = 2;
+            wpos = ChunkHelpers::chunkPosToWorldPos(pos, cpos);
+            int waterHeight = 34;
 
             //double density = noise.GetValue(wpos.x, wpos.y, wpos.z); // chunks are different
             //double density = noise.GetValue(pos.x, pos.y, pos.z); // same chunk every time
@@ -156,7 +142,6 @@ void WorldGen::GenerateWorld()
       }
 
       //FastNoiseSIMD::FreeNoiseSet(noiseSet);
-      delete[] noiseSet;
     }
     else
     {
@@ -200,10 +185,12 @@ void WorldGen::InitMeshes()
   auto& chunks = voxels.chunks_;
   std::for_each(std::execution::par,
     chunks.begin(), chunks.end(), [](auto& p)
-  {
-    if (p)
-      p->BuildMesh();
-  });
+    {
+      if (p)
+      {
+        p->BuildMesh();
+      }
+    });
   printf("Generating meshes took %f seconds\n", timer.elapsed());
 }
 
@@ -280,11 +267,11 @@ void WorldGen::InitializeSunlight()
         if (Block::PropertiesTable[curBlock.GetTypei()].visibility == Visibility::Opaque)
           continue;
 
-        Light light = chunk->LightAt(lpos);
+        Light light = chunk->LightAtNoLock(lpos);
         light.SetS(0xF);
         chunk->SetLightAtNoLock(lpos, light);
         glm::ivec3 wpos = ChunkHelpers::chunkPosToWorldPos(lpos, cpos);
-        lightsToPropagate.push(std::move(wpos));
+        lightsToPropagate.push(wpos);
       }
     }
   }
@@ -304,7 +291,7 @@ void WorldGen::sunlightPropagateOnce(const glm::ivec3& wpos)
 {
   // do something
   enum { left, right, up, down, front, back }; // +Z = front
-  const glm::ivec3 dirs[] =
+  static constexpr glm::ivec3 dirs[] =
   {
     { 1, 0, 0 },
     {-1, 0, 0 },
@@ -314,13 +301,28 @@ void WorldGen::sunlightPropagateOnce(const glm::ivec3& wpos)
     { 0, 0,-1 },
   };
 
-  Light curLight = voxels.GetBlock(wpos).GetLight();
-  
+  auto wlpos = ChunkHelpers::worldPosToLocalPos(wpos);
+  Chunk* cachedChunk = voxels.GetChunkNoCheck(wlpos.chunk_pos);
+  bool dontUseCachedChunk = glm::any(glm::equal(wlpos.block_pos, glm::ivec3(0))) ||
+    glm::any(glm::equal(wlpos.block_pos, glm::ivec3(Chunk::CHUNK_SIZE - 1)));
+
+  //Light curLight = voxels.GetBlock(wpos).GetLight();
+  Light curLight = cachedChunk->LightAtNoLock(wlpos.block_pos);
+
   for (int dir = 0; dir < 6; dir++)
   {
     glm::ivec3 neighborPos = wpos + dirs[dir];
     auto lpos = ChunkHelpers::worldPosToLocalPos(neighborPos);
-    Chunk* chunk = voxels.GetChunk(lpos.chunk_pos);
+    Chunk* chunk;
+
+    if (dontUseCachedChunk)
+    {
+      chunk = voxels.GetChunkNoCheck(lpos.chunk_pos);
+    }
+    else
+    {
+      chunk = cachedChunk;
+    }
 
     if (!chunk)
       continue;
@@ -343,7 +345,8 @@ void WorldGen::sunlightPropagateOnce(const glm::ivec3& wpos)
     {
       neighborLight.SetS(curLight.GetS() - 1);
     }
-    voxels.SetBlockLight(neighborPos, neighborLight);
+    //voxels.SetBlockLight(neighborPos, neighborLight);
+    chunk->SetLightAtNoLock(lpos.block_pos, neighborLight);
     lightsToPropagate.push(neighborPos);
   }
 }

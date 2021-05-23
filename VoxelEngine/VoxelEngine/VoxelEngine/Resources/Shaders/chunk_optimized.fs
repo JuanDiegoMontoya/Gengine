@@ -8,7 +8,8 @@ layout (location = 0) in vec3 vPos;
 layout (location = 1) in vec3 vNormal;
 layout (location = 2) in vec3 vTexCoord;
 layout (location = 3) in vec4 vLighting; // RGBSun
-layout (location = 4) in vec3 vBlockPos;
+layout (location = 4) in flat vec3 vBlockPos;
+layout (location = 5) in float vAmbientOcclusion;
 
 layout (location = 1) uniform vec3 viewPos;   // world space
 layout (location = 2) uniform float sunAngle; // cos sun angle to normal of horizon, 0-1
@@ -20,6 +21,8 @@ layout (location = 6) uniform vec3 fogColor;
 
 layout (location = 7) uniform sampler2DArray textures;
 layout (location = 8) uniform sampler2D blueNoise;
+
+layout (location = 9) uniform float u_ambientOcclusionStrength = 0.5;
 
 out vec4 fragColor;
 
@@ -89,7 +92,7 @@ void main()
   lighting.a *= sunAngle;
   lighting = max(lighting, vec4(.01));
   tempColor *= max(lighting.rgb, lighting.aaa);
-  // fog is applied last
+  tempColor = mix(tempColor, tempColor * vAmbientOcclusion, u_ambientOcclusionStrength);
   tempColor = mix(tempColor, fogColor, FogCalculation());
   fragColor = vec4(tempColor, 1.0); // alpha is always 100% or 0% (per fragment)
 }

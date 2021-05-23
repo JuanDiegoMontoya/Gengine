@@ -15,7 +15,6 @@
 #include <ctpl_stl.h>
 
 class VoxelManager;
-//class ChunkLoadManager;
 
 template<typename T>
 class AtomicQueue
@@ -79,7 +78,6 @@ public:
   void UpdateChunk(Chunk* chunk);
   void UpdateChunk(const glm::ivec3& wpos); // update chunk at block position
   void UpdateBlock(const glm::ivec3& wpos, Block bl);
-  //void UpdateBlockIndirect(const glm::ivec3& wpos, Block block);
   void UpdateBlockCheap(const glm::ivec3& wpos, Block block);
   void ReloadAllChunks(); // for when big things change
 
@@ -89,7 +87,6 @@ public:
   //void LoadWorld(std::string fname);
 
 private:
-public: // TODO: TEMPORARY
   // functions
   void checkUpdateChunkNearBlock(const glm::ivec3& pos, const glm::ivec3& near);
 
@@ -98,8 +95,8 @@ public: // TODO: TEMPORARY
   AtomicQueue<Chunk*> bufferQueueGood_;
 
   // new light intensity to add
-  std::vector<Chunk*> lightPropagateAdd(const glm::ivec3& wpos, Light nLight, bool skipself = true, bool sunlight = false, bool noqueue = false);
-  std::vector<Chunk*> lightPropagateRemove(const glm::ivec3& wpos, bool noqueue = false);
+  std::vector<Chunk*> lightPropagateAdd(const glm::ivec3& wpos, Light nLight);
+  std::vector<Chunk*> lightPropagateRemove(const glm::ivec3& wpos);
 
   VoxelManager& voxelManager;
 };

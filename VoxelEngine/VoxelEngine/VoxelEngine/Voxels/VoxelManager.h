@@ -8,21 +8,6 @@ class ChunkRenderer;
 class Editor;
 class Scene;
 
-inline uint32_t Part1By2(uint32_t x)
-{
-  x &= 0x000003ff;                  // x = ---- ---- ---- ---- ---- --98 7654 3210
-  x = (x ^ (x << 16)) & 0xff0000ff; // x = ---- --98 ---- ---- ---- ---- 7654 3210
-  x = (x ^ (x << 8)) & 0x0300f00f; // x = ---- --98 ---- ---- 7654 ---- ---- 3210
-  x = (x ^ (x << 4)) & 0x030c30c3; // x = ---- --98 ---- 76-- --54 ---- 32-- --10
-  x = (x ^ (x << 2)) & 0x09249249; // x = ---- 9--8 --7- -6-- 5--4 --3- -2-- 1--0
-  return x;
-}
-inline uint32_t EncodeMorton3(const glm::ivec3& p)
-{
-  ASSERT(glm::all(glm::lessThan(p, glm::ivec3(2 << 10))) && glm::all(glm::greaterThanEqual(p, glm::ivec3(0))));
-  return (Part1By2(p.z) << 2) + (Part1By2(p.y) << 1) + Part1By2(p.x);
-}
-
 
 class VoxelManager
 {
@@ -44,6 +29,8 @@ public:
   // Get information about the voxel world
   Chunk* GetChunk(const glm::ivec3& cpos);
   const Chunk* GetChunk(const glm::ivec3& cpos) const;
+  Chunk* GetChunkNoCheck(const glm::ivec3& cpos);
+  const Chunk* GetChunkNoCheck(const glm::ivec3& cpos) const;
   std::vector<Chunk*> GetChunksRegion(const glm::ivec3& lowCpos, const glm::ivec3& highCpos);
   std::vector<Chunk*> GetChunksRegionWorldSpace(const glm::ivec3& lowWpos, const glm::ivec3& highWpos);
   Block GetBlock(const glm::ivec3& wpos) const;
@@ -71,30 +58,38 @@ public:
 
   // TODO: privatize once a way to set settings is added
   std::unique_ptr<ChunkRenderer> chunkRenderer_{};
+
 private:
   friend class ChunkManager;
   friend class WorldGen;
   friend class ChunkMesh;
   friend class Editor;
 
-  uint32_t flatten(const glm::ivec3& p) const
+  uint32_t flatten(glm::ivec3 p) const
   {
-    //ASSERT(glm::all(glm::lessThan(p, worldDim_)) && glm::all(glm::greaterThanEqual(p, glm::ivec3(0))));
-    //return glm::dot(glm::vec3(p), glm::vec3(chunksPerDim_));
-    return p.x + worldDim_.x * (p.y + worldDim_.y * p.z);
+    return p.x + actualWorldDim_.x * (p.y + actualWorldDim_.y * p.z);
   }
   Chunk* find(const glm::ivec3& p) const
   {
-    if (glm::all(glm::lessThan(p, worldDim_)) && glm::all(glm::greaterThanEqual(p, glm::ivec3(0))))
+    if (glm::all(glm::lessThan(p, actualWorldDim_)) &&
+      glm::all(glm::greaterThanEqual(p, glm::ivec3(0))))
+    {
       return chunks_[flatten(p)];
+    }
     return nullptr;
+  }
+  Chunk* findNoCheck(const glm::ivec3& p) const
+  {
+    ASSERT(glm::all(glm::lessThan(p, actualWorldDim_)) &&
+      glm::all(glm::greaterThanEqual(p, glm::ivec3(0))));
+    return chunks_[flatten(p)];
   }
 
 
   std::unique_ptr<ChunkManager> chunkManager_{};
-  //Concurrency::concurrent_unordered_map<glm::ivec3, Chunk*, Utils::ivec3Hash> chunks_{};
   std::vector<Chunk*> chunks_;
-  glm::ivec3 worldDim_{ 0, 0, 0 };
+  glm::ivec3 virtualWorldDim_{ 0, 0, 0 };
+  glm::ivec3 actualWorldDim_{ 0, 0, 0 };
   glm::ivec3 chunksPerDim_{};
 
   std::unique_ptr<Editor> editor_{};
@@ -106,30 +101,46 @@ private:
 inline void VoxelManager::SetDim(const glm::ivec3& newDim)
 {
   ASSERT(chunks_.size() == 0);
-  worldDim_ = newDim;
-  chunksPerDim_ = { 1, worldDim_.x, worldDim_.x * worldDim_.y };
-  chunks_.resize(newDim.x * newDim.y * newDim.z);
-  //int m = glm::ceil(glm::log2((float)glm::max(newDim.x, glm::max(newDim.y, newDim.z))));
-  //ASSERT(m <= 10);
-  //chunks_.resize((1 << (3 * m)));
+
+  virtualWorldDim_ = newDim;
+  actualWorldDim_ = newDim + 2;
+  chunks_.resize(actualWorldDim_.x * actualWorldDim_.y * actualWorldDim_.z, nullptr);
+
+  for (int i = 0; i < chunks_.size(); i++)
+  {
+    glm::ivec3 cpos
+    {
+      i % actualWorldDim_.x,
+      (i / actualWorldDim_.x) % actualWorldDim_.y,
+      i / (actualWorldDim_.y * actualWorldDim_.x),
+    };
+    if (glm::all(glm::lessThanEqual(cpos, virtualWorldDim_)) &&
+      glm::all(glm::greaterThan(cpos, glm::ivec3(0))))
+    {
+      Chunk* newChunk = new Chunk(cpos, *this);
+      chunks_[flatten(cpos)] = newChunk;
+    }
+  }
 }
 
 inline Chunk* VoxelManager::GetChunk(const glm::ivec3& cpos)
 {
-  //auto it = chunks_.find(cpos);
-  //if (it != chunks_.end())
-  //  return it->second;
-  //return nullptr;
   return find(cpos);
 }
 
 inline const Chunk* VoxelManager::GetChunk(const glm::ivec3& cpos) const
 {
-  //auto it = chunks_.find(cpos);
-  //if (it != chunks_.cend())
-  //  return it->second;
-  //return nullptr;
   return find(cpos);
+}
+
+inline Chunk* VoxelManager::GetChunkNoCheck(const glm::ivec3& cpos)
+{
+  return findNoCheck(cpos);
+}
+
+inline const Chunk* VoxelManager::GetChunkNoCheck(const glm::ivec3& cpos) const
+{
+  return findNoCheck(cpos);
 }
 
 inline std::vector<Chunk*> VoxelManager::GetChunksRegion(const glm::ivec3& lowCpos, const glm::ivec3& highCpos)

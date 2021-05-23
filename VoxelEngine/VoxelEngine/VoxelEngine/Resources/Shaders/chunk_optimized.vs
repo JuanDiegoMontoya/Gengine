@@ -25,6 +25,7 @@ layout (location = 1) out vec3 vNormal;
 layout (location = 2) out vec3 vTexCoord;
 layout (location = 3) out vec4 vLighting; // RGBSun
 layout (location = 4) out flat vec3 vBlockPos;
+layout (location = 5) out float vAmbientOcclusion;
 
 //out vec4 vColor;
 
@@ -51,7 +52,7 @@ const vec2 tex_corners[] =
 
 // decodes vertex, normal, and texcoord info from encoded data
 // returns usable data (i.e. fully processed)
-void Decode(in uint encoded, out vec3 modelPos, out vec3 normal, out vec3 texCoord)
+void DecodeVertex(in uint encoded, out vec3 modelPos, out vec3 normal, out vec3 texCoord)
 {
   // decode vertex position
   modelPos.x = encoded >> 26;
@@ -73,8 +74,10 @@ void Decode(in uint encoded, out vec3 modelPos, out vec3 normal, out vec3 texCoo
 
 // decodes lighting information into a usable vec4
 // also decodes dircent info
-void Decode(in uint encoded, out vec4 lighting, out vec3 dirCent)
+void DecodeLight(in uint encoded, out vec4 lighting, out vec3 dirCent, out uint ambientOcclusion)
 {
+  ambientOcclusion = (encoded >> 19) & 0x3;
+
   dirCent.x = (encoded >> 18) & 0x1;
   dirCent.y = (encoded >> 17) & 0x1;
   dirCent.z = (encoded >> 16) & 0x1;
@@ -94,11 +97,14 @@ void main()
   vec3 dirCent;
   
   // decode general
-  Decode(aEncoded, modelPos, vNormal, vTexCoord);
+  DecodeVertex(aEncoded, modelPos, vNormal, vTexCoord);
   vPos = modelPos + u_pos;
 
   // decode lighting + misc
-  Decode(aLighting, vLighting, dirCent);
+  uint ambientOcclusion;
+  DecodeLight(aLighting, vLighting, dirCent, ambientOcclusion);
+
+  vAmbientOcclusion = ambientOcclusion / 3.0;
   vBlockPos = vPos + dirCent; // block position = vertex pos + direction to center of block
 
   gl_Position = u_viewProj * vec4(vPos, 1.0);

@@ -76,7 +76,7 @@ namespace ChunkHelpers
   }
 
 
-  inline GLuint Encode(const glm::uvec3& modelPos, GLuint normalIdx, GLuint texIdx, GLuint cornerIdx)
+  inline GLuint EncodeVertex(const glm::uvec3& modelPos, GLuint normalIdx, GLuint texIdx, GLuint cornerIdx)
   {
     GLuint encoded = 0;
 
@@ -106,16 +106,18 @@ namespace ChunkHelpers
 
 
   // packs direction to center of block with lighting information
-  inline GLuint EncodeLight(GLuint lightCoding, glm::ivec3 dirCent)
+  inline uint32_t EncodeLight(uint32_t lightCoding, glm::ivec3 dirCent, uint32_t ao)
   {
-    GLuint encoded = lightCoding;
+    uint32_t encoded = lightCoding;
     dirCent = (dirCent + 1);
     //printf("(%d, %d, %d)\n", dirCent.x, dirCent.y, dirCent.z);
 
     using namespace glm;
-    ASSERT(
-      all(greaterThanEqual(dirCent, ivec3(0, 0, 0))) &&
-      all(lessThanEqual(dirCent, ivec3(1, 1, 1))));
+    ASSERT(all(greaterThanEqual(dirCent, ivec3(0, 0, 0))) &&
+      all(lessThanEqual(dirCent, ivec3(1, 1, 1))) &&
+      ao <= 3);
+
+    encoded |= ao << 19;
 
     encoded |= dirCent.x << 18;
     encoded |= dirCent.y << 17;
