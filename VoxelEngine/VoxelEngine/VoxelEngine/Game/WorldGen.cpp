@@ -9,6 +9,8 @@
 #include <FastNoise2/include/FastNoise/FastNoise.h>
 #include <Voxels/chunk_manager.h>
 
+using namespace Voxels;
+
 namespace
 {
 #if 0
@@ -48,28 +50,28 @@ void WorldGen::GenerateWorld()
 
   auto& chunks = voxels.chunks_;
   std::for_each(std::execution::par, chunks.begin(), chunks.end(),
-    [&](Chunk* chunk)
+    [&](Voxels::Chunk* chunk)
   {
     if (chunk)
     {
       const glm::ivec3 cpos = chunk->GetPos();
-      glm::ivec3 st = cpos * Chunk::CHUNK_SIZE;
-      std::array<float, Chunk::CHUNK_SIZE_SQRED> noiseSet;
-      //noiseSet = noisey->GetCubicFractalSet(st.z, 0, st.x, Chunk::CHUNK_SIZE, 1, Chunk::CHUNK_SIZE, 1);
-      fnGenerator->GenUniformGrid2D(noiseSet.data(), st.x, st.z, Chunk::CHUNK_SIZE, Chunk::CHUNK_SIZE, .02, 1337);
+      glm::ivec3 st = cpos * Voxels::Chunk::CHUNK_SIZE;
+      std::array<float, Voxels::Chunk::CHUNK_SIZE_SQRED> noiseSet;
+      //noiseSet = noisey->GetCubicFractalSet(st.z, 0, st.x, Voxels::Chunk::CHUNK_SIZE, 1, Voxels::Chunk::CHUNK_SIZE, 1);
+      fnGenerator->GenUniformGrid2D(noiseSet.data(), st.x, st.z, Voxels::Chunk::CHUNK_SIZE, Voxels::Chunk::CHUNK_SIZE, .02, 1337);
       /*float* riverNoiseSet = noisey->GetPerlinSet(st.z, 0, st.x,
-        Chunk::CHUNK_SIZE, 1, Chunk::CHUNK_SIZE, 1);*/
+        Voxels::Chunk::CHUNK_SIZE, 1, Voxels::Chunk::CHUNK_SIZE, 1);*/
       //int idx = 0;
 
       //printf(".");
       glm::ivec3 pos, wpos;
       int idx = 0;
-      for (pos.z = 0; pos.z < Chunk::CHUNK_SIZE; pos.z++)
+      for (pos.z = 0; pos.z < Voxels::Chunk::CHUNK_SIZE; pos.z++)
       {
-        for (pos.x = 0; pos.x < Chunk::CHUNK_SIZE; pos.x++)
+        for (pos.x = 0; pos.x < Voxels::Chunk::CHUNK_SIZE; pos.x++)
         {
           int height = (int)((noiseSet[idx++] + .1f) * 10) + 33;
-          for (pos.y = 0; pos.y < Chunk::CHUNK_SIZE; pos.y++)
+          for (pos.y = 0; pos.y < Voxels::Chunk::CHUNK_SIZE; pos.y++)
           {
             wpos = ChunkHelpers::chunkPosToWorldPos(pos, cpos);
             int waterHeight = 34;
@@ -212,7 +214,7 @@ void WorldGen::InitBuffers()
 bool WorldGen::checkDirectSunlight(glm::ivec3 wpos)
 {
   auto p = ChunkHelpers::worldPosToLocalPos(wpos);
-  Chunk* chunk = voxels.GetChunk(p.chunk_pos);
+  Voxels::Chunk* chunk = voxels.GetChunk(p.chunk_pos);
   if (!chunk)
     return false;
   Block block = chunk->BlockAt(p.block_pos);
@@ -220,7 +222,7 @@ bool WorldGen::checkDirectSunlight(glm::ivec3 wpos)
   // find the highest valid chunk
   const glm::ivec3 up(0, 1, 0);
   glm::ivec3 cpos = p.chunk_pos + up;
-  Chunk* next = chunk;
+  Voxels::Chunk* next = chunk;
   while (next)
   {
     chunk = next;
@@ -258,11 +260,11 @@ void WorldGen::InitializeSunlight()
     auto cpos = chunk->GetPos();
 
     // for each block on top of the chunk
-    for (int x = 0; x < Chunk::CHUNK_SIZE; x++)
+    for (int x = 0; x < Voxels::Chunk::CHUNK_SIZE; x++)
     {
-      for (int z = 0; z < Chunk::CHUNK_SIZE; z++)
+      for (int z = 0; z < Voxels::Chunk::CHUNK_SIZE; z++)
       {
-        glm::ivec3 lpos(x, Chunk::CHUNK_SIZE - 1, z);
+        glm::ivec3 lpos(x, Voxels::Chunk::CHUNK_SIZE - 1, z);
         Block curBlock = chunk->BlockAt(lpos);
         if (Block::PropertiesTable[curBlock.GetTypei()].visibility == Visibility::Opaque)
           continue;
@@ -302,9 +304,9 @@ void WorldGen::sunlightPropagateOnce(const glm::ivec3& wpos)
   };
 
   auto wlpos = ChunkHelpers::worldPosToLocalPos(wpos);
-  Chunk* cachedChunk = voxels.GetChunkNoCheck(wlpos.chunk_pos);
+  Voxels::Chunk* cachedChunk = voxels.GetChunkNoCheck(wlpos.chunk_pos);
   bool dontUseCachedChunk = glm::any(glm::equal(wlpos.block_pos, glm::ivec3(0))) ||
-    glm::any(glm::equal(wlpos.block_pos, glm::ivec3(Chunk::CHUNK_SIZE - 1)));
+    glm::any(glm::equal(wlpos.block_pos, glm::ivec3(Voxels::Chunk::CHUNK_SIZE - 1)));
 
   //Light curLight = voxels.GetBlock(wpos).GetLight();
   Light curLight = cachedChunk->LightAtNoLock(wlpos.block_pos);
@@ -313,7 +315,7 @@ void WorldGen::sunlightPropagateOnce(const glm::ivec3& wpos)
   {
     glm::ivec3 neighborPos = wpos + dirs[dir];
     auto lpos = ChunkHelpers::worldPosToLocalPos(neighborPos);
-    Chunk* chunk;
+    Voxels::Chunk* chunk;
 
     if (dontUseCachedChunk)
     {

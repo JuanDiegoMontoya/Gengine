@@ -2,19 +2,22 @@
 #include <queue>
 #include <glm/glm.hpp>
 
-class VoxelManager;
+namespace Voxels
+{
+  class VoxelManager;
+}
 
 class WorldGen
 {
 public:
-  WorldGen(VoxelManager& v) : voxels(v) {}
+  WorldGen(Voxels::VoxelManager& v) : voxels(v) {}
   void Init();
   void GenerateWorld();
   void InitMeshes();
   void InitBuffers();
   void InitializeSunlight();
 private:
-  VoxelManager& voxels;
+  Voxels::VoxelManager& voxels;
   std::queue<glm::ivec3> lightsToPropagate;
 
   void sunlightPropagateOnce(const glm::ivec3& wpos);

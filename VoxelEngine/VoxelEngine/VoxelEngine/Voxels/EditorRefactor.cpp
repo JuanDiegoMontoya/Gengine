@@ -32,7 +32,7 @@ void Editor::SaveRegion()
     glm::max(wpositions[0].x, glm::max(wpositions[1].x, wpositions[2].x)),
     glm::max(wpositions[0].y, glm::max(wpositions[1].y, wpositions[2].y)),
     glm::max(wpositions[0].z, glm::max(wpositions[1].z, wpositions[2].z)));
-  Prefab newPfb;
+  Voxels::Prefab newPfb;
   for (int x = int(min.x); x <= int(max.x); x++)
   {
     for (int y = int(min.y); y <= int(max.y); y++)
@@ -40,8 +40,8 @@ void Editor::SaveRegion()
       for (int z = int(min.z); z <= int(max.z); z++)
       {
         // TODO: make bottom-middle of prefab be the origin
-        Block b = voxels.GetBlock(glm::ivec3(x, y, z));
-        if (skipAir && b.GetType() == BlockType::bAir)
+        Voxels::Block b = voxels.GetBlock(glm::ivec3(x, y, z));
+        if (skipAir && b.GetType() == Voxels::BlockType::bAir)
           continue;
         //b.SetWriteStrength(0x0F);
         newPfb.Add(
@@ -71,7 +71,7 @@ void Editor::LoadRegion()
     }
   }
   auto scriptInstance = dynamic_cast<PlayerActions*>(player.GetComponent<Components::NativeScriptComponent>().Instance);
-  Prefab prefab = PrefabManager::LoadPrefabFromFile(std::string(lName));
+  Voxels::Prefab prefab = Voxels::PrefabManager::LoadPrefabFromFile(std::string(lName));
   scriptInstance->prefab = prefab;
   scriptInstance->prefabName = prefab.name;
 }
@@ -205,9 +205,9 @@ void Editor::Update()
       CameraSystem::GetPos(),
       CameraSystem::GetFront(),
       pickLength,
-      [&](glm::vec3 pos, Block block, [[maybe_unused]] glm::vec3 side)->bool
+      [&](glm::vec3 pos, Voxels::Block block, [[maybe_unused]] glm::vec3 side)->bool
     {
-      if (block.GetType() == BlockType::bAir)
+      if (block.GetType() == Voxels::BlockType::bAir)
         return false;
       if (selectedPositions == 0)
         hposition = pos;

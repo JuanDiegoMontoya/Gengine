@@ -163,9 +163,6 @@
     <ClInclude Include="Voxels\HUDRefactor.h">
       <Filter>Voxel Engine</Filter>
     </ClInclude>
-    <ClInclude Include="Voxels\parallel_chunks.h">
-      <Filter>Voxel Engine</Filter>
-    </ClInclude>
     <ClInclude Include="Voxels\VoxelManager.h">
       <Filter>Voxel Engine</Filter>
     </ClInclude>
@@ -403,9 +400,6 @@
       <Filter>Voxel Engine</Filter>
     </ClCompile>
     <ClCompile Include="Voxels\HUDRefactor.cpp">
-      <Filter>Voxel Engine</Filter>
-    </ClCompile>
-    <ClCompile Include="Voxels\parallel_chunks.cpp">
       <Filter>Voxel Engine</Filter>
     </ClCompile>
     <ClCompile Include="Voxels\VoxelManager.cpp">

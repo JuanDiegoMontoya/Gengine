@@ -1,12 +1,15 @@
 #pragma once
 #include <glm/glm.hpp>
 
-class VoxelManager;
+namespace Voxels
+{
+  class VoxelManager;
+}
 
 class Editor
 {
 public:
-  Editor(VoxelManager& vm) : voxels(vm) {}
+  Editor(Voxels::VoxelManager& vm) : voxels(vm) {}
   void Update();
 
 private:
@@ -16,7 +19,7 @@ private:
   void SelectBlock();
   void DrawSelection();
 
-  VoxelManager& voxels;
+  Voxels::VoxelManager& voxels;
 
   const int pickLength = 5;// ray cast distance
   int selectedPositions{};  // how many positions have been selected

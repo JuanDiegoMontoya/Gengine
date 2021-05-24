@@ -14,14 +14,12 @@
 #include <CoreEngine/Camera.h>
 #include <ctpl_stl.h>
 
-class VoxelManager;
-
 template<typename T>
 class AtomicQueue
 {
 public:
   AtomicQueue() {};
-  
+
   void Push(const T& val)
   {
     std::lock_guard lck(mutex_);
@@ -60,43 +58,48 @@ private:
   mutable std::shared_mutex mutex_;
 };
 
-// Interfaces with the Chunk class to
-// manage how and when chunk block and mesh data is generated, and
-// when that data is sent to the GPU.
-// Also manages updates to blocks and lighting in chunks to determine
-// when a chunk needs to be remeshed.
-class ChunkManager
+namespace Voxels
 {
-public:
-  ChunkManager(VoxelManager& manager);
-  ~ChunkManager() {};
-  void Init();
-  void Destroy();
+  class VoxelManager;
 
-  // interaction
-  void Update();
-  void UpdateChunk(Chunk* chunk);
-  void UpdateChunk(const glm::ivec3& wpos); // update chunk at block position
-  void UpdateBlock(const glm::ivec3& wpos, Block bl);
-  void UpdateBlockCheap(const glm::ivec3& wpos, Block block);
-  void ReloadAllChunks(); // for when big things change
+  // Interfaces with the Chunk class to
+  // manage how and when chunk block and mesh data is generated, and
+  // when that data is sent to the GPU.
+  // Also manages updates to blocks and lighting in chunks to determine
+  // when a chunk needs to be remeshed.
+  class ChunkManager
+  {
+  public:
+    ChunkManager(VoxelManager& manager);
+    ~ChunkManager() {};
+    void Init();
+    void Destroy();
+
+    // interaction
+    void Update();
+    void UpdateChunk(Chunk* chunk);
+    void UpdateChunk(const glm::ivec3& wpos); // update chunk at block position
+    void UpdateBlock(const glm::ivec3& wpos, Block bl);
+    void UpdateBlockCheap(const glm::ivec3& wpos, Block block);
+    void ReloadAllChunks(); // for when big things change
 
 
-  // TODO: move
-  //void SaveWorld(std::string fname);
-  //void LoadWorld(std::string fname);
+    // TODO: move
+    //void SaveWorld(std::string fname);
+    //void LoadWorld(std::string fname);
 
-private:
-  // functions
-  void checkUpdateChunkNearBlock(const glm::ivec3& pos, const glm::ivec3& near);
+  private:
+    // functions
+    void checkUpdateChunkNearBlock(const glm::ivec3& pos, const glm::ivec3& near);
 
-  //AtomicQueue<Chunk*> mesherQueueGood_;
-  ctpl::thread_pool mesherThreadPool_;
-  AtomicQueue<Chunk*> bufferQueueGood_;
+    //AtomicQueue<Chunk*> mesherQueueGood_;
+    ctpl::thread_pool mesherThreadPool_;
+    AtomicQueue<Chunk*> bufferQueueGood_;
 
-  // new light intensity to add
-  std::vector<Chunk*> lightPropagateAdd(const glm::ivec3& wpos, Light nLight);
-  std::vector<Chunk*> lightPropagateRemove(const glm::ivec3& wpos);
+    // new light intensity to add
+    std::vector<Chunk*> lightPropagateAdd(const glm::ivec3& wpos, Light nLight);
+    std::vector<Chunk*> lightPropagateRemove(const glm::ivec3& wpos);
 
-  VoxelManager& voxelManager;
-};
+    VoxelManager& voxelManager;
+  };
+}

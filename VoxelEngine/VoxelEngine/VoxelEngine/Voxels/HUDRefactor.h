@@ -7,8 +7,8 @@ class HUD
 public:
   void Update();
 
-  BlockType GetSelected() { return selected_; }
-  void SetSelected(BlockType s) { selected_ = s; }
+  Voxels::BlockType GetSelected() { return selected_; }
+  void SetSelected(Voxels::BlockType s) { selected_ = s; }
 private:
-  BlockType selected_ = BlockType::bError;
+  Voxels::BlockType selected_ = Voxels::BlockType::bError;
 };

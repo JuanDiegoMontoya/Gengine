@@ -30,13 +30,13 @@
 
 
 
-static std::unique_ptr<VoxelManager> voxelManager{};
+static std::unique_ptr<Voxels::VoxelManager> voxelManager{};
 
 void OnStart(Scene* scene)
 {
   // TODO: eventually remove this
-  PrefabManager::InitPrefabs();
-  voxelManager = std::make_unique<VoxelManager>(*scene);
+  Voxels::PrefabManager::InitPrefabs();
+  voxelManager = std::make_unique<Voxels::VoxelManager>(*scene);
   WorldGen wg(*voxelManager);
   wg.Init();
   wg.GenerateWorld();

@@ -100,7 +100,6 @@
     <ClInclude Include="Voxels\EditorRefactor.h" />
     <ClInclude Include="Voxels\HUDRefactor.h" />
     <ClInclude Include="Voxels\Light.h" />
-    <ClInclude Include="Voxels\parallel_chunks.h" />
     <ClInclude Include="Voxels\prefab.h" />
     <ClInclude Include="Voxels\VoxelManager.h" />
     <ClInclude Include="Voxels\World.h" />
@@ -462,10 +461,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Voxels\HUDRefactor.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="Voxels\parallel_chunks.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>

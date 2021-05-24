@@ -16,7 +16,7 @@ void HUD::Update()
   if (ofs)
   {
     //printf("%d\n", selected_);
-    selected_ = (BlockType)glm::clamp(num, 0, (int)BlockType::bCount-1);
+    selected_ = (Voxels::BlockType)glm::clamp(num, 0, (int)Voxels::BlockType::bCount-1);
     //printf("%d\n", selected_);
   }
   //reinterpret_cast<unsigned char&>(selected_) += ofs;

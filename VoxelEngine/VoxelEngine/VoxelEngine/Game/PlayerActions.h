@@ -7,7 +7,7 @@
 class PlayerActions : public ScriptableEntity
 {
 public:
-  PlayerActions(VoxelManager* vm) : voxels(vm) {}
+  PlayerActions(Voxels::VoxelManager* vm) : voxels(vm) {}
 
   virtual void OnCreate() override;
   virtual void OnDestroy() override;
@@ -21,9 +21,9 @@ public:
   glm::vec3 prevBlock = { -1, -1, -1 };
   bool prevHit = false;
   float timer = 0.0f;
-  BlockType selected = BlockType::bStone;
-  VoxelManager* voxels{};
-  Prefab prefab = PrefabManager::GetPrefab("Error");
+  Voxels::BlockType selected = Voxels::BlockType::bStone;
+  Voxels::VoxelManager* voxels{};
+  Voxels::Prefab prefab = Voxels::PrefabManager::GetPrefab("Error");
   std::string prefabName = "Error";
 
   // particle emitter settings
