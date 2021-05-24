@@ -7,7 +7,7 @@
 #include <Voxels/VoxelManager.h>
 #include <Voxels/prefab.h>
 #include <FastNoise2/include/FastNoise/FastNoise.h>
-#include <Voxels/chunk_manager.h>
+#include <Voxels/ChunkManager.h>
 
 using namespace Voxels;
 
@@ -73,7 +73,7 @@ void WorldGen::GenerateWorld()
           int height = (int)((noiseSet[idx++] + .1f) * 10) + 33;
           for (pos.y = 0; pos.y < Voxels::Chunk::CHUNK_SIZE; pos.y++)
           {
-            wpos = ChunkHelpers::chunkPosToWorldPos(pos, cpos);
+            wpos = ChunkHelpers::LocalPosToWorldPos(pos, cpos);
             int waterHeight = 34;
 
             //double density = noise.GetValue(wpos.x, wpos.y, wpos.z); // chunks are different
@@ -168,7 +168,7 @@ void WorldGen::GenerateWorld()
 
   for (int i = 0; i < lightBlocks.size(); i++)
   {
-    ChunkHelpers::localpos pos = ChunkHelpers::worldPosToLocalPos(lightBlocks[i]);
+    ChunkHelpers::localpos pos = ChunkHelpers::WorldPosToLocalPos(lightBlocks[i]);
     Block tmp = voxels.GetBlock(lightBlocks[i]);
     //voxels.SetBlock(lightBlocks[i], Block());
     //voxels.SetBlock(lightBlocks[i], { tmp.GetType(), tmp.GetEmittance() });
@@ -213,7 +213,7 @@ void WorldGen::InitBuffers()
 
 bool WorldGen::checkDirectSunlight(glm::ivec3 wpos)
 {
-  auto p = ChunkHelpers::worldPosToLocalPos(wpos);
+  auto p = ChunkHelpers::WorldPosToLocalPos(wpos);
   Voxels::Chunk* chunk = voxels.GetChunk(p.chunk_pos);
   if (!chunk)
     return false;
@@ -272,7 +272,7 @@ void WorldGen::InitializeSunlight()
         Light light = chunk->LightAtNoLock(lpos);
         light.SetS(0xF);
         chunk->SetLightAtNoLock(lpos, light);
-        glm::ivec3 wpos = ChunkHelpers::chunkPosToWorldPos(lpos, cpos);
+        glm::ivec3 wpos = ChunkHelpers::LocalPosToWorldPos(lpos, cpos);
         lightsToPropagate.push(wpos);
       }
     }
@@ -303,7 +303,7 @@ void WorldGen::sunlightPropagateOnce(const glm::ivec3& wpos)
     { 0, 0,-1 },
   };
 
-  auto wlpos = ChunkHelpers::worldPosToLocalPos(wpos);
+  auto wlpos = ChunkHelpers::WorldPosToLocalPos(wpos);
   Voxels::Chunk* cachedChunk = voxels.GetChunkNoCheck(wlpos.chunk_pos);
   bool dontUseCachedChunk = glm::any(glm::equal(wlpos.block_pos, glm::ivec3(0))) ||
     glm::any(glm::equal(wlpos.block_pos, glm::ivec3(Voxels::Chunk::CHUNK_SIZE - 1)));
@@ -314,7 +314,7 @@ void WorldGen::sunlightPropagateOnce(const glm::ivec3& wpos)
   for (int dir = 0; dir < 6; dir++)
   {
     glm::ivec3 neighborPos = wpos + dirs[dir];
-    auto lpos = ChunkHelpers::worldPosToLocalPos(neighborPos);
+    auto lpos = ChunkHelpers::WorldPosToLocalPos(neighborPos);
     Voxels::Chunk* chunk;
 
     if (dontUseCachedChunk)

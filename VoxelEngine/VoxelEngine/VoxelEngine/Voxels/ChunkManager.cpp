@@ -1,9 +1,10 @@
 #include <Voxels/Chunk.h>
 #include <Voxels/block.h>
 //#include "World.h"
-#include "chunk_manager.h"
+#include "ChunkManager.h"
+#include "ChunkHelpers.h"
 #include <CoreEngine/utilities.h>
-#include <Voxels/ChunkHelpers.h>
+
 #include <CoreEngine/GraphicsIncludes.h>
 #include <Utilities/Timer.h>
 #include "VoxelManager.h"
@@ -41,7 +42,7 @@ namespace Voxels
   void ChunkManager::UpdateChunk(Chunk* chunk)
   {
     ASSERT(chunk != nullptr);
-    mesherThreadPool_.push([chunk, this](int _)
+    mesherThreadPool_.push([chunk, this](int)
       {
         chunk->BuildMesh();
         bufferQueueGood_.Push(chunk);
@@ -51,7 +52,7 @@ namespace Voxels
 
   void ChunkManager::UpdateChunk(const glm::ivec3& wpos)
   {
-    auto cpos = ChunkHelpers::worldPosToLocalPos(wpos);
+    auto cpos = ChunkHelpers::WorldPosToLocalPos(wpos);
     auto cptr = voxelManager.GetChunk(cpos.chunk_pos);
     if (cptr)
     {
@@ -62,7 +63,7 @@ namespace Voxels
 
   void ChunkManager::UpdateBlock(const glm::ivec3& wpos, Block bl)
   {
-    ChunkHelpers::localpos p = ChunkHelpers::worldPosToLocalPos(wpos);
+    ChunkHelpers::localpos p = ChunkHelpers::WorldPosToLocalPos(wpos);
     //BlockPtr block = Chunk::AtWorld(wpos);
     Block remBlock = voxelManager.GetBlock(p); // store state of removed block to update lighting
     Chunk* chunk = voxelManager.GetChunk(p.chunk_pos);
@@ -132,7 +133,7 @@ namespace Voxels
   // perform no checks, therefore the chunk must be known prior to placing the block
   void ChunkManager::UpdateBlockCheap(const glm::ivec3& wpos, Block block)
   {
-    auto l = ChunkHelpers::worldPosToLocalPos(wpos);
+    auto l = ChunkHelpers::WorldPosToLocalPos(wpos);
     voxelManager.GetChunk(l.chunk_pos)->SetBlockTypeAtNoLock(l.block_pos, block.GetType());
     //*Chunk::AtWorld(wpos) = block;
     //UpdatedChunk(Chunk::chunks[Chunk::worldBlockToLocalPos(wpos).chunk_pos]);
@@ -199,8 +200,8 @@ namespace Voxels
   void ChunkManager::checkUpdateChunkNearBlock(const glm::ivec3& pos, const glm::ivec3& near)
   {
     // skip if both blocks are in same chunk
-    auto p1 = ChunkHelpers::worldPosToLocalPos(pos);
-    auto p2 = ChunkHelpers::worldPosToLocalPos(pos + near);
+    auto p1 = ChunkHelpers::WorldPosToLocalPos(pos);
+    auto p2 = ChunkHelpers::WorldPosToLocalPos(pos + near);
     if (p1.chunk_pos == p2.chunk_pos)
     {
       return;
@@ -232,7 +233,7 @@ namespace Voxels
     }
 
     // get existing light at the position
-    auto posLocal = ChunkHelpers::worldPosToLocalPos(wpos);
+    auto posLocal = ChunkHelpers::WorldPosToLocalPos(wpos);
     auto chunk = voxelManager.GetChunk(posLocal.chunk_pos);
 
     if (chunk)
@@ -251,7 +252,7 @@ namespace Voxels
     {
       glm::ivec3 lightp = lightQueue.front(); // light position
       lightQueue.pop();
-      auto lightPosLocal = ChunkHelpers::worldPosToLocalPos(lightp);
+      auto lightPosLocal = ChunkHelpers::WorldPosToLocalPos(lightp);
       auto lchunk = voxelManager.GetChunk(lightPosLocal.chunk_pos);
       Light lightLevel = lchunk->LightAtNoLock(lightPosLocal.block_pos);
 
@@ -269,7 +270,7 @@ namespace Voxels
       for (const auto& dir : dirs)
       {
         glm::ivec3 nlightPos = lightp + dir;
-        auto nlightPosLocal = ChunkHelpers::worldPosToLocalPos(nlightPos);
+        auto nlightPosLocal = ChunkHelpers::WorldPosToLocalPos(nlightPos);
         auto nchunk = voxelManager.GetChunk(nlightPosLocal.chunk_pos);
         if (!nchunk) continue;
         Block nblock = nchunk->BlockAtNoLock(nlightPosLocal.block_pos);
@@ -342,7 +343,7 @@ namespace Voxels
 
     std::queue<std::pair<glm::ivec3, Light>> lightRemovalQueue;
 
-    auto posLocal = ChunkHelpers::worldPosToLocalPos(wpos);
+    auto posLocal = ChunkHelpers::WorldPosToLocalPos(wpos);
     auto chunk = voxelManager.GetChunkNoCheck(posLocal.chunk_pos);
     Block wblock = chunk->BlockAtNoLock(posLocal.block_pos);
     Light light = wblock.GetLight();
@@ -370,13 +371,13 @@ namespace Voxels
       const auto lightv = lite.Get(); // current light value
       lightRemovalQueue.pop();
 
-      auto plightLocalPos = ChunkHelpers::worldPosToLocalPos(plight);
+      auto plightLocalPos = ChunkHelpers::WorldPosToLocalPos(plight);
       auto pchunk = voxelManager.GetChunkNoCheck(plightLocalPos.chunk_pos);
 
       for (const auto& dir : dirs)
       {
         glm::ivec3 blockPos = plight + dir;
-        auto nlightLocalPos = ChunkHelpers::worldPosToLocalPos(blockPos);
+        auto nlightLocalPos = ChunkHelpers::WorldPosToLocalPos(blockPos);
         auto nchunk = voxelManager.GetChunkNoCheck(nlightLocalPos.chunk_pos);
         if (!nchunk) continue;
 

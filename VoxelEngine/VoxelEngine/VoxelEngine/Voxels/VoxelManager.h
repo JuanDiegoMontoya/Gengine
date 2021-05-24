@@ -11,7 +11,6 @@ namespace Voxels
   class ChunkManager;
   class ChunkRenderer;
 
-
   class VoxelManager
   {
   public:
@@ -170,35 +169,25 @@ namespace Voxels
 
   inline std::vector<Chunk*> VoxelManager::GetChunksRegionWorldSpace(const glm::ivec3& lowWpos, const glm::ivec3& highWpos)
   {
-    auto lowCpos = ChunkHelpers::worldPosToLocalPos(lowWpos).chunk_pos;
-    auto highCpos = ChunkHelpers::worldPosToLocalPos(highWpos).chunk_pos;
+    auto lowCpos = ChunkHelpers::WorldPosToLocalPos(lowWpos).chunk_pos;
+    auto highCpos = ChunkHelpers::WorldPosToLocalPos(highWpos).chunk_pos;
     return GetChunksRegion(lowCpos, highCpos);
   }
 
   inline Block VoxelManager::GetBlock(const glm::ivec3& wpos) const
   {
-    ChunkHelpers::localpos wp = ChunkHelpers::worldPosToLocalPos(wpos);
-    //auto it = chunks_.find(wp.chunk_pos);
-    //ASSERT(it != chunks_.cend());
-    //return it->second->BlockAt(wp.block_pos);
+    ChunkHelpers::localpos wp = ChunkHelpers::WorldPosToLocalPos(wpos);
     return chunks_[flatten(wp.chunk_pos)]->BlockAt(wp.block_pos);
   }
 
   inline Block VoxelManager::GetBlock(const ChunkHelpers::localpos& wp) const
   {
-    //auto it = chunks_.find(wp.chunk_pos);
-    //ASSERT(it != chunks_.cend());
-    //return it->second->BlockAt(wp.block_pos);
     return chunks_[flatten(wp.chunk_pos)]->BlockAt(wp.block_pos);
   }
 
   inline std::optional<Block> VoxelManager::TryGetBlock(const glm::ivec3& wpos) const
   {
-    ChunkHelpers::localpos wp = ChunkHelpers::worldPosToLocalPos(wpos);
-    //auto it = chunks_.find(wp.chunk_pos);
-    //if (it != chunks_.end())
-    //  return it->second->BlockAt(wp.block_pos);
-    //return std::nullopt;
+    ChunkHelpers::localpos wp = ChunkHelpers::WorldPosToLocalPos(wpos);
     Chunk* chunk = find(wp.chunk_pos);
     if (chunk)
       return chunk->BlockAt(wp.block_pos);
@@ -207,7 +196,7 @@ namespace Voxels
 
   inline bool VoxelManager::SetBlock(const glm::ivec3& wpos, Block block)
   {
-    ChunkHelpers::localpos w = ChunkHelpers::worldPosToLocalPos(wpos);
+    ChunkHelpers::localpos w = ChunkHelpers::WorldPosToLocalPos(wpos);
     Chunk* chunk = chunks_[flatten(w.chunk_pos)];
     if (chunk)
     {
@@ -220,7 +209,7 @@ namespace Voxels
 
   inline bool VoxelManager::SetBlockType(const glm::ivec3& wpos, BlockType type)
   {
-    ChunkHelpers::localpos w = ChunkHelpers::worldPosToLocalPos(wpos);
+    ChunkHelpers::localpos w = ChunkHelpers::WorldPosToLocalPos(wpos);
     Chunk* chunk = chunks_[flatten(w.chunk_pos)];
     if (chunk)
     {
@@ -232,7 +221,7 @@ namespace Voxels
 
   inline bool VoxelManager::SetBlockLight(const glm::ivec3& wpos, Light light)
   {
-    ChunkHelpers::localpos w = ChunkHelpers::worldPosToLocalPos(wpos);
+    ChunkHelpers::localpos w = ChunkHelpers::WorldPosToLocalPos(wpos);
     Chunk* chunk = chunks_[flatten(w.chunk_pos)];
     if (chunk)
     {

@@ -15,6 +15,102 @@ using namespace std::chrono;
 
 namespace Voxels
 {
+  namespace detail
+  {
+    // counterclockwise from bottom right texture coordinates
+    inline const glm::vec2 tex_corners[] =
+    {
+      { 1, 0 },
+      { 1, 1 },
+      { 0, 1 },
+      { 0, 0 },
+    };
+
+    inline const glm::ivec3 faces[6] =
+    {
+      { 0, 0, 1 }, // 'far' face    (+z direction)
+      { 0, 0,-1 }, // 'near' face   (-z direction)
+      {-1, 0, 0 }, // 'left' face   (-x direction)
+      { 1, 0, 0 }, // 'right' face  (+x direction)
+      { 0, 1, 0 }, // 'top' face    (+y direction)
+      { 0,-1, 0 }, // 'bottom' face (-y direction)
+    };
+
+    inline void Decode(GLuint encoded, glm::uvec3& modelPos, glm::vec3& normal, glm::vec3& texCoord)
+    {
+      // decode vertex position
+      modelPos.x = encoded >> 26;
+      modelPos.y = (encoded >> 20) & 0x3F; // = 0b111111
+      modelPos.z = (encoded >> 14) & 0x3F; // = 0b111111
+
+      // decode normal
+      GLuint normalIdx = (encoded >> 11) & 0x7; // = 0b111
+      ASSERT(normalIdx <= 5);
+      if (normalIdx <= 5)
+      {
+        normal = faces[normalIdx];
+      }
+
+      // decode texture index and UV
+      GLuint textureIdx = (encoded >> 2) & 0x1FF; // = 0b1111111111
+      GLuint cornerIdx = (encoded >> 0) & 0x3; // = 0b11
+
+      texCoord = glm::vec3(tex_corners[cornerIdx], textureIdx);
+    }
+
+
+    inline GLuint EncodeVertex(const glm::uvec3& modelPos, GLuint normalIdx, GLuint texIdx, GLuint cornerIdx)
+    {
+      GLuint encoded = 0;
+
+      // encode vertex position
+      encoded |= modelPos.x << 26;
+      encoded |= modelPos.y << 20;
+      encoded |= modelPos.z << 14;
+
+      // encode normal
+      encoded |= normalIdx << 11;
+
+      // encode texture information
+      encoded |= texIdx << 2;
+      encoded |= cornerIdx << 0;
+
+#if 0 // debug
+      glm::uvec3 mdl;
+      glm::vec3 nml, txc;
+      Decode(encoded, mdl, nml, txc);
+      ASSERT(mdl == modelPos);
+      ASSERT(texIdx == txc.z);
+      ASSERT(faces[normalIdx] == nml)
+#endif
+
+        return encoded;
+    }
+
+
+    // packs direction to center of block with lighting information
+    inline uint32_t EncodeLight(uint32_t lightCoding, glm::ivec3 dirCent, uint32_t ao)
+    {
+      uint32_t encoded = lightCoding;
+      dirCent = (dirCent + 1);
+      //printf("(%d, %d, %d)\n", dirCent.x, dirCent.y, dirCent.z);
+
+      using namespace glm;
+      ASSERT(all(greaterThanEqual(dirCent, ivec3(0, 0, 0))) &&
+        all(lessThanEqual(dirCent, ivec3(1, 1, 1))) &&
+        ao <= ChunkMesh::AO_MAX);
+
+      encoded |= ao << 19;
+
+      encoded |= dirCent.x << 18;
+      encoded |= dirCent.y << 17;
+      encoded |= dirCent.z << 16;
+
+      return encoded;
+    }
+  }
+
+
   ChunkMesh::~ChunkMesh()
   {
     voxelManager_.chunkRenderer_->allocator->Free(bufferHandle);
@@ -86,7 +182,7 @@ namespace Voxels
 
       for (int i = 0; i < fCount; i++)
       {
-        const Chunk* near = voxelManager_.GetChunk(parentCopy->GetPos() + ChunkHelpers::faces[i]);
+        const Chunk* near = voxelManager_.GetChunk(parentCopy->GetPos() + detail::faces[i]);
         if (near)
         {
           near->Lock();
@@ -117,7 +213,7 @@ namespace Voxels
           (i / Chunk::CHUNK_SIZE) % Chunk::CHUNK_SIZE,
           i / (Chunk::CHUNK_SIZE_SQRED)
         };
-        for (int f = Far; f < fCount; f++)
+        for (int f = 0; f < fCount; f++)
         {
           buildBlockFace(f, pos, block);
         }
@@ -166,14 +262,14 @@ namespace Voxels
     thread_local static localpos nearblock; // avoids unnecessary construction of vec3s
     //glm::ivec3 nearFace = blockPos + faces[face];
 
-    nearblock.block_pos = blockPos + faces[face];
+    nearblock.block_pos = blockPos + detail::faces[face];
 
     const Chunk* nearChunk = parentCopy;
 
     // if neighbor is out of this chunk, find which chunk it is in
     if (any(lessThan(nearblock.block_pos, ivec3(0))) || any(greaterThanEqual(nearblock.block_pos, ivec3(Chunk::CHUNK_SIZE))))
     {
-      fastWorldPosToLocalPos(chunkPosToWorldPos(nearblock.block_pos, parentCopy->GetPos()), nearblock);
+      WorldPosToLocalPosFast(LocalPosToWorldPos(nearblock.block_pos, parentCopy->GetPos()), nearblock);
       nearChunk = nearChunks[face];
     }
 
@@ -241,20 +337,20 @@ namespace Voxels
       tCollider.vertices.push_back(glm::vec3(finalVert));
 
       // compress attributes into 32 bits
-      GLuint encoded = EncodeVertex(finalVert, normalIdx, texIdx, cindex);
+      GLuint encoded = detail::EncodeVertex(finalVert, normalIdx, texIdx, cindex);
       encodeds[cindex] = encoded;
 
-      int invOcclusion = 3;
+      int invOcclusion = AO_MIN;
       if (true) // TODO: make this an option in the future
       {
-        invOcclusion = vertexFaceAO(lpos, vert, faces[face]);
+        invOcclusion = vertexFaceAO(lpos, vert, detail::faces[face]);
       }
 
       aoValues[cindex] = invOcclusion;
       auto tLight = light;
       lighting = tLight.Raw();
       glm::ivec3 dirCent = glm::vec3(lpos) - glm::vec3(finalVert);
-      lightdeds[cindex] = EncodeLight(lighting, dirCent, invOcclusion);
+      lightdeds[cindex] = detail::EncodeLight(lighting, dirCent, invOcclusion);
     }
 
     constexpr GLuint indicesA[6] = { 0, 1, 3, 3, 1, 2 }; // normal indices
@@ -307,6 +403,6 @@ namespace Voxels
       if (parentCopy->BlockAtNoLock(ivec3(cornerPos)).GetType() != BlockType::bAir)
         occluded++;
 
-    return 3 - occluded;
+    return AO_MAX - occluded;
   }
 }

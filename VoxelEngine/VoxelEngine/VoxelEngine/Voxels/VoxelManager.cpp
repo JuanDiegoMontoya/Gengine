@@ -1,5 +1,5 @@
 #include <Voxels/VoxelManager.h>
-#include <Voxels/chunk_manager.h>
+#include <Voxels/ChunkManager.h>
 #include <Voxels/ChunkRenderer.h>
 #include <Voxels/EditorRefactor.h>
 

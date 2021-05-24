@@ -19,14 +19,9 @@ namespace Voxels
       glm::ivec3 block_pos; // within chunk
     };
 
-    localpos worldPosToLocalPos(const glm::ivec3& wpos);
-    void fastWorldPosToLocalPos(const glm::ivec3& wpos, localpos& ret);
-    inline glm::ivec3 chunkPosToWorldPos(const glm::ivec3& local, const glm::ivec3& cpos);
-
-    GLuint EncodeVertex(const glm::uvec3& modelPos, GLuint normalIdx, GLuint texIdx, GLuint cornerIdx);
-    void Decode(GLuint encoded, glm::uvec3& modelPos, glm::vec3& normal, glm::vec2& texCoord);
-
-    GLuint EncodeSplat(const glm::uvec3& modelPos, const glm::vec3& color);
+    localpos WorldPosToLocalPos(const glm::ivec3& wpos);
+    void WorldPosToLocalPosFast(const glm::ivec3& wpos, localpos& ret);
+    inline glm::ivec3 LocalPosToWorldPos(const glm::ivec3& local, const glm::ivec3& cpos);
 
     auto IndexFrom3D(auto x, auto y, auto z, auto h, auto w)
     {
@@ -37,16 +32,6 @@ namespace Voxels
     {
       return w * y + x;
     }
-
-    inline const glm::ivec3 faces[6] =
-    {
-      { 0, 0, 1 }, // 'far' face    (+z direction)
-      { 0, 0,-1 }, // 'near' face   (-z direction)
-      {-1, 0, 0 }, // 'left' face   (-x direction)
-      { 1, 0, 0 }, // 'right' face  (+x direction)
-      { 0, 1, 0 }, // 'top' face    (+y direction)
-      { 0,-1, 0 }, // 'bottom' face (-y direction)
-    };
   }
 }
 

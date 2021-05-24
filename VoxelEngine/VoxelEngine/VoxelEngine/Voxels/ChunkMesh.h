@@ -28,6 +28,17 @@ namespace Voxels
 
     std::atomic_bool needsBuffering_ = false;
 
+    enum AOStrength
+    {
+      AO_0,
+      AO_1,
+      AO_2,
+      AO_3,
+
+      AO_MIN = AO_0,
+      AO_MAX = AO_3,
+    };
+
   private:
     friend struct Chunk;
 

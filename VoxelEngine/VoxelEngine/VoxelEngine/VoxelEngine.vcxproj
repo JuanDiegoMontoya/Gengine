@@ -81,9 +81,9 @@
     <ClInclude Include="Game\TestObj.h" />
     <ClInclude Include="Game\TestObj2.h" />
     <ClInclude Include="Game\WorldGen.h" />
+    <ClInclude Include="Utilities\AtomicQueue.h" />
     <ClInclude Include="Utilities\BitArray.h" />
     <ClInclude Include="Utilities\Compression.h" />
-    <ClInclude Include="Utilities\FixedQueue.h" />
     <ClInclude Include="Utilities\ImGuiExt.h" />
     <ClInclude Include="Utilities\Palette.h" />
     <ClInclude Include="Utilities\Serialize.h" />
@@ -96,7 +96,7 @@
     <ClInclude Include="Voxels\ChunkMesh.h" />
     <ClInclude Include="Voxels\ChunkRenderer.h" />
     <ClInclude Include="Voxels\ChunkSerialize.h" />
-    <ClInclude Include="Voxels\chunk_manager.h" />
+    <ClInclude Include="Voxels\ChunkManager.h" />
     <ClInclude Include="Voxels\EditorRefactor.h" />
     <ClInclude Include="Voxels\HUDRefactor.h" />
     <ClInclude Include="Voxels\Light.h" />
@@ -452,7 +452,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="Voxels\chunk_manager.cpp">
+    <ClCompile Include="Voxels\ChunkManager.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>

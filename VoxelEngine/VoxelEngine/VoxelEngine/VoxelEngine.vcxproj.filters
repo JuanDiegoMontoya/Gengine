@@ -142,7 +142,7 @@
     <ClInclude Include="Voxels\Chunk.h">
       <Filter>Voxel Engine</Filter>
     </ClInclude>
-    <ClInclude Include="Voxels\chunk_manager.h">
+    <ClInclude Include="Voxels\ChunkManager.h">
       <Filter>Voxel Engine</Filter>
     </ClInclude>
     <ClInclude Include="Voxels\ChunkHelpers.h">
@@ -220,9 +220,6 @@
     <ClInclude Include="Utilities\BitArray.h">
       <Filter>Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="Utilities\FixedQueue.h">
-      <Filter>Utilities</Filter>
-    </ClInclude>
     <ClInclude Include="Utilities\ImGuiExt.h">
       <Filter>Utilities</Filter>
     </ClInclude>
@@ -288,6 +285,9 @@
     </ClInclude>
     <ClInclude Include="3rdParty\ctpl_stl.h">
       <Filter>3rd Party</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\AtomicQueue.h">
+      <Filter>Utilities</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -384,7 +384,7 @@
     <ClCompile Include="Voxels\Chunk.cpp">
       <Filter>Voxel Engine</Filter>
     </ClCompile>
-    <ClCompile Include="Voxels\chunk_manager.cpp">
+    <ClCompile Include="Voxels\ChunkManager.cpp">
       <Filter>Voxel Engine</Filter>
     </ClCompile>
     <ClCompile Include="Voxels\ChunkMesh.cpp">
