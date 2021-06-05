@@ -1,5 +1,8 @@
 #pragma once
 #include <type_traits>
+#include "utilities.h"
+#include <GL/glew.h>
+#include "GAssert.h"
 
 namespace GFX
 {

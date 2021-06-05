@@ -14,15 +14,12 @@ struct aiScene;
 struct Vertex;
 struct VertexAnim;
 
-struct MeshHandle;
-
-
 class MeshManager
 {
 public:
-	static std::shared_ptr<MeshHandle> CreateMeshBatched(std::string filename, entt::hashed_string name);
-	static std::shared_ptr<MeshHandle> GetMeshBatched(entt::hashed_string name);
-	static void DestroyBatchedMesh(MeshID handle);
+	static MeshID CreateMeshBatched(const std::string& filename, entt::hashed_string name);
+	static MeshID GetMeshBatched(entt::hashed_string name);
+
 	// TODO: functions to load skeletal meshes
 
 private:
@@ -34,15 +31,5 @@ private:
 	static void LoadMesh(const aiScene* scene, aiMesh* mesh, std::vector<GLuint>& indices, std::vector<VertexAnim>& vertices);
 
 	static inline std::unordered_map<entt::hashed_string, std::pair<uint64_t, uint64_t>> IDMap_;
-	static inline std::unordered_map<entt::hashed_string, std::weak_ptr<MeshHandle>> handleMap_;
-};
-
-struct MeshHandle
-{
-	MeshHandle(MeshID id) : handle(id) {}
-	~MeshHandle() { printf("Destroying mesh, ID %u\n", handle); MeshManager::DestroyBatchedMesh(handle); }
-
-private:
-	friend class Renderer;
-	MeshID handle;
+	static inline std::unordered_map<entt::hashed_string, MeshID> handleMap_;
 };

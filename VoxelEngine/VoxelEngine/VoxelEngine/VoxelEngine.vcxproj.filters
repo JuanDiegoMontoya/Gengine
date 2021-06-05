@@ -35,6 +35,9 @@
     <Filter Include="Utilities">
       <UniqueIdentifier>{acd11cba-910f-4db3-bf05-1edc13b873eb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="CoreEngine\ECS\Components">
+      <UniqueIdentifier>{27e428a7-e3b6-4478-875b-df0b1469f0b3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="3rdParty\imgui\imconfig.h">
@@ -128,9 +131,6 @@
       <Filter>CoreEngine\ECS</Filter>
     </ClInclude>
     <ClInclude Include="CoreEngine\Scene.h">
-      <Filter>CoreEngine\ECS</Filter>
-    </ClInclude>
-    <ClInclude Include="CoreEngine\Components.h">
       <Filter>CoreEngine\ECS</Filter>
     </ClInclude>
     <ClInclude Include="CoreEngine\Engine.h">
@@ -288,6 +288,30 @@
     </ClInclude>
     <ClInclude Include="Utilities\AtomicQueue.h">
       <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\Components\Common.h">
+      <Filter>CoreEngine\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\Components\Rendering.h">
+      <Filter>CoreEngine\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\Components\Scripting.h">
+      <Filter>CoreEngine\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\Components\Transform.h">
+      <Filter>CoreEngine\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\Components\Camera.h">
+      <Filter>CoreEngine\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\Components\ParticleEmitter.h">
+      <Filter>CoreEngine\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\Components\Core.h">
+      <Filter>CoreEngine\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\Components\Physics.h">
+      <Filter>CoreEngine\ECS\Components</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -459,14 +483,14 @@
     <ClCompile Include="Game\PlayerActions.cpp">
       <Filter>Game</Filter>
     </ClCompile>
-    <ClCompile Include="CoreEngine\Components.cpp">
-      <Filter>CoreEngine\ECS</Filter>
-    </ClCompile>
     <ClCompile Include="CoreEngine\TextureCube.cpp">
       <Filter>CoreEngine\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="CoreEngine\EnginePCH.cpp">
       <Filter>CoreEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreEngine\Components\ParticleEmitter.cpp">
+      <Filter>CoreEngine\ECS\Components</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

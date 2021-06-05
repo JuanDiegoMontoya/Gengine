@@ -1,6 +1,6 @@
 #include "EnginePCH.h"
 #include "Entity.h"
-#include <CoreEngine/Components.h>
+#include "Components/Transform.h"
 
 using namespace Components;
 

@@ -1,6 +1,7 @@
 #include "EnginePCH.h"
 #include <CoreEngine/ScriptSystem.h>
-#include <CoreEngine/Components.h>
+#include <CoreEngine/Scene.h>
+#include "Components/Scripting.h"
 
 void ScriptSystem::Update(Scene& scene, float dt)
 {

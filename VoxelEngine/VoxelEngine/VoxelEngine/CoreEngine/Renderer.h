@@ -2,7 +2,7 @@
 #include <vector>
 
 #include "MeshUtils.h"
-#include "Components.h"
+#include "Material.h"
 #include <CoreEngine/DynamicBuffer.h>
 #include <shared_mutex>
 #include <CoreEngine/Fence.h>
@@ -11,6 +11,14 @@ class Shader;
 namespace GFX
 {
   class Fence;
+}
+
+namespace Components
+{
+  struct Transform;
+  struct BatchedMesh;
+  struct Material;
+  struct ParticleEmitter;
 }
 
 class Renderer

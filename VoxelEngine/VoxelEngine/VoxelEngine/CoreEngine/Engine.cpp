@@ -10,8 +10,6 @@
 #include "ScriptSystem.h"
 #include "ParticleSystem.h"
 
-#include <CoreEngine/Components.h>
-
 Engine::Engine()
 {
   graphicsSystem = std::make_unique<GraphicsSystem>();

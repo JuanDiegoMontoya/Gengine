@@ -5,7 +5,6 @@
 #include <CoreEngine/Input.h>
 #include <CoreEngine/Application.h>
 #include <CoreEngine/Camera.h>
-#include <CoreEngine/Components.h>
 #include <CoreEngine/Renderer.h>
 #include <CoreEngine/Mesh.h>
 #include <execution>
@@ -15,6 +14,10 @@
 
 // TODO: TEMP GARBAGE
 #include <CoreEngine/Context.h>
+
+#include "Components/Rendering.h"
+#include "Components/Camera.h"
+#include "Components/ParticleEmitter.h"
 
 void GraphicsSystem::Init()
 {
@@ -38,13 +41,13 @@ void GraphicsSystem::StartFrame()
   ImGui::Text("Active Meshes");
   for (const auto& p : MeshManager::handleMap_)
   {
-    ImGui::Text("%s, ID: %u, refcount: %u", p.first.data(), p.first.value(), p.second.use_count());
+    ImGui::Text("%s, ID: %u", p.first.data(), p.first.value());
   }
   ImGui::Separator();
   ImGui::Text("Active Materials");
   for (const auto& p : MaterialManager::handleMap_)
   {
-    ImGui::Text("ID: %d, refcount: %u", p.first, p.second.use_count());
+    ImGui::Text("ID: %u", p.first);
   }
   ImGui::End();
 

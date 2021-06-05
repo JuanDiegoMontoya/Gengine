@@ -1,8 +1,9 @@
 #pragma once
 #include <CoreEngine/ScriptableEntity.h>
-#include <CoreEngine/Components.h>
 #include <CoreEngine/Input.h>
 #include <CoreEngine/Camera.h>
+#include <CoreEngine/Components/Physics.h>
+#include <CoreEngine/Components/Transform.h>
 
 
 class KinematicPlayerController : public ScriptableEntity

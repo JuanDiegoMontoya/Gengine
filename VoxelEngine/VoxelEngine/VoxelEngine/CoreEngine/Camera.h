@@ -1,8 +1,8 @@
 #pragma once
 #include <memory>
 #include <vector>
-#include <CoreEngine/Components.h>
 #include <CoreEngine/Frustum.h>
+#include <CoreEngine/Components/Camera.h>
 
 //struct Camera;
 

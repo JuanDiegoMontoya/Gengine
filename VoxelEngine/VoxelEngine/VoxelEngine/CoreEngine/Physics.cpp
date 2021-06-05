@@ -1,7 +1,7 @@
 #include "EnginePCH.h"
 #include <CoreEngine/Physics.h>
 #include <CoreEngine/Entity.h>
-#include <CoreEngine/Components.h>
+#include <CoreEngine/Components/Transform.h>
 
 #include <glm/gtx/quaternion.hpp>
 

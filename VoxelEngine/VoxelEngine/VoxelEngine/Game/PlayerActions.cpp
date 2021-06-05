@@ -1,11 +1,18 @@
 #include <Game/PlayerActions.h>
 #include <imgui/imgui.h>
 #include <CoreEngine/Mesh.h>
-#include <CoreEngine/Components.h>
 #include <CoreEngine/Camera.h>
 #include <Game/FlyingPlayerController.h>
 #include <Game/KinematicPlayerController.h>
 #include <CoreEngine/Engine.h>
+#include <CoreEngine/ParticleSystem.h>
+
+#include <CoreEngine/Components/Camera.h>
+#include <CoreEngine/Components/ParticleEmitter.h>
+#include <CoreEngine/Components/Physics.h>
+#include <CoreEngine/Components/Scripting.h>
+#include <CoreEngine/Components/Transform.h>
+#include <CoreEngine/Components/Rendering.h>
 
 using namespace Voxels;
 
@@ -39,20 +46,21 @@ void PlayerActions::OnUpdate(float dt)
     ent.AddComponent<Components::DynamicPhysics>(std::move(phys)).Interface().AddForce(cam.GetForward() * 300.f);
 
     {
-      Components::ParticleEmitter emitter(1500, "smoke.png");
-      emitter.minLife = 1.0f;
-      emitter.maxLife = 2.0f;
-      emitter.interval = .001;
-      emitter.minParticleOffset = { -.5, -.5, -.5 };
-      emitter.maxParticleOffset = { .5, .5, .5 };
-      emitter.minParticleAccel = { -.5, 1, -.5 };
-      emitter.maxParticleAccel = { .5, 2, .5 };
-      emitter.minParticleScale = { .3, .3 };
-      emitter.maxParticleScale = { .3, .3 };
+      Components::ParticleEmitter emitter{};
+      emitter.handle = ParticleManager::MakeParticleEmitter(1500, "smoke.png");
+      emitter.data.minLife = 1.0f;
+      emitter.data.maxLife = 2.0f;
+      emitter.data.interval = .001;
+      emitter.data.minParticleOffset = { -.5, -.5, -.5 };
+      emitter.data.maxParticleOffset = { .5, .5, .5 };
+      emitter.data.minParticleAccel = { -.5, 1, -.5 };
+      emitter.data.maxParticleAccel = { .5, 2, .5 };
+      emitter.data.minParticleScale = { .3, .3 };
+      emitter.data.maxParticleScale = { .3, .3 };
       //emitter.minParticleColor = { .75, .75, 0, .4 };
       //emitter.maxParticleColor = { 1, .75, 0, .8 };
-      emitter.minParticleColor = { .75, .40, 0, .4 };
-      emitter.maxParticleColor = { 1, .60, .2, .8 };
+      emitter.data.minParticleColor = { .75, .40, 0, .4 };
+      emitter.data.maxParticleColor = { 1, .60, .2, .8 };
       ent.AddComponent<Components::ParticleEmitter>(std::move(emitter));
     }
 
@@ -61,18 +69,19 @@ void PlayerActions::OnUpdate(float dt)
     child.AddComponent<Components::Transform>();
     child.AddComponent<Components::LocalTransform>();
     {
-      Components::ParticleEmitter emitter2(3500, "smoke.png");
-      emitter2.minLife = 3.0f;
-      emitter2.maxLife = 4.0f;
-      emitter2.interval = .001;
-      emitter2.minParticleAccel = { -2, 1, -2 };
-      emitter2.maxParticleAccel = { 2, 2, 2 };
-      emitter2.minParticleScale = { .3, .3 };
-      emitter2.maxParticleScale = { .3, .3 };
-      emitter2.minParticleOffset = { -1, -1, -1 };
-      emitter2.maxParticleOffset = { 1, 2, 1 };
-      emitter2.minParticleColor = { .4, .4, .4, .4 };
-      emitter2.maxParticleColor = { .5, .5, .5, .8 };
+      Components::ParticleEmitter emitter2{};
+      emitter2.handle = ParticleManager::MakeParticleEmitter(3500, "smoke.png");
+      emitter2.data.minLife = 3.0f;
+      emitter2.data.maxLife = 4.0f;
+      emitter2.data.interval = .001;
+      emitter2.data.minParticleAccel = { -2, 1, -2 };
+      emitter2.data.maxParticleAccel = { 2, 2, 2 };
+      emitter2.data.minParticleScale = { .3, .3 };
+      emitter2.data.maxParticleScale = { .3, .3 };
+      emitter2.data.minParticleOffset = { -1, -1, -1 };
+      emitter2.data.maxParticleOffset = { 1, 2, 1 };
+      emitter2.data.minParticleColor = { .4, .4, .4, .4 };
+      emitter2.data.maxParticleColor = { .5, .5, .5, .8 };
       child.AddComponent<Components::ParticleEmitter>(std::move(emitter2));
     }
   }
@@ -88,20 +97,21 @@ void PlayerActions::OnUpdate(float dt)
     Components::DynamicPhysics phys(ent, Physics::MaterialType::TERRAIN, collider);
     ent.AddComponent<Components::DynamicPhysics>(std::move(phys)).Interface().AddForce(cam.GetForward() * 0.f);
 
-    Components::ParticleEmitter emitter(maxParticles, "smoke.png");
-    emitter.minLife = minLife;
-    emitter.maxLife = maxLife;
-    emitter.interval = interval;
-    emitter.minParticleOffset = minParticleOffset;
-    emitter.maxParticleOffset = maxParticleOffset;
-    emitter.minParticleVelocity = minParticleVelocity;
-    emitter.maxParticleVelocity = maxParticleVelocity;
-    emitter.minParticleAccel = minParticleAccel;
-    emitter.maxParticleAccel = maxParticleAccel;
-    emitter.minParticleScale = minParticleScale;
-    emitter.maxParticleScale = maxParticleScale;
-    emitter.minParticleColor = minParticleColor;
-    emitter.maxParticleColor = maxParticleColor;
+    Components::ParticleEmitter emitter{};
+    emitter.handle = ParticleManager::MakeParticleEmitter(maxParticles, "smoke.png");
+    emitter.data.minLife = minLife;
+    emitter.data.maxLife = maxLife;
+    emitter.data.interval = interval;
+    emitter.data.minParticleOffset = minParticleOffset;
+    emitter.data.maxParticleOffset = maxParticleOffset;
+    emitter.data.minParticleVelocity = minParticleVelocity;
+    emitter.data.maxParticleVelocity = maxParticleVelocity;
+    emitter.data.minParticleAccel = minParticleAccel;
+    emitter.data.maxParticleAccel = maxParticleAccel;
+    emitter.data.minParticleScale = minParticleScale;
+    emitter.data.maxParticleScale = maxParticleScale;
+    emitter.data.minParticleColor = minParticleColor;
+    emitter.data.maxParticleColor = maxParticleColor;
     ent.AddComponent<Components::ParticleEmitter>(std::move(emitter));
   }
   ImGui::DragInt("Max particles", &maxParticles, 100, 0, 1'000'000);

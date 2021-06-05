@@ -33,7 +33,14 @@
     <ClInclude Include="CoreEngine\Application.h" />
     <ClInclude Include="CoreEngine\AssimpUtils.h" />
     <ClInclude Include="CoreEngine\Camera.h" />
-    <ClInclude Include="CoreEngine\Components.h" />
+    <ClInclude Include="CoreEngine\Components\Camera.h" />
+    <ClInclude Include="CoreEngine\Components\Common.h" />
+    <ClInclude Include="CoreEngine\Components\Core.h" />
+    <ClInclude Include="CoreEngine\Components\ParticleEmitter.h" />
+    <ClInclude Include="CoreEngine\Components\Physics.h" />
+    <ClInclude Include="CoreEngine\Components\Rendering.h" />
+    <ClInclude Include="CoreEngine\Components\Scripting.h" />
+    <ClInclude Include="CoreEngine\Components\Transform.h" />
     <ClInclude Include="CoreEngine\Context.h" />
     <ClInclude Include="CoreEngine\Debug.h" />
     <ClInclude Include="CoreEngine\DebugSystem.h" />
@@ -140,12 +147,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">EnginePCH.h</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">EnginePCH.h</PrecompiledHeaderFile>
     </ClCompile>
-    <ClCompile Include="CoreEngine\Components.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">EnginePCH.h</PrecompiledHeaderFile>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">EnginePCH.h</PrecompiledHeaderFile>
-    </ClCompile>
+    <ClCompile Include="CoreEngine\Components\ParticleEmitter.cpp" />
     <ClCompile Include="CoreEngine\Context.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">EnginePCH.h</PrecompiledHeaderFile>
@@ -554,7 +556,7 @@
     </CustomBuildBeforeTargets>
     <CustomBuildAfterTargets>PreBuildEvent</CustomBuildAfterTargets>
     <LibraryPath>$(ProjectDir)3rdParty\assimp-3.3.1\lib\x64;$(ProjectDir)3rdParty\glew-2.1.0\lib\Release\x64;$(ProjectDir)3rdParty\glfw-3.3-win64\lib-vc2019;$(ProjectDir)3rdParty\shaderc\lib;$(ProjectDir)3rdParty\zlib-1.2.11\zlib123dllx64\static_x64;$(ProjectDir)3rdParty\PhysX\bin\x64\debug;$(ProjectDir)3rdParty\FastNoise2\bin\Debug;$(LibraryPath)</LibraryPath>
-    <RunCodeAnalysis>false</RunCodeAnalysis>
+    <RunCodeAnalysis>true</RunCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -572,7 +574,7 @@
     </CustomBuildBeforeTargets>
     <CustomBuildAfterTargets>PreBuildEvent</CustomBuildAfterTargets>
     <LibraryPath>$(ProjectDir)3rdParty\assimp-3.3.1\lib\x64;$(ProjectDir)3rdParty\glew-2.1.0\lib\Release\x64;$(ProjectDir)3rdParty\glfw-3.3-win64\lib-vc2019;$(ProjectDir)3rdParty\shaderc\lib;$(ProjectDir)3rdParty\zlib-1.2.11\zlib123dllx64\static_x64;$(ProjectDir)3rdParty\PhysX\bin\x64\debug;$(ProjectDir)3rdParty\FastNoise2\bin\Release;$(LibraryPath)</LibraryPath>
-    <RunCodeAnalysis>false</RunCodeAnalysis>
+    <RunCodeAnalysis>true</RunCodeAnalysis>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

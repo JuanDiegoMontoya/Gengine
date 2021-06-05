@@ -5,8 +5,10 @@
 #include <CoreEngine/shader.h>
 #include <CoreEngine/Renderer.h>
 #include <CoreEngine/Scene.h>
-#include <CoreEngine/Components.h>
 #include <Game/PlayerActions.h>
+
+#include <CoreEngine/Components/Core.h>
+#include <CoreEngine/Components/Scripting.h>
 
 #include <fstream>
 #include <functional>

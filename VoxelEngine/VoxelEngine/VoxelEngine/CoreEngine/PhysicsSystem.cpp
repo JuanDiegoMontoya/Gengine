@@ -1,9 +1,11 @@
 #include "EnginePCH.h"
 #include "PhysicsSystem.h"
-#include "Components.h"
 #include <entt/src/core/algorithm.hpp>
-
 #include <CoreEngine/Physics.h>
+
+#include "Entity.h"
+#include "Components/Physics.h"
+#include "Components/Transform.h"
 
 PhysicsSystem::PhysicsSystem()
 {

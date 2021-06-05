@@ -1,6 +1,5 @@
 #pragma once
 #include <CoreEngine/ScriptableEntity.h>
-#include <CoreEngine/Components.h>
 #include <CoreEngine/Input.h>
 #include <CoreEngine/Camera.h>
 

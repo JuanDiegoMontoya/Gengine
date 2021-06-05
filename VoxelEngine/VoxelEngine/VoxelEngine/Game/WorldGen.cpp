@@ -16,7 +16,7 @@ namespace
 #if 0
   glm::ivec3 worldDim{ 70, 4, 70 };
 #else
-  glm::ivec3 worldDim{ 15, 2, 15 };
+  glm::ivec3 worldDim{ 5, 2, 5 };
 #endif
 }
 

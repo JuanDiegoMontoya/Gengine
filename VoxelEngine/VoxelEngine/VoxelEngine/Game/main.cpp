@@ -2,7 +2,6 @@
 #include <CoreEngine/Application.h>
 #include <CoreEngine/Scene.h>
 #include <CoreEngine/Entity.h>
-#include <CoreEngine/Components.h>
 #include <CoreEngine/Renderer.h>
 #include <CoreEngine/Mesh.h>
 #include <CoreEngine/Material.h>
@@ -17,6 +16,7 @@
 #include <CoreEngine/Camera.h>
 #include <Voxels/prefab.h>
 #include <CoreEngine/TextureCube.h>
+#include <CoreEngine/ParticleSystem.h>
 
 #include <iostream>
 #include <Game/FlyingPlayerController.h>
@@ -28,7 +28,13 @@
 #include <Game/PhysicsTest2.h>
 #include <Game/KinematicPlayerController.h>
 
-
+#include <CoreEngine/Components/Transform.h>
+#include <CoreEngine/Components/Core.h>
+#include <CoreEngine/Components/Rendering.h>
+#include <CoreEngine/Components/Physics.h>
+#include <CoreEngine/Components/Scripting.h>
+#include <CoreEngine/Components/Camera.h>
+#include <CoreEngine/Components/ParticleEmitter.h>
 
 static std::unique_ptr<Voxels::VoxelManager> voxelManager{};
 
@@ -146,7 +152,7 @@ void OnStart(Scene* scene)
 
     //auto notbatch = MeshManager::CreateMesh("./Resources/Models/sphere.obj", l, o)[0];
 
-    std::vector<std::shared_ptr<MeshHandle>> meshes;
+    std::vector<MeshID> meshes;
     meshes.push_back(MeshManager::CreateMeshBatched("./Resources/Models/big_cube.obj", "big_cube"));
     meshes.push_back(MeshManager::CreateMeshBatched("./Resources/Models/bunny.obj", "bunny"));
     meshes.push_back(MeshManager::CreateMeshBatched("./Resources/Models/goodSphere.obj", "sphere"));
@@ -211,7 +217,7 @@ void OnStart(Scene* scene)
     }
     if (1) // boxes physics test
     {
-      for (int i = 0; i < 100; i++)
+      for (int i = 0; i < 50; i++)
       {
         Entity entity = scene->CreateEntity("physics entity" + std::to_string(i));
         entity.AddComponent<Components::Transform>().SetTranslation({ 35, 50 + i, 30 + (float(i) / 50.f) });
@@ -289,27 +295,28 @@ void OnStart(Scene* scene)
       //mesh.renderFlag = (uint64_t)RenderFlags::NoRender;
       entity.AddComponent<Components::Material>().handle = batchMaterial;
       //entity.AddComponent<Components::NativeScriptComponent>().Bind<TestObj>();
-      Components::ParticleEmitter emitter(150, "stone.png");
+      Components::ParticleEmitter emitter;
+      emitter.handle = ParticleManager::MakeParticleEmitter(150, "stone.png");
 #if 1
-      emitter.minLife = 1.0f;
-      emitter.maxLife = 2.0f;
-      emitter.interval = .01;
-      emitter.minParticleAccel = { -1, -1, -1 };
-      emitter.maxParticleAccel = { 1, 1, 1 };
-      emitter.minParticleScale = { .01, .01 };
-      emitter.maxParticleScale = { .05, .05 };
-      emitter.minParticleColor = { .75, .75, 0, .4 };
-      emitter.maxParticleColor = { 1, .75, 0, .8 };
+      emitter.data.minLife = 1.0f;
+      emitter.data.maxLife = 2.0f;
+      emitter.data.interval = .01;
+      emitter.data.minParticleAccel = { -1, -1, -1 };
+      emitter.data.maxParticleAccel = { 1, 1, 1 };
+      emitter.data.minParticleScale = { .01, .01 };
+      emitter.data.maxParticleScale = { .05, .05 };
+      emitter.data.minParticleColor = { .75, .75, 0, .4 };
+      emitter.data.maxParticleColor = { 1, .75, 0, .8 };
 #else
-      emitter.minLife = 1.0f;
-      emitter.maxLife = 1.0f;
-      emitter.interval = .5f;
-      emitter.minParticleAccel = { 0, 0, 0 };
-      emitter.maxParticleAccel = { 0, 0, 0 };
-      emitter.minParticleScale = { 1, 1 };
-      emitter.maxParticleScale = { 1, 1 };
-      emitter.minParticleColor = { .75, .75, 0, .4 };
-      emitter.maxParticleColor = { 1, .75, 0, .8 };
+      emitter.data.minLife = 1.0f;
+      emitter.data.maxLife = 1.0f;
+      emitter.data.interval = .5f;
+      emitter.data.minParticleAccel = { 0, 0, 0 };
+      emitter.data.maxParticleAccel = { 0, 0, 0 };
+      emitter.data.minParticleScale = { 1, 1 };
+      emitter.data.maxParticleScale = { 1, 1 };
+      emitter.data.minParticleColor = { .75, .75, 0, .4 };
+      emitter.data.maxParticleColor = { 1, .75, 0, .8 };
 #endif
       //emitter.renderFlag = (uint64_t)RenderFlags::NoRender;
       entity.AddComponent<Components::ParticleEmitter>(std::move(emitter));

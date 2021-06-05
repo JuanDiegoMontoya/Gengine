@@ -10,7 +10,7 @@
 
 static Assimp::Importer importer;
 
-std::shared_ptr<MeshHandle> MeshManager::CreateMeshBatched(std::string filename, entt::hashed_string name)
+MeshID MeshManager::CreateMeshBatched(const std::string& filename, entt::hashed_string name)
 {
 	const aiScene* scene = importer.ReadFile(filename.c_str(), aiProcessPreset_TargetRealtime_Fast);
 
@@ -45,14 +45,13 @@ std::shared_ptr<MeshHandle> MeshManager::CreateMeshBatched(std::string filename,
 	LoadMesh(scene, scene->mMeshes[0], indices, vertices);
 
 	GenBatchedHandle_GL(name, indices, vertices);
-	auto ptr = std::make_shared<MeshHandle>(name);
-	handleMap_[name] = ptr;
-	return std::move(ptr);
+  handleMap_[name] = name;
+	return name;
 }
 
-std::shared_ptr<MeshHandle> MeshManager::GetMeshBatched(entt::hashed_string name)
+MeshID MeshManager::GetMeshBatched(entt::hashed_string name)
 {
-	return std::shared_ptr<MeshHandle>(handleMap_[name]);
+	return handleMap_[name];
 }
 
 void MeshManager::GenBatchedHandle_GL(entt::hashed_string handle, const std::vector<GLuint>& indices, const std::vector<Vertex>& vertices)
@@ -74,18 +73,18 @@ void MeshManager::GenBatchedHandle_GL(entt::hashed_string handle, const std::vec
 	Renderer::meshBufferInfo[handle] = cmd;
 }
 
-void MeshManager::DestroyBatchedMesh(MeshID handle)
-{
-  auto [vh, ih] = std::find_if(IDMap_.begin(), IDMap_.end(), [&](const auto& elem) { return elem.first.value() == handle; })->second;
-  //auto [vh, ih] = IDMap_[handle];
-	Renderer::vertexBuffer->Free(vh);
-	Renderer::indexBuffer->Free(ih);
-	Renderer::meshBufferInfo.erase(handle);
-  IDMap_.erase(std::find_if(IDMap_.begin(), IDMap_.end(), [&](const auto& elem) { return elem.first.value() == handle; }));
-  handleMap_.erase(std::find_if(handleMap_.begin(), handleMap_.end(), [&](const auto& elem) { return elem.first.value() == handle; }));
-	//IDMap_.erase(handle);
-	//handleMap_.erase(handle);
-}
+//void MeshManager::DestroyBatchedMesh(MeshID handle)
+//{
+//  auto [vh, ih] = std::find_if(IDMap_.begin(), IDMap_.end(), [&](const auto& elem) { return elem.first.value() == handle; })->second;
+//  //auto [vh, ih] = IDMap_[handle];
+//	Renderer::vertexBuffer->Free(vh);
+//	Renderer::indexBuffer->Free(ih);
+//	Renderer::meshBufferInfo.erase(handle);
+//  IDMap_.erase(std::find_if(IDMap_.begin(), IDMap_.end(), [&](const auto& elem) { return elem.first.value() == handle; }));
+//  handleMap_.erase(std::find_if(handleMap_.begin(), handleMap_.end(), [&](const auto& elem) { return elem.first.value() == handle; }));
+//	//IDMap_.erase(handle);
+//	//handleMap_.erase(handle);
+//}
 
 void MeshManager::LoadMesh(const aiScene* scene, aiMesh* mesh, std::vector<GLuint>& indices, std::vector<Vertex>& vertices)
 {

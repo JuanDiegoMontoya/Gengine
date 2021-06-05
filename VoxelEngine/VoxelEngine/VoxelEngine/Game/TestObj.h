@@ -1,8 +1,8 @@
 #pragma once
 #include <CoreEngine/ScriptableEntity.h>
-#include <CoreEngine/Components.h>
 #include <CoreEngine/Input.h>
 #include <CoreEngine/Camera.h>
+#include <CoreEngine/Components/Transform.h>
 
 class TestObj : public ScriptableEntity
 {

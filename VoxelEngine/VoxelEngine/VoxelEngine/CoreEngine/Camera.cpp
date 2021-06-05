@@ -4,7 +4,6 @@
 #include <CoreEngine/Frustum.h>
 #include <iostream>
 #include <CoreEngine/utilities.h>
-#include "Components.h"
 
 using namespace Components;
 

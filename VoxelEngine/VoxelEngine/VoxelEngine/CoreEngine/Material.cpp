@@ -1,7 +1,7 @@
 #include "EnginePCH.h"
 #include "Material.h"
 
-std::shared_ptr<MaterialHandle> MaterialManager::CreateMaterial(MaterialInfo materialData, entt::hashed_string name)
+MaterialID MaterialManager::CreateMaterial(MaterialInfo materialData, entt::hashed_string name)
 {
   MaterialInternalInfo info;
   info.tex2Dpaths = materialData.tex2Dpaths;
@@ -10,22 +10,22 @@ std::shared_ptr<MaterialHandle> MaterialManager::CreateMaterial(MaterialInfo mat
   {
     info.textures.emplace_back(path);
   }
-  auto res = std::make_shared<MaterialHandle>(name.value());
-  handleMap_.emplace(name.value(), res);
+
+  handleMap_.emplace(name.value(), name);
   materials_.emplace(name.value(), std::move(info));
-  return std::move(res);
+  return name;
 }
 
-std::shared_ptr<MaterialHandle> MaterialManager::GetMaterial(entt::hashed_string name)
+MaterialID MaterialManager::GetMaterial(entt::hashed_string name)
 {
-  return std::shared_ptr<MaterialHandle>(handleMap_[name.value()]);
+  return handleMap_[name.value()];
 }
 
-void MaterialManager::DestroyMaterial(MaterialID handle)
-{
-  materials_.erase(handle);
-  handleMap_.erase(handle);
-}
+//void MaterialManager::DestroyMaterial(MaterialID handle)
+//{
+//  materials_.erase(handle);
+//  handleMap_.erase(handle);
+//}
 
 //const MaterialInfo& MaterialManager::GetMaterialInfo(Material material)
 //{

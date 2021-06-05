@@ -1,7 +1,7 @@
 #include "EnginePCH.h"
 #include "Scene.h"
 #include "Entity.h"
-#include "Components.h"
+#include "Components/Core.h"
 
 Scene::Scene(std::string_view name, Engine& engine)
   : name_(name), engine_(engine)

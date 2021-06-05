@@ -9,6 +9,12 @@
 #include <CoreEngine/Mesh.h>
 #include <CoreEngine/TextureCube.h>
 
+#include "ParticleSystem.h"
+
+#include "Components/Transform.h"
+#include "Components/Rendering.h"
+#include "Components/ParticleEmitter.h"
+
 #include <execution>
 
 static void GLAPIENTRY
@@ -72,7 +78,7 @@ void Renderer::BeginBatch(size_t size)
 void Renderer::Submit(const Components::Transform& model, const Components::BatchedMesh& mesh, const Components::Material& mat)
 {
   auto index = cmdIndex.fetch_add(1, std::memory_order::memory_order_acq_rel);
-  userCommands[index] = BatchDrawCommand{ .mesh = mesh.handle->handle, .material = mat.handle->handle, .modelUniform = model.GetModel() };
+  userCommands[index] = BatchDrawCommand{ .mesh = mesh.handle, .material = mat.handle, .modelUniform = model.GetModel() };
 }
 
 void Renderer::RenderBatch()
@@ -189,10 +195,13 @@ void Renderer::RenderParticleEmitter(const Components::ParticleEmitter& emitter,
   shader->setInt("u_sprite", 0);
   shader->setVec3("u_cameraRight", v[0][0], v[1][0], v[2][0]);
   shader->setVec3("u_cameraUp", v[0][1], v[1][1], v[2][1]);
-  emitter.texture->Bind(0);
-  emitter.particleBuffer->Bind<GFX::Target::SSBO>(0);
-  emitter.indicesBuffer->Bind<GFX::Target::SSBO>(1);
-  emitter.indirectDrawBuffer->Bind<GFX::Target::DIB>();
+
+  auto& emitterData = ParticleManager::handleToGPUParticleData_[emitter.handle];
+  
+  emitterData->texture->Bind(0);
+  emitterData->particleBuffer->Bind<GFX::Target::SSBO>(0);
+  emitterData->indicesBuffer->Bind<GFX::Target::SSBO>(1);
+  emitterData->indirectDrawBuffer->Bind<GFX::Target::DIB>();
   //glDrawArraysInstanced(GL_TRIANGLE_FAN, 0, 4, emitter.maxParticles);
   glDrawArraysIndirect(GL_TRIANGLE_FAN, 0);
 }
