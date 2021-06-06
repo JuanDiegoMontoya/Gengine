@@ -19,9 +19,9 @@ public:
 
   virtual void OnUpdate(float dt) override
   {
-    auto* transform = &GetComponent<Components::Transform>();
-    if (HasComponent<Components::LocalTransform>())
-      transform = &GetComponent<Components::LocalTransform>().transform;
+    auto* transform = &GetComponent<Component::Transform>();
+    if (HasComponent<Component::LocalTransform>())
+      transform = &GetComponent<Component::LocalTransform>().transform;
     if (Input::IsKeyDown(GLFW_KEY_Q))
       transform->SetTranslation(transform->GetTranslation() + dt);
     if (Input::IsKeyDown(GLFW_KEY_E))

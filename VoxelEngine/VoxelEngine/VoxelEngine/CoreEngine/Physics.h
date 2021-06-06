@@ -24,7 +24,7 @@ namespace physx
 }
 class ContactReportCallback;
 
-namespace Components
+namespace Component
 {
   struct Physics;
 }

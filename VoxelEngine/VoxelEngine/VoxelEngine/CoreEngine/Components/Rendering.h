@@ -2,7 +2,7 @@
 #include "../Material.h"
 #include "../MeshUtils.h"
 
-namespace Components
+namespace Component
 {
   struct BatchedMesh
   {

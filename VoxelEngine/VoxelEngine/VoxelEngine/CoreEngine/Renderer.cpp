@@ -75,7 +75,7 @@ void Renderer::BeginBatch(size_t size)
   userCommands.resize(size);
 }
 
-void Renderer::Submit(const Components::Transform& model, const Components::BatchedMesh& mesh, const Components::Material& mat)
+void Renderer::Submit(const Component::Transform& model, const Component::BatchedMesh& mesh, const Component::Material& mat)
 {
   auto index = cmdIndex.fetch_add(1, std::memory_order::memory_order_acq_rel);
   userCommands[index] = BatchDrawCommand{ .mesh = mesh.handle, .material = mat.handle, .modelUniform = model.GetModel() };
@@ -186,7 +186,7 @@ void Renderer::BeginRenderParticleEmitter()
   //glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 }
 
-void Renderer::RenderParticleEmitter(const Components::ParticleEmitter& emitter, const Components::Transform& model)
+void Renderer::RenderParticleEmitter(const Component::ParticleEmitter& emitter, const Component::Transform& model)
 {
   auto& shader = Shader::shaders["particle"];
 
@@ -588,6 +588,7 @@ void Renderer::EndFrame(float dt)
       0, 0, windowWidth, windowHeight,
       GL_COLOR_BUFFER_BIT, GL_LINEAR);
   }
+
   glDisable(GL_FRAMEBUFFER_SRGB);
 }
 

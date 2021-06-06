@@ -225,7 +225,7 @@ void Physics::PhysicsManager::Simulate(float dt)
   for (auto [controller, entity] : gEntityControllers)
   {
     const auto& p = controller->getPosition();
-    entity.GetComponent<Components::Transform>().SetTranslation({ p.x, p.y, p.z });
+    entity.GetComponent<Component::Transform>().SetTranslation({ p.x, p.y, p.z });
   }
 
   static bool resultsReady = true;
@@ -278,7 +278,7 @@ void Physics::PhysicsManager::Simulate(float dt)
       if (entityit != gEntityActors.end())
       {
         // an entity with physics must have a transform
-        auto& tr = entityit->second.GetComponent<Components::Transform>();
+        auto& tr = entityit->second.GetComponent<Component::Transform>();
         tr.SetTranslation(toGlmVec3(pose.p));
         glm::quat q(toGlmQuat(pose.q));
         tr.SetRotation(q);
@@ -290,7 +290,7 @@ void Physics::PhysicsManager::Simulate(float dt)
 
 physx::PxRigidDynamic* Physics::PhysicsManager::AddDynamicActorEntity(Entity entity, MaterialType material, BoxCollider collider, DynamicActorFlags flags)
 {
-  const auto& tr = entity.GetComponent<Components::Transform>();
+  const auto& tr = entity.GetComponent<Component::Transform>();
   //collider.halfExtents *= tr.GetScale();
   glm::quat q(tr.GetRotation());
   glm::vec3 pos(tr.GetTranslation());
@@ -308,7 +308,7 @@ physx::PxRigidDynamic* Physics::PhysicsManager::AddDynamicActorEntity(Entity ent
 
 physx::PxRigidDynamic* Physics::PhysicsManager::AddDynamicActorEntity(Entity entity, MaterialType material, CapsuleCollider collider, DynamicActorFlags flags)
 {
-  const auto& tr = entity.GetComponent<Components::Transform>();
+  const auto& tr = entity.GetComponent<Component::Transform>();
   glm::quat q(tr.GetRotation());
   glm::vec3 pos(tr.GetTranslation());
   PxTransform tr2(toPxVec3(pos), toPxQuat(q));
@@ -324,7 +324,7 @@ physx::PxRigidDynamic* Physics::PhysicsManager::AddDynamicActorEntity(Entity ent
 
 physx::PxRigidStatic* Physics::PhysicsManager::AddStaticActorEntity(Entity entity, MaterialType material, BoxCollider collider)
 {
-  const auto& tr = entity.GetComponent<Components::Transform>();
+  const auto& tr = entity.GetComponent<Component::Transform>();
   glm::quat q(tr.GetRotation());
   glm::vec3 pos(tr.GetTranslation());
   PxTransform tr2(toPxVec3(pos), toPxQuat(q));
@@ -338,7 +338,7 @@ physx::PxRigidStatic* Physics::PhysicsManager::AddStaticActorEntity(Entity entit
 
 physx::PxRigidStatic* Physics::PhysicsManager::AddStaticActorEntity(Entity entity, MaterialType material, CapsuleCollider collider)
 {
-  const auto& tr = entity.GetComponent<Components::Transform>();
+  const auto& tr = entity.GetComponent<Component::Transform>();
   glm::quat q(tr.GetRotation());
   glm::vec3 pos(tr.GetTranslation());
   PxTransform tr2(toPxVec3(pos), toPxQuat(q));
@@ -430,7 +430,7 @@ physx::PxController* Physics::PhysicsManager::AddCharacterControllerEntity(Entit
   
   PxLockWrite lkw(&gCManager->getScene());
   PxController* controller = gCManager->createController(desc);
-  auto p = entity.GetComponent<Components::Transform>().GetTranslation();
+  auto p = entity.GetComponent<Component::Transform>().GetTranslation();
   controller->setPosition({ p.x, p.y, p.z });
   gEntityControllers[controller] = entity;
   //PxShape* sh = nullptr;

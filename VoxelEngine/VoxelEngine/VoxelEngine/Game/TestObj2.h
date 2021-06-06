@@ -20,7 +20,7 @@ public:
   virtual void OnUpdate(float dt) override
   {
     time += dt;
-    auto* transform = &GetComponent<Components::LocalTransform>().transform;
+    auto* transform = &GetComponent<Component::LocalTransform>().transform;
     auto translation = transform->GetTranslation();
     translation.y = glm::sin(time) * 5;
     transform->SetTranslation(translation);

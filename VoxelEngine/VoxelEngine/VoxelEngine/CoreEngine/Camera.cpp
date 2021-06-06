@@ -5,7 +5,7 @@
 #include <iostream>
 #include <CoreEngine/utilities.h>
 
-using namespace Components;
+using namespace Component;
 
 // Camera Component Constuctor
 Camera::Camera(Entity entity_) : entity(entity_)
@@ -18,7 +18,7 @@ void CameraSystem::Init()
   frustum_ = std::make_unique<Frustum>();
 }
 
-void CameraSystem::RegisterCamera(Components::Camera* cam)
+void CameraSystem::RegisterCamera(Component::Camera* cam)
 {
 	cameraList.push_back(cam);
 }

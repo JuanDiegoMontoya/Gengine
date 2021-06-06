@@ -2,12 +2,12 @@
 #include "../ParticleSystem.h"
 #include <utility>
 
-Components::ParticleEmitter::ParticleEmitter(ParticleEmitter&& other) noexcept
+Component::ParticleEmitter::ParticleEmitter(ParticleEmitter&& other) noexcept
 {
   *this = std::move(other);
 }
 
-Components::ParticleEmitter& Components::ParticleEmitter::operator=(ParticleEmitter&& other) noexcept
+Component::ParticleEmitter& Component::ParticleEmitter::operator=(ParticleEmitter&& other) noexcept
 {
   if (this == &other) return *this;
   this->handle = std::exchange(other.handle, 0);
@@ -15,7 +15,7 @@ Components::ParticleEmitter& Components::ParticleEmitter::operator=(ParticleEmit
   return *this;
 }
 
-Components::ParticleEmitter::~ParticleEmitter()
+Component::ParticleEmitter::~ParticleEmitter()
 {
   ParticleManager::DestroyParticleEmitter(this->handle);
 }

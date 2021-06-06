@@ -5,10 +5,10 @@
 
 void ScriptSystem::Update(Scene& scene, float dt)
 {
-  auto view = scene.GetRegistry().view<Components::NativeScriptComponent>();
+  auto view = scene.GetRegistry().view<Component::NativeScriptComponent>();
   for (auto entity : view)
   {
-    auto& script = view.get<Components::NativeScriptComponent>(entity);
+    auto& script = view.get<Component::NativeScriptComponent>(entity);
     if (script.Instance == nullptr)
     {
       script.Instance = script.InstantiateScript();

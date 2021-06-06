@@ -26,10 +26,10 @@ public:
       Input::SetCursorVisible(activeCursor);
     }
 
-    auto& cam = GetComponent<Components::Camera>();// *CameraSystem::ActiveCamera;
-    const auto& transform = GetComponent<Components::Transform>();
+    auto& cam = GetComponent<Component::Camera>();// *CameraSystem::ActiveCamera;
+    const auto& transform = GetComponent<Component::Transform>();
     //cam.SetPos(transform.GetTranslation()); // TODO: TEMP BULLSHIT
-    auto& controller = GetComponent<Components::CharacterController>();
+    auto& controller = GetComponent<Component::CharacterController>();
 
     const glm::vec2 xzForward = glm::normalize(glm::vec2(cam.GetForward().x, cam.GetForward().z));
     const glm::vec2 xzRight = glm::normalize(glm::vec2(-xzForward.y, xzForward.x));

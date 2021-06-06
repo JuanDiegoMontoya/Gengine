@@ -32,21 +32,21 @@ void PlayerActions::OnUpdate(float dt)
     GetScene()->GetEngine().IsPaused() ? GetScene()->GetEngine().Unpause() : GetScene()->GetEngine().Pause();
   }
 
-  auto& cam = GetComponent<Components::Parent>().entity.GetComponent<Components::Camera>();
+  auto& cam = GetComponent<Component::Parent>().entity.GetComponent<Component::Camera>();
 
 
   if (Input::IsKeyPressed(GLFW_KEY_V))
   {
     Entity ent = CreateEntity("Arrow");
-    ent.AddComponent<Components::Transform>().SetTranslation(cam.GetWorldPos() + (cam.GetForward() * 1.5f));
-    ent.AddComponent<Components::BatchedMesh>().handle = MeshManager::GetMeshBatched("big_cube");
-    ent.AddComponent<Components::Material>().handle = MaterialManager::GetMaterial("batchMaterial");
+    ent.AddComponent<Component::Transform>().SetTranslation(cam.GetWorldPos() + (cam.GetForward() * 1.5f));
+    ent.AddComponent<Component::BatchedMesh>().handle = MeshManager::GetMeshBatched("big_cube");
+    ent.AddComponent<Component::Material>().handle = MaterialManager::GetMaterial("batchMaterial");
     auto collider = Physics::BoxCollider(glm::vec3(.5f));
-    Components::DynamicPhysics phys(ent, Physics::MaterialType::TERRAIN, collider);
-    ent.AddComponent<Components::DynamicPhysics>(std::move(phys)).Interface().AddForce(cam.GetForward() * 300.f);
+    Component::DynamicPhysics phys(ent, Physics::MaterialType::TERRAIN, collider);
+    ent.AddComponent<Component::DynamicPhysics>(std::move(phys)).Interface().AddForce(cam.GetForward() * 300.f);
 
     {
-      Components::ParticleEmitter emitter{};
+      Component::ParticleEmitter emitter{};
       emitter.handle = ParticleManager::MakeParticleEmitter(1500, "smoke.png");
       emitter.data.minLife = 1.0f;
       emitter.data.maxLife = 2.0f;
@@ -61,15 +61,15 @@ void PlayerActions::OnUpdate(float dt)
       //emitter.maxParticleColor = { 1, .75, 0, .8 };
       emitter.data.minParticleColor = { .75, .40, 0, .4 };
       emitter.data.maxParticleColor = { 1, .60, .2, .8 };
-      ent.AddComponent<Components::ParticleEmitter>(std::move(emitter));
+      ent.AddComponent<Component::ParticleEmitter>(std::move(emitter));
     }
 
     Entity child = CreateEntity("ArrowSmoke");
     child.SetParent(ent);
-    child.AddComponent<Components::Transform>();
-    child.AddComponent<Components::LocalTransform>();
+    child.AddComponent<Component::Transform>();
+    child.AddComponent<Component::LocalTransform>();
     {
-      Components::ParticleEmitter emitter2{};
+      Component::ParticleEmitter emitter2{};
       emitter2.handle = ParticleManager::MakeParticleEmitter(3500, "smoke.png");
       emitter2.data.minLife = 3.0f;
       emitter2.data.maxLife = 4.0f;
@@ -82,7 +82,7 @@ void PlayerActions::OnUpdate(float dt)
       emitter2.data.maxParticleOffset = { 1, 2, 1 };
       emitter2.data.minParticleColor = { .4, .4, .4, .4 };
       emitter2.data.maxParticleColor = { .5, .5, .5, .8 };
-      child.AddComponent<Components::ParticleEmitter>(std::move(emitter2));
+      child.AddComponent<Component::ParticleEmitter>(std::move(emitter2));
     }
   }
 
@@ -90,14 +90,14 @@ void PlayerActions::OnUpdate(float dt)
   if (ImGui::Button("Spawn Emitter"))
   {
     Entity ent = CreateEntity("Arrow");
-    ent.AddComponent<Components::Transform>().SetTranslation(cam.GetWorldPos() + (cam.GetForward() * 1.5f));
-    ent.AddComponent<Components::BatchedMesh>().handle = MeshManager::GetMeshBatched("big_cube");
-    ent.AddComponent<Components::Material>().handle = MaterialManager::GetMaterial("batchMaterial");
+    ent.AddComponent<Component::Transform>().SetTranslation(cam.GetWorldPos() + (cam.GetForward() * 1.5f));
+    ent.AddComponent<Component::BatchedMesh>().handle = MeshManager::GetMeshBatched("big_cube");
+    ent.AddComponent<Component::Material>().handle = MaterialManager::GetMaterial("batchMaterial");
     auto collider = Physics::BoxCollider(glm::vec3(.5f));
-    Components::DynamicPhysics phys(ent, Physics::MaterialType::TERRAIN, collider);
-    ent.AddComponent<Components::DynamicPhysics>(std::move(phys)).Interface().AddForce(cam.GetForward() * 0.f);
+    Component::DynamicPhysics phys(ent, Physics::MaterialType::TERRAIN, collider);
+    ent.AddComponent<Component::DynamicPhysics>(std::move(phys)).Interface().AddForce(cam.GetForward() * 0.f);
 
-    Components::ParticleEmitter emitter{};
+    Component::ParticleEmitter emitter{};
     emitter.handle = ParticleManager::MakeParticleEmitter(maxParticles, "smoke.png");
     emitter.data.minLife = minLife;
     emitter.data.maxLife = maxLife;
@@ -112,7 +112,7 @@ void PlayerActions::OnUpdate(float dt)
     emitter.data.maxParticleScale = maxParticleScale;
     emitter.data.minParticleColor = minParticleColor;
     emitter.data.maxParticleColor = maxParticleColor;
-    ent.AddComponent<Components::ParticleEmitter>(std::move(emitter));
+    ent.AddComponent<Component::ParticleEmitter>(std::move(emitter));
   }
   ImGui::DragInt("Max particles", &maxParticles, 100, 0, 1'000'000);
   if (ImGui::Button("Compute interval"))

@@ -2,7 +2,7 @@
 #include "Entity.h"
 #include "Components/Transform.h"
 
-using namespace Components;
+using namespace Component;
 
 void Entity::SetParent(Entity parent)
 {

@@ -39,7 +39,7 @@ namespace
     return Utils::map(rng(), 0.0, 1.0, low, high);
   }
 
-  // TODO: split into different structs based on usage
+  // TODO: split into different structs based on usage (SoA style)
   struct Particle // std430 layout
   {
     glm::vec4 pos{ -1 };
@@ -52,6 +52,25 @@ namespace
   };
 }
 
+static void OnEmitterConstruct(entt::basic_registry<entt::entity>& registry, entt::entity entity)
+{
+  printf("Constructed particle emitter on entity %d\n", entity);
+}
+
+static void OnEmitterDestroy(entt::basic_registry<entt::entity>& registry, entt::entity entity)
+{
+  printf("Destroyed particle emitter on entity %d\n", entity);
+  auto& emitter = registry.get<Component::ParticleEmitter>(entity);
+  ParticleManager::DestroyParticleEmitter(emitter.handle);
+}
+
+void ParticleSystem::InitScene(Scene& scene)
+{
+  scene.GetRegistry().on_construct<Component::ParticleEmitter>()
+    .connect<&OnEmitterConstruct>();
+  scene.GetRegistry().on_destroy<Component::ParticleEmitter>()
+    .connect<&OnEmitterDestroy>();
+}
 
 void ParticleSystem::Update(Scene& scene, float dt)
 {
@@ -59,7 +78,7 @@ void ParticleSystem::Update(Scene& scene, float dt)
   auto& emitter_shader = Shader::shaders["update_particle_emitter"];
   emitter_shader->Use();
   const int localSize = 128; // maybe should query shader for this value
-  using namespace Components;
+  using namespace Component;
   auto view = scene.GetRegistry().view<ParticleEmitter, Transform>();
   for (entt::entity entity : view)
   {

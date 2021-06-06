@@ -78,7 +78,7 @@ void OnStart(Scene* scene)
   // add game manager entity
   {
     Entity gameManager = scene->CreateEntity("Game Manager");
-    gameManager.AddComponent<Components::NativeScriptComponent>().Bind<GameManager>();
+    gameManager.AddComponent<Component::NativeScriptComponent>().Bind<GameManager>();
   }
 
   std::cout << "User function, initial scene name: " << scene->GetName() << '\n';
@@ -123,22 +123,22 @@ void OnStart(Scene* scene)
   //};
   {
     Entity player = scene->CreateEntity("player");
-    player.AddComponent<Components::Transform>().SetRotation(glm::rotate(glm::mat4(1), glm::pi<float>() / 2.f, { 0, 0, 1 }));
-    player.GetComponent<Components::Transform>().SetTranslation({ -5, 2, -5 });
+    player.AddComponent<Component::Transform>().SetRotation(glm::rotate(glm::mat4(1), glm::pi<float>() / 2.f, { 0, 0, 1 }));
+    player.GetComponent<Component::Transform>().SetTranslation({ -5, 2, -5 });
     //player.AddComponent<Components::NativeScriptComponent>().Bind<FlyingPlayerController>();
     //player.AddComponent<Components::NativeScriptComponent>().Bind<PhysicsPlayerController>();
-    player.AddComponent<Components::NativeScriptComponent>().Bind<KinematicPlayerController>();
+    player.AddComponent<Component::NativeScriptComponent>().Bind<KinematicPlayerController>();
     //player.AddComponent<Components::Camera>(Camera::ActiveCamera);
-    auto& cam = player.AddComponent<Components::Camera>(player);
+    auto& cam = player.AddComponent<Component::Camera>(player);
     cam.skybox = std::make_unique<GFX::TextureCube>(std::span<const std::string, 6>(faces.data(), faces.size()));
     cam.SetPos({ 0, .65, 0 });
     Physics::CapsuleCollider collider(0.3, 0.5);
     //Physics::BoxCollider collider({ 1, 1, 1 });
-    player.AddComponent<Components::CharacterController>(player, Physics::MaterialType::PLAYER, collider);
+    player.AddComponent<Component::CharacterController>(player, Physics::MaterialType::PLAYER, collider);
 
     // extra stuff attached to the player
     Entity playerSub = scene->CreateEntity("PlayerSub");
-    playerSub.AddComponent<Components::NativeScriptComponent>().Bind<PlayerActions>(voxelManager.get());
+    playerSub.AddComponent<Component::NativeScriptComponent>().Bind<PlayerActions>(voxelManager.get());
     player.AddChild(playerSub);
 
   }
@@ -161,26 +161,26 @@ void OnStart(Scene* scene)
     if (0) // creating a really tall parenting chain of objects
     {
       Entity parent = scene->CreateEntity("parent");
-      parent.AddComponent<Components::Transform>().SetTranslation({ -15, -10, 10 });
-      parent.GetComponent<Components::Transform>().SetScale({ 1, 1, 1 });
-      parent.AddComponent<Components::NativeScriptComponent>().Bind<TestObj>();
+      parent.AddComponent<Component::Transform>().SetTranslation({ -15, -10, 10 });
+      parent.GetComponent<Component::Transform>().SetScale({ 1, 1, 1 });
+      parent.AddComponent<Component::NativeScriptComponent>().Bind<TestObj>();
       //parent.AddComponent<Components::Mesh>().meshHandle = bunny;
       //parent.AddComponent<Components::Material>(userMaterial);
-      parent.AddComponent<Components::BatchedMesh>().handle = MeshManager::GetMeshBatched("big_cube");
-      parent.AddComponent<Components::Material>(MaterialManager::GetMaterial("batchMaterial"));
+      parent.AddComponent<Component::BatchedMesh>().handle = MeshManager::GetMeshBatched("big_cube");
+      parent.AddComponent<Component::Material>(MaterialManager::GetMaterial("batchMaterial"));
 
       for (int i = 0; i < 5000; i++)
       {
         Entity child = scene->CreateEntity("child");
-        child.AddComponent<Components::Transform>();
+        child.AddComponent<Component::Transform>();
         child.SetParent(parent);
-        child.AddComponent<Components::NativeScriptComponent>().Bind<TestObj>();
-        child.AddComponent<Components::LocalTransform>().transform.SetTranslation({ 1, 1, 1 });
-        child.GetComponent<Components::LocalTransform>().transform.SetScale({ .95, .95, .95 });
+        child.AddComponent<Component::NativeScriptComponent>().Bind<TestObj>();
+        child.AddComponent<Component::LocalTransform>().transform.SetTranslation({ 1, 1, 1 });
+        child.GetComponent<Component::LocalTransform>().transform.SetScale({ .95, .95, .95 });
         //child.AddComponent<Components::Mesh>().meshHandle = bunny;
         //child.AddComponent<Components::Material>(userMaterial);
-        child.AddComponent<Components::BatchedMesh>().handle = MeshManager::GetMeshBatched("big_cube");
-        child.AddComponent<Components::Material>().handle = batchMaterial;
+        child.AddComponent<Component::BatchedMesh>().handle = MeshManager::GetMeshBatched("big_cube");
+        child.AddComponent<Component::Material>().handle = batchMaterial;
         parent = child;
       }
     }
@@ -195,19 +195,19 @@ void OnStart(Scene* scene)
           Entity entity = scene->CreateEntity("parent");
           if (!parent)
           {
-            entity.AddComponent<Components::NativeScriptComponent>().Bind<TestObj>();
+            entity.AddComponent<Component::NativeScriptComponent>().Bind<TestObj>();
             parent = entity;
           }
           else
           {
             entity.SetParent(parent);
-            entity.AddComponent<Components::LocalTransform>().transform.SetTranslation({ x * 3, 0, y * 3 });
-            entity.AddComponent<Components::NativeScriptComponent>().Bind<TestObj2>();
+            entity.AddComponent<Component::LocalTransform>().transform.SetTranslation({ x * 3, 0, y * 3 });
+            entity.AddComponent<Component::NativeScriptComponent>().Bind<TestObj2>();
           }
-          entity.AddComponent<Components::Transform>().SetTranslation({ x * 3, 0, y * 3 });
-          entity.GetComponent<Components::Transform>().SetScale({ 1, 1, 1 });
-          entity.AddComponent<Components::BatchedMesh>().handle = meshes[rand() % meshes.size()];
-          entity.AddComponent<Components::Material>().handle = batchMaterial;
+          entity.AddComponent<Component::Transform>().SetTranslation({ x * 3, 0, y * 3 });
+          entity.GetComponent<Component::Transform>().SetScale({ 1, 1, 1 });
+          entity.AddComponent<Component::BatchedMesh>().handle = meshes[rand() % meshes.size()];
+          entity.AddComponent<Component::Material>().handle = batchMaterial;
           //Components::Physics phys(entity, Physics::MaterialType::Terrain, Physics::BoxCollider(glm::vec3(1)));
           //entity.AddComponent<Components::Physics>(std::move(phys));
           //entity.AddComponent<Components::Mesh>().meshHandle = notbatch;
@@ -220,15 +220,15 @@ void OnStart(Scene* scene)
       for (int i = 0; i < 50; i++)
       {
         Entity entity = scene->CreateEntity("physics entity" + std::to_string(i));
-        entity.AddComponent<Components::Transform>().SetTranslation({ 35, 50 + i, 30 + (float(i) / 50.f) });
+        entity.AddComponent<Component::Transform>().SetTranslation({ 35, 50 + i, 30 + (float(i) / 50.f) });
         //entity.AddComponent<Components::Transform>().SetTranslation({ -15, 50, 10 });
         glm::vec3 scale{ 1, .4f, glm::clamp(1 + i * (.02f), .1f, 10.f) };
-        entity.GetComponent<Components::Transform>().SetScale(scale);
-        entity.AddComponent<Components::BatchedMesh>().handle = MeshManager::GetMeshBatched("big_cube");
-        entity.AddComponent<Components::Material>().handle = MaterialManager::GetMaterial("batchMaterial");
+        entity.GetComponent<Component::Transform>().SetScale(scale);
+        entity.AddComponent<Component::BatchedMesh>().handle = MeshManager::GetMeshBatched("big_cube");
+        entity.AddComponent<Component::Material>().handle = MaterialManager::GetMaterial("batchMaterial");
         auto collider = Physics::BoxCollider(scale * .5f);
-        Components::DynamicPhysics phys(entity, Physics::MaterialType::TERRAIN, collider);
-        entity.AddComponent<Components::DynamicPhysics>(std::move(phys));
+        Component::DynamicPhysics phys(entity, Physics::MaterialType::TERRAIN, collider);
+        entity.AddComponent<Component::DynamicPhysics>(std::move(phys));
       }
     }
     if (1) // spheres physics test
@@ -236,27 +236,27 @@ void OnStart(Scene* scene)
       for (int i = 0; i < 50; i++)
       {
         Entity entity = scene->CreateEntity("physics entity" + std::to_string(i));
-        entity.AddComponent<Components::Transform>().SetTranslation({ +30, 50 + i, 30 + (float(i) / 50.f) });
+        entity.AddComponent<Component::Transform>().SetTranslation({ +30, 50 + i, 30 + (float(i) / 50.f) });
         //entity.AddComponent<Components::Transform>().SetTranslation({ -15, 50, 10 });
         glm::vec3 scale{ 1, 1, 1 };
-        entity.GetComponent<Components::Transform>().SetScale(scale * .5f);
-        entity.AddComponent<Components::BatchedMesh>().handle = meshes[2];
-        entity.AddComponent<Components::Material>().handle = batchMaterial;
+        entity.GetComponent<Component::Transform>().SetScale(scale * .5f);
+        entity.AddComponent<Component::BatchedMesh>().handle = meshes[2];
+        entity.AddComponent<Component::Material>().handle = batchMaterial;
         auto collider = Physics::CapsuleCollider(.5, .01);
-        Components::DynamicPhysics phys(entity, Physics::MaterialType::TERRAIN, collider);
-        entity.AddComponent<Components::DynamicPhysics>(std::move(phys));
+        Component::DynamicPhysics phys(entity, Physics::MaterialType::TERRAIN, collider);
+        entity.AddComponent<Component::DynamicPhysics>(std::move(phys));
       }
     }
     if (0) // interactive physics test
     {
       Entity entity = scene->CreateEntity("controlled physics entity");
-      entity.AddComponent<Components::Transform>().SetTranslation({ -15, 5, 10 });
-      entity.GetComponent<Components::Transform>().SetScale({ 1, 1, 1 });
-      entity.AddComponent<Components::BatchedMesh>().handle = meshes[0];
-      entity.AddComponent<Components::Material>().handle = batchMaterial;
-      Components::DynamicPhysics phys(entity, Physics::MaterialType::TERRAIN, Physics::BoxCollider(glm::vec3(.5)));
-      entity.AddComponent<Components::DynamicPhysics>(std::move(phys));
-      entity.AddComponent<Components::NativeScriptComponent>().Bind<PhysicsTest2>();
+      entity.AddComponent<Component::Transform>().SetTranslation({ -15, 5, 10 });
+      entity.GetComponent<Component::Transform>().SetScale({ 1, 1, 1 });
+      entity.AddComponent<Component::BatchedMesh>().handle = meshes[0];
+      entity.AddComponent<Component::Material>().handle = batchMaterial;
+      Component::DynamicPhysics phys(entity, Physics::MaterialType::TERRAIN, Physics::BoxCollider(glm::vec3(.5)));
+      entity.AddComponent<Component::DynamicPhysics>(std::move(phys));
+      entity.AddComponent<Component::NativeScriptComponent>().Bind<PhysicsTest2>();
     }
     if (0) // stack of static entities test
     {
@@ -265,14 +265,14 @@ void OnStart(Scene* scene)
         for (int j = i; j < 10; j++)
         {
           Entity entity = scene->CreateEntity("physics entity" + std::to_string(i));
-          entity.AddComponent<Components::Transform>().SetTranslation({ -15, 0 + i, (float(i) / 2.f + j - i) });
+          entity.AddComponent<Component::Transform>().SetTranslation({ -15, 0 + i, (float(i) / 2.f + j - i) });
           glm::vec3 scale{ 1, 1, 1 };
-          entity.GetComponent<Components::Transform>().SetScale(scale);
-          entity.AddComponent<Components::BatchedMesh>().handle = meshes[0];
-          entity.AddComponent<Components::Material>(batchMaterial);
+          entity.GetComponent<Component::Transform>().SetScale(scale);
+          entity.AddComponent<Component::BatchedMesh>().handle = meshes[0];
+          entity.AddComponent<Component::Material>(batchMaterial);
           auto collider = Physics::BoxCollider({ .5, .5, .5 });
-          Components::StaticPhysics phys(entity, Physics::MaterialType::TERRAIN, collider);
-          entity.AddComponent<Components::StaticPhysics>(std::move(phys));
+          Component::StaticPhysics phys(entity, Physics::MaterialType::TERRAIN, collider);
+          entity.AddComponent<Component::StaticPhysics>(std::move(phys));
         }
       }
     }
@@ -287,15 +287,15 @@ void OnStart(Scene* scene)
     if (1) // particle emitter test
     {
       Entity entity = scene->CreateEntity("particle boi");
-      auto& tr = entity.AddComponent<Components::Transform>();
+      auto& tr = entity.AddComponent<Component::Transform>();
       tr.SetTranslation({ 2, 0, -2 });
       tr.SetScale({ 1, 1, 1 });
-      auto& mesh = entity.AddComponent<Components::BatchedMesh>();
+      auto& mesh = entity.AddComponent<Component::BatchedMesh>();
       mesh.handle = MeshManager::GetMeshBatched("teapot");
       //mesh.renderFlag = (uint64_t)RenderFlags::NoRender;
-      entity.AddComponent<Components::Material>().handle = batchMaterial;
+      entity.AddComponent<Component::Material>().handle = batchMaterial;
       //entity.AddComponent<Components::NativeScriptComponent>().Bind<TestObj>();
-      Components::ParticleEmitter emitter;
+      Component::ParticleEmitter emitter;
       emitter.handle = ParticleManager::MakeParticleEmitter(150, "stone.png");
 #if 1
       emitter.data.minLife = 1.0f;
@@ -319,7 +319,7 @@ void OnStart(Scene* scene)
       emitter.data.maxParticleColor = { 1, .75, 0, .8 };
 #endif
       //emitter.renderFlag = (uint64_t)RenderFlags::NoRender;
-      entity.AddComponent<Components::ParticleEmitter>(std::move(emitter));
+      entity.AddComponent<Component::ParticleEmitter>(std::move(emitter));
     }
   }
 

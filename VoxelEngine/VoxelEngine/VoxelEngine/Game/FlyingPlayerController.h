@@ -19,7 +19,7 @@ public:
 
   virtual void OnUpdate(float dt) override
   {
-    auto translation = GetComponent<Components::Transform>().GetTranslation();
+    auto translation = GetComponent<Component::Transform>().GetTranslation();
     auto& cam = *CameraSystem::ActiveCamera;
 
     float speed = 3.5f;
@@ -37,7 +37,7 @@ public:
       translation -= glm::normalize(glm::cross(CameraSystem::GetFront(), CameraSystem::GetUp())) * currSpeed;
     if (Input::IsKeyDown(GLFW_KEY_D))
       translation += glm::normalize(glm::cross(CameraSystem::GetFront(), CameraSystem::GetUp())) * currSpeed;
-    GetComponent<Components::Transform>().SetTranslation(translation);
+    GetComponent<Component::Transform>().SetTranslation(translation);
     //CameraSystem::SetPos(translation); // TODO: TEMP BULLSHIT
     //
     auto pyr = CameraSystem::GetEuler();

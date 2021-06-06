@@ -73,6 +73,7 @@ public:
   static float GetInputAxis(entt::hashed_string action);
 
   static void SetCursorVisible(bool state);
+  static bool GetCursorVisible();
 
   static inline GLFWwindow* window;
 

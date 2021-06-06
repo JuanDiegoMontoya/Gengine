@@ -16,9 +16,9 @@ public:
 
   static void Update(float dt);
 
-  static void RegisterCamera(Components::Camera* cam);
+  static void RegisterCamera(Component::Camera* cam);
 
-  static const std::vector<Components::Camera*>& GetCameraList()
+  static const std::vector<Component::Camera*>& GetCameraList()
   {
 	  return cameraList;
   }
@@ -47,10 +47,10 @@ public:
   static void SetYaw(float f) { yaw_ = f; dirty_ = true; }
   static void SetPitch(float f) { pitch_ = f; dirty_ = true; }
 
-  static inline Components::Camera* ActiveCamera = nullptr;
+  static inline Component::Camera* ActiveCamera = nullptr;
 
 private:
-	static inline std::vector<Components::Camera*> cameraList;
+	static inline std::vector<Component::Camera*> cameraList;
 
 	static inline glm::vec3 worldpos_ = glm::vec3(150, 50, 100);
 	static inline glm::vec3 dir_ = glm::vec3(-.22f, .22f, -.95f);

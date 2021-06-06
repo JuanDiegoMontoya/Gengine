@@ -1,7 +1,7 @@
 #pragma once
 #include "../Physics.h"
 
-namespace Components
+namespace Component
 {
   struct DynamicPhysics
   {

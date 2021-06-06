@@ -61,18 +61,18 @@ void Editor::SaveRegion()
 
 void Editor::LoadRegion()
 {
-  auto view = voxels.scene_.GetRegistry().view<Components::Tag>();
+  auto view = voxels.scene_.GetRegistry().view<Component::Tag>();
   Entity player;
   for (auto entity : view)
   {
-    auto tag = view.get<Components::Tag>(entity);
+    auto tag = view.get<Component::Tag>(entity);
     if (tag.tag == "PlayerSub")
     {
       player = { entity, &voxels.scene_ };
       break;
     }
   }
-  auto scriptInstance = dynamic_cast<PlayerActions*>(player.GetComponent<Components::NativeScriptComponent>().Instance);
+  auto scriptInstance = dynamic_cast<PlayerActions*>(player.GetComponent<Component::NativeScriptComponent>().Instance);
   Voxels::Prefab prefab = Voxels::PrefabManager::LoadPrefabFromFile(std::string(lName));
   scriptInstance->prefab = prefab;
   scriptInstance->prefabName = prefab.name;

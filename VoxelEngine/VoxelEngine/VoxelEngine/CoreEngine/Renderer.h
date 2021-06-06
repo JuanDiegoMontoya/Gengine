@@ -13,7 +13,7 @@ namespace GFX
   class Fence;
 }
 
-namespace Components
+namespace Component
 {
   struct Transform;
   struct BatchedMesh;
@@ -28,10 +28,10 @@ public:
   static void CompileShaders();
 
   static void BeginBatch(size_t size);
-  static void Submit(const Components::Transform& model, const Components::BatchedMesh& mesh, const Components::Material& mat);
+  static void Submit(const Component::Transform& model, const Component::BatchedMesh& mesh, const Component::Material& mat);
   static void RenderBatch();
   static void BeginRenderParticleEmitter();
-  static void RenderParticleEmitter(const Components::ParticleEmitter& emitter, const Components::Transform& model);
+  static void RenderParticleEmitter(const Component::ParticleEmitter& emitter, const Component::Transform& model);
 
   // generic drawing functions (TODO: move)
   static void DrawAxisIndicator();

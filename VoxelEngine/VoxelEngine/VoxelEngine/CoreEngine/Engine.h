@@ -14,6 +14,7 @@ public:
   Engine();
   ~Engine();
 
+  void InitScenes();
   void Run();
 
   Scene* GetScene(std::string_view name);

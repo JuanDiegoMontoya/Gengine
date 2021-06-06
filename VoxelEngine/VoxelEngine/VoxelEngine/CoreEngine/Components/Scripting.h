@@ -2,7 +2,7 @@
 #include "../ScriptableEntity.h"
 #include <functional>
 
-namespace Components
+namespace Component
 {
   struct NativeScriptComponent
   {

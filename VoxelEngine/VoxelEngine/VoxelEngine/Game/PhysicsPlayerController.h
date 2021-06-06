@@ -11,7 +11,7 @@ class PhysicsPlayerController : public ScriptableEntity
 public:
   virtual void OnCreate() override
   {
-    auto& physics = GetComponent<Components::DynamicPhysics>();
+    auto& physics = GetComponent<Component::DynamicPhysics>();
     //physics.Interface().SetMaxVelocity(maxSpeed);
     physics.Interface().SetLockFlags(Physics::LockFlag::LOCK_ANGULAR_X | Physics::LockFlag::LOCK_ANGULAR_Y | Physics::LockFlag::LOCK_ANGULAR_Z);
     physics.Interface().SetMass(5);
@@ -25,9 +25,9 @@ public:
   virtual void OnUpdate(float dt) override
   {
     auto& cam = *CameraSystem::ActiveCamera;
-    const auto& transform = GetComponent<Components::Transform>();
+    const auto& transform = GetComponent<Component::Transform>();
     CameraSystem::SetPos(transform.GetTranslation()); // TODO: TEMP BULLSHIT
-    auto& physics = GetComponent<Components::DynamicPhysics>();
+    auto& physics = GetComponent<Component::DynamicPhysics>();
 
     glm::vec2 xzForce{0};
     const glm::vec2 xzForward = glm::normalize(glm::vec2(CameraSystem::GetDir().x, CameraSystem::GetDir().z));

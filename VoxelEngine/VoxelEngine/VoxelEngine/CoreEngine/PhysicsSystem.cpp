@@ -21,7 +21,7 @@ void PhysicsSystem::Update(Scene& scene, float dt)
 {
 	// update local transforms
 	{
-		using namespace Components;
+		using namespace Component;
 		// create a PARTIALLY OWNING group, OWNING TRANSFORM
 		auto group = scene.GetRegistry().group<Transform>(entt::get<LocalTransform, Parent>);
 		group.sort(
@@ -40,7 +40,7 @@ void PhysicsSystem::Update(Scene& scene, float dt)
 				ltransform.SetModel();
 			}
 
-			const auto& parentTransform = scene.GetRegistry().get<Components::Transform>(parent.entity);
+			const auto& parentTransform = scene.GetRegistry().get<Component::Transform>(parent.entity);
 			if (parentTransform.IsDirty() || localDirty)
 			{
 				worldTransform.SetTranslation(parentTransform.GetTranslation() + ltransform.GetTranslation() * parentTransform.GetScale());
@@ -58,10 +58,10 @@ void PhysicsSystem::Update(Scene& scene, float dt)
 
 	// update model matrices after potential changes
 	{
-		auto view = scene.GetRegistry().view<Components::Transform>();
+		auto view = scene.GetRegistry().view<Component::Transform>();
 		for (auto entity : view)
 		{
-			auto& transform = view.get<Components::Transform>(entity);
+			auto& transform = view.get<Component::Transform>(entity);
 			if (transform.IsDirty())
 			{
 				transform.SetModel();

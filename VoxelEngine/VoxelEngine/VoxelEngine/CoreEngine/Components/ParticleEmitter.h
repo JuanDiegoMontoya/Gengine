@@ -3,7 +3,7 @@
 #include <glm/glm.hpp>
 #include "../MeshUtils.h"
 
-namespace Components
+namespace Component
 {
   struct ParticleEmitter
   {

@@ -319,3 +319,8 @@ void Input::SetCursorVisible(bool state)
   else
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 }
+
+bool Input::GetCursorVisible()
+{
+  return glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_NORMAL;
+}

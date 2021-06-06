@@ -28,6 +28,14 @@ Engine::~Engine()
   physicsSystem.reset();
 }
 
+void Engine::InitScenes()
+{
+  for (auto& scene : scenes_)
+  {
+    particleSystem->InitScene(*scene);
+  }
+}
+
 void Engine::Run()
 {
   Timer timer;

@@ -62,7 +62,10 @@ void DebugSystem::Update(Scene& scene, float dt)
 
 void DebugSystem::EndFrame(Scene& scene, float dt)
 {
-  ImGui::Render();
-  ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+  if (Input::GetCursorVisible())
+  {
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+  }
   ImGui::EndFrame();
 }

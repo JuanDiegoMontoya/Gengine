@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 
-namespace Components
+namespace Component
 {
   struct Tag
   {

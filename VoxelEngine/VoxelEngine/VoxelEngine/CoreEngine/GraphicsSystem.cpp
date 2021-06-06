@@ -38,13 +38,13 @@ void GraphicsSystem::StartFrame()
   Renderer::StartFrame();
 
   ImGui::Begin("Graphics");
-  ImGui::Text("Active Meshes");
+  ImGui::Text("Loaded Meshes");
   for (const auto& p : MeshManager::handleMap_)
   {
     ImGui::Text("%s, ID: %u", p.first.data(), p.first.value());
   }
   ImGui::Separator();
-  ImGui::Text("Active Materials");
+  ImGui::Text("Loaded Materials");
   for (const auto& p : MaterialManager::handleMap_)
   {
     ImGui::Text("ID: %u", p.first);
@@ -52,7 +52,7 @@ void GraphicsSystem::StartFrame()
   ImGui::End();
 
   const auto& camList = CameraSystem::GetCameraList();
-  for (Components::Camera* camera : camList)
+  for (Component::Camera* camera : camList)
   {
     if (!camera->skybox)
     {
@@ -67,13 +67,13 @@ void GraphicsSystem::StartFrame()
 void GraphicsSystem::DrawOpaque(Scene& scene, float dt)
 {
   const auto& camList = CameraSystem::GetCameraList();
-  for (Components::Camera* camera : camList)
+  for (Component::Camera* camera : camList)
   {
     CameraSystem::ActiveCamera = camera;
     CameraSystem::Update(dt);
 
     // draw batched objects in the scene
-    using namespace Components;
+    using namespace Component;
     auto group = scene.GetRegistry().group<BatchedMesh>(entt::get<Transform, Material>);
     Renderer::BeginBatch(group.size());
     std::for_each(std::execution::par, group.begin(), group.end(),
@@ -93,12 +93,12 @@ void GraphicsSystem::DrawOpaque(Scene& scene, float dt)
 void GraphicsSystem::DrawTransparent(Scene& scene, float dt)
 {
   const auto& camList = CameraSystem::GetCameraList();
-  for (Components::Camera* camera : camList)
+  for (Component::Camera* camera : camList)
   {
     CameraSystem::ActiveCamera = camera;
 
-    // draw particles
-    using namespace Components;
+    // draw particles from back to front
+    using namespace Component;
     auto view = scene.GetRegistry().view<ParticleEmitter, Transform>();
     auto compare = [&camera](const auto& p1, const auto& p2)
     {

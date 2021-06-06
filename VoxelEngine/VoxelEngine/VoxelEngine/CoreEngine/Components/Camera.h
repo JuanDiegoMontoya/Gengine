@@ -6,7 +6,7 @@
 #include <CoreEngine/TextureCube.h>
 #include <memory>
 
-namespace Components
+namespace Component
 {
   struct Camera
   {
@@ -32,7 +32,7 @@ namespace Components
 
     glm::vec3 GetWorldPos()
     {
-      Transform& tr = entity.GetComponent<Components::Transform>();
+      Transform& tr = entity.GetComponent<Component::Transform>();
       return tr.GetTranslation() + translation;
     }
 

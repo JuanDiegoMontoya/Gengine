@@ -15,6 +15,7 @@ private:
   friend class ParticleSystem;
   friend class Renderer;
 
+
   struct InternalEmitterData
   {
     std::unique_ptr<GFX::StaticBuffer> particleBuffer{};
@@ -35,6 +36,7 @@ private:
 class ParticleSystem
 {
 public:
+  void InitScene(Scene& scene);
   void Update(Scene& scene, float dt);
 
 private:
