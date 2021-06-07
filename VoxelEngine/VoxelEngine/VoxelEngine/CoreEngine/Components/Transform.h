@@ -62,6 +62,7 @@ namespace Component
 
   private:
     friend class Entity;
+    friend class Scene;
     std::vector<Entity> children{};
   };
 

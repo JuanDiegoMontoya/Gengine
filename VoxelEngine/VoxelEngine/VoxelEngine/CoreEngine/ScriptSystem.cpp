@@ -3,6 +3,18 @@
 #include <CoreEngine/Scene.h>
 #include "Components/Scripting.h"
 
+static void OnScriptDestroy(entt::basic_registry<entt::entity>& registry, entt::entity entity)
+{
+  auto& script = registry.get<Component::NativeScriptComponent>(entity);
+  script.DestroyScript(&script);
+}
+
+void ScriptSystem::InitScene(Scene& scene)
+{
+  scene.GetRegistry().on_destroy<Component::NativeScriptComponent>()
+    .connect<&OnScriptDestroy>();
+}
+
 void ScriptSystem::Update(Scene& scene, float dt)
 {
   auto view = scene.GetRegistry().view<Component::NativeScriptComponent>();

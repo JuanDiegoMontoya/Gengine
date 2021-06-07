@@ -9,8 +9,13 @@ class Entity
 public:
   Entity() = default;
   Entity(entt::entity handle, Scene* scene)
-    : entityHandle_(handle), scene_(scene) {}
+    : entityHandle_(handle), scene_(scene)
+  {
+  }
+
   Entity(const Entity& other) = default;
+
+  void Destroy();
 
   template<typename T, typename... Args>
   T& AddComponent(Args&&... args)
@@ -19,22 +24,40 @@ public:
     return scene_->registry_.emplace<T>(entityHandle_, std::forward<Args>(args)...);
   }
 
+  template<typename T, typename... Args>
+  T& GetOrAddComponent(Args&&... args)
+  {
+    return scene_->registry_.get_or_emplace<T>(entityHandle_, std::forward<Args>(args)...);
+  }
+
   template<typename T>
-  T& GetComponent()
+  [[nodiscard]] T& GetComponent()
   {
     ASSERT_MSG(HasComponent<T>(), "Entity missing component!");
     return scene_->registry_.get<T>(entityHandle_);
   }
 
   template<typename T>
-  const T& GetComponent() const
+  [[nodiscard]] const T& GetComponent() const
   {
     ASSERT_MSG(HasComponent<T>(), "Entity missing component!");
     return scene_->registry_.get<T>(entityHandle_);
   }
 
   template<typename T>
-  bool HasComponent() const
+  [[nodiscard]] T* TryGetComponent()
+  {
+    return scene_->registry_.try_get<T>(entityHandle_);
+  }
+
+  template<typename T>
+  [[nodiscard]] T* TryGetComponent() const
+  {
+    return scene_->registry_.try_get<T>(entityHandle_);
+  }
+
+  template<typename T>
+  [[nodiscard]] bool HasComponent() const
   {
     return scene_->registry_.has<T>(entityHandle_);
   }
@@ -51,12 +74,12 @@ public:
   operator entt::entity() const { return entityHandle_; }
 
 
-  bool operator==(const Entity& other) const
+  [[nodiscard]] bool operator==(const Entity& other) const
   {
     return entityHandle_ == other.entityHandle_ && scene_ == other.scene_;
   }
 
-  bool operator!=(const Entity& other) const
+  [[nodiscard]] bool operator!=(const Entity& other) const
   {
     return !(*this == other);
   }
@@ -66,7 +89,7 @@ public:
   // adds a child entity of this entity
   void AddChild(Entity child);
 
-  unsigned GetHierarchyHeight() const;
+  [[nodiscard]] unsigned GetHierarchyHeight() const;
 
 private:
   Scene* scene_ = nullptr;

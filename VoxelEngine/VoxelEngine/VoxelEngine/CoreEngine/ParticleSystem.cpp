@@ -1,9 +1,11 @@
 #include "EnginePCH.h"
 
-#include "ParticleSystem.h"
-#include "Scene.h"
 #include <execution>
 #include <algorithm>
+#include <bit>
+
+#include "ParticleSystem.h"
+#include "Scene.h"
 #include "utilities.h"
 #include "Renderer.h"
 
@@ -31,7 +33,7 @@ namespace
   double rng()
   {
     uint64_t bits = 1023ull << 52ull | xorshf96() & 0xfffffffffffffull;
-    return *reinterpret_cast<double*>(&bits) - 1.0;
+    return std::bit_cast<double>(bits) - 1.0;
   }
 
   double rng(double low, double high)

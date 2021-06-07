@@ -56,6 +56,7 @@
     <ClInclude Include="CoreEngine\GraphicsIncludes.h" />
     <ClInclude Include="CoreEngine\GraphicsSystem.h" />
     <ClInclude Include="CoreEngine\Input.h" />
+    <ClInclude Include="CoreEngine\LifetimeSystem.h" />
     <ClInclude Include="CoreEngine\Material.h" />
     <ClInclude Include="CoreEngine\Mesh.h" />
     <ClInclude Include="CoreEngine\MeshUtils.h" />
@@ -246,6 +247,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">EnginePCH.h</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">EnginePCH.h</PrecompiledHeaderFile>
     </ClCompile>
+    <ClCompile Include="CoreEngine\LifetimeSystem.cpp" />
     <ClCompile Include="CoreEngine\Material.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">EnginePCH.h</PrecompiledHeaderFile>

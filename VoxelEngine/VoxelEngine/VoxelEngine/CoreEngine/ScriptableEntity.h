@@ -18,6 +18,11 @@ public:
 		return entity_.HasComponent<T>();
 	}
 
+	Entity Self()
+	{
+		return entity_;
+	}
+
 	Scene* GetScene()
 	{
 		return entity_.scene_;

@@ -26,9 +26,6 @@
     <Filter Include="CoreEngine\Graphics">
       <UniqueIdentifier>{d90572c4-fc10-4aaf-ab92-440764be1dd7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="CoreEngine\Systems">
-      <UniqueIdentifier>{a424d2fa-a058-426a-b560-cefda8ce9e5a}</UniqueIdentifier>
-    </Filter>
     <Filter Include="CoreEngine\ECS">
       <UniqueIdentifier>{f1303919-b3eb-4052-9128-6a7141965576}</UniqueIdentifier>
     </Filter>
@@ -37,6 +34,9 @@
     </Filter>
     <Filter Include="CoreEngine\ECS\Components">
       <UniqueIdentifier>{27e428a7-e3b6-4478-875b-df0b1469f0b3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CoreEngine\ECS\Systems">
+      <UniqueIdentifier>{a424d2fa-a058-426a-b560-cefda8ce9e5a}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -86,13 +86,13 @@
       <Filter>CoreEngine</Filter>
     </ClInclude>
     <ClInclude Include="CoreEngine\GraphicsSystem.h">
-      <Filter>CoreEngine\Systems</Filter>
+      <Filter>CoreEngine\ECS\Systems</Filter>
     </ClInclude>
     <ClInclude Include="CoreEngine\PhysicsSystem.h">
-      <Filter>CoreEngine\Systems</Filter>
+      <Filter>CoreEngine\ECS\Systems</Filter>
     </ClInclude>
     <ClInclude Include="CoreEngine\DebugSystem.h">
-      <Filter>CoreEngine\Systems</Filter>
+      <Filter>CoreEngine\ECS\Systems</Filter>
     </ClInclude>
     <ClInclude Include="CoreEngine\WindowUtils.h">
       <Filter>CoreEngine\Graphics</Filter>
@@ -212,7 +212,7 @@
       <Filter>CoreEngine\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="CoreEngine\ScriptSystem.h">
-      <Filter>CoreEngine\Systems</Filter>
+      <Filter>CoreEngine\ECS\Systems</Filter>
     </ClInclude>
     <ClInclude Include="Game\TestObj.h">
       <Filter>Game</Filter>
@@ -278,7 +278,7 @@
       <Filter>CoreEngine</Filter>
     </ClInclude>
     <ClInclude Include="CoreEngine\ParticleSystem.h">
-      <Filter>CoreEngine\Systems</Filter>
+      <Filter>CoreEngine\ECS\Systems</Filter>
     </ClInclude>
     <ClInclude Include="CoreEngine\TextureCube.h">
       <Filter>CoreEngine\Graphics</Filter>
@@ -312,6 +312,9 @@
     </ClInclude>
     <ClInclude Include="CoreEngine\Components\Physics.h">
       <Filter>CoreEngine\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\LifetimeSystem.h">
+      <Filter>CoreEngine\ECS\Systems</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -367,13 +370,13 @@
       <Filter>CoreEngine</Filter>
     </ClCompile>
     <ClCompile Include="CoreEngine\GraphicsSystem.cpp">
-      <Filter>CoreEngine\Systems</Filter>
+      <Filter>CoreEngine\ECS\Systems</Filter>
     </ClCompile>
     <ClCompile Include="CoreEngine\PhysicsSystem.cpp">
-      <Filter>CoreEngine\Systems</Filter>
+      <Filter>CoreEngine\ECS\Systems</Filter>
     </ClCompile>
     <ClCompile Include="CoreEngine\DebugSystem.cpp">
-      <Filter>CoreEngine\Systems</Filter>
+      <Filter>CoreEngine\ECS\Systems</Filter>
     </ClCompile>
     <ClCompile Include="CoreEngine\WindowCB.cpp">
       <Filter>CoreEngine\Graphics</Filter>
@@ -463,7 +466,7 @@
       <Filter>CoreEngine\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="CoreEngine\ScriptSystem.cpp">
-      <Filter>CoreEngine\Systems</Filter>
+      <Filter>CoreEngine\ECS\Systems</Filter>
     </ClCompile>
     <ClCompile Include="Utilities\ImGuiExt.cpp">
       <Filter>Utilities</Filter>
@@ -478,7 +481,7 @@
       <Filter>CoreEngine\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="CoreEngine\ParticleSystem.cpp">
-      <Filter>CoreEngine\Systems</Filter>
+      <Filter>CoreEngine\ECS\Systems</Filter>
     </ClCompile>
     <ClCompile Include="Game\PlayerActions.cpp">
       <Filter>Game</Filter>
@@ -491,6 +494,9 @@
     </ClCompile>
     <ClCompile Include="CoreEngine\Components\ParticleEmitter.cpp">
       <Filter>CoreEngine\ECS\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreEngine\LifetimeSystem.cpp">
+      <Filter>CoreEngine\ECS\Systems</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

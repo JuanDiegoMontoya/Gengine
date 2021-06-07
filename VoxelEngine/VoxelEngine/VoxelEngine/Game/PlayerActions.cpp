@@ -13,6 +13,9 @@
 #include <CoreEngine/Components/Scripting.h>
 #include <CoreEngine/Components/Transform.h>
 #include <CoreEngine/Components/Rendering.h>
+#include <CoreEngine/Components/Core.h>
+
+#include "KinematicPlayerController.h"
 
 using namespace Voxels;
 
@@ -32,8 +35,9 @@ void PlayerActions::OnUpdate(float dt)
     GetScene()->GetEngine().IsPaused() ? GetScene()->GetEngine().Unpause() : GetScene()->GetEngine().Pause();
   }
 
-  auto& cam = GetComponent<Component::Parent>().entity.GetComponent<Component::Camera>();
-
+  Entity parent = GetComponent<Component::Parent>().entity;
+  auto& cam = parent.GetComponent<Component::Camera>();
+  auto* controller = dynamic_cast<KinematicPlayerController*>(parent.GetComponent<Component::NativeScriptComponent>().Instance);
 
   if (Input::IsKeyPressed(GLFW_KEY_V))
   {
@@ -43,7 +47,12 @@ void PlayerActions::OnUpdate(float dt)
     ent.AddComponent<Component::Material>().handle = MaterialManager::GetMaterial("batchMaterial");
     auto collider = Physics::BoxCollider(glm::vec3(.5f));
     Component::DynamicPhysics phys(ent, Physics::MaterialType::TERRAIN, collider);
-    ent.AddComponent<Component::DynamicPhysics>(std::move(phys)).Interface().AddForce(cam.GetForward() * 300.f);
+    auto& physics = ent.AddComponent<Component::DynamicPhysics>(std::move(phys));
+    physics.Interface().SetVelocity(controller->velocity);
+    physics.Interface().AddForce(cam.GetForward() * 300.f);
+    auto& lifetime = ent.AddComponent<Component::Lifetime>();
+    lifetime.active = true;
+    lifetime.remainingSeconds = 2;
 
     {
       Component::ParticleEmitter emitter{};
@@ -95,7 +104,7 @@ void PlayerActions::OnUpdate(float dt)
     ent.AddComponent<Component::Material>().handle = MaterialManager::GetMaterial("batchMaterial");
     auto collider = Physics::BoxCollider(glm::vec3(.5f));
     Component::DynamicPhysics phys(ent, Physics::MaterialType::TERRAIN, collider);
-    ent.AddComponent<Component::DynamicPhysics>(std::move(phys)).Interface().AddForce(cam.GetForward() * 0.f);
+    ent.AddComponent<Component::DynamicPhysics>(std::move(phys));
 
     Component::ParticleEmitter emitter{};
     emitter.handle = ParticleManager::MakeParticleEmitter(maxParticles, "smoke.png");

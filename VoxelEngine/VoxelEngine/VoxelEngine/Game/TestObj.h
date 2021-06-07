@@ -19,6 +19,9 @@ public:
 
   virtual void OnUpdate(float dt) override
   {
+    if (Input::IsKeyPressed(GLFW_KEY_K))
+      Self().Destroy();
+
     auto* transform = &GetComponent<Component::Transform>();
     if (HasComponent<Component::LocalTransform>())
       transform = &GetComponent<Component::LocalTransform>().transform;

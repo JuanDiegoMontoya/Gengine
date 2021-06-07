@@ -140,7 +140,6 @@ void OnStart(Scene* scene)
     Entity playerSub = scene->CreateEntity("PlayerSub");
     playerSub.AddComponent<Component::NativeScriptComponent>().Bind<PlayerActions>(voxelManager.get());
     player.AddChild(playerSub);
-
   }
 
   {
@@ -158,9 +157,9 @@ void OnStart(Scene* scene)
     meshes.push_back(MeshManager::CreateMeshBatched("./Resources/Models/goodSphere.obj", "sphere"));
     meshes.push_back(MeshManager::CreateMeshBatched("./Resources/Models/teapot.obj", "teapot"));
 
-    if (0) // creating a really tall parenting chain of objects
+    if (1) // creating a really tall parenting chain of objects
     {
-      Entity parent = scene->CreateEntity("parent");
+      Entity parent = scene->CreateEntity("parentBigly");
       parent.AddComponent<Component::Transform>().SetTranslation({ -15, -10, 10 });
       parent.GetComponent<Component::Transform>().SetScale({ 1, 1, 1 });
       parent.AddComponent<Component::NativeScriptComponent>().Bind<TestObj>();

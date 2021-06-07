@@ -2,12 +2,12 @@
 
 class Scene;
 
-class ScriptSystem
+class LifetimeSystem
 {
 public:
-  void InitScene(Scene& scene);
+  //LifetimeSystem() {};
+  //~LifetimeSystem() {};
   void Update(Scene& scene, float dt);
 
 private:
-
 };

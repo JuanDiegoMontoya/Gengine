@@ -12,7 +12,11 @@ public:
   ~Scene();
 
   Entity CreateEntity(std::string_view name = "");
+
+  // iterates entities by name, removes first with matching name
   void RemoveEntity(std::string_view name);
+
+  // efficiently removes entity and all attached components from registry
   void RemoveEntity(Entity entity);
 
   Engine& GetEngine() { return engine_; }

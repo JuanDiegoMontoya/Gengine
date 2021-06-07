@@ -1,8 +1,30 @@
 #include "EnginePCH.h"
 #include "Entity.h"
 #include "Components/Transform.h"
+#include "Components/Core.h"
 
 using namespace Component;
+
+void Entity::Destroy()
+{
+  // remove self from any existing parent
+  if (auto parent = TryGetComponent<Component::Parent>())
+  {
+    parent->entity.GetComponent<Component::Children>().RemoveChild(*this);
+  }
+
+  // DFS child removal
+  if (HasComponent<Component::Children>())
+  {
+    auto& children = GetComponent<Component::Children>();
+    for (auto child : children.children)
+    {
+      child.Destroy();
+    }
+  }
+
+  GetOrAddComponent<Component::ScheduledDeletion>();
+}
 
 void Entity::SetParent(Entity parent)
 {
@@ -15,13 +37,11 @@ void Entity::SetParent(Entity parent)
     if (oldParent.GetComponent<Children>().size() == 0)
       oldParent.RemoveComponent<Children>();
     GetComponent<Parent>().entity = parent;
-
   }
   else
   {
     AddComponent<Parent>(parent);
   }
-
 
   if (parent.HasComponent<Children>())
     parent.GetComponent<Children>().AddChild(*this);

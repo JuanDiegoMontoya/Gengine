@@ -9,6 +9,7 @@
 #include "PhysicsSystem.h"
 #include "ScriptSystem.h"
 #include "ParticleSystem.h"
+#include "LifetimeSystem.h"
 
 Engine::Engine()
 {
@@ -17,6 +18,7 @@ Engine::Engine()
   physicsSystem = std::make_unique<PhysicsSystem>();
   scriptSystem = std::make_unique<ScriptSystem>();
   particleSystem = std::make_unique<ParticleSystem>();
+  lifetimeSystem = std::make_unique<LifetimeSystem>();
 
   graphicsSystem->Init();
   debugSystem->Init(graphicsSystem->GetWindow());
@@ -33,6 +35,7 @@ void Engine::InitScenes()
   for (auto& scene : scenes_)
   {
     particleSystem->InitScene(*scene);
+    scriptSystem->InitScene(*scene);
   }
 }
 
@@ -51,6 +54,8 @@ void Engine::Run()
 
     // idk when this should be called tbh
     scriptSystem->Update(*activeScene_, dt_);
+
+    lifetimeSystem->Update(*activeScene_, dt_);
 
     if (updateCallback != nullptr)
     {

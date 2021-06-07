@@ -17,5 +17,4 @@ Component::ParticleEmitter& Component::ParticleEmitter::operator=(ParticleEmitte
 
 Component::ParticleEmitter::~ParticleEmitter()
 {
-  ParticleManager::DestroyParticleEmitter(this->handle);
 }
