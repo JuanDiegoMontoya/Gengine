@@ -201,7 +201,9 @@ void Physics::PhysicsManager::Init()
 
 void Physics::PhysicsManager::Shutdown()
 {
+  gScene->lockWrite();
   PX_RELEASE(gCManager);
+  gScene->unlockWrite();
   PX_RELEASE(gScene);
   PX_RELEASE(gCudaContextManager);
   PX_RELEASE(gDispatcher);

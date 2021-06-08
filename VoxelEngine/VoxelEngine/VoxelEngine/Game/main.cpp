@@ -157,7 +157,7 @@ void OnStart(Scene* scene)
     meshes.push_back(MeshManager::CreateMeshBatched("./Resources/Models/goodSphere.obj", "sphere"));
     meshes.push_back(MeshManager::CreateMeshBatched("./Resources/Models/teapot.obj", "teapot"));
 
-    if (1) // creating a really tall parenting chain of objects
+    if (0) // creating a really tall parenting chain of objects
     {
       Entity parent = scene->CreateEntity("parentBigly");
       parent.AddComponent<Component::Transform>().SetTranslation({ -15, -10, 10 });
@@ -168,7 +168,7 @@ void OnStart(Scene* scene)
       parent.AddComponent<Component::BatchedMesh>().handle = MeshManager::GetMeshBatched("big_cube");
       parent.AddComponent<Component::Material>(MaterialManager::GetMaterial("batchMaterial"));
 
-      for (int i = 0; i < 5000; i++)
+      for (int i = 0; i < 1000; i++)
       {
         Entity child = scene->CreateEntity("child");
         child.AddComponent<Component::Transform>();
@@ -214,7 +214,7 @@ void OnStart(Scene* scene)
         }
       }
     }
-    if (1) // boxes physics test
+    if (0) // boxes physics test
     {
       for (int i = 0; i < 50; i++)
       {
@@ -230,7 +230,7 @@ void OnStart(Scene* scene)
         entity.AddComponent<Component::DynamicPhysics>(std::move(phys));
       }
     }
-    if (1) // spheres physics test
+    if (0) // spheres physics test
     {
       for (int i = 0; i < 50; i++)
       {

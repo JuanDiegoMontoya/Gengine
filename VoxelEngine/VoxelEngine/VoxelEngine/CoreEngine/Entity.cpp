@@ -5,22 +5,15 @@
 
 using namespace Component;
 
+
 void Entity::Destroy()
 {
+  ASSERT_MSG(*this, "Cannot delete invalid entity!");
+
   // remove self from any existing parent
   if (auto parent = TryGetComponent<Component::Parent>())
   {
     parent->entity.GetComponent<Component::Children>().RemoveChild(*this);
-  }
-
-  // DFS child removal
-  if (HasComponent<Component::Children>())
-  {
-    auto& children = GetComponent<Component::Children>();
-    for (auto child : children.children)
-    {
-      child.Destroy();
-    }
   }
 
   GetOrAddComponent<Component::ScheduledDeletion>();

@@ -6,8 +6,8 @@ class PhysicsSystem
 public:
   PhysicsSystem();
   ~PhysicsSystem();
+  void InitScene(Scene& scene);
   void Update(Scene& scene, float dt);
 
 private:
-  const float gravity = .4f;
 };

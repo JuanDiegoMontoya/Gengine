@@ -56,6 +56,8 @@ namespace Component
       std::erase(children, child);
     }
 
+    const std::vector<Entity> GetChildren() const { return children; }
+
     size_t size() const { return children.size(); }
 
     unsigned cachedHeight{};

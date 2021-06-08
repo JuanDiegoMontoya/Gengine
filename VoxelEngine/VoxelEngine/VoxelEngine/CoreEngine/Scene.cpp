@@ -11,6 +11,7 @@ Scene::Scene(std::string_view name, Engine& engine)
 
 Scene::~Scene()
 {
+  registry_.clear();
 }
 
 Entity Scene::CreateEntity(std::string_view name)
@@ -21,7 +22,7 @@ Entity Scene::CreateEntity(std::string_view name)
   return entity;
 }
 
-void Scene::RemoveEntity(std::string_view name)
+Entity Scene::GetEntity(std::string_view name)
 {
   auto view = registry_.view<Component::Tag>();
   for (entt::entity entity : view)
@@ -29,15 +30,11 @@ void Scene::RemoveEntity(std::string_view name)
     const auto& tag = view.get<Component::Tag>(entity);
     if (tag.tag == name)
     {
-      RemoveEntity(Entity(entity, this));
+      return Entity(entity, this);
       break;
     }
   }
 
-  // Log("No entity called "%s" exists to destroy", name.c_str());
-}
-
-void Scene::RemoveEntity(Entity entity)
-{
-  entity.Destroy();
+  return Entity(entt::null, this);
+  // Log("No entity called "%s" exists to return", name.c_str());
 }

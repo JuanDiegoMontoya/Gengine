@@ -13,11 +13,10 @@ public:
 
   Entity CreateEntity(std::string_view name = "");
 
-  // iterates entities by name, removes first with matching name
-  void RemoveEntity(std::string_view name);
-
-  // efficiently removes entity and all attached components from registry
-  void RemoveEntity(Entity entity);
+  // Returns an entity whose tag matches the given name.
+  // A null entity is returned if no matches are found.
+  // If there are multiple matches, the first match is returned.
+  Entity GetEntity(std::string_view name);
 
   Engine& GetEngine() { return engine_; }
   std::string_view GetName() { return name_; }

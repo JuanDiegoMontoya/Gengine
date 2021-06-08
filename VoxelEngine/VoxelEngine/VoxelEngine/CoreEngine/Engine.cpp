@@ -34,6 +34,7 @@ void Engine::InitScenes()
 {
   for (auto& scene : scenes_)
   {
+    physicsSystem->InitScene(*scene);
     particleSystem->InitScene(*scene);
     scriptSystem->InitScene(*scene);
   }

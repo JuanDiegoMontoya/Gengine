@@ -41,6 +41,12 @@ void PlayerActions::OnUpdate(float dt)
 
   if (Input::IsKeyPressed(GLFW_KEY_V))
   {
+    Entity arrow = GetScene()->GetEntity("Arrow");
+    if (arrow)
+    {
+      arrow.Destroy();
+    }
+
     Entity ent = CreateEntity("Arrow");
     ent.AddComponent<Component::Transform>().SetTranslation(cam.GetWorldPos() + (cam.GetForward() * 1.5f));
     ent.AddComponent<Component::BatchedMesh>().handle = MeshManager::GetMeshBatched("big_cube");

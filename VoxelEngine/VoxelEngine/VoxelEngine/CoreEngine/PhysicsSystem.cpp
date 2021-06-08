@@ -7,6 +7,30 @@
 #include "Components/Physics.h"
 #include "Components/Transform.h"
 
+static void OnDynamicPhysicsDelete(entt::basic_registry<entt::entity>& registry, entt::entity entity)
+{
+  printf("Deleted dynamic physics on entity %d\n", entity);
+
+  auto* physics = registry.get<Component::DynamicPhysics>(entity).internalActor;
+  Physics::PhysicsManager::RemoveActorEntity(reinterpret_cast<physx::PxRigidActor*>(physics));
+}
+
+static void OnStaticPhysicsDelete(entt::basic_registry<entt::entity>& registry, entt::entity entity)
+{
+  printf("Deleted static physics on entity %d\n", entity);
+
+  auto* physics = registry.get<Component::StaticPhysics>(entity).internalActor;
+  Physics::PhysicsManager::RemoveActorEntity(reinterpret_cast<physx::PxRigidActor*>(physics));
+}
+
+static void OnCharacterControllerDelete(entt::basic_registry<entt::entity>& registry, entt::entity entity)
+{
+  printf("Deleted character controller on entity %d\n", entity);
+
+  auto* controller = registry.get<Component::CharacterController>(entity).internalController;
+  Physics::PhysicsManager::RemoveCharacterControllerEntity(controller);
+}
+
 PhysicsSystem::PhysicsSystem()
 {
 	Physics::PhysicsManager::Init();
@@ -15,6 +39,16 @@ PhysicsSystem::PhysicsSystem()
 PhysicsSystem::~PhysicsSystem()
 {
 	Physics::PhysicsManager::Shutdown();
+}
+
+void PhysicsSystem::InitScene(Scene& scene)
+{
+  scene.GetRegistry().on_destroy<Component::DynamicPhysics>()
+    .connect<&OnDynamicPhysicsDelete>();
+  scene.GetRegistry().on_destroy<Component::StaticPhysics>()
+    .connect<&OnStaticPhysicsDelete>();
+  scene.GetRegistry().on_destroy<Component::CharacterController>()
+    .connect<&OnCharacterControllerDelete>();
 }
 
 void PhysicsSystem::Update(Scene& scene, float dt)

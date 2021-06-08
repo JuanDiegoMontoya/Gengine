@@ -14,30 +14,21 @@ namespace Component
       internalActor = ::Physics::PhysicsManager::AddDynamicActorEntity(ent, mat, c, flags);
     }
 
-    DynamicPhysics(DynamicPhysics&& rhs) noexcept { *this = std::move(rhs); }
-    DynamicPhysics& operator=(DynamicPhysics&& rhs) noexcept
-    {
-      internalActor = std::exchange(rhs.internalActor, nullptr);
-      return *this;
-    }
-    DynamicPhysics(const DynamicPhysics&) = delete;
-    DynamicPhysics& operator=(const DynamicPhysics&) = delete;
+    //DynamicPhysics(DynamicPhysics&& rhs) noexcept { *this = std::move(rhs); }
+    //DynamicPhysics& operator=(DynamicPhysics&& rhs) noexcept
+    //{
+    //  if (&rhs == this) return *this;
+    //  internalActor = std::exchange(rhs.internalActor, nullptr);
+    //  return *this;
+    //}
+    //DynamicPhysics(const DynamicPhysics&) = delete;
+    //DynamicPhysics& operator=(const DynamicPhysics&) = delete;
 
     ::Physics::DynamicActorInterface Interface()
     {
       return internalActor;
     }
 
-    ~DynamicPhysics()
-    {
-      if (internalActor)
-      {
-        //printf("PHYSICS %p really DELETED\n", this);
-        ::Physics::PhysicsManager::RemoveActorEntity(reinterpret_cast<physx::PxRigidActor*>(internalActor));
-      }
-    }
-
-  private:
     physx::PxRigidDynamic* internalActor;
 
   };
@@ -67,16 +58,16 @@ namespace Component
       return internalActor;
     }
 
-    ~StaticPhysics()
-    {
-      if (internalActor)
-      {
-        //printf("PHYSICS %p really DELETED\n", this);
-        ::Physics::PhysicsManager::RemoveActorEntity(reinterpret_cast<physx::PxRigidActor*>(internalActor));
-      }
-    }
+    //~StaticPhysics()
+    //{
+    //  if (internalActor)
+    //  {
+    //    //printf("PHYSICS %p really DELETED\n", this);
+    //    ::Physics::PhysicsManager::RemoveActorEntity(reinterpret_cast<physx::PxRigidActor*>(internalActor));
+    //  }
+    //}
 
-  private:
+  //private:
     physx::PxRigidStatic* internalActor;
   };
 
@@ -91,30 +82,30 @@ namespace Component
       internalController = ::Physics::PhysicsManager::AddCharacterControllerEntity(ent, mat, c);
     }
 
-    CharacterController(CharacterController&& rhs) noexcept { *this = std::move(rhs); }
-    CharacterController& operator=(CharacterController&& rhs) noexcept
-    {
-      internalController = std::exchange(rhs.internalController, nullptr);
-      return *this;
-    }
-    CharacterController(const CharacterController&) = delete;
-    CharacterController& operator=(const CharacterController&) = delete;
+    //CharacterController(CharacterController&& rhs) noexcept { *this = std::move(rhs); }
+    //CharacterController& operator=(CharacterController&& rhs) noexcept
+    //{
+    //  internalController = std::exchange(rhs.internalController, nullptr);
+    //  return *this;
+    //}
+    //CharacterController(const CharacterController&) = delete;
+    //CharacterController& operator=(const CharacterController&) = delete;
 
     ::Physics::CharacterControllerInterface Interface()
     {
       return internalController;
     }
 
-    ~CharacterController()
-    {
-      if (internalController)
-      {
-        //printf("PHYSICS %p really DELETED\n", this);
-        ::Physics::PhysicsManager::RemoveCharacterControllerEntity(internalController);
-      }
-    }
+    //~CharacterController()
+    //{
+    //  if (internalController)
+    //  {
+    //    //printf("PHYSICS %p really DELETED\n", this);
+    //    ::Physics::PhysicsManager::RemoveCharacterControllerEntity(internalController);
+    //  }
+    //}
 
-  private:
+  //private:
     physx::PxController* internalController;
   };
 }

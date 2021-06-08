@@ -2,7 +2,24 @@
 #include <CoreEngine/LifetimeSystem.h>
 #include <CoreEngine/Scene.h>
 #include "Components/Core.h"
+#include "Components/Transform.h"
 #include "Entity.h"
+
+static void DeleteEntityAndChildren(Entity entity, std::vector<entt::entity>& entitiesToDelete)
+{
+  entitiesToDelete.push_back(entity);
+  printf("Killing entity %d, %s\n", entity.operator entt::entity(), entity.GetComponent<Component::Tag>().tag.c_str());
+
+  // DFS child removal
+  if (entity.HasComponent<Component::Children>())
+  {
+    auto& children = entity.GetComponent<Component::Children>();
+    for (auto child : children.GetChildren())
+    {
+      DeleteEntityAndChildren(child, entitiesToDelete);
+    }
+  }
+}
 
 void LifetimeSystem::Update(Scene& scene, float dt)
 {
@@ -23,9 +40,17 @@ void LifetimeSystem::Update(Scene& scene, float dt)
   }
 
   auto deleteview = scene.GetRegistry().view<Component::ScheduledDeletion>();
-  for (auto entity : deleteview)
+  std::vector<entt::entity> entitiesToDelete;
+  entitiesToDelete.reserve(deleteview.size());
+  for (auto ent : deleteview)
   {
-    //printf("Killing entity %d\n", entity);
+    Entity entity(ent, &scene);
+
+    DeleteEntityAndChildren(entity, entitiesToDelete);
+  }
+
+  for (auto entity : entitiesToDelete)
+  {
     scene.GetRegistry().destroy(entity);
   }
 }

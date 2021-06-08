@@ -20,7 +20,14 @@ public:
   virtual void OnUpdate(float dt) override
   {
     if (Input::IsKeyPressed(GLFW_KEY_K))
+    {
+      //auto entity = GetScene()->GetEntity("parentBigly");
+      //if (entity)
+      //{
+      //  entity.Destroy();
+      //}
       Self().Destroy();
+    }
 
     auto* transform = &GetComponent<Component::Transform>();
     if (HasComponent<Component::LocalTransform>())
