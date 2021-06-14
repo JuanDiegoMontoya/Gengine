@@ -372,6 +372,7 @@ void OnDraw(float dt)
   Renderer::DrawAxisIndicator();
 }
 
+
 int main()
 {
   Application::SetStartCallback(OnStart);

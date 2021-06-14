@@ -32,7 +32,6 @@ private:
   friend class Entity;
   entt::registry registry_{};
 
-  // non-owning
   Engine& engine_;
 
   std::string name_;

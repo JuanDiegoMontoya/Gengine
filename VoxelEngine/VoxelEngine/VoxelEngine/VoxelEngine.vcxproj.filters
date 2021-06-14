@@ -316,6 +316,12 @@
     <ClInclude Include="CoreEngine\LifetimeSystem.h">
       <Filter>CoreEngine\ECS\Systems</Filter>
     </ClInclude>
+    <ClInclude Include="CoreEngine\CVar.h">
+      <Filter>CoreEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\Console.h">
+      <Filter>CoreEngine</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="3rdParty\imgui\imgui.cpp">
@@ -497,6 +503,12 @@
     </ClCompile>
     <ClCompile Include="CoreEngine\LifetimeSystem.cpp">
       <Filter>CoreEngine\ECS\Systems</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreEngine\CVar.cpp">
+      <Filter>CoreEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreEngine\Console.cpp">
+      <Filter>CoreEngine</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
