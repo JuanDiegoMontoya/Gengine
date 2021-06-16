@@ -40,30 +40,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="3rdParty\imgui\imconfig.h">
-      <Filter>3rd Party\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="3rdParty\imgui\imgui.h">
-      <Filter>3rd Party\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="3rdParty\imgui\imgui_impl_glfw.h">
-      <Filter>3rd Party\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="3rdParty\imgui\imgui_impl_opengl3.h">
-      <Filter>3rd Party\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="3rdParty\imgui\imgui_internal.h">
-      <Filter>3rd Party\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="3rdParty\imgui\imstb_rectpack.h">
-      <Filter>3rd Party\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="3rdParty\imgui\imstb_textedit.h">
-      <Filter>3rd Party\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="3rdParty\imgui\imstb_truetype.h">
-      <Filter>3rd Party\imgui</Filter>
-    </ClInclude>
     <ClInclude Include="Voxels\prefab.h">
       <Filter>Voxel Engine</Filter>
     </ClInclude>
@@ -322,23 +298,35 @@
     <ClInclude Include="CoreEngine\Console.h">
       <Filter>CoreEngine</Filter>
     </ClInclude>
+    <ClInclude Include="CoreEngine\CVarInternal.h">
+      <Filter>CoreEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\imgui\imgui_impl_glfw.h">
+      <Filter>3rd Party\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\imgui\imgui_impl_opengl3.h">
+      <Filter>3rd Party\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\imgui\imgui_internal.h">
+      <Filter>3rd Party\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\imgui\imstb_rectpack.h">
+      <Filter>3rd Party\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\imgui\imstb_textedit.h">
+      <Filter>3rd Party\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\imgui\imstb_truetype.h">
+      <Filter>3rd Party\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\imgui\imconfig.h">
+      <Filter>3rd Party\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\imgui\imgui.h">
+      <Filter>3rd Party\imgui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="3rdParty\imgui\imgui.cpp">
-      <Filter>3rd Party\imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="3rdParty\imgui\imgui_draw.cpp">
-      <Filter>3rd Party\imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="3rdParty\imgui\imgui_impl_glfw.cpp">
-      <Filter>3rd Party\imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="3rdParty\imgui\imgui_impl_opengl3.cpp">
-      <Filter>3rd Party\imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="3rdParty\imgui\imgui_widgets.cpp">
-      <Filter>3rd Party\imgui</Filter>
-    </ClCompile>
     <ClCompile Include="Voxels\prefab.cpp">
       <Filter>Voxel Engine</Filter>
     </ClCompile>
@@ -509,6 +497,27 @@
     </ClCompile>
     <ClCompile Include="CoreEngine\Console.cpp">
       <Filter>CoreEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\imgui\imgui_draw.cpp">
+      <Filter>3rd Party\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\imgui\imgui_impl_glfw.cpp">
+      <Filter>3rd Party\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\imgui\imgui_impl_opengl3.cpp">
+      <Filter>3rd Party\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\imgui\imgui_tables.cpp">
+      <Filter>3rd Party\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\imgui\imgui_widgets.cpp">
+      <Filter>3rd Party\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\imgui\imgui.cpp">
+      <Filter>3rd Party\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\imgui\imgui_demo.cpp">
+      <Filter>3rd Party\imgui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -1,7 +1,9 @@
 #pragma once
-#include <variant>
+//#include <variant>
 
 struct ConsoleStorage;
+
+using ConsoleFunc = void(*)(const char*);
 
 class Console
 {
@@ -9,9 +11,12 @@ public:
   static Console* Get();
   ~Console();
 
+  void Print(const char* format, ...);
+  void SetIsOpen(bool isOpen);
   void Draw();
+  
 
 private:
   Console();
-  ConsoleStorage* storage;
+  ConsoleStorage* console;
 };

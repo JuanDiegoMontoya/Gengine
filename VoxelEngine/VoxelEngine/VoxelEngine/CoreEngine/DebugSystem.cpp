@@ -1,6 +1,7 @@
 #include "EnginePCH.h"
 #include "DebugSystem.h"
 #include "Scene.h"
+#include "Console.h"
 #include <imgui/imgui.h>
 #include <Utilities/ImGuiExt.h>
 #include <CoreEngine/Input.h>
@@ -62,8 +63,14 @@ void DebugSystem::Update(Scene& scene, float dt)
 
 void DebugSystem::EndFrame(Scene& scene, float dt)
 {
+  static bool ting = false;
+  if (Input::IsKeyPressed(GLFW_KEY_F1))
+    ting = !ting;
   if (Input::GetCursorVisible())
   {
+    Console::Get()->Draw();
+    if (ting)
+      ImGui::ShowDemoWindow(&ting);
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
   }

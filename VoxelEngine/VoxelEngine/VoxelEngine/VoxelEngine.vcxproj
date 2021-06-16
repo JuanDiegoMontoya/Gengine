@@ -44,6 +44,7 @@
     <ClInclude Include="CoreEngine\Console.h" />
     <ClInclude Include="CoreEngine\Context.h" />
     <ClInclude Include="CoreEngine\CVar.h" />
+    <ClInclude Include="CoreEngine\CVarInternal.h" />
     <ClInclude Include="CoreEngine\Debug.h" />
     <ClInclude Include="CoreEngine\DebugSystem.h" />
     <ClInclude Include="CoreEngine\DynamicBuffer.h" />
@@ -123,12 +124,11 @@
     <ClCompile Include="3rdParty\FastNoiseSIMD\FastNoiseSIMD_sse2.cpp" />
     <ClCompile Include="3rdParty\FastNoiseSIMD\FastNoiseSIMD_sse41.cpp" />
     <ClCompile Include="3rdParty\imgui\imgui.cpp" />
+    <ClCompile Include="3rdParty\imgui\imgui_demo.cpp" />
     <ClCompile Include="3rdParty\imgui\imgui_draw.cpp" />
     <ClCompile Include="3rdParty\imgui\imgui_impl_glfw.cpp" />
-    <ClCompile Include="3rdParty\imgui\imgui_impl_opengl3.cpp">
-      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-    </ClCompile>
+    <ClCompile Include="3rdParty\imgui\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="3rdParty\imgui\imgui_tables.cpp" />
     <ClCompile Include="3rdParty\imgui\imgui_widgets.cpp" />
     <ClCompile Include="CoreEngine\Application.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>

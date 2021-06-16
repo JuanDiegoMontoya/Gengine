@@ -496,9 +496,9 @@ void Renderer::StartFrame()
   ImGui::Checkbox("Enabled", &tonemapping);
   ImGui::Checkbox("Gamma Correction", &gammaCorrection);
   ImGui::SliderFloat("Exposure Factor", &exposure, .5f, 2.0f, "%.2f");
-  ImGui::SliderFloat("Min Exposure", &minExposure, .01f, 30.0f, "%.2f", 2.f);
-  ImGui::SliderFloat("Max Exposure", &maxExposure, .01f, 30.0f, "%.2f", 2.f);
-  ImGui::SliderFloat("Target Luminance", &targetLuminance, .1f, 10.0f, "%.2f", 2.f);
+  ImGui::SliderFloat("Min Exposure", &minExposure, .01f, 30.0f, "%.2f", ImGuiSliderFlags_Logarithmic);
+  ImGui::SliderFloat("Max Exposure", &maxExposure, .01f, 30.0f, "%.2f", ImGuiSliderFlags_Logarithmic);
+  ImGui::SliderFloat("Target Luminance", &targetLuminance, .1f, 10.0f, "%.2f", ImGuiSliderFlags_Logarithmic);
   ImGui::SliderFloat("Adjustment Speed", &adjustmentSpeed, .1f, 10.0f, "%.2f");
   if (ImGui::Button("Recompile"))
   {

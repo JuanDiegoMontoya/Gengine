@@ -134,7 +134,7 @@ void PlayerActions::OnUpdate(float dt)
   {
     interval = ((maxLife + minLife) / 2.0f) / maxParticles;
   }
-  ImGui::DragFloat("Interval", &interval, .003f, 0.00000001f, 1.f, "%.8f", 2.f);
+  ImGui::DragFloat("Interval", &interval, .003f, 0.00000001f, 1.f, "%.8f", ImGuiSliderFlags_Logarithmic);
   ImGui::DragFloat4("Min color", glm::value_ptr(minParticleColor), 0.01f, 0.f, 1.f);
   ImGui::DragFloat4("Max color", glm::value_ptr(maxParticleColor), 0.01f, 0.f, 1.f);
   ImGui::DragFloat("Min life", &minLife, .05f, 0.f, 5.f);

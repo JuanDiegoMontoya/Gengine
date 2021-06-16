@@ -1,7 +1,6 @@
 #pragma once
 #include <cinttypes>
 #include "Flags.h"
-#include <string>
 //#include <glm/fwd.hpp>
 //#include <variant>
 
@@ -62,7 +61,7 @@ private:
   CVarParameters* InitCVar(const char* name, const char* description, CVarFlags flags);
   CVarParameters* GetCVarParams(const char* name);
   
-  CVarSystemStorage* storage;
+  CVarSystemStorage* storage{};
 };
 
 template<typename T>
@@ -75,7 +74,7 @@ public:
   void Set(T);
 
 private:
-  int index;
+  int index{};
 };
 
 template<> CVarParameters* CVarSystem::RegisterCVar(const char*, const char*, float, CVarFlags, OnChangeCallback<float>);
