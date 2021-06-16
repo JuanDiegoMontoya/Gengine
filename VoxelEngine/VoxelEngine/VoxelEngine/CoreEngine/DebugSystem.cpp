@@ -70,7 +70,9 @@ void DebugSystem::EndFrame(Scene& scene, float dt)
   {
     Console::Get()->Draw();
     if (ting)
+    {
       ImGui::ShowDemoWindow(&ting);
+    }
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
   }

@@ -11,10 +11,9 @@ public:
   static Console* Get();
   ~Console();
 
-  void Print(const char* format, ...);
-  void SetIsOpen(bool isOpen);
+  void Log(const char* format, ...);
+  void ExecuteCommand(const char* cmd);
   void Draw();
-  
 
 private:
   Console();
