@@ -43,5 +43,5 @@ public:
 
 private:
   size_t current{ 0 };
-  std::string cmd;
+  std::string cmd; // TODO: use const char*
 };

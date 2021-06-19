@@ -25,7 +25,7 @@ CmdAtom CmdParser::NextAtom()
   if (cmd[current] == '"')
   {
     type = CmdType::STRING;
-    cmd.erase(cmd.begin());
+    current++;
   }
   else if (std::isalpha(cmd[current]) || cmd[current] == '_')
   {
@@ -37,7 +37,7 @@ CmdAtom CmdParser::NextAtom()
   }
   else
   {
-    cmd.clear();
+    current = cmd.size();
     return ParseError{ .where = current, .what = "Token begins with invalid character" };
   }
 
@@ -62,7 +62,7 @@ CmdAtom CmdParser::NextAtom()
         break;
       }
 
-      // unescaped backslash will escape next character, confusing
+      // unescaped backslash will escape next character, how confusing!
       if (c == '\\' && !escapeNextChar)
       {
         escapeNextChar = true;
@@ -76,7 +76,7 @@ CmdAtom CmdParser::NextAtom()
     {
       if (!(std::isalnum(c) || c == '.' || c == '_'))
       {
-        cmd.clear();
+        current = cmd.size();
         return ParseError{ .where = current, .what = "Invalid character in identifier" };
       }
     }
@@ -86,7 +86,7 @@ CmdAtom CmdParser::NextAtom()
 
   // skip any extra whitespace there may be between atoms
   current = cmd.find_first_not_of(" \n\r\t", current);
-
+  
   switch (type)
   {
   case CmdType::FLOAT:
