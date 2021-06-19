@@ -5,13 +5,13 @@
 #include <entt.hpp> // TODO: replace with custom hashed string
 #include <string>
 #include "GAssert.h"
+#include "CVar.h"
 
 template<typename T>
 concept Number = std::integral<T> || std::floating_point<T>;
 
 enum class CVarType : uint8_t
 {
-  INT,
   FLOAT,
   STRING,
   //BOOLEAN,
@@ -84,8 +84,7 @@ struct CVarArray
 
 struct CVarSystemStorage
 {
-  CVarArray<int, 1000> intCVars;
-  CVarArray<float, 1000> floatCVars;
+  CVarArray<double, 1000> floatCVars;
   CVarArray<std::string, 1000, const char*> stringCVars;
 
   std::unordered_map<entt::id_type, CVarParameters> cvarParameters;

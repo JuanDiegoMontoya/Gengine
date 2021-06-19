@@ -63,6 +63,7 @@
     <ClInclude Include="CoreEngine\Material.h" />
     <ClInclude Include="CoreEngine\Mesh.h" />
     <ClInclude Include="CoreEngine\MeshUtils.h" />
+    <ClInclude Include="CoreEngine\Parser.h" />
     <ClInclude Include="CoreEngine\ParticleSystem.h" />
     <ClInclude Include="CoreEngine\TextureCube.h" />
     <ClInclude Include="CoreEngine\utilities.h" />
@@ -272,6 +273,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">EnginePCH.h</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">EnginePCH.h</PrecompiledHeaderFile>
     </ClCompile>
+    <ClCompile Include="CoreEngine\Parser.cpp" />
     <ClCompile Include="CoreEngine\ParticleSystem.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">EnginePCH.h</PrecompiledHeaderFile>

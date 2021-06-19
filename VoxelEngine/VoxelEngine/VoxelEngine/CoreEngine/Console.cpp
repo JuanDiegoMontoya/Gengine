@@ -1,5 +1,4 @@
 #include "Console.h"
-#include "CVar.h"
 #include "CVarInternal.h"
 #include "Input.h"
 #include <array>
@@ -9,14 +8,21 @@
 
 int TextEditCallback(ImGuiInputTextCallbackData* data, ConsoleStorage* console);
 
+struct Command
+{
+  std::string name;
+  std::string description; // printed when `help` is executed on it
+  ConsoleFunc func{};
+};
+
 struct ConsoleStorage
 {
   bool isOpen = true;
   std::vector<std::string> logEntries;
-  std::vector<std::string> history;
+  std::vector<std::string> inputHistory;
   int historyPos{ -1 };
   std::array<char, 256> inputBuffer{ 0 };
-  std::vector<std::pair<std::string, ConsoleFunc>> commands;
+  std::vector<Command> commands;
 };
 
 Console* Console::Get()
@@ -33,6 +39,11 @@ Console::Console()
 Console::~Console()
 {
   delete console;
+}
+
+void Console::RegisterCommand(const char* name, const char* description, ConsoleFunc fn)
+{
+  console->commands.emplace_back(name, description, fn);
 }
 
 void Console::Log(const char* format, ...)
@@ -54,15 +65,15 @@ void Console::ExecuteCommand(const char* cmd)
   // Insert into history. First find match and delete it so it can be pushed to the back.
   // This isn't trying to be smart or optimal.
   console->historyPos = -1;
-  for (int i = console->history.size() - 1; i >= 0; i--)
+  for (int i = console->inputHistory.size() - 1; i >= 0; i--)
   {
-    if (console->history[i] == cmd)
+    if (console->inputHistory[i] == cmd)
     {
-      console->history.erase(console->history.begin() + i);
+      console->inputHistory.erase(console->inputHistory.begin() + i);
       break;
     }
   }
-  console->history.push_back(cmd);
+  console->inputHistory.push_back(cmd);
 }
 
 void Console::Draw()
@@ -176,8 +187,6 @@ int TextEditCallback(ImGuiInputTextCallbackData* data, ConsoleStorage* console)
   {
   case ImGuiInputTextFlags_CallbackCompletion:
   {
-    // Example of TEXT COMPLETION
-
     // Locate beginning of current word
     const char* word_end = data->Buf + data->CursorPos;
     const char* word_start = word_end;
@@ -192,8 +201,8 @@ int TextEditCallback(ImGuiInputTextCallbackData* data, ConsoleStorage* console)
     // Build a list of candidates
     std::vector<const char*> candidates;
     for (int i = 0; i < console->commands.size(); i++)
-      if (strncmp(console->commands[i].first.c_str(), word_start, (int)(word_end - word_start)) == 0)
-        candidates.push_back(console->commands[i].first.c_str());
+      if (strncmp(console->commands[i].name.c_str(), word_start, (int)(word_end - word_start)) == 0)
+        candidates.push_back(console->commands[i].name.c_str());
 
     if (candidates.empty())
     {
@@ -242,26 +251,25 @@ int TextEditCallback(ImGuiInputTextCallbackData* data, ConsoleStorage* console)
   }
   case ImGuiInputTextFlags_CallbackHistory:
   {
-    // Example of HISTORY
     const int prev_history_pos = console->historyPos;
     if (data->EventKey == ImGuiKey_UpArrow)
     {
       if (console->historyPos == -1)
-        console->historyPos = console->history.size() - 1;
+        console->historyPos = console->inputHistory.size() - 1;
       else if (console->historyPos > 0)
         console->historyPos--;
     }
     else if (data->EventKey == ImGuiKey_DownArrow)
     {
       if (console->historyPos != -1)
-        if (++console->historyPos >= console->history.size())
+        if (++console->historyPos >= console->inputHistory.size())
           console->historyPos = -1;
     }
 
     // A better implementation would preserve the data on the current input line along with cursor position.
     if (prev_history_pos != console->historyPos)
     {
-      const char* history_str = (console->historyPos >= 0) ? console->history[console->historyPos].c_str() : "";
+      const char* history_str = (console->historyPos >= 0) ? console->inputHistory[console->historyPos].c_str() : "";
       data->DeleteChars(0, data->BufTextLen);
       data->InsertChars(0, history_str);
     }

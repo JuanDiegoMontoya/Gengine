@@ -1,4 +1,3 @@
-#include "CVar.h"
 #include "CVarInternal.h"
 
 CVarSystem* CVarSystem::Get()
@@ -40,22 +39,12 @@ CVarParameters* CVarSystem::InitCVar(const char* name, const char* description, 
 
 
 template<>
-CVarParameters* CVarSystem::RegisterCVar<float>(const char* name, const char* description,
-  float defaultValue, CVarFlags flags, OnChangeCallback<float> callback)
+CVarParameters* CVarSystem::RegisterCVar<double>(const char* name, const char* description,
+  double defaultValue, CVarFlags flags, OnChangeCallback<double> callback)
 {
   auto params = InitCVar(name, description, flags);
   params->type = CVarType::FLOAT;
   storage->floatCVars.AddCVar(defaultValue, params, callback);
-  return params;
-}
-
-template<>
-CVarParameters* CVarSystem::RegisterCVar<int32_t>(const char* name, const char* description,
-  int32_t defaultValue, CVarFlags flags, OnChangeCallback<int32_t> callback)
-{
-  auto params = InitCVar(name, description, flags);
-  params->type = CVarType::INT;
-  storage->intCVars.AddCVar(defaultValue, params, callback);
   return params;
 }
 
@@ -71,23 +60,12 @@ CVarParameters* CVarSystem::RegisterCVar<const char*>(const char* name, const ch
 
 
 template<>
-float CVarSystem::GetCVar(const char* name)
+cvar_float CVarSystem::GetCVar(const char* name)
 {
   std::shared_lock lck(storage->mutex);
   if (auto* params = GetCVarParams(name))
   {
     return storage->floatCVars.cvars[params->index].current;
-  }
-  return 0;
-}
-
-template<>
-int32_t CVarSystem::GetCVar(const char* name)
-{
-  std::shared_lock lck(storage->mutex);
-  if (auto* params = GetCVarParams(name))
-  {
-    return storage->intCVars.cvars[params->index].current;
   }
   return 0;
 }
@@ -105,26 +83,12 @@ const char* CVarSystem::GetCVar(const char* name)
 
 
 template<>
-bool CVarSystem::SetCVar(const char* name, float value)
+bool CVarSystem::SetCVar(const char* name, double value)
 {
   std::unique_lock lck(storage->mutex);
   if (auto* params = GetCVarParams(name))
   {
     auto& cvar = storage->floatCVars.cvars[params->index];
-    if (cvar.callback) cvar.callback(name, value);
-    cvar.current = value;
-    return true;
-  }
-  return false;
-}
-
-template<>
-bool CVarSystem::SetCVar(const char* name, int32_t value)
-{
-  std::unique_lock lck(storage->mutex);
-  if (auto* params = GetCVarParams(name))
-  {
-    auto& cvar = storage->intCVars.cvars[params->index];
     if (cvar.callback) cvar.callback(name, value);
     cvar.current = value;
     return true;
@@ -148,37 +112,24 @@ bool CVarSystem::SetCVar(const char* name, const char* value)
 
 
 template<>
-AutoCVar<float>::AutoCVar(const char* name, const char* description, float defaultValue, CVarFlags flags, OnChangeCallback<float> callback)
+AutoCVar<double>::AutoCVar(const char* name, const char* description, double defaultValue, CVarFlags flags, OnChangeCallback<double> callback)
 {
-  auto* params = CVarSystem::Get()->RegisterCVar<float>(name, description, defaultValue, flags, callback);
-  index = params->index;
-}
-
-template<>
-AutoCVar<int>::AutoCVar(const char* name, const char* description, int defaultValue, CVarFlags flags, OnChangeCallback<int> callback)
-{
-  auto* params = CVarSystem::Get()->RegisterCVar<int>(name, description, defaultValue, flags, callback);
+  auto* params = CVarSystem::Get()->RegisterCVar(name, description, defaultValue, flags, callback);
   index = params->index;
 }
 
 template<>
 AutoCVar<const char*>::AutoCVar(const char* name, const char* description, const char* defaultValue, CVarFlags flags, OnChangeCallback<const char*> callback)
 {
-  auto* params = CVarSystem::Get()->RegisterCVar<const char*>(name, description, defaultValue, flags, callback);
+  auto* params = CVarSystem::Get()->RegisterCVar(name, description, defaultValue, flags, callback);
   index = params->index;
 }
 
 
 template<>
-float AutoCVar<float>::Get()
+double AutoCVar<double>::Get()
 {
   return CVarSystem::Get()->storage->floatCVars.cvars[index].current;
-}
-
-template<>
-int AutoCVar<int>::Get()
-{
-  return CVarSystem::Get()->storage->intCVars.cvars[index].current;
 }
 
 template<>
@@ -189,14 +140,7 @@ const char* AutoCVar<const char*>::Get()
 
 
 template<>
-void AutoCVar<float>::Set(float value)
-{
-  auto& cvar = CVarSystem::Get()->storage->floatCVars.cvars[index];
-  CVarSystem::Get()->SetCVar(cvar.parameters->name.c_str(), value);
-}
-
-template<>
-void AutoCVar<int>::Set(int value)
+void AutoCVar<double>::Set(double value)
 {
   auto& cvar = CVarSystem::Get()->storage->floatCVars.cvars[index];
   CVarSystem::Get()->SetCVar(cvar.parameters->name.c_str(), value);

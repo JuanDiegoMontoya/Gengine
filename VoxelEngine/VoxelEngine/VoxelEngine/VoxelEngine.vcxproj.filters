@@ -325,6 +325,9 @@
     <ClInclude Include="3rdParty\imgui\imgui.h">
       <Filter>3rd Party\imgui</Filter>
     </ClInclude>
+    <ClInclude Include="CoreEngine\Parser.h">
+      <Filter>CoreEngine</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Voxels\prefab.cpp">
@@ -518,6 +521,9 @@
     </ClCompile>
     <ClCompile Include="3rdParty\imgui\imgui_demo.cpp">
       <Filter>3rd Party\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreEngine\Parser.cpp">
+      <Filter>CoreEngine</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

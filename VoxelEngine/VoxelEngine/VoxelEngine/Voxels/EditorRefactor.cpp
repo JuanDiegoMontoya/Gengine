@@ -198,7 +198,7 @@ void Editor::DrawSelection()
 
 void Editor::Update()
 {
-  if (Input::IsKeyPressed(GLFW_KEY_TAB))
+  if (Input::IsKeyPressed(GLFW_KEY_F5))
     open = !open;
   if (open)
   {

@@ -11,6 +11,7 @@ public:
   static Console* Get();
   ~Console();
 
+  void RegisterCommand(const char* name, const char* description, ConsoleFunc fn);
   void Log(const char* format, ...);
   void ExecuteCommand(const char* cmd);
   void Draw();

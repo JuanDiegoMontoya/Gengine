@@ -36,6 +36,9 @@ DECLARE_FLAG_TYPE(CVarFlags, CVarFlag, uint32_t)
 template<typename T>
 using OnChangeCallback = void(*)(const char*, T);
 
+using cvar_float = double;
+using cvar_string = const char*;
+
 struct CVarSystemStorage;
 struct CVarParameters;
 class CVarSystem
@@ -77,27 +80,21 @@ private:
   int index{};
 };
 
-template<> CVarParameters* CVarSystem::RegisterCVar(const char*, const char*, float, CVarFlags, OnChangeCallback<float>);
-template<> CVarParameters* CVarSystem::RegisterCVar(const char*, const char*, int, CVarFlags, OnChangeCallback<int32_t>);
-template<> CVarParameters* CVarSystem::RegisterCVar(const char*, const char*, const char*, CVarFlags, OnChangeCallback<const char*>);
+template<> CVarParameters* CVarSystem::RegisterCVar(const char*, const char*, cvar_float, CVarFlags, OnChangeCallback<cvar_float>);
+template<> CVarParameters* CVarSystem::RegisterCVar(const char*, const char*, cvar_string, CVarFlags, OnChangeCallback<cvar_string>);
 
-template<> float CVarSystem::GetCVar(const char*);
-template<> int32_t CVarSystem::GetCVar(const char*);
-template<> const char* CVarSystem::GetCVar(const char*);
+template<> cvar_float CVarSystem::GetCVar(const char*);
+template<> cvar_string CVarSystem::GetCVar(const char*);
 
-template<> bool CVarSystem::SetCVar(const char*, float);
-template<> bool CVarSystem::SetCVar(const char*, int32_t);
-template<> bool CVarSystem::SetCVar(const char*, const char*);
+template<> bool CVarSystem::SetCVar(const char*, cvar_float);
+template<> bool CVarSystem::SetCVar(const char*, cvar_string);
 
 
-template<> AutoCVar<float>::AutoCVar(const char*, const char*, float, CVarFlags, OnChangeCallback<float>);
-template<> AutoCVar<int>::AutoCVar(const char*, const char*, int, CVarFlags, OnChangeCallback<int>);
-template<> AutoCVar<const char*>::AutoCVar(const char*, const char*, const char*, CVarFlags, OnChangeCallback<const char*>);
+template<> AutoCVar<cvar_float>::AutoCVar(const char*, const char*, cvar_float, CVarFlags, OnChangeCallback<cvar_float>);
+template<> AutoCVar<cvar_string>::AutoCVar(const char*, const char*, cvar_string, CVarFlags, OnChangeCallback<cvar_string>);
 
-template<> float AutoCVar<float>::Get();
-template<> int AutoCVar<int>::Get();
-template<> const char* AutoCVar<const char*>::Get();
+template<> cvar_float AutoCVar<cvar_float>::Get();
+template<> cvar_string AutoCVar<cvar_string>::Get();
 
-template<> void AutoCVar<float>::Set(float);
-template<> void AutoCVar<int>::Set(int);
-template<> void AutoCVar<const char*>::Set(const char*);
+template<> void AutoCVar<cvar_float>::Set(cvar_float);
+template<> void AutoCVar<cvar_string>::Set(cvar_string);
