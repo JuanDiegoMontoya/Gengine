@@ -28,7 +28,6 @@ public:
     cmd.erase(cmd.find_last_not_of(" \n\r\t") + 1);
   }
 
-
   CmdAtom NextAtom();
 
   bool Valid() const noexcept

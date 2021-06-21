@@ -2,6 +2,7 @@
 #include "DebugSystem.h"
 #include "Scene.h"
 #include "Console.h"
+#include "Engine.h"
 #include <imgui/imgui.h>
 #include <Utilities/ImGuiExt.h>
 #include <CoreEngine/Input.h>
@@ -26,6 +27,11 @@ void DebugSystem::End()
 
 void DebugSystem::StartFrame(Scene& scene, float dt)
 {
+  if (glfwWindowShouldClose(window))
+  {
+    scene.GetEngine().Stop();
+  }
+
   ImGui_ImplOpenGL3_NewFrame();
   ImGui_ImplGlfw_NewFrame();
   ImGui::NewFrame();

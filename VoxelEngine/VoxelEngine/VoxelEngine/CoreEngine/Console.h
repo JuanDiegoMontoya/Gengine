@@ -1,9 +1,9 @@
 #pragma once
-//#include <variant>
+#include <functional>
 
 struct ConsoleStorage;
 
-using ConsoleFunc = void(*)(const char*);
+using ConsoleFunc = std::function<void(const char*)>;
 
 class Console
 {
@@ -12,8 +12,12 @@ public:
   ~Console();
 
   void RegisterCommand(const char* name, const char* description, ConsoleFunc fn);
-  void Log(const char* format, ...);
   void ExecuteCommand(const char* cmd);
+  const char* GetCommandDesc(const char* name);
+
+  void Log(const char* format, ...);
+  void Clear();
+
   void Draw();
 
 private:

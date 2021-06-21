@@ -15,10 +15,8 @@ enum class CVarType : uint8_t
   FLOAT,
   STRING,
   //BOOLEAN,
-  //VEC3F,
-  //VEC3I,
-  //VEC2F,
-  //VEC2I,
+  //VEC3,
+  //VEC2,
 };
 
 struct CVarParameters

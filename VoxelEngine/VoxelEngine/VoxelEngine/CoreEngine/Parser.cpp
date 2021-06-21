@@ -31,7 +31,7 @@ CmdAtom CmdParser::NextAtom()
   {
     type = CmdType::IDENTIFIER;
   }
-  else if (std::isdigit(cmd[current]))
+  else if (std::isdigit(cmd[current]) || cmd[current] == '-' || cmd[current] == '.')
   {
     type = CmdType::FLOAT;
   }
@@ -47,7 +47,6 @@ CmdAtom CmdParser::NextAtom()
   {
     char c = cmd[current];
     current++;
-    //cmd.erase(cmd.begin()); // extremely inefficient
 
     if (std::isblank(c) && type != CmdType::STRING)
     {

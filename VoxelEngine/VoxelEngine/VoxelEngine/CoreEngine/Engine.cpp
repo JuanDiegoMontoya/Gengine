@@ -11,6 +11,9 @@
 #include "ParticleSystem.h"
 #include "LifetimeSystem.h"
 
+#include "Console.h"
+#include "Parser.h"
+
 Engine::Engine()
 {
   graphicsSystem = std::make_unique<GraphicsSystem>();
@@ -22,6 +25,42 @@ Engine::Engine()
 
   graphicsSystem->Init();
   debugSystem->Init(graphicsSystem->GetWindow());
+
+  auto exitFunc = [this](const char*)
+  {
+    this->Stop();
+  };
+
+  auto helpFunc = [](const char* arg)
+  {
+    CmdParser parser(arg);
+    std::vector<CmdAtom> atoms;
+    Identifier* identifier = nullptr;
+    if (arg[0] != 0)
+    {
+      while (parser.Valid())
+      {
+        atoms.push_back(parser.NextAtom());
+      }
+      identifier = std::get_if<Identifier>(&atoms[0]);
+    }
+
+    const char* desc;
+    if (atoms.empty() ||
+      !identifier ||
+      !(desc = Console::Get()->GetCommandDesc(identifier->name.c_str())))
+    {
+      Console::Get()->Log("Usage: help <convar>");
+      return;
+    }
+
+    Console::Get()->Log("%s\n%s", identifier->name, desc);
+  };
+
+  Console::Get()->RegisterCommand("exit", "- Exits the engine", exitFunc);
+  Console::Get()->RegisterCommand("quit", "- Exits the engine", exitFunc);
+  Console::Get()->RegisterCommand("help", "- Find help about a convar / concommand", helpFunc);
+  Console::Get()->RegisterCommand("clear", "- Clears the console", [](const char*) { Console::Get()->Clear(); });
 }
 
 Engine::~Engine()

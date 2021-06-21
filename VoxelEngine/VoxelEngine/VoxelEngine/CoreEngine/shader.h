@@ -162,6 +162,8 @@ public:
     glProgramUniformMatrix4fv(programID, Uniforms[uniform], 1, GL_FALSE, glm::value_ptr(mat));
   }
 
+  auto GetID() const noexcept { return programID; }
+
   // list of all shader programs
   static inline std::unordered_map<entt::hashed_string, std::optional<Shader>> shaders;
 private:

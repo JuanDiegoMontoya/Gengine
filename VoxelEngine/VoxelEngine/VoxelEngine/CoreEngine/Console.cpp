@@ -1,10 +1,17 @@
 #include "Console.h"
 #include "CVarInternal.h"
+#include "Parser.h"
 #include "Input.h"
 #include <array>
 #include <vector>
 #include <imgui/imgui.h>
 
+std::string lower(const char* str)
+{
+  std::string s = str;
+  for (char& c : s) c = std::tolower(c);
+  return s;
+}
 
 int TextEditCallback(ImGuiInputTextCallbackData* data, ConsoleStorage* console);
 
@@ -58,22 +65,9 @@ void Console::Log(const char* format, ...)
   console->logEntries.push_back(buf.data());
 }
 
-void Console::ExecuteCommand(const char* cmd)
+void Console::Clear()
 {
-  Log("# %s\n", cmd);
-
-  // Insert into history. First find match and delete it so it can be pushed to the back.
-  // This isn't trying to be smart or optimal.
-  console->historyPos = -1;
-  for (int i = console->inputHistory.size() - 1; i >= 0; i--)
-  {
-    if (console->inputHistory[i] == cmd)
-    {
-      console->inputHistory.erase(console->inputHistory.begin() + i);
-      break;
-    }
-  }
-  console->inputHistory.push_back(cmd);
+  console->logEntries.clear();
 }
 
 void Console::Draw()
@@ -118,7 +112,7 @@ void Console::Draw()
   ImGui::BeginChild("ScrollingRegion", ImVec2(0, -footer_height_to_reserve), false, ImGuiWindowFlags_HorizontalScrollbar);
   if (ImGui::BeginPopupContextWindow())
   {
-    if (ImGui::Selectable("Clear")) console->logEntries.clear();
+    if (ImGui::Selectable("Clear")) Clear();
     ImGui::EndPopup();
   }
 
@@ -178,6 +172,62 @@ void Console::Draw()
     ImGui::SetKeyboardFocusHere(-1); // Auto focus previous widget
 
   ImGui::End();
+}
+
+void Console::ExecuteCommand(const char* cmd)
+{
+  Log(">>> %s <<<\n", cmd);
+
+  // Insert into history. First find match and delete it so it can be pushed to the back.
+  // This isn't trying to be smart or optimal.
+  console->historyPos = -1;
+  for (int i = console->inputHistory.size() - 1; i >= 0; i--)
+  {
+    if (console->inputHistory[i] == cmd)
+    {
+      console->inputHistory.erase(console->inputHistory.begin() + i);
+      break;
+    }
+  }
+  console->inputHistory.push_back(cmd);
+
+  CmdParser parser(cmd);
+  auto var = parser.NextAtom();
+  auto* id = std::get_if<Identifier>(&var);
+  if (!id)
+  {
+    Log("Commands must begin with an identifier\n");
+    Log("%s\n", cmd);
+    Log("^ not an identifier\n");
+    return;
+  }
+
+  std::string cmdLower = lower(id->name.c_str());
+  auto it = std::find_if(console->commands.begin(), console->commands.end(), [cmdLower](const Command& command)
+    {
+      return lower(command.name.c_str()) == cmdLower;
+    });
+
+  if (it == console->commands.end())
+  {
+    Log("No command with identifier <%s> found\n", id->name.c_str());
+    // TODO: try get cvar with that identifier
+    return;
+  }
+
+  it->func(parser.GetRemaining().c_str());
+}
+
+const char* Console::GetCommandDesc(const char* name)
+{
+  for (const auto& cmd : console->commands)
+  {
+    if (lower(cmd.name.c_str()) == lower(name))
+    {
+      return cmd.description.c_str();
+    }
+  }
+  return nullptr;
 }
 
 int TextEditCallback(ImGuiInputTextCallbackData* data, ConsoleStorage* console)

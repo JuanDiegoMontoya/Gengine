@@ -6,6 +6,7 @@
 
 #include <CoreEngine/CVar.h>
 #include <CoreEngine/Parser.h>
+#include <CoreEngine/Console.h>
 
 void callback(const char* name, double value)
 {

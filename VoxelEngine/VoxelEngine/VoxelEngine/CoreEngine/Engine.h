@@ -26,10 +26,10 @@ public:
   void Pause() { paused_ = true; }
   void Unpause() { paused_ = false; }
   bool IsPaused() const { return paused_; }
+  void Stop() { running_ = false; }
 
 private:
   friend class Application;
-  void Stop() { running_ = false; }
 
   float dt_{};
   std::vector<std::unique_ptr<Scene>> scenes_;
