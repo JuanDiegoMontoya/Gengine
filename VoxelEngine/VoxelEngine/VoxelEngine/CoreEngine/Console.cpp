@@ -6,6 +6,8 @@
 #include <vector>
 #include <imgui/imgui.h>
 
+#define INPUT_BUF_SIZE 256
+
 std::string lower(const char* str)
 {
   std::string s = str;
@@ -25,11 +27,15 @@ struct Command
 struct ConsoleStorage
 {
   bool isOpen = true;
-  std::vector<std::string> logEntries;
+  CColor defaultInputColor{ .6, .6, .6 };
+  CColor defaultTextColor{ 1, 1, 1 };
+  std::vector<std::pair<std::string, CColor>> logEntries;
   std::vector<std::string> inputHistory;
   int historyPos{ -1 };
-  std::array<char, 256> inputBuffer{ 0 };
+  int autocompletePos{ 0 };
+  std::array<char, INPUT_BUF_SIZE> inputBuffer{ 0 };
   std::vector<Command> commands;
+  std::vector<std::string> autocompleteCandidates;
 };
 
 Console* Console::Get()
@@ -55,14 +61,24 @@ void Console::RegisterCommand(const char* name, const char* description, Console
 
 void Console::Log(const char* format, ...)
 {
-  // FIXME-OPT
   std::array<char, 1024> buf;
   va_list args;
   va_start(args, format);
   vsnprintf(buf.data(), buf.size(), format, args);
   buf[buf.size() - 1] = 0;
   va_end(args);
-  console->logEntries.push_back(buf.data());
+  console->logEntries.push_back({ buf.data(), console->defaultTextColor });
+}
+
+void Console::LogColor(const CColor& color, const char* format, ...)
+{
+  std::array<char, 1024> buf;
+  va_list args;
+  va_start(args, format);
+  vsnprintf(buf.data(), buf.size(), format, args);
+  buf[buf.size() - 1] = 0;
+  va_end(args);
+  console->logEntries.push_back({ buf.data(), color });
 }
 
 void Console::Clear()
@@ -120,21 +136,17 @@ void Console::Draw()
   ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 1)); // Tighten spacing
   for (int i = 0; i < console->logEntries.size(); i++)
   {
-    const char* item = console->logEntries[i].c_str();
+    const auto& pair = console->logEntries[i];
+    const char* item = pair.first.c_str();
+    CColor c = pair.second;
+    ImVec4 color{ c.r, c.g, c.b, 1 };
+
     //if (!Filter.PassFilter(item))
     //  continue;
 
-    // Normally you would store more information in your item than just a string.
-    // (e.g. make Items[] an array of structure, store color/type etc.)
-    ImVec4 color;
-    bool has_color = false;
-    if (strstr(item, "[error]")) { color = ImVec4(1.0f, 0.4f, 0.4f, 1.0f); has_color = true; }
-    else if (strncmp(item, "# ", 2) == 0) { color = ImVec4(1.0f, 0.8f, 0.6f, 1.0f); has_color = true; }
-    if (has_color)
-      ImGui::PushStyleColor(ImGuiCol_Text, color);
+    ImGui::PushStyleColor(ImGuiCol_Text, color);
     ImGui::TextUnformatted(item);
-    if (has_color)
-      ImGui::PopStyleColor();
+    ImGui::PopStyleColor();
   }
 
   //if (ScrollToBottom || (AutoScroll && ImGui::GetScrollY() >= ImGui::GetScrollMaxY()))
@@ -145,6 +157,25 @@ void Console::Draw()
   ImGui::EndChild();
   ImGui::Separator();
 
+  // build list of candidates
+  console->autocompleteCandidates.clear();
+  if (console->inputBuffer[0] != 0)
+  {
+    std::string inputLwr = lower(console->inputBuffer.data());
+    inputLwr.erase(0, inputLwr.find_first_not_of(" \n\r\t")); // trim begin
+    inputLwr.erase(inputLwr.find_last_not_of(" \n\r\t") + 1); // trim end
+    for (int i = 0; i < console->commands.size(); i++)
+    {
+      std::string cmdLwr = lower(console->commands[i].name.c_str());
+      if (cmdLwr.find(inputLwr.c_str()) != std::string::npos)
+      {
+        console->autocompleteCandidates.push_back(console->commands[i].name.c_str());
+      }
+    }
+  }
+  console->autocompletePos = std::min((int)console->autocompleteCandidates.size() - 1, console->autocompletePos);
+  console->autocompletePos = std::max(0, console->autocompletePos);
+
   auto textEditCallbackStub = [](ImGuiInputTextCallbackData* data) -> int
     {
       ConsoleStorage* cc = reinterpret_cast<ConsoleStorage*>(data->UserData);
@@ -153,7 +184,8 @@ void Console::Draw()
 
   // Command-line
   bool reclaim_focus = false;
-  ImGuiInputTextFlags input_text_flags = ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CallbackCompletion | ImGuiInputTextFlags_CallbackHistory;
+  ImGuiInputTextFlags input_text_flags = ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CallbackCompletion |
+    ImGuiInputTextFlags_CallbackHistory | ImGuiInputTextFlags_CallbackAlways;
   if (ImGui::InputText("Input", console->inputBuffer.data(), console->inputBuffer.size(), input_text_flags, textEditCallbackStub, (void*)console))
   {
     std::string s = console->inputBuffer.data();
@@ -176,7 +208,7 @@ void Console::Draw()
 
 void Console::ExecuteCommand(const char* cmd)
 {
-  Log(">>> %s <<<\n", cmd);
+  LogColor(console->defaultInputColor, ">>> %s <<<\n", cmd);
 
   // Insert into history. First find match and delete it so it can be pushed to the back.
   // This isn't trying to be smart or optimal.
@@ -211,7 +243,7 @@ void Console::ExecuteCommand(const char* cmd)
   if (it == console->commands.end())
   {
     Log("No command with identifier <%s> found\n", id->name.c_str());
-    // TODO: try get cvar with that identifier
+    // TODO: try get cvar with id
     return;
   }
 
@@ -233,96 +265,75 @@ const char* Console::GetCommandDesc(const char* name)
 int TextEditCallback(ImGuiInputTextCallbackData* data, ConsoleStorage* console)
 {
   //AddLog("cursor: %d, selection: %d-%d", data->CursorPos, data->SelectionStart, data->SelectionEnd);
+  if (data->EventFlag == ImGuiInputTextFlags_CallbackAlways && console->autocompleteCandidates.size() > 0)
+  {
+    ImGui::SetNextWindowPos(ImVec2(ImGui::GetItemRectMin().x, ImGui::GetItemRectMax().y));
+    ImGui::SetNextWindowSize(ImVec2(150, 0));
+    ImGui::BeginTooltip();
+    for (int i = 0; const auto& candidate : console->autocompleteCandidates)
+    {
+      if (ImGui::Selectable(candidate.c_str(), i == console->autocompletePos))
+      {
+        memcpy_s(data->Buf, INPUT_BUF_SIZE, candidate.c_str(), candidate.size());
+      }
+      i++;
+    }
+    ImGui::EndTooltip();
+  }
+
   switch (data->EventFlag)
   {
   case ImGuiInputTextFlags_CallbackCompletion:
   {
-    // Locate beginning of current word
-    const char* word_end = data->Buf + data->CursorPos;
-    const char* word_start = word_end;
-    while (word_start > data->Buf)
+    if (!console->autocompleteCandidates.empty())
     {
-      const char c = word_start[-1];
-      if (c == ' ' || c == '\t' || c == ',' || c == ';')
-        break;
-      word_start--;
+      const auto& str = console->autocompleteCandidates[console->autocompletePos];
+      memcpy_s(data->Buf, INPUT_BUF_SIZE, str.c_str(), str.size());
     }
-
-    // Build a list of candidates
-    std::vector<const char*> candidates;
-    for (int i = 0; i < console->commands.size(); i++)
-      if (strncmp(console->commands[i].name.c_str(), word_start, (int)(word_end - word_start)) == 0)
-        candidates.push_back(console->commands[i].name.c_str());
-
-    if (candidates.empty())
-    {
-      // No match
-      Console::Get()->Log("No match for \"%.*s\"!\n", (int)(word_end - word_start), word_start);
-    }
-    else if (candidates.size() == 1)
-    {
-      // Single match. Delete the beginning of the word and replace it entirely so we've got nice casing.
-      data->DeleteChars((int)(word_start - data->Buf), (int)(word_end - word_start));
-      data->InsertChars(data->CursorPos, candidates[0]);
-      data->InsertChars(data->CursorPos, " ");
-    }
-    else
-    {
-      // Multiple matches. Complete as much as we can..
-      // So inputing "C"+Tab will complete to "CL" then display "CLEAR" and "CLASSIFY" as matches.
-      int match_len = (int)(word_end - word_start);
-      for (;;)
-      {
-        int c = 0;
-        bool all_candidates_matches = true;
-        for (int i = 0; i < candidates.size() && all_candidates_matches; i++)
-          if (i == 0)
-            c = toupper(candidates[i][match_len]);
-          else if (c == 0 || c != toupper(candidates[i][match_len]))
-            all_candidates_matches = false;
-        if (!all_candidates_matches)
-          break;
-        match_len++;
-      }
-
-      if (match_len > 0)
-      {
-        data->DeleteChars((int)(word_start - data->Buf), (int)(word_end - word_start));
-        data->InsertChars(data->CursorPos, candidates[0], candidates[0] + match_len);
-      }
-
-      // List matches
-      Console::Get()->Log("Possible matches:\n");
-      for (int i = 0; i < candidates.size(); i++)
-        Console::Get()->Log("- %s\n", candidates[i]);
-    }
-
     break;
   }
   case ImGuiInputTextFlags_CallbackHistory:
   {
-    const int prev_history_pos = console->historyPos;
-    if (data->EventKey == ImGuiKey_UpArrow)
+    // move autocomplete cursor if there are candidates
+    if (console->autocompleteCandidates.size() > 0)
     {
-      if (console->historyPos == -1)
-        console->historyPos = console->inputHistory.size() - 1;
-      else if (console->historyPos > 0)
-        console->historyPos--;
+      if (data->EventKey == ImGuiKey_DownArrow)
+      {
+        if (++console->autocompletePos > console->autocompleteCandidates.size() - 1)
+          console->autocompletePos = 0;
+      }
+      else if (data->EventKey == ImGuiKey_UpArrow)
+      {
+        if (--console->autocompletePos < 0)
+          console->autocompletePos = console->autocompleteCandidates.size() - 1;
+      }
     }
-    else if (data->EventKey == ImGuiKey_DownArrow)
+    else
     {
-      if (console->historyPos != -1)
-        if (++console->historyPos >= console->inputHistory.size())
-          console->historyPos = -1;
-    }
+      const int prev_history_pos = console->historyPos;
+      if (data->EventKey == ImGuiKey_UpArrow)
+      {
+        if (console->historyPos == -1)
+          console->historyPos = console->inputHistory.size() - 1;
+        else if (console->historyPos > 0)
+          console->historyPos--;
+      }
+      else if (data->EventKey == ImGuiKey_DownArrow)
+      {
+        if (console->historyPos != -1)
+          if (++console->historyPos >= console->inputHistory.size())
+            console->historyPos = -1;
+      }
 
-    // A better implementation would preserve the data on the current input line along with cursor position.
-    if (prev_history_pos != console->historyPos)
-    {
-      const char* history_str = (console->historyPos >= 0) ? console->inputHistory[console->historyPos].c_str() : "";
-      data->DeleteChars(0, data->BufTextLen);
-      data->InsertChars(0, history_str);
+      // a better implementation would preserve the data on the current input line along with cursor position
+      if (prev_history_pos != console->historyPos)
+      {
+        const char* history_str = (console->historyPos >= 0) ? console->inputHistory[console->historyPos].c_str() : "";
+        data->DeleteChars(0, data->BufTextLen);
+        data->InsertChars(0, history_str);
+      }
     }
+    break;
   }
   }
   return 0;

@@ -5,6 +5,20 @@ struct ConsoleStorage;
 
 using ConsoleFunc = std::function<void(const char*)>;
 
+struct CColor
+{
+  union
+  {
+    float val[3];
+    struct
+    {
+      float r;
+      float g;
+      float b;
+    };
+  };
+};
+
 class Console
 {
 public:
@@ -16,6 +30,7 @@ public:
   const char* GetCommandDesc(const char* name);
 
   void Log(const char* format, ...);
+  void LogColor(const CColor& color, const char* format, ...);
   void Clear();
 
   void Draw();
