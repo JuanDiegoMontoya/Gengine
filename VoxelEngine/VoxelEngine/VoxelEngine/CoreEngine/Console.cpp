@@ -8,6 +8,7 @@
 
 #define INPUT_BUF_SIZE 256
 
+
 std::string lower(const char* str)
 {
   std::string s = str;
@@ -36,6 +37,19 @@ struct ConsoleStorage
   std::array<char, INPUT_BUF_SIZE> inputBuffer{ 0 };
   std::vector<Command> commands;
   std::vector<std::string> autocompleteCandidates;
+
+  struct State
+  {
+    bool isPopupOpen = false;
+    int  activeIdx = -1;          // Index of currently 'active' item by use of up/down keys
+    int  clickedIdx = -1;         // Index of popup item clicked with the mouse
+    bool selectionChanged = false;// Flag to help focus the correct item when selecting active item
+    ImVec2 popupPos{};
+    ImVec2 popupSize{};
+    bool isWindowFocused = false;
+    bool isPopupFocused = false;
+    bool userTypedKey = false;
+  } state;
 };
 
 Console* Console::Get()
@@ -88,6 +102,17 @@ void Console::Clear()
 
 void Console::Draw()
 {
+  DrawWindow();
+  DrawPopup();
+
+  if (!console->state.isWindowFocused && !console->state.isPopupFocused)
+  {
+    console->state.isPopupOpen = false;
+  }
+}
+
+void Console::DrawWindow()
+{
   if (ImGui::IsKeyPressed(GLFW_KEY_F2))
     console->isOpen = !console->isOpen;
 
@@ -95,7 +120,10 @@ void Console::Draw()
     return;
 
   ImGui::SetNextWindowSize(ImVec2(520, 600), ImGuiCond_FirstUseEver);
-  if (!ImGui::Begin("GConsole", &console->isOpen, ImGuiWindowFlags_MenuBar))
+  ImGuiWindowFlags windowFlags = ImGuiWindowFlags_MenuBar;
+  if (console->state.isPopupOpen)
+    windowFlags |= ImGuiWindowFlags_NoBringToFrontOnFocus;
+  if (!ImGui::Begin("GConsole", &console->isOpen, windowFlags))
   {
     ImGui::End();
     return;
@@ -173,36 +201,130 @@ void Console::Draw()
       }
     }
   }
-  console->autocompletePos = std::min((int)console->autocompleteCandidates.size() - 1, console->autocompletePos);
-  console->autocompletePos = std::max(0, console->autocompletePos);
+  //console->autocompletePos = std::min((int)console->autocompleteCandidates.size() - 1, console->autocompletePos);
+  //console->autocompletePos = std::max(0, console->autocompletePos);
 
   auto textEditCallbackStub = [](ImGuiInputTextCallbackData* data) -> int
-    {
-      ConsoleStorage* cc = reinterpret_cast<ConsoleStorage*>(data->UserData);
-      return TextEditCallback(data, cc);
-    };
+  {
+    ConsoleStorage* cc = reinterpret_cast<ConsoleStorage*>(data->UserData);
+    return TextEditCallback(data, cc);
+  };
 
   // Command-line
+  ImGuiInputTextFlags input_text_flags =
+    ImGuiInputTextFlags_EnterReturnsTrue |
+    ImGuiInputTextFlags_CallbackCompletion |
+    ImGuiInputTextFlags_CallbackHistory |
+    ImGuiInputTextFlags_CallbackAlways |
+    ImGuiInputTextFlags_CallbackEdit;
+
   bool reclaim_focus = false;
-  ImGuiInputTextFlags input_text_flags = ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CallbackCompletion |
-    ImGuiInputTextFlags_CallbackHistory | ImGuiInputTextFlags_CallbackAlways;
   if (ImGui::InputText("Input", console->inputBuffer.data(), console->inputBuffer.size(), input_text_flags, textEditCallbackStub, (void*)console))
   {
-    std::string s = console->inputBuffer.data();
-    //Strtrim(s);
-    s.erase(s.find_last_not_of(" \n\r\t") + 1); // trim whitespace from end of string
-    if (s[0])
-      ExecuteCommand(s.c_str());
-    //strcpy(s, "");
-    console->inputBuffer[0] = NULL;
+    ImGui::SetKeyboardFocusHere(-1);
+
+    if (console->state.isPopupOpen && console->state.activeIdx != -1)
+    {
+      const auto& selection = console->autocompleteCandidates[console->state.activeIdx];
+      memcpy_s(console->inputBuffer.data(), INPUT_BUF_SIZE, selection.c_str(), selection.size());
+    }
+    else
+    {
+      std::string s = console->inputBuffer.data();
+      s.erase(s.find_last_not_of(" \n\r\t") + 1); // trim whitespace from end of string
+      if (s[0])
+      {
+        ExecuteCommand(s.c_str());
+      }
+      console->inputBuffer[0] = NULL;
+    }
+
     reclaim_focus = true;
+    console->state.isPopupOpen = false;
+    console->state.activeIdx = -1;
   }
 
-  // Auto-focus on window apparition
-  ImGui::SetItemDefaultFocus();
-  if (reclaim_focus)
-    ImGui::SetKeyboardFocusHere(-1); // Auto focus previous widget
+  if (console->state.clickedIdx != -1)
+  {
+    ImGui::SetKeyboardFocusHere(-1);
+    console->state.isPopupOpen = false;
+  }
 
+  console->state.popupPos = ImGui::GetItemRectMin();
+
+  // Auto-focus on window apparition
+  //ImGui::SetItemDefaultFocus();
+  if (reclaim_focus)
+  {
+    ImGui::SetKeyboardFocusHere(-1); // Auto focus previous widget
+  }
+
+  if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) &&
+    !ImGui::IsAnyItemActive() &&
+    !ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+  {
+    ImGui::SetKeyboardFocusHere(-1);
+  }
+
+  console->state.popupSize.x = ImGui::GetItemRectSize().x - 60;
+  console->state.popupSize.y = ImGui::GetTextLineHeightWithSpacing() * 4;
+  console->state.popupPos.y += ImGui::GetItemRectSize().y;
+
+  console->state.isWindowFocused = ImGui::IsWindowFocused(ImGuiFocusedFlags_RootWindow);
+
+  ImGui::End();
+}
+
+void Console::DrawPopup()
+{
+  if (!console->state.isPopupOpen)
+  {
+    return;
+  }
+
+  ImGuiWindowFlags flags =
+    ImGuiWindowFlags_NoDecoration |
+    ImGuiWindowFlags_NoResize |
+    ImGuiWindowFlags_NoMove |
+    ImGuiWindowFlags_NoSavedSettings |
+    ImGuiWindowFlags_HorizontalScrollbar;
+
+  ImGui::SetNextWindowPos(console->state.popupPos);
+  ImGui::SetNextWindowSize(console->state.popupSize);
+  ImGui::Begin("popupa", nullptr, flags);
+  ImGui::PushAllowKeyboardFocus(false);
+
+  for (int i = 0; const auto& candidate : console->autocompleteCandidates)
+  {
+    bool isIndexActive = console->state.activeIdx == i;
+    if (isIndexActive)
+    {
+      ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(1, 0, 0, 1));
+    }
+
+    ImGui::PushID(i);
+    if (ImGui::Selectable(candidate.c_str(), isIndexActive))
+    {
+      //memcpy_s(console->inputBuffer.data(), INPUT_BUF_SIZE, candidate.c_str(), candidate.size());
+      console->state.clickedIdx = i;
+    }
+    ImGui::PopID();
+
+    if (isIndexActive)
+    {
+      if (console->state.selectionChanged)
+      {
+        ImGui::SetScrollHereY();
+        console->state.selectionChanged = false;
+      }
+
+      ImGui::PopStyleColor();
+    }
+    i++;
+  }
+
+  console->state.isPopupFocused = ImGui::IsWindowFocused(ImGuiFocusedFlags_RootWindow);
+  ImGui::PopAllowKeyboardFocus();
   ImGui::End();
 }
 
@@ -265,31 +387,41 @@ const char* Console::GetCommandDesc(const char* name)
 int TextEditCallback(ImGuiInputTextCallbackData* data, ConsoleStorage* console)
 {
   //AddLog("cursor: %d, selection: %d-%d", data->CursorPos, data->SelectionStart, data->SelectionEnd);
-  if (data->EventFlag == ImGuiInputTextFlags_CallbackAlways && console->autocompleteCandidates.size() > 0)
-  {
-    ImGui::SetNextWindowPos(ImVec2(ImGui::GetItemRectMin().x, ImGui::GetItemRectMax().y));
-    ImGui::SetNextWindowSize(ImVec2(150, 0));
-    ImGui::BeginTooltip();
-    for (int i = 0; const auto& candidate : console->autocompleteCandidates)
-    {
-      if (ImGui::Selectable(candidate.c_str(), i == console->autocompletePos))
-      {
-        memcpy_s(data->Buf, INPUT_BUF_SIZE, candidate.c_str(), candidate.size());
-      }
-      i++;
-    }
-    ImGui::EndTooltip();
-  }
+
+  //if (data->EventFlag == ImGuiInputTextFlags_CallbackAlways && console->autocompleteCandidates.size() > 0)
+  //{
+  //  ImGui::SetNextWindowPos(ImVec2(ImGui::GetItemRectMin().x, ImGui::GetItemRectMax().y));
+  //  ImGui::SetNextWindowSize(ImVec2(150, 0));
+  //  ImGui::BeginTooltip();
+  //  for (int i = 0; const auto& candidate : console->autocompleteCandidates)
+  //  {
+  //    if (ImGui::Selectable(candidate.c_str(), i == console->autocompletePos))
+  //    {
+  //      memcpy_s(data->Buf, INPUT_BUF_SIZE, candidate.c_str(), candidate.size());
+  //    }
+  //    i++;
+  //  }
+  //  ImGui::EndTooltip();
+  //}
 
   switch (data->EventFlag)
   {
   case ImGuiInputTextFlags_CallbackCompletion:
   {
-    if (!console->autocompleteCandidates.empty())
+    if (console->state.isPopupOpen && console->state.activeIdx != -1 && console->autocompleteCandidates.size() > 0)
     {
-      const auto& str = console->autocompleteCandidates[console->autocompletePos];
-      memcpy_s(data->Buf, INPUT_BUF_SIZE, str.c_str(), str.size());
+      const auto& str = console->autocompleteCandidates[console->state.activeIdx];
+      //memcpy_s(data->Buf, INPUT_BUF_SIZE, str.c_str(), str.size());
+      //data->BufDirty = true;
+      //data->BufTextLen = str.size();
+      //data->CursorPos = str.size();
+      data->DeleteChars(0, data->BufTextLen);
+      data->InsertChars(0, str.c_str());
     }
+
+    console->state.isPopupOpen = false;
+    console->state.activeIdx = -1;
+    console->state.clickedIdx = -1;
     break;
   }
   case ImGuiInputTextFlags_CallbackHistory:
@@ -299,13 +431,13 @@ int TextEditCallback(ImGuiInputTextCallbackData* data, ConsoleStorage* console)
     {
       if (data->EventKey == ImGuiKey_DownArrow)
       {
-        if (++console->autocompletePos > console->autocompleteCandidates.size() - 1)
-          console->autocompletePos = 0;
+        if (++console->state.activeIdx > console->autocompleteCandidates.size() - 1)
+          console->state.activeIdx = 0;
       }
       else if (data->EventKey == ImGuiKey_UpArrow)
       {
-        if (--console->autocompletePos < 0)
-          console->autocompletePos = console->autocompleteCandidates.size() - 1;
+        if (--console->state.activeIdx < 0)
+          console->state.activeIdx = console->autocompleteCandidates.size() - 1;
       }
     }
     else
@@ -335,6 +467,37 @@ int TextEditCallback(ImGuiInputTextCallbackData* data, ConsoleStorage* console)
     }
     break;
   }
+  case ImGuiInputTextFlags_CallbackAlways:
+  {
+    if (console->state.clickedIdx != -1)
+    {
+      const auto& str = console->autocompleteCandidates[console->state.clickedIdx];
+      //memcpy_s(data->Buf, INPUT_BUF_SIZE, str.c_str(), str.size());
+      //data->BufTextLen = str.size();
+      //data->BufDirty = true;
+      data->DeleteChars(0, data->BufTextLen);
+      data->InsertChars(0, str.c_str());
+
+      console->state.isPopupOpen = false;
+      console->state.activeIdx = -1;
+      console->state.clickedIdx = -1;
+    }
+
+    if (console->autocompleteCandidates.empty())
+      console->state.isPopupOpen = false;
+    else if (console->state.userTypedKey)
+      console->state.isPopupOpen = true;
+
+    break;
   }
+  case ImGuiInputTextFlags_CallbackEdit:
+  {
+    //if (console->autocompleteCandidates.size() > 0)
+    //  console->state.isPopupOpen = true;
+    console->state.userTypedKey = true;
+    break;
+  }
+  }
+
   return 0;
 }

@@ -37,5 +37,7 @@ public:
 
 private:
   Console();
+  void DrawWindow();
+  void DrawPopup();
   ConsoleStorage* console;
 };
