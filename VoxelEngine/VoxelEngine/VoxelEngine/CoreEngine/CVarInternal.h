@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <entt.hpp> // TODO: replace with custom hashed string
 #include <string>
+#include <glm/vec3.hpp>
 #include "GAssert.h"
 #include "CVar.h"
 
@@ -14,8 +15,8 @@ enum class CVarType : uint8_t
 {
   FLOAT,
   STRING,
+  VEC3,
   //BOOLEAN,
-  //VEC3,
   //VEC2,
 };
 
@@ -82,8 +83,9 @@ struct CVarArray
 
 struct CVarSystemStorage
 {
-  CVarArray<double, 1000> floatCVars;
+  CVarArray<cvar_float, 1000> floatCVars;
   CVarArray<std::string, 1000, const char*> stringCVars;
+  CVarArray<cvar_vec3, 1000> vec3CVars;
 
   std::unordered_map<entt::id_type, CVarParameters> cvarParameters;
   std::shared_mutex mutex;

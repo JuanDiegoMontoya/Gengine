@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <variant>
+#include <glm/vec3.hpp>
 #include "CVar.h"
 
 struct ParseError
@@ -14,7 +15,7 @@ struct Identifier
   std::string name;
 };
 
-using CmdAtom = std::variant<ParseError, Identifier, cvar_float, std::string>;
+using CmdAtom = std::variant<ParseError, Identifier, cvar_float, std::string, glm::vec3>;
 
 class CmdParser
 {

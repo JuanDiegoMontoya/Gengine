@@ -1,7 +1,7 @@
 #pragma once
 #include <cinttypes>
 #include "Flags.h"
-//#include <glm/fwd.hpp>
+#include <glm/fwd.hpp>
 //#include <variant>
 
 enum class CVarFlag
@@ -38,6 +38,7 @@ using OnChangeCallback = void(*)(const char*, T);
 
 using cvar_float = double;
 using cvar_string = const char*;
+using cvar_vec3 = glm::vec3;
 
 struct CVarSystemStorage;
 struct CVarParameters;
@@ -56,6 +57,8 @@ public:
   template<typename T>
   bool SetCVar(const char* name, T value);
 
+  bool SetCVarParse(const char* name, const char* args);
+
 private:
   template<typename U>
   friend class AutoCVar;
@@ -72,29 +75,41 @@ class AutoCVar
 {
 public:
   AutoCVar(const char* name, const char* description, T defaultValue, CVarFlags flags = CVarFlag::NONE, OnChangeCallback<T> callback = nullptr);
+  
+  AutoCVar(AutoCVar&) = delete;
+  AutoCVar(AutoCVar&&) = delete;
+  AutoCVar& operator=(AutoCVar&) = delete;
+  AutoCVar& operator=(AutoCVar&&) = delete;
 
   T Get();
-  void Set(T);
+  void Set(T value);
 
 private:
+
   int index{};
 };
 
 template<> CVarParameters* CVarSystem::RegisterCVar(const char*, const char*, cvar_float, CVarFlags, OnChangeCallback<cvar_float>);
 template<> CVarParameters* CVarSystem::RegisterCVar(const char*, const char*, cvar_string, CVarFlags, OnChangeCallback<cvar_string>);
+template<> CVarParameters* CVarSystem::RegisterCVar(const char*, const char*, cvar_vec3, CVarFlags, OnChangeCallback<cvar_vec3>);
 
 template<> cvar_float CVarSystem::GetCVar(const char*);
 template<> cvar_string CVarSystem::GetCVar(const char*);
+template<> cvar_vec3 CVarSystem::GetCVar(const char*);
 
 template<> bool CVarSystem::SetCVar(const char*, cvar_float);
 template<> bool CVarSystem::SetCVar(const char*, cvar_string);
+template<> bool CVarSystem::SetCVar(const char*, cvar_vec3);
 
 
 template<> AutoCVar<cvar_float>::AutoCVar(const char*, const char*, cvar_float, CVarFlags, OnChangeCallback<cvar_float>);
 template<> AutoCVar<cvar_string>::AutoCVar(const char*, const char*, cvar_string, CVarFlags, OnChangeCallback<cvar_string>);
+template<> AutoCVar<cvar_vec3>::AutoCVar(const char*, const char*, cvar_vec3, CVarFlags, OnChangeCallback<cvar_vec3>);
 
 template<> cvar_float AutoCVar<cvar_float>::Get();
 template<> cvar_string AutoCVar<cvar_string>::Get();
+template<> cvar_vec3 AutoCVar<cvar_vec3>::Get();
 
 template<> void AutoCVar<cvar_float>::Set(cvar_float);
 template<> void AutoCVar<cvar_string>::Set(cvar_string);
+template<> void AutoCVar<cvar_vec3>::Set(cvar_vec3);

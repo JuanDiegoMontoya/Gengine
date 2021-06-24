@@ -13,6 +13,37 @@ void callback(const char* name, double value)
   printf("float cvar \"%s\" changed to %f", name, value);
 }
 
+void TestParse(const char* str)
+{
+  CmdParser parser(str);
+
+  printf("Testing string: %s\n", str);
+  while (parser.Valid())
+  {
+    auto var = parser.NextAtom();
+    if (auto* p = std::get_if<ParseError>(&var))
+    {
+      printf("Parse error on char %llu: %s\n", p->where, p->what.c_str());
+    }
+    else if (auto* i = std::get_if<Identifier>(&var))
+    {
+      printf("Identifier: %s\n", i->name.c_str());
+    }
+    else if (auto* f = std::get_if<cvar_float>(&var))
+    {
+      printf("Float: %f\n", *f);
+    }
+    else if (auto* s = std::get_if<std::string>(&var))
+    {
+      printf("String: %s\n", s->c_str());
+    }
+    else if (auto* v = std::get_if<glm::vec3>(&var))
+    {
+      printf("Vector: { %f, %f, %f }\n", v->x, v->y, v->z);
+    }
+  }
+}
+
 AutoCVar<cvar_float> testCVarFloat("cl_testfloat", "desc", 100, CVarFlag::READ_ONLY | CVarFlag::ARCHIVE, callback);
 AutoCVar<cvar_string> testCVarStr("stringy", "desc", "hallo");
 
@@ -45,27 +76,10 @@ void Application::Start()
   testCVarStr.Set("aloha");
   printf("value: %s\n", testCVarStr.Get());
 
-  CmdParser parser("__hello__ \"world\" I want 24.2 bananas %%4");
-  while (parser.Valid())
-  {
-    auto var = parser.NextAtom();
-    if (auto* p = std::get_if<ParseError>(&var))
-    {
-      printf("Parse error on char %llu: %s\n", p->where, p->what.c_str());
-    }
-    else if (auto* i = std::get_if<Identifier>(&var))
-    {
-      printf("Identifier: %s\n", i->name.c_str());
-    }
-    else if (auto* f = std::get_if<cvar_float>(&var))
-    {
-      printf("Float: %f\n", *f);
-    }
-    else if (auto* s = std::get_if<std::string>(&var))
-    {
-      printf("String: %s\n", s->c_str());
-    }
-  }
+  TestParse("__hello__ \"world\" I want 24.2 (2 3 4) bananas %%4");
+  TestParse("{34.30 3 3 0 )");
+  TestParse("{1.123   4 5]");
+  TestParse("{1.123 a  5]");
 
   ASSERT(start);
   engine_ = new Engine();

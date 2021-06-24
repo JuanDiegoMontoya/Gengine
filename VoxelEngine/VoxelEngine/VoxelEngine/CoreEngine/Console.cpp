@@ -9,19 +9,19 @@
 #define INPUT_BUF_SIZE 256
 
 // string utilities
-std::string lower(const char* str)
+static std::string lower(const char* str)
 {
   std::string s = str;
   for (char& c : s) c = std::tolower(c);
   return s;
 }
 
-void trimEnd(std::string& str)
+static void trimEnd(std::string& str)
 {
   str.erase(str.find_last_not_of(" \n\r\t") + 1);
 }
 
-void trimStart(std::string& str)
+static void trimStart(std::string& str)
 {
   str.erase(0, str.find_first_not_of(" \n\r\t"));
 }
@@ -44,11 +44,13 @@ struct Command
   ConsoleFunc func{};
 };
 
+AutoCVar<cvar_vec3> defaultTextColor("defaultTextColor", "Default color of console text", cvar_vec3(1));
+
 struct ConsoleStorage
 {
   bool isOpen = true;
   CColor defaultInputColor{ .6, .6, .6 };
-  CColor defaultTextColor{ 1, 1, 1 };
+  //CColor defaultTextColor{ 1, 1, 1 };
   std::vector<std::pair<std::string, CColor>> logEntries;
   std::vector<std::string> inputHistory;
   int historyPos{ -1 };
@@ -80,6 +82,33 @@ Console* Console::Get()
 Console::Console()
 {
   console = new ConsoleStorage;
+  RegisterCommand("find", "- Finds commands with substring", [con = console](const char* args)
+    {
+      CmdParser parser(args);
+      CmdAtom atom = parser.NextAtom();
+      Identifier* id = std::get_if<Identifier>(&atom);
+      if (!id)
+      {
+        Console::Get()->Log("Usage: find <convarname>");
+        return;
+      }
+
+      std::vector<const Command*> commands;
+      std::string idLower = lower(id->name.c_str());
+      for (const Command& cmd : con->commands)
+      {
+        std::string cmdLower = lower(cmd.name.c_str());
+        if (cmdLower.find(idLower) != std::string::npos)
+        {
+          commands.push_back(&cmd);
+        }
+      }
+
+      for (const Command* cmd : commands)
+      {
+        Console::Get()->Log("%-25s %s", cmd->name.c_str(), cmd->description.c_str());
+      }
+    });
   RegisterCommand("Lua", "- Runs the following Lua code", [](const char*) { Console::Get()->Log("Lua code :)"); });
   RegisterCommand("c.inputcolor", "- Sets the console input color", [con = console](const char* args)
     {
@@ -107,8 +136,17 @@ Console::Console()
 
       con->defaultInputColor = { (float)*r, (float)*g, (float)*b };
     });
-
   RegisterCommand("c.defaultcolor", "- Sets the console default text color", [](const char*) { Console::Get()->Log("c.defaultcolor set"); });
+  RegisterCommand("set", "- Sets the value of a cvar", [](const char* args)
+    {
+      CmdParser parser(args);
+      CmdAtom atom1 = parser.NextAtom();
+      auto* id = std::get_if<Identifier>(&atom1);
+      if (!id || !CVarSystem::Get()->SetCVarParse(id->name.c_str(), parser.GetRemaining().c_str()))
+      {
+        Console::Get()->Log("Usage: set <convar> <value>");
+      }
+    });
 }
 
 Console::~Console()
@@ -129,7 +167,8 @@ void Console::Log(const char* format, ...)
   vsnprintf(buf.data(), buf.size(), format, args);
   buf.back() = NULL;
   va_end(args);
-  console->logEntries.push_back({ buf.data(), console->defaultTextColor });
+  cvar_vec3 color = defaultTextColor.Get();
+  console->logEntries.push_back({ buf.data(), { color.r, color.g, color.b } });
 }
 
 void Console::LogColor(float r, float g, float b, const char* format, ...)
