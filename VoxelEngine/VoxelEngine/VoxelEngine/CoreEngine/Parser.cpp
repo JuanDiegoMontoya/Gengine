@@ -10,6 +10,14 @@ enum class CmdType
   IDENTIFIER, // command or cvar identifier
 };
 
+CmdParser::CmdParser(const char* command)
+  : cmd(command)
+{
+  // trim whitespace from beginning and end of string
+  cmd.erase(0, cmd.find_first_not_of(" \n\r\t"));
+  cmd.erase(cmd.find_last_not_of(" \n\r\t") + 1);
+}
+
 // world's worst type parser
 // probably better than nothing
 CmdAtom CmdParser::NextAtom()

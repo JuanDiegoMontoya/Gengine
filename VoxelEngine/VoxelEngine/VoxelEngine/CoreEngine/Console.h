@@ -1,23 +1,14 @@
 #pragma once
-#include <functional>
 
 struct ConsoleStorage;
 
-using ConsoleFunc = std::function<void(const char*)>;
-
-struct CColor
+namespace std
 {
-  union
-  {
-    float val[3];
-    struct
-    {
-      float r;
-      float g;
-      float b;
-    };
-  };
-};
+  template<typename Fn>
+  class function;
+}
+
+using ConsoleFunc = std::function<void(const char*)>;
 
 class Console
 {
@@ -30,7 +21,7 @@ public:
   const char* GetCommandDesc(const char* name);
 
   void Log(const char* format, ...);
-  void LogColor(const CColor& color, const char* format, ...);
+  void LogColor(float r, float g, float b, const char* format, ...);
   void Clear();
 
   void Draw();

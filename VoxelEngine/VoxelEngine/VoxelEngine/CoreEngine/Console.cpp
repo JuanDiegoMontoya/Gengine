@@ -8,13 +8,32 @@
 
 #define INPUT_BUF_SIZE 256
 
-
+// string utilities
 std::string lower(const char* str)
 {
   std::string s = str;
   for (char& c : s) c = std::tolower(c);
   return s;
 }
+
+void trimEnd(std::string& str)
+{
+  str.erase(str.find_last_not_of(" \n\r\t") + 1);
+}
+
+void trimStart(std::string& str)
+{
+  str.erase(0, str.find_first_not_of(" \n\r\t"));
+}
+
+struct CColor
+{
+  union
+  {
+    float val[3];
+    struct { float r, g, b; };
+  };
+};
 
 int TextEditCallback(ImGuiInputTextCallbackData* data, ConsoleStorage* console);
 
@@ -38,7 +57,7 @@ struct ConsoleStorage
   std::vector<Command> commands;
   std::vector<std::string> autocompleteCandidates;
 
-  struct State
+  struct PopupState
   {
     bool isPopupOpen = false;
     int  activeIdx = -1;          // Index of currently 'active' item by use of up/down keys
@@ -61,6 +80,35 @@ Console* Console::Get()
 Console::Console()
 {
   console = new ConsoleStorage;
+  RegisterCommand("Lua", "- Runs the following Lua code", [](const char*) { Console::Get()->Log("Lua code :)"); });
+  RegisterCommand("c.inputcolor", "- Sets the console input color", [con = console](const char* args)
+    {
+      CmdParser parser(args);
+      std::vector<CmdAtom> atoms;
+      while (parser.Valid())
+      {
+        atoms.push_back(parser.NextAtom());
+      }
+
+      if (atoms.size() != 3)
+      {
+        Console::Get()->Log("Usage: c.inputcolor <r> <g> <b>");
+        return;
+      }
+
+      cvar_float* r = std::get_if<cvar_float>(&atoms[0]);
+      cvar_float* g = std::get_if<cvar_float>(&atoms[1]);
+      cvar_float* b = std::get_if<cvar_float>(&atoms[2]);
+      if (!r || !g || !b)
+      {
+        Console::Get()->Log("Usage: c.inputcolor <r> <g> <b>");
+        return;
+      }
+
+      con->defaultInputColor = { (float)*r, (float)*g, (float)*b };
+    });
+
+  RegisterCommand("c.defaultcolor", "- Sets the console default text color", [](const char*) { Console::Get()->Log("c.defaultcolor set"); });
 }
 
 Console::~Console()
@@ -79,20 +127,20 @@ void Console::Log(const char* format, ...)
   va_list args;
   va_start(args, format);
   vsnprintf(buf.data(), buf.size(), format, args);
-  buf[buf.size() - 1] = 0;
+  buf.back() = NULL;
   va_end(args);
   console->logEntries.push_back({ buf.data(), console->defaultTextColor });
 }
 
-void Console::LogColor(const CColor& color, const char* format, ...)
+void Console::LogColor(float r, float g, float b, const char* format, ...)
 {
   std::array<char, 1024> buf;
   va_list args;
   va_start(args, format);
   vsnprintf(buf.data(), buf.size(), format, args);
-  buf[buf.size() - 1] = 0;
+  buf.back() = NULL;
   va_end(args);
-  console->logEntries.push_back({ buf.data(), color });
+  console->logEntries.push_back({ buf.data(), { r, g, b } });
 }
 
 void Console::Clear()
@@ -190,8 +238,8 @@ void Console::DrawWindow()
   if (console->inputBuffer[0] != 0)
   {
     std::string inputLwr = lower(console->inputBuffer.data());
-    inputLwr.erase(0, inputLwr.find_first_not_of(" \n\r\t")); // trim begin
-    inputLwr.erase(inputLwr.find_last_not_of(" \n\r\t") + 1); // trim end
+    trimStart(inputLwr);
+    trimEnd(inputLwr);
     for (int i = 0; i < console->commands.size(); i++)
     {
       std::string cmdLwr = lower(console->commands[i].name.c_str());
@@ -219,7 +267,7 @@ void Console::DrawWindow()
     ImGuiInputTextFlags_CallbackEdit;
 
   bool reclaim_focus = false;
-  if (ImGui::InputText("Input", console->inputBuffer.data(), console->inputBuffer.size(), input_text_flags, textEditCallbackStub, (void*)console))
+  if (ImGui::InputText("##Input", console->inputBuffer.data(), console->inputBuffer.size(), input_text_flags, textEditCallbackStub, (void*)console))
   {
     ImGui::SetKeyboardFocusHere(-1);
 
@@ -231,7 +279,7 @@ void Console::DrawWindow()
     else
     {
       std::string s = console->inputBuffer.data();
-      s.erase(s.find_last_not_of(" \n\r\t") + 1); // trim whitespace from end of string
+      trimEnd(s);
       if (s[0])
       {
         ExecuteCommand(s.c_str());
@@ -248,9 +296,8 @@ void Console::DrawWindow()
   {
     ImGui::SetKeyboardFocusHere(-1);
     console->state.isPopupOpen = false;
+    console->state.userTypedKey = false;
   }
-
-  console->state.popupPos = ImGui::GetItemRectMin();
 
   // Auto-focus on window apparition
   //ImGui::SetItemDefaultFocus();
@@ -266,11 +313,19 @@ void Console::DrawWindow()
     ImGui::SetKeyboardFocusHere(-1);
   }
 
+  console->state.popupPos = ImGui::GetItemRectMin();
   console->state.popupSize.x = ImGui::GetItemRectSize().x - 60;
-  console->state.popupSize.y = ImGui::GetTextLineHeightWithSpacing() * 4;
-  console->state.popupPos.y += ImGui::GetItemRectSize().y;
+  console->state.popupSize.y = ImGui::GetTextLineHeightWithSpacing() * 6;
+  console->state.popupPos.y += ImGui::GetItemRectSize().y + 10;
 
   console->state.isWindowFocused = ImGui::IsWindowFocused(ImGuiFocusedFlags_RootWindow);
+
+  ImGui::SameLine();
+
+  if (ImGui::Button("Submit"))
+  {
+    // does nothing lol
+  }
 
   ImGui::End();
 }
@@ -287,11 +342,12 @@ void Console::DrawPopup()
     ImGuiWindowFlags_NoResize |
     ImGuiWindowFlags_NoMove |
     ImGuiWindowFlags_NoSavedSettings |
-    ImGuiWindowFlags_HorizontalScrollbar;
+    ImGuiWindowFlags_HorizontalScrollbar |
+    ImGuiWindowFlags_NoFocusOnAppearing;
 
   ImGui::SetNextWindowPos(console->state.popupPos);
   ImGui::SetNextWindowSize(console->state.popupSize);
-  ImGui::Begin("popupa", nullptr, flags);
+  ImGui::Begin("popup", nullptr, flags);
   ImGui::PushAllowKeyboardFocus(false);
 
   for (int i = 0; const auto& candidate : console->autocompleteCandidates)
@@ -330,7 +386,8 @@ void Console::DrawPopup()
 
 void Console::ExecuteCommand(const char* cmd)
 {
-  LogColor(console->defaultInputColor, ">>> %s <<<\n", cmd);
+  const auto& color = console->defaultInputColor;
+  LogColor(color.r, color.g, color.b, ">>> %s <<<\n", cmd);
 
   // Insert into history. First find match and delete it so it can be pushed to the back.
   // This isn't trying to be smart or optimal.
@@ -386,24 +443,6 @@ const char* Console::GetCommandDesc(const char* name)
 
 int TextEditCallback(ImGuiInputTextCallbackData* data, ConsoleStorage* console)
 {
-  //AddLog("cursor: %d, selection: %d-%d", data->CursorPos, data->SelectionStart, data->SelectionEnd);
-
-  //if (data->EventFlag == ImGuiInputTextFlags_CallbackAlways && console->autocompleteCandidates.size() > 0)
-  //{
-  //  ImGui::SetNextWindowPos(ImVec2(ImGui::GetItemRectMin().x, ImGui::GetItemRectMax().y));
-  //  ImGui::SetNextWindowSize(ImVec2(150, 0));
-  //  ImGui::BeginTooltip();
-  //  for (int i = 0; const auto& candidate : console->autocompleteCandidates)
-  //  {
-  //    if (ImGui::Selectable(candidate.c_str(), i == console->autocompletePos))
-  //    {
-  //      memcpy_s(data->Buf, INPUT_BUF_SIZE, candidate.c_str(), candidate.size());
-  //    }
-  //    i++;
-  //  }
-  //  ImGui::EndTooltip();
-  //}
-
   switch (data->EventFlag)
   {
   case ImGuiInputTextFlags_CallbackCompletion:
@@ -411,10 +450,6 @@ int TextEditCallback(ImGuiInputTextCallbackData* data, ConsoleStorage* console)
     if (console->state.isPopupOpen && console->state.activeIdx != -1 && console->autocompleteCandidates.size() > 0)
     {
       const auto& str = console->autocompleteCandidates[console->state.activeIdx];
-      //memcpy_s(data->Buf, INPUT_BUF_SIZE, str.c_str(), str.size());
-      //data->BufDirty = true;
-      //data->BufTextLen = str.size();
-      //data->CursorPos = str.size();
       data->DeleteChars(0, data->BufTextLen);
       data->InsertChars(0, str.c_str());
     }
@@ -427,7 +462,7 @@ int TextEditCallback(ImGuiInputTextCallbackData* data, ConsoleStorage* console)
   case ImGuiInputTextFlags_CallbackHistory:
   {
     // move autocomplete cursor if there are candidates
-    if (console->autocompleteCandidates.size() > 0)
+    if (console->state.isPopupOpen)
     {
       if (data->EventKey == ImGuiKey_DownArrow)
       {
@@ -440,7 +475,7 @@ int TextEditCallback(ImGuiInputTextCallbackData* data, ConsoleStorage* console)
           console->state.activeIdx = console->autocompleteCandidates.size() - 1;
       }
     }
-    else
+    else // move history cursor if there is no autocomplete candidate
     {
       const int prev_history_pos = console->historyPos;
       if (data->EventKey == ImGuiKey_UpArrow)
@@ -472,9 +507,6 @@ int TextEditCallback(ImGuiInputTextCallbackData* data, ConsoleStorage* console)
     if (console->state.clickedIdx != -1)
     {
       const auto& str = console->autocompleteCandidates[console->state.clickedIdx];
-      //memcpy_s(data->Buf, INPUT_BUF_SIZE, str.c_str(), str.size());
-      //data->BufTextLen = str.size();
-      //data->BufDirty = true;
       data->DeleteChars(0, data->BufTextLen);
       data->InsertChars(0, str.c_str());
 
@@ -483,17 +515,17 @@ int TextEditCallback(ImGuiInputTextCallbackData* data, ConsoleStorage* console)
       console->state.clickedIdx = -1;
     }
 
+    if (console->inputBuffer[0] == NULL)
+      console->state.userTypedKey = false;
+
     if (console->autocompleteCandidates.empty())
       console->state.isPopupOpen = false;
     else if (console->state.userTypedKey)
       console->state.isPopupOpen = true;
-
     break;
   }
   case ImGuiInputTextFlags_CallbackEdit:
   {
-    //if (console->autocompleteCandidates.size() > 0)
-    //  console->state.isPopupOpen = true;
     console->state.userTypedKey = true;
     break;
   }

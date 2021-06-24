@@ -2,7 +2,6 @@
 #include <string>
 #include <variant>
 #include "CVar.h"
-//#include <glm/glm.hpp>
 
 struct ParseError
 {
@@ -20,13 +19,7 @@ using CmdAtom = std::variant<ParseError, Identifier, cvar_float, std::string>;
 class CmdParser
 {
 public:
-  CmdParser(const char* command)
-    : cmd(command)
-  {
-    // trim whitespace from beginning and end of string
-    cmd.erase(0, cmd.find_first_not_of(" \n\r\t"));
-    cmd.erase(cmd.find_last_not_of(" \n\r\t") + 1);
-  }
+  CmdParser(const char* command);
 
   CmdAtom NextAtom();
 
