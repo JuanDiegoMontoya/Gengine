@@ -19,7 +19,7 @@ CVarSystem::~CVarSystem()
 
 CVarParameters* CVarSystem::GetCVarParams(const char* name)
 {
-  if (auto it = storage->cvarParameters.find(entt::hashed_string(name)); it != storage->cvarParameters.end())
+  if (auto it = storage->cvarParameters.find(hashed_string(name)); it != storage->cvarParameters.end())
   {
     return &it->second;
   }
@@ -31,7 +31,7 @@ CVarParameters* CVarSystem::GetCVarParams(const char* name)
 CVarParameters* CVarSystem::InitCVar(const char* name, const char* description, CVarFlags flags)
 {
   std::unique_lock lck(storage->mutex);
-  CVarParameters& params = storage->cvarParameters[entt::hashed_string(name)];
+  CVarParameters& params = storage->cvarParameters[hashed_string(name)];
   params.index = -1;
   params.name = name;
   params.description = description;
@@ -40,7 +40,7 @@ CVarParameters* CVarSystem::InitCVar(const char* name, const char* description, 
 }
 
 
-
+// TODO: return an error code
 bool CVarSystem::SetCVarParse(const char* name, const char* args)
 {
   CVarParameters* params = GetCVarParams(name);

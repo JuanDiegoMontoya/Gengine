@@ -2,7 +2,7 @@
 #include <concepts>
 #include <shared_mutex>
 #include <unordered_map>
-#include <entt.hpp> // TODO: replace with custom hashed string
+#include <Utilities/HashedString.h>
 #include <string>
 #include <glm/vec3.hpp>
 #include "GAssert.h"
@@ -87,6 +87,6 @@ struct CVarSystemStorage
   CVarArray<std::string, 1000, const char*> stringCVars;
   CVarArray<cvar_vec3, 1000> vec3CVars;
 
-  std::unordered_map<entt::id_type, CVarParameters> cvarParameters;
+  std::unordered_map<uint32_t, CVarParameters> cvarParameters;
   std::shared_mutex mutex;
 };

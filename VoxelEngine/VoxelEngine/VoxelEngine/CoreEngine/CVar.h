@@ -63,6 +63,8 @@ private:
   template<typename U>
   friend class AutoCVar;
 
+  friend class Console;
+
   CVarSystem();
   CVarParameters* InitCVar(const char* name, const char* description, CVarFlags flags);
   CVarParameters* GetCVarParams(const char* name);

@@ -328,6 +328,9 @@
     <ClInclude Include="CoreEngine\Parser.h">
       <Filter>CoreEngine</Filter>
     </ClInclude>
+    <ClInclude Include="Utilities\HashedString.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Voxels\prefab.cpp">

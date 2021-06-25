@@ -5,6 +5,7 @@
 #include <array>
 #include <vector>
 #include <imgui/imgui.h>
+#include <functional>
 
 #define INPUT_BUF_SIZE 256
 
@@ -44,12 +45,13 @@ struct Command
   ConsoleFunc func{};
 };
 
-AutoCVar<cvar_vec3> defaultTextColor("defaultTextColor", "Default color of console text", cvar_vec3(1));
+AutoCVar<cvar_vec3> defaultTextColor("c.textColor", "Default color of console text", cvar_vec3(1));
+AutoCVar<cvar_vec3> defaultInputColor("c.inputColor", "Default color of console input", cvar_vec3(1));
 
 struct ConsoleStorage
 {
   bool isOpen = true;
-  CColor defaultInputColor{ .6, .6, .6 };
+  //CColor defaultInputColor{ .6, .6, .6 };
   //CColor defaultTextColor{ 1, 1, 1 };
   std::vector<std::pair<std::string, CColor>> logEntries;
   std::vector<std::string> inputHistory;
@@ -110,33 +112,6 @@ Console::Console()
       }
     });
   RegisterCommand("Lua", "- Runs the following Lua code", [](const char*) { Console::Get()->Log("Lua code :)"); });
-  RegisterCommand("c.inputcolor", "- Sets the console input color", [con = console](const char* args)
-    {
-      CmdParser parser(args);
-      std::vector<CmdAtom> atoms;
-      while (parser.Valid())
-      {
-        atoms.push_back(parser.NextAtom());
-      }
-
-      if (atoms.size() != 3)
-      {
-        Console::Get()->Log("Usage: c.inputcolor <r> <g> <b>");
-        return;
-      }
-
-      cvar_float* r = std::get_if<cvar_float>(&atoms[0]);
-      cvar_float* g = std::get_if<cvar_float>(&atoms[1]);
-      cvar_float* b = std::get_if<cvar_float>(&atoms[2]);
-      if (!r || !g || !b)
-      {
-        Console::Get()->Log("Usage: c.inputcolor <r> <g> <b>");
-        return;
-      }
-
-      con->defaultInputColor = { (float)*r, (float)*g, (float)*b };
-    });
-  RegisterCommand("c.defaultcolor", "- Sets the console default text color", [](const char*) { Console::Get()->Log("c.defaultcolor set"); });
   RegisterCommand("set", "- Sets the value of a cvar", [](const char* args)
     {
       CmdParser parser(args);
@@ -145,6 +120,17 @@ Console::Console()
       if (!id || !CVarSystem::Get()->SetCVarParse(id->name.c_str(), parser.GetRemaining().c_str()))
       {
         Console::Get()->Log("Usage: set <convar> <value>");
+      }
+    });
+  RegisterCommand("findall", "- Displays all cvars and concommands", [con = console, storage = CVarSystem::Get()->storage](const char*)
+    {
+      for (const auto& cmd : con->commands)
+      {
+        Console::Get()->Log("%-25s %s", cmd.name.c_str(), cmd.description.c_str());
+      }
+      for (const auto& [key, params] : storage->cvarParameters)
+      {
+        Console::Get()->Log("%-25s %s", params.name.c_str(), params.description.c_str());
       }
     });
 }
@@ -276,15 +262,24 @@ void Console::DrawWindow()
   console->autocompleteCandidates.clear();
   if (console->inputBuffer[0] != 0)
   {
-    std::string inputLwr = lower(console->inputBuffer.data());
-    trimStart(inputLwr);
-    trimEnd(inputLwr);
+    std::string inputLower = lower(console->inputBuffer.data());
+    trimStart(inputLower);
+    trimEnd(inputLower);
     for (int i = 0; i < console->commands.size(); i++)
     {
-      std::string cmdLwr = lower(console->commands[i].name.c_str());
-      if (cmdLwr.find(inputLwr.c_str()) != std::string::npos)
+      std::string cmdLower = lower(console->commands[i].name.c_str());
+      if (cmdLower.find(inputLower) != std::string::npos)
       {
         console->autocompleteCandidates.push_back(console->commands[i].name.c_str());
+      }
+    }
+
+    for (const auto& [key, val] : CVarSystem::Get()->storage->cvarParameters)
+    {
+      std::string cvarLower = lower(val.name.c_str());
+      if (cvarLower.find(inputLower) != std::string::npos)
+      {
+        console->autocompleteCandidates.push_back(val.name);
       }
     }
   }
@@ -306,7 +301,8 @@ void Console::DrawWindow()
     ImGuiInputTextFlags_CallbackEdit;
 
   bool reclaim_focus = false;
-  if (ImGui::InputText("##Input", console->inputBuffer.data(), console->inputBuffer.size(), input_text_flags, textEditCallbackStub, (void*)console))
+  if (ImGui::InputText("##Input", console->inputBuffer.data(), console->inputBuffer.size(),
+    input_text_flags, textEditCallbackStub, (void*)console))
   {
     ImGui::SetKeyboardFocusHere(-1);
 
@@ -425,7 +421,7 @@ void Console::DrawPopup()
 
 void Console::ExecuteCommand(const char* cmd)
 {
-  const auto& color = console->defaultInputColor;
+  const auto& color = defaultInputColor.Get();
   LogColor(color.r, color.g, color.b, ">>> %s <<<\n", cmd);
 
   // Insert into history. First find match and delete it so it can be pushed to the back.
@@ -458,14 +454,20 @@ void Console::ExecuteCommand(const char* cmd)
       return lower(command.name.c_str()) == cmdLower;
     });
 
-  if (it == console->commands.end())
+  if (it != console->commands.end())
   {
-    Log("No command with identifier <%s> found\n", id->name.c_str());
     // TODO: try get cvar with id
+    it->func(parser.GetRemaining().c_str());
     return;
   }
 
-  it->func(parser.GetRemaining().c_str());
+  //auto* params = CVarSystem::Get()->GetCVarParams(id->name.c_str());
+  bool success = CVarSystem::Get()->SetCVarParse(id->name.c_str(), parser.GetRemaining().c_str());
+
+  if (!success)
+  {
+    Log("No cvar or concommand with identifier <%s> exists\n", id->name.c_str());
+  }
 }
 
 const char* Console::GetCommandDesc(const char* name)

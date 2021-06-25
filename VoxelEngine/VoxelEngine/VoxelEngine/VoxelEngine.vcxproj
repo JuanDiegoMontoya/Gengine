@@ -96,6 +96,7 @@
     <ClInclude Include="Utilities\AtomicQueue.h" />
     <ClInclude Include="Utilities\BitArray.h" />
     <ClInclude Include="Utilities\Compression.h" />
+    <ClInclude Include="Utilities\HashedString.h" />
     <ClInclude Include="Utilities\ImGuiExt.h" />
     <ClInclude Include="Utilities\Palette.h" />
     <ClInclude Include="Utilities\Serialize.h" />
