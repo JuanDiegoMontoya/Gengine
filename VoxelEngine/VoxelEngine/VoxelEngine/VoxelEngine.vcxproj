@@ -46,6 +46,7 @@
     <ClInclude Include="CoreEngine\CVar.h" />
     <ClInclude Include="CoreEngine\CVarInternal.h" />
     <ClInclude Include="CoreEngine\Debug.h" />
+    <ClInclude Include="CoreEngine\DebugMarker.h" />
     <ClInclude Include="CoreEngine\DebugSystem.h" />
     <ClInclude Include="CoreEngine\DynamicBuffer.h" />
     <ClInclude Include="CoreEngine\Engine.h" />
@@ -78,8 +79,6 @@
     <ClInclude Include="CoreEngine\StaticBuffer.h" />
     <ClInclude Include="CoreEngine\Texture2D.h" />
     <ClInclude Include="CoreEngine\TextureArray.h" />
-    <ClInclude Include="CoreEngine\VAO.h" />
-    <ClInclude Include="CoreEngine\vbo_layout.h" />
     <ClInclude Include="CoreEngine\Vertices.h" />
     <ClInclude Include="CoreEngine\Window.h" />
     <ClInclude Include="CoreEngine\WindowCB.h" />
@@ -165,6 +164,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">EnginePCH.h</PrecompiledHeaderFile>
     </ClCompile>
     <ClCompile Include="CoreEngine\CVar.cpp" />
+    <ClCompile Include="CoreEngine\DebugMarker.cpp" />
     <ClCompile Include="CoreEngine\DebugSystem.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">EnginePCH.h</PrecompiledHeaderFile>
@@ -390,18 +390,6 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">EnginePCH.h</PrecompiledHeaderFile>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">EnginePCH.h</PrecompiledHeaderFile>
-    </ClCompile>
-    <ClCompile Include="CoreEngine\VAO.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">EnginePCH.h</PrecompiledHeaderFile>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnginePCH.h</PrecompiledHeaderFile>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">EnginePCH.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">EnginePCH.h</PrecompiledHeaderFile>
-      <TreatWarningAsError Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</TreatWarningAsError>
-      <TreatWarningAsError Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</TreatWarningAsError>
     </ClCompile>
     <ClCompile Include="CoreEngine\Window.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>

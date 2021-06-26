@@ -8,6 +8,7 @@
 #include <CoreEngine/Texture2D.h>
 #include <CoreEngine/Mesh.h>
 #include <CoreEngine/TextureCube.h>
+#include <CoreEngine/DebugMarker.h>
 
 #include "ParticleSystem.h"
 
@@ -29,7 +30,7 @@ GLerrorCB(GLenum source,
   //return; // UNCOMMENT WHEN DEBUGGING GRAPHICS
 
   // ignore non-significant error/warning codes
-  if (id == 131169 || id == 131185 || id == 131218 || id == 131204
+  if (id == 131169 || id == 131185 || id == 131218 || id == 131204 || id == 0
     )//|| id == 131188 || id == 131186)
     return;
 
@@ -171,9 +172,8 @@ void Renderer::RenderBatchHelper(MaterialID mat, const std::vector<UniformData>&
   const auto& vp = CameraSystem::GetViewProj();
   shader->setMat4("u_viewProj", vp);
 
-  batchVAO->Bind();
+  glBindVertexArray(batchVAO);
   glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, (void*)0, static_cast<GLsizei>(commands.size()), 0);
-  batchVAO->Unbind();
 }
 
 void Renderer::BeginRenderParticleEmitter()
@@ -182,7 +182,7 @@ void Renderer::BeginRenderParticleEmitter()
   glDisable(GL_CULL_FACE);
   auto& shader = Shader::shaders["particle"];
   shader->Use();
-  emptyVao->Bind();
+  glBindVertexArray(emptyVao);
   //glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 }
 
@@ -254,23 +254,23 @@ void Renderer::Init()
   indexBuffer = std::make_unique<GFX::DynamicBuffer<>>(100'000'000, sizeof(GLuint));
 
   // setup VAO for batched drawing (ONE VERTEX LAYOUT ATM)
-  batchVAO = std::make_unique<GFX::VAO>();
-  glEnableVertexArrayAttrib(batchVAO->GetID(), 0); // pos
-  glEnableVertexArrayAttrib(batchVAO->GetID(), 1); // normal
-  glEnableVertexArrayAttrib(batchVAO->GetID(), 2); // uv
+  glCreateVertexArrays(1, &batchVAO);
+  glEnableVertexArrayAttrib(batchVAO, 0); // pos
+  glEnableVertexArrayAttrib(batchVAO, 1); // normal
+  glEnableVertexArrayAttrib(batchVAO, 2); // uv
 
-  glVertexArrayAttribFormat(batchVAO->GetID(), 0, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex, position));
-  glVertexArrayAttribFormat(batchVAO->GetID(), 1, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex, normal));
-  glVertexArrayAttribFormat(batchVAO->GetID(), 2, 2, GL_FLOAT, GL_FALSE, offsetof(Vertex, texCoord));
+  glVertexArrayAttribFormat(batchVAO, 0, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex, position));
+  glVertexArrayAttribFormat(batchVAO, 1, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex, normal));
+  glVertexArrayAttribFormat(batchVAO, 2, 2, GL_FLOAT, GL_FALSE, offsetof(Vertex, texCoord));
 
-  glVertexArrayAttribBinding(batchVAO->GetID(), 0, 0);
-  glVertexArrayAttribBinding(batchVAO->GetID(), 1, 0);
-  glVertexArrayAttribBinding(batchVAO->GetID(), 2, 0);
+  glVertexArrayAttribBinding(batchVAO, 0, 0);
+  glVertexArrayAttribBinding(batchVAO, 1, 0);
+  glVertexArrayAttribBinding(batchVAO, 2, 0);
 
-  glVertexArrayVertexBuffer(batchVAO->GetID(), 0, vertexBuffer->GetGPUHandle(), 0, sizeof(Vertex));
-  glVertexArrayElementBuffer(batchVAO->GetID(), indexBuffer->GetGPUHandle());
+  glVertexArrayVertexBuffer(batchVAO, 0, vertexBuffer->GetGPUHandle(), 0, sizeof(Vertex));
+  glVertexArrayElementBuffer(batchVAO, indexBuffer->GetGPUHandle());
 
-  emptyVao = std::make_unique<GFX::VAO>();
+  glCreateVertexArrays(1, &emptyVao);
   //compute_test();
 
   /*Layout layout = Window::layout;
@@ -379,9 +379,10 @@ void Renderer::CompileShaders()
 
 void Renderer::DrawAxisIndicator()
 {
-  static GFX::VAO* axisVAO;
-  static GFX::StaticBuffer* axisVBO;
-  if (axisVAO == nullptr)
+  GFX::DebugMarker marker("Axis Indicator");
+  static GLuint axisVAO{ 0 };
+  static GFX::StaticBuffer* axisVBO{};
+  if (axisVAO == 0)
   {
     float indicatorVertices[] =
     {
@@ -394,12 +395,14 @@ void Renderer::DrawAxisIndicator()
       0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f
     };
 
-    axisVAO = new GFX::VAO();
+    glGenVertexArrays(1, &axisVAO);
+    glBindVertexArray(axisVAO);
     axisVBO = new GFX::StaticBuffer(indicatorVertices, sizeof(indicatorVertices));
-    GFX::VBOlayout layout;
-    layout.Push<float>(3);
-    layout.Push<float>(3);
-    axisVAO->AddBuffer(*axisVBO, layout);
+    axisVBO->Bind<GFX::Target::VBO>();
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), 0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
   }
   auto& currShader = Shader::shaders["axis"];
   currShader->Use();
@@ -408,60 +411,11 @@ void Renderer::DrawAxisIndicator()
   currShader->setMat4("u_view", CameraSystem::GetView());
   currShader->setMat4("u_proj", CameraSystem::GetProj());
   glDepthFunc(GL_ALWAYS); // allows indicator to always be rendered
-  axisVAO->Bind();
+  glBindVertexArray(axisVAO);
   glLineWidth(2.f);
   glDrawArrays(GL_LINES, 0, 6);
   glDepthFunc(GL_GEQUAL);
-  axisVAO->Unbind();
-}
-
-// draws a single quad over the entire viewport
-void Renderer::DrawQuad()
-{
-  static unsigned int quadVAO = 0;
-  static unsigned int quadVBO;
-  if (quadVAO == 0)
-  {
-    float quadVertices[] =
-    {
-      // positions        // texture Coords
-      -1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
-      -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
-       1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
-       1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
-    };
-    // setup plane VAO
-    glGenVertexArrays(1, &quadVAO);
-    glGenBuffers(1, &quadVBO);
-    glBindVertexArray(quadVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
-  }
-  glBindVertexArray(quadVAO);
-  glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
   glBindVertexArray(0);
-}
-
-void Renderer::DrawCube()
-{
-  static GFX::VAO* blockHoverVao = nullptr;
-  static GFX::StaticBuffer* blockHoverVbo = nullptr;
-  if (blockHoverVao == nullptr)
-  {
-    blockHoverVao = new GFX::VAO();
-    blockHoverVbo = new GFX::StaticBuffer(Vertices::cube_norm_tex, sizeof(Vertices::cube_norm_tex));
-    GFX::VBOlayout layout;
-    layout.Push<float>(3);
-    layout.Push<float>(3);
-    layout.Push<float>(2);
-    blockHoverVao->AddBuffer(*blockHoverVbo, layout);
-  }
-  blockHoverVao->Bind();
-  glDrawArrays(GL_TRIANGLES, 0, 36);
 }
 
 void Renderer::DrawSkybox()
@@ -474,7 +428,7 @@ void Renderer::DrawSkybox()
   shdr->setMat4("u_modview", glm::translate(CameraSystem::GetView(), CameraSystem::GetPos()));
   shdr->setInt("u_skybox", 0);
   CameraSystem::ActiveCamera->skybox->Bind(0);
-  emptyVao->Bind();
+  glBindVertexArray(emptyVao);
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 14);
   glDepthMask(GL_TRUE);
   glEnable(GL_CULL_FACE);
@@ -576,7 +530,7 @@ void Renderer::EndFrame(float dt)
     shdr->Use();
     shdr->setFloat("u_exposureFactor", exposure);
     shdr->setInt("u_hdrBuffer", 1);
-    emptyVao->Bind();
+    glBindVertexArray(emptyVao);
     glDrawArrays(GL_TRIANGLES, 0, 3);
     glDepthMask(GL_TRUE);
     glEnable(GL_CULL_FACE);
@@ -590,141 +544,4 @@ void Renderer::EndFrame(float dt)
   }
 
   glDisable(GL_FRAMEBUFFER_SRGB);
-}
-
-size_t invoke_compute(GFX::StaticBuffer& in, GFX::StaticBuffer& out, size_t size)
-{
-  size_t blockSize{};
-  auto& rshdr = [size, &blockSize]() -> auto&
-  {
-    if (size > 1024)
-    {
-      blockSize = 1024;
-      return Shader::shaders["reduce_sum_1024"];
-    }
-
-    blockSize = size;
-    switch (size)
-    {
-    case 1024: return Shader::shaders["reduce_sum_1024"];
-    case 512: return Shader::shaders["reduce_sum_512"];
-    case 256: return Shader::shaders["reduce_sum_256"];
-    case 128: return Shader::shaders["reduce_sum_128"];
-    case 64: return Shader::shaders["reduce_sum_64"];
-    default: return Shader::shaders["reduce_sum_32"];
-    }
-  }();
-  rshdr->Use();
-  //if (blockSize < 64)
-  {
-    rshdr->setUInt("u_n", static_cast<unsigned>(size));
-  }
-  in.Bind<GFX::Target::SSBO>(0);
-  out.Bind<GFX::Target::SSBO>(1);
-  size_t totalBlocks = (size + blockSize - 1) / blockSize;
-  totalBlocks = totalBlocks / 2 + totalBlocks % 2;
-  glDispatchCompute(static_cast<GLuint>(totalBlocks), 1, 1);
-  glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-
-  return totalBlocks;
-}
-
-void compute_test()
-{
-  const uint64_t WIDTH = 1 * 1920;
-  const uint64_t HEIGHT = 1080;
-
-  size_t pow2Size = size_t(glm::exp2(glm::ceil(glm::log2(double(WIDTH * HEIGHT))))); // next power of 2
-  //size_t pow2Size = (WIDTH * HEIGHT) + (WIDTH * HEIGHT) % 1024; // next multiple of 1024
-  //size_t pow2Size = 1024*1024;
-  std::vector<float> zeros(pow2Size, 0.0f);
-  GFX::StaticBuffer inData(zeros.data(), pow2Size * sizeof(float), GFX::BufferFlag::CLIENT_STORAGE | GFX::BufferFlag::DYNAMIC_STORAGE);
-  GFX::StaticBuffer outData(zeros.data(), pow2Size * sizeof(float), GFX::BufferFlag::CLIENT_STORAGE | GFX::BufferFlag::DYNAMIC_STORAGE);
-
-  // create a test image with pixels of all the same color
-  std::vector<glm::vec4> pixels(WIDTH * HEIGHT, glm::vec4(1.5));
-  float sum = 0.0f;
-  std::for_each(pixels.begin(), pixels.end(), [&sum](glm::vec4& pix) { pix += glm::sin(sum += .1f); });
-  GLuint testTex;
-  glCreateTextures(GL_TEXTURE_2D, 1, &testTex);
-  glTextureStorage2D(testTex, 1, GL_RGBA16F, WIDTH, HEIGHT);
-  glTextureSubImage2D(testTex, 0, 0, 0, WIDTH, HEIGHT, GL_RGBA, GL_FLOAT, pixels.data());
-  glBindTextureUnit(1, testTex);
-
-  // check that texture was uploaded correctly
-  std::vector<glm::vec4> pixelsOut(WIDTH * HEIGHT, glm::vec4(0));
-  glGetTextureSubImage(testTex, 0, 0, 0, 0, WIDTH, HEIGHT, 1, GL_RGBA, GL_FLOAT, static_cast<GLsizei>(pixelsOut.size() * sizeof(glm::vec4)), pixelsOut.data());
-  for (int i = 0; i < WIDTH * HEIGHT; i++)
-  {
-    ASSERT(glm::all(glm::epsilonEqual(pixels[i], pixelsOut[i], glm::vec4(.01f))));
-  }
-
-  GFX::Fence fencea;
-  fencea.Sync();
-  Timer timerLin;
-  // take the natural log of each pixel's lumiance, then store it in a flat buffer
-  {
-    // put the log of each pixel's luminance of the hdr texture into a flat float buffer before reduction
-    auto& lshdr = Shader::shaders["linearize_log_lum_tex"];
-    lshdr->Use();
-    lshdr->setInt("u_hdrBuffer", 1);
-    inData.Bind<GFX::Target::SSBO>(0);
-    const uint32_t N_L_T = 256; // NUM_LOCAL_THREADS
-    const uint32_t numPixels = WIDTH * HEIGHT;
-    const uint32_t numGroupsL = (numPixels + N_L_T - 1) / N_L_T;
-    glDispatchCompute(numGroupsL, 1, 1);
-    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-  }
-  GFX::Fence fence;
-  fence.Sync();
-  printf("Linearize time: %fms\n", timerLin.elapsed() * 1000);
-  // check previous CS invocation with simple scalar code
-  std::vector<float> bufferOut(WIDTH * HEIGHT, 0.0f);
-  glGetNamedBufferSubData(inData.GetID(), 0, bufferOut.size() * sizeof(float), bufferOut.data());
-  //for (int i = 0; i < WIDTH * HEIGHT; i++)
-  //{
-  //  float lum = glm::dot(glm::vec3(pixels[i]), glm::vec3(.3f, .59f, .11f));
-  //  ASSERT(glm::epsilonEqual(bufferOut[i], glm::log(lum), .001f));
-  //}
-  GFX::TimerQuery qt;
-  constexpr size_t minSize = 32; // GPU will not reduce to fewer than this number of elements
-  while (pow2Size > minSize)
-  {
-    pow2Size = invoke_compute(inData, outData, pow2Size);
-    if (pow2Size > minSize) std::swap(inData, outData);
-  }
-  double timed = qt.Elapsed() / 1000000000.0;
-  //float gpuSum{};
-  //glGetNamedBufferSubData(outData.GetID(), 0, sizeof(float), &gpuSum);
-  std::array<float, minSize> gpuData;
-  glGetNamedBufferSubData(outData.GetID(), 0, pow2Size * sizeof(float), gpuData.data());
-  float gpuSum = std::reduce(std::execution::par_unseq, gpuData.begin(), gpuData.begin() + pow2Size);
-  //double timed = timer.elapsed();
-  //timer.reset();
-  Timer timer;
-  float cpuSum = std::reduce(std::execution::par_unseq, bufferOut.begin(), bufferOut.end());
-  double cpuTime = timer.elapsed();
-  printf("CPU: %f\nGPU: %f\nCPU time: %.3fms\nGPU time: %.3fms", cpuSum, gpuSum, cpuTime * 1000.0, timed * 1000.0);
-}
-
-void histogram_test()
-{
-  const uint64_t WIDTH = 1 * 1920;
-  const uint64_t HEIGHT = 1080;
-
-  size_t size = WIDTH * HEIGHT;
-  const size_t NUM_BUCKETS = 128;
-  std::vector<int> zeros(size, 0);
-  GFX::StaticBuffer histogram(zeros.data(), NUM_BUCKETS * sizeof(int));
-  //GFX::StaticBuffer outData(zeros.data(), pow2Size * sizeof(float), GFX::BufferFlag::CLIENT_STORAGE | GFX::BufferFlag::DYNAMIC_STORAGE);
-
-  // create a test image with pixels of all the same color
-  std::vector<glm::vec4> pixels(WIDTH * HEIGHT, glm::vec4(1.5));
-  float sum = 0.0f;
-  std::for_each(pixels.begin(), pixels.end(), [&sum](glm::vec4& pix) { pix += glm::sin(sum += .1f); });
-  GLuint testTex;
-  glCreateTextures(GL_TEXTURE_2D, 1, &testTex);
-  glTextureStorage2D(testTex, 1, GL_RGBA16F, WIDTH, HEIGHT);
-  glTextureSubImage2D(testTex, 0, 0, 0, WIDTH, HEIGHT, GL_RGBA, GL_FLOAT, pixels.data());
-  glBindTextureUnit(1, testTex);
 }

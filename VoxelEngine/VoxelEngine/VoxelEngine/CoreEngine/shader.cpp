@@ -103,6 +103,7 @@ Shader::Shader(
     glDeleteShader(gShader);
 
   initUniforms();
+  glObjectLabel(GL_PROGRAM, programID, -1, (*vertexPath + std::to_string(programID)).c_str());
 }
 
 
@@ -117,6 +118,7 @@ Shader::Shader(int, std::string computePath)
   glDeleteShader(cShader);
 
   initUniforms();
+  glObjectLabel(GL_PROGRAM, programID, -1, (computePath + std::to_string(programID)).c_str());
 }
 
 
@@ -235,6 +237,8 @@ Shader::Shader(std::vector<ShaderInfo> shaders)
 
   for (auto shaderID : shaderIDs)
     glDetachShader(programID, shaderID);
+
+  glObjectLabel(GL_PROGRAM, programID, -1, (shaders.front().path + std::to_string(programID)).c_str());
 }
 
 

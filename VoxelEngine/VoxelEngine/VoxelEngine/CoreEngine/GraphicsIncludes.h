@@ -6,7 +6,6 @@
 #include <CoreEngine/shader.h>
 #include <CoreEngine/Vertices.h>
 #include <CoreEngine/StaticBuffer.h>
-#include <CoreEngine/vao.h>
 
 // note: baseInstance is for glMultiDraw*Indirect ONLY
 // for any other purpose it must be zero

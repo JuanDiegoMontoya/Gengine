@@ -7,7 +7,6 @@
 #include <execution>
 #include <CoreEngine/Shader.h>
 #include <CoreEngine/Vertices.h>
-#include <CoreEngine/vao.h>
 #include <CoreEngine/Texture2D.h>
 #include <CoreEngine/TextureArray.h>
 #include <CoreEngine/MeshUtils.h>
@@ -23,7 +22,7 @@ namespace Voxels
 
     // allocate big buffer
     // TODO: vary the allocation size based on some user setting
-    allocator = std::make_unique<GFX::DynamicBuffer<AABB16>>(1'000'000'000, 2 * sizeof(GLint));
+    allocator = std::make_unique<GFX::DynamicBuffer<AABB16>>(10'000'000, 2 * sizeof(GLint));
 
     /* :::::::::::BUFFER FORMAT:::::::::::
                             CHUNK 1                                    CHUNK 2                   NULL                   CHUNK 3
@@ -32,8 +31,8 @@ namespace Voxels
     Draw commands will specify where in memory the draw call starts. This will account for variable offsets.
 
         :::::::::::BUFFER FORMAT:::::::::::*/
-    vao = std::make_unique<GFX::VAO>();
-    vao->Bind();
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
     // bind big data buffer (interleaved)
     glBindBuffer(GL_ARRAY_BUFFER, allocator->GetGPUHandle());
     glEnableVertexAttribArray(0);
@@ -49,10 +48,9 @@ namespace Voxels
     offset += 1 * sizeof(GLfloat);
 
     glVertexAttribIPointer(1, 1, GL_UNSIGNED_INT, 2 * sizeof(GLuint), (void*)offset); // lighting
-    vao->Unbind();
 
     // setup vertex buffer for cube that will be used for culling
-    vaoCull = std::make_unique<GFX::VAO>();
+    glGenVertexArrays(1, &vaoCull);
     //vaoCull->Bind();
     //vboCull = std::make_unique<GFX::StaticBuffer>(Vertices::cube, sizeof(Vertices::cube));
     //vboCull->Bind<GFX::Target::VBO>();
@@ -151,7 +149,7 @@ namespace Voxels
     //if (renderCount == 0)
     //  return;
 
-    vao->Bind();
+    glBindVertexArray(vao);
     dib->Bind<GFX::Target::DIB>();
     drawCountGPU->Bind<GFX::Target::PARAMETER_BUFFER>();
     glMultiDrawArraysIndirectCount(GL_TRIANGLES, (void*)0, (GLintptr)0, allocator->ActiveAllocs(), 0);
@@ -223,7 +221,7 @@ namespace Voxels
     TracyGpuZone("Normal Render");
 #endif
 
-    vao->Bind();
+    glBindVertexArray(vao);
     dib->Bind<GFX::Target::DIB>();
     drawCountGPU->Bind<GFX::Target::PARAMETER_BUFFER>();
     glMultiDrawArraysIndirectCount(GL_TRIANGLES, (void*)0, (GLintptr)0, activeAllocs, 0);
@@ -271,7 +269,7 @@ namespace Voxels
 
     // copy # of chunks being drawn (parameter buffer) to instance count (DIB)
     dibCull->Bind<GFX::Target::DIB>();
-    vaoCull->Bind();
+    glBindVertexArray(vaoCull);
     constexpr GLint offset = offsetof(DrawArraysIndirectCommand, instanceCount);
     glCopyNamedBufferSubData(drawCountGPU->GetID(), dibCull->GetID(), 0, offset, sizeof(GLuint));
     glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, (void*)0, 1, 0);

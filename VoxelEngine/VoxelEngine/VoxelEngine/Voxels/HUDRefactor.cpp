@@ -44,7 +44,7 @@ void HUD::Update()
     //Renderer::GetBlockTextures()->Bind(0);
     curr->setInt("u_textures", 0);
     curr->setInt("u_texIdx", int(selected_));
-    Renderer::DrawCube(); // block
+    //Renderer::DrawCube(); // block // TODO
   }
 
   {

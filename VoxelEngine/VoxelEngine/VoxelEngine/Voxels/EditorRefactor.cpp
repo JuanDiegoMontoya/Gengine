@@ -190,7 +190,7 @@ void Editor::DrawSelection()
     curr->setMat4("u_view", CameraSystem::GetView());
     curr->setMat4("u_proj", CameraSystem::GetProj());
     curr->setVec4("u_color", glm::vec4(1.f, .3f, 1.f, 1.f));
-    Renderer::DrawCube();
+    //Renderer::DrawCube(); // TODO
     glPolygonMode(GL_FRONT_AND_BACK, polygonMode);
     glEnable(GL_CULL_FACE);
   }

@@ -9,7 +9,10 @@
 #include "CVar.h"
 
 template<typename T>
-concept Number = std::integral<T> || std::floating_point<T>;
+concept Number = 
+  std::integral<T> || 
+  std::floating_point<T> || 
+  std::same_as<T, glm::vec3>;
 
 enum class CVarType : uint8_t
 {

@@ -1,6 +1,8 @@
 #pragma once
 #include <CoreEngine/DynamicBuffer.h>
 #include <CoreEngine/Shapes.h>
+#include <memory>
+#include <string>
 
 namespace GFX
 {
@@ -62,7 +64,7 @@ namespace Voxels
     void Update();
 
     std::unique_ptr<GFX::DynamicBuffer<AABB16>> allocator;
-    std::unique_ptr<GFX::VAO> vao;
+    GLuint vao{};
     std::unique_ptr<GFX::StaticBuffer> dib;
 
     std::unique_ptr<GFX::StaticBuffer> drawCountGPU;
@@ -72,10 +74,10 @@ namespace Voxels
 
     // resets each frame BEFORE the culling phase
     //GLuint allocDataBuffer = 0;
-    std::unique_ptr<GFX::VAO> vaoCull;
+    GLuint vaoCull{};
     //std::unique_ptr<GFX::StaticBuffer> vboCull; // stores only cube vertices
     std::unique_ptr<GFX::StaticBuffer> dibCull;
-    GLsizei activeAllocs;
+    GLsizei activeAllocs{};
     std::pair<uint64_t, GLuint> stateInfo{ 0, 0 };
     bool dirtyAlloc = true;
     std::unique_ptr<GFX::StaticBuffer> allocBuffer;

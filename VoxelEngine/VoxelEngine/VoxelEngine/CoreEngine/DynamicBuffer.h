@@ -101,7 +101,7 @@ namespace GFX
     void GenDrawData();
 
   private:
-    GLuint vao_;
+    GLuint vao_{};
     std::unique_ptr<StaticBuffer> vbo_;
   };
 }

@@ -4,14 +4,8 @@
 #include "MeshUtils.h"
 #include "Material.h"
 #include <CoreEngine/DynamicBuffer.h>
-#include <shared_mutex>
-#include <CoreEngine/Fence.h>
 
 class Shader;
-namespace GFX
-{
-  class Fence;
-}
 
 namespace Component
 {
@@ -35,8 +29,6 @@ public:
 
   // generic drawing functions (TODO: move)
   static void DrawAxisIndicator();
-  static void DrawQuad();
-  static void DrawCube();
 
   static void DrawSkybox();
 
@@ -60,7 +52,7 @@ private:
   static inline std::unique_ptr<GFX::DynamicBuffer<>> indexBuffer;
 
   // per-vertex layout
-  static inline std::unique_ptr<GFX::VAO> batchVAO;
+  static inline GLuint batchVAO;
 
   // maps handles to VERTEX and INDEX information in the respective dynamic buffers
   // used to retrieve important offset and size info for meshes
@@ -76,7 +68,7 @@ private:
   static inline std::vector<BatchDrawCommand> userCommands;
   static inline std::atomic_uint32_t cmdIndex{ 0 };
 
-  static inline std::unique_ptr<GFX::VAO> emptyVao;
+  static inline GLuint emptyVao{};
 
   // HDR inverse-z framebuffer stuff
   static inline unsigned fbo;
@@ -98,6 +90,3 @@ private:
   static inline const int NUM_BUCKETS = 128;
   static inline std::unique_ptr<GFX::StaticBuffer> floatBufferIn, floatBufferOut;
 };
-
-void compute_test();
-void histogram_test();

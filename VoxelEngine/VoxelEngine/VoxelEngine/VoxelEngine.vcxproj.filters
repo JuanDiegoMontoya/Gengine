@@ -181,12 +181,6 @@
     <ClInclude Include="CoreEngine\Shader.h">
       <Filter>CoreEngine\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="CoreEngine\vbo_layout.h">
-      <Filter>CoreEngine\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="CoreEngine\VAO.h">
-      <Filter>CoreEngine\Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="CoreEngine\ScriptSystem.h">
       <Filter>CoreEngine\ECS\Systems</Filter>
     </ClInclude>
@@ -331,6 +325,9 @@
     <ClInclude Include="Utilities\HashedString.h">
       <Filter>Utilities</Filter>
     </ClInclude>
+    <ClInclude Include="CoreEngine\DebugMarker.h">
+      <Filter>CoreEngine\Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Voxels\prefab.cpp">
@@ -462,9 +459,6 @@
     <ClCompile Include="CoreEngine\Shader.cpp">
       <Filter>CoreEngine\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="CoreEngine\VAO.cpp">
-      <Filter>CoreEngine\Graphics</Filter>
-    </ClCompile>
     <ClCompile Include="CoreEngine\ScriptSystem.cpp">
       <Filter>CoreEngine\ECS\Systems</Filter>
     </ClCompile>
@@ -527,6 +521,9 @@
     </ClCompile>
     <ClCompile Include="CoreEngine\Parser.cpp">
       <Filter>CoreEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreEngine\DebugMarker.cpp">
+      <Filter>CoreEngine\Graphics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

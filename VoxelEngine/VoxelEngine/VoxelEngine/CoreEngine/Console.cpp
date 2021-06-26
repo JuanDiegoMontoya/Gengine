@@ -9,6 +9,9 @@
 
 #define INPUT_BUF_SIZE 256
 
+AutoCVar<cvar_vec3> defaultInputColor("c.inputColor", "Default color of console input", cvar_vec3(0.6f));
+AutoCVar<cvar_vec3> defaultTextColor("c.textColor", "Default color of console text", cvar_vec3(1));
+
 // string utilities
 static std::string lower(const char* str)
 {
@@ -45,14 +48,9 @@ struct Command
   ConsoleFunc func{};
 };
 
-AutoCVar<cvar_vec3> defaultTextColor("c.textColor", "Default color of console text", cvar_vec3(1));
-AutoCVar<cvar_vec3> defaultInputColor("c.inputColor", "Default color of console input", cvar_vec3(1));
-
 struct ConsoleStorage
 {
   bool isOpen = true;
-  //CColor defaultInputColor{ .6, .6, .6 };
-  //CColor defaultTextColor{ 1, 1, 1 };
   std::vector<std::pair<std::string, CColor>> logEntries;
   std::vector<std::string> inputHistory;
   int historyPos{ -1 };
@@ -187,15 +185,22 @@ void Console::Draw()
 void Console::DrawWindow()
 {
   if (ImGui::IsKeyPressed(GLFW_KEY_F2))
+  {
     console->isOpen = !console->isOpen;
+  }
 
   if (!console->isOpen)
+  {
     return;
+  }
 
   ImGui::SetNextWindowSize(ImVec2(520, 600), ImGuiCond_FirstUseEver);
   ImGuiWindowFlags windowFlags = ImGuiWindowFlags_MenuBar;
   if (console->state.isPopupOpen)
+  {
     windowFlags |= ImGuiWindowFlags_NoBringToFrontOnFocus;
+  }
+
   if (!ImGui::Begin("GConsole", &console->isOpen, windowFlags))
   {
     ImGui::End();

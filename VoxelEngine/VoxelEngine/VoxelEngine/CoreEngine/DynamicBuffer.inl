@@ -201,10 +201,15 @@ namespace GFX
     const glm::vec3 full_color{ 1, .3, .3 }; // light red
     bool alternator = true;
 
-    vao_ = std::make_unique<VAO>();
-    VBOlayout layout;
-    layout.Push<float>(3); // position
-    layout.Push<float>(3); // color
+    if (!vao_)
+    {
+      glCreateVertexArrays(1, &vao_);
+      glBindVertexArray(vao_);
+      glEnableVertexAttribArray(0);
+      glEnableVertexAttribArray(1);
+      glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), 0);
+      glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    }
 
     std::vector<glm::vec3> data;
     for (const auto& alloc : this->allocs_)
@@ -227,8 +232,8 @@ namespace GFX
       alternator = !alternator;
     }
 
-    vbo_ = std::make_unique<StaticBuffer>(&data[0][0], sizeof(glm::vec3) * data.size(), GL_STREAM_DRAW);
-    vao_->AddBuffer(*vbo_, layout);
+    vbo_ = std::make_unique<StaticBuffer>(&data[0][0], sizeof(glm::vec3) * data.size());
+    vbo_->Bind<GFX::Target::VBO>();
   }
 
 
@@ -239,7 +244,7 @@ namespace GFX
     if (vao_)
     {
       int dataSize = this->allocs_.size() * 4;
-      vao_->Bind();
+      glBindVertexArray(vao_);
       glDrawArrays(GL_LINES, 0, dataSize / 2);
     }
   }
