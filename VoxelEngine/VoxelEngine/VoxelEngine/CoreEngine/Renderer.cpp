@@ -1,8 +1,6 @@
 #include "EnginePCH.h"
 #include "Renderer.h"
 
-#include <CoreEngine/WindowUtils.h>
-#include <CoreEngine/Window.h>
 #include <CoreEngine/shader.h>
 #include <CoreEngine/Camera.h>
 #include <CoreEngine/Texture2D.h>

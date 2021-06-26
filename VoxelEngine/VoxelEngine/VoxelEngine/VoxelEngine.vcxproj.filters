@@ -70,15 +70,6 @@
     <ClInclude Include="CoreEngine\DebugSystem.h">
       <Filter>CoreEngine\ECS\Systems</Filter>
     </ClInclude>
-    <ClInclude Include="CoreEngine\WindowUtils.h">
-      <Filter>CoreEngine\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="CoreEngine\WindowCB.h">
-      <Filter>CoreEngine\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="CoreEngine\Window.h">
-      <Filter>CoreEngine\Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="CoreEngine\Texture2D.h">
       <Filter>CoreEngine\Graphics</Filter>
     </ClInclude>
@@ -374,12 +365,6 @@
     </ClCompile>
     <ClCompile Include="CoreEngine\DebugSystem.cpp">
       <Filter>CoreEngine\ECS\Systems</Filter>
-    </ClCompile>
-    <ClCompile Include="CoreEngine\WindowCB.cpp">
-      <Filter>CoreEngine\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="CoreEngine\Window.cpp">
-      <Filter>CoreEngine\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="CoreEngine\Texture2D.cpp">
       <Filter>CoreEngine\Graphics</Filter>
