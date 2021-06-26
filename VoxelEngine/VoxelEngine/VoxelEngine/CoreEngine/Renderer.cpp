@@ -15,6 +15,7 @@
 #include "Components/ParticleEmitter.h"
 
 #include <execution>
+#include <iostream>
 
 static void GLAPIENTRY
 GLerrorCB(GLenum source,

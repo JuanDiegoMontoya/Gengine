@@ -145,9 +145,6 @@
     <ClInclude Include="CoreEngine\Debug.h">
       <Filter>CoreEngine</Filter>
     </ClInclude>
-    <ClInclude Include="CoreEngine\GlobalRendererInfo.h">
-      <Filter>CoreEngine</Filter>
-    </ClInclude>
     <ClInclude Include="CoreEngine\GraphicsIncludes.h">
       <Filter>CoreEngine</Filter>
     </ClInclude>
@@ -424,9 +421,6 @@
       <Filter>Game</Filter>
     </ClCompile>
     <ClCompile Include="CoreEngine\Context.cpp">
-      <Filter>CoreEngine</Filter>
-    </ClCompile>
-    <ClCompile Include="CoreEngine\GlobalRendererInfo.cpp">
       <Filter>CoreEngine</Filter>
     </ClCompile>
     <ClCompile Include="CoreEngine\Frustum.cpp">

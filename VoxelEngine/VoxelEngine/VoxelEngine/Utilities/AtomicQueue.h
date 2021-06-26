@@ -1,7 +1,6 @@
 #pragma once
-
 #include <queue>
-#include <mutex>
+#include <shared_mutex>
 
 template<typename T>
 class AtomicQueue

@@ -1,6 +1,4 @@
 #pragma once
-#include <Utilities/Palette.h>
-#include <shared_mutex>
 
 #pragma warning(push)
 #pragma warning(disable : 4334 4267 26451) // 32-bit shift, 8->4 byte int conversion

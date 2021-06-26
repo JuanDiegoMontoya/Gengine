@@ -1,7 +1,5 @@
 #pragma once
-#include <cereal/types/vector.hpp>
 #include <CoreEngine/GAssert.h>
-
 
 struct SerializableBitArray
 {
@@ -32,12 +30,6 @@ public:
   BitArray FindAll(int groupSize, Pred predicate);
   
   SerializableBitArray ByteRepresentation() const;
-
-  template <class Archive>
-  void serialize(Archive& ar)
-  {
-    ar(data_);
-  }
 
 private:
   std::vector<bool> data_;

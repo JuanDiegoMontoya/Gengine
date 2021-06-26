@@ -56,7 +56,6 @@
     <ClInclude Include="CoreEngine\Flags.h" />
     <ClInclude Include="CoreEngine\Frustum.h" />
     <ClInclude Include="CoreEngine\GAssert.h" />
-    <ClInclude Include="CoreEngine\GlobalRendererInfo.h" />
     <ClInclude Include="CoreEngine\GraphicsIncludes.h" />
     <ClInclude Include="CoreEngine\GraphicsSystem.h" />
     <ClInclude Include="CoreEngine\Input.h" />
@@ -219,12 +218,6 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">EnginePCH.h</PrecompiledHeaderFile>
     </ClCompile>
     <ClCompile Include="CoreEngine\GAssert.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-      </PrecompiledHeaderFile>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="CoreEngine\GlobalRendererInfo.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
       </PrecompiledHeaderFile>

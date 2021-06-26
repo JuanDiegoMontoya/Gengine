@@ -3,6 +3,9 @@
 #include <vector>
 #include <CoreEngine/GAssert.h>
 #include <CoreEngine/GraphicsIncludes.h>
+#include <imgui/imgui_impl_glfw.h>
+#include <imgui/imgui_impl_opengl3.h>
+#include <imgui/imgui_internal.h>
 
 //https://github.com/ocornut/imgui/wiki/plot_var_example
 struct PlotVarData
