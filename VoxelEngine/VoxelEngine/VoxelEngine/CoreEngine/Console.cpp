@@ -1,3 +1,4 @@
+#include "PCH.h"
 #include "Console.h"
 #include "CVarInternal.h"
 #include "Parser.h"

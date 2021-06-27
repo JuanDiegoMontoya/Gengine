@@ -226,7 +226,7 @@
     <ClInclude Include="CoreEngine\Fence.h">
       <Filter>CoreEngine\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="CoreEngine\EnginePCH.h">
+    <ClInclude Include="CoreEngine\PCH.h">
       <Filter>CoreEngine</Filter>
     </ClInclude>
     <ClInclude Include="CoreEngine\utilities.h">
@@ -314,6 +314,15 @@
       <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="CoreEngine\DebugMarker.h">
+      <Filter>CoreEngine\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\TextureView.h">
+      <Filter>CoreEngine\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\TextureSampler.h">
+      <Filter>CoreEngine\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreEngine\Texture.h">
       <Filter>CoreEngine\Graphics</Filter>
     </ClInclude>
   </ItemGroup>
@@ -462,7 +471,7 @@
     <ClCompile Include="CoreEngine\TextureCube.cpp">
       <Filter>CoreEngine\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="CoreEngine\EnginePCH.cpp">
+    <ClCompile Include="CoreEngine\PCH.cpp">
       <Filter>CoreEngine</Filter>
     </ClCompile>
     <ClCompile Include="CoreEngine\Components\ParticleEmitter.cpp">
@@ -502,6 +511,15 @@
       <Filter>CoreEngine</Filter>
     </ClCompile>
     <ClCompile Include="CoreEngine\DebugMarker.cpp">
+      <Filter>CoreEngine\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreEngine\TextureView.cpp">
+      <Filter>CoreEngine\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreEngine\TextureSampler.cpp">
+      <Filter>CoreEngine\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreEngine\Texture.cpp">
       <Filter>CoreEngine\Graphics</Filter>
     </ClCompile>
   </ItemGroup>

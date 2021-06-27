@@ -55,6 +55,6 @@ namespace GFX
     uint64_t Elapsed();
 
   private:
-    GLuint queries[2];
+    uint32_t queries[2];
   };
 }

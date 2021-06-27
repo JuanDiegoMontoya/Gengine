@@ -1,9 +1,11 @@
-#include "EnginePCH.h"
+#include "PCH.h"
 #include "DebugSystem.h"
 #include "Scene.h"
 #include "Console.h"
 #include "Engine.h"
 #include <imgui/imgui.h>
+#include <imgui/imgui_impl_glfw.h>
+#include <imgui/imgui_impl_opengl3.h>
 #include <Utilities/ImGuiExt.h>
 #include <CoreEngine/Input.h>
 #include <chrono>

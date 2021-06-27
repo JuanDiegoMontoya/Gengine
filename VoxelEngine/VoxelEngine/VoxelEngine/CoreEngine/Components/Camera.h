@@ -65,7 +65,7 @@ namespace Component
     float zFar = 1000.0f;
 
     std::unique_ptr<GFX::TextureCube> skybox{};
-    GLuint renderTexture = 0;
+    uint32_t renderTexture = 0;
   };
 
 }
