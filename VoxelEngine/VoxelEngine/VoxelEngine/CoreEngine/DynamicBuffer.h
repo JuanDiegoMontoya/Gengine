@@ -1,7 +1,8 @@
 #pragma once
 #include <stdint.h>
 #include <Utilities/Timer.h>
-#include <CoreEngine/GraphicsIncludes.h>
+#include "StaticBuffer.h"
+#include "GAssert.h"
 
 namespace GFX
 {

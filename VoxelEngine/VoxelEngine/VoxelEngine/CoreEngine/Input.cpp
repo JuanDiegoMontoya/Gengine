@@ -183,7 +183,7 @@ void Input::init_glfw_input_cbs(GLFWwindow* window)
   glfwSetCharCallback(window, ImGui_ImplGlfw_CharCallback);
 }
 
-void Input::AddInputAction(entt::hashed_string action, std::span<InputActionType> keys)
+void Input::AddInputAction(hashed_string action, std::span<InputActionType> keys)
 {
   ASSERT_MSG(inputActions.find(action) == inputActions.end(), "Input action already exists.");
   for (auto key : keys)
@@ -192,13 +192,13 @@ void Input::AddInputAction(entt::hashed_string action, std::span<InputActionType
   }
 }
 
-void Input::RemoveInputAction(entt::hashed_string action)
+void Input::RemoveInputAction(hashed_string action)
 {
   ASSERT_MSG(inputActions.count(action) > 0, "No input action of that type exists.");
   inputActions.erase(action);
 }
 
-bool Input::IsInputActionPressed(entt::hashed_string action)
+bool Input::IsInputActionPressed(hashed_string action)
 {
   ASSERT_MSG(inputActions.count(action) > 0, "No input action of that type exists.");
   auto range = inputActions.equal_range(action);
@@ -230,7 +230,7 @@ bool Input::IsInputActionPressed(entt::hashed_string action)
   return false;
 }
 
-void Input::AddInputAxis(entt::hashed_string action, std::span<InputAxisType> keys)
+void Input::AddInputAxis(hashed_string action, std::span<InputAxisType> keys)
 {
   ASSERT_MSG(inputAxes.find(action) == inputAxes.end(), "Input axis already exists.");
   for (auto key : keys)
@@ -239,13 +239,13 @@ void Input::AddInputAxis(entt::hashed_string action, std::span<InputAxisType> ke
   }
 }
 
-void Input::RemoveInputAxis(entt::hashed_string action)
+void Input::RemoveInputAxis(hashed_string action)
 {
   ASSERT_MSG(inputAxes.count(action) > 0, "No input axis of that type exists.");
   inputAxes.erase(action);
 }
 
-float Input::GetInputAxis(entt::hashed_string action)
+float Input::GetInputAxis(hashed_string action)
 {
   ASSERT_MSG(inputAxes.count(action) > 0, "No input action of that type exists.");
   auto range = inputAxes.equal_range(action);

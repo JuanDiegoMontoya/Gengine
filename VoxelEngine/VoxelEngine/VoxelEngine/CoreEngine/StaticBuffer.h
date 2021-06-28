@@ -1,31 +1,28 @@
 #pragma once
-#include <type_traits>
-#include "utilities.h"
-#include <GL/glew.h>
-#include "GAssert.h"
+#include "Flags.h"
 
 namespace GFX
 {
   enum class Target
   {
-    VBO = GL_ARRAY_BUFFER,
-    SSBO = GL_SHADER_STORAGE_BUFFER,
-    ATOMIC_BUFFER = GL_ATOMIC_COUNTER_BUFFER,
-    DIB = GL_DRAW_INDIRECT_BUFFER,
-    PARAMETER_BUFFER = GL_PARAMETER_BUFFER,
-    UBO = GL_UNIFORM_BUFFER,
+    VERTEX_BUFFER,
+    SHADER_STORAGE_BUFFER,
+    ATOMIC_BUFFER,
+    DRAW_INDIRECT_BUFFER,
+    PARAMETER_BUFFER,
+    UNIFORM_BUFFER,
   };
 
   enum class BufferFlag : uint32_t
   {
-    NONE = 0,
-    DYNAMIC_STORAGE = GL_DYNAMIC_STORAGE_BIT,
-    CLIENT_STORAGE = GL_CLIENT_STORAGE_BIT,
+    NONE = 1 << 0,
+    DYNAMIC_STORAGE = 1 << 1,
+    CLIENT_STORAGE = 1 << 2,
 
-    MAP_READ = GL_MAP_READ_BIT,
-    MAP_WRITE = GL_MAP_WRITE_BIT,
-    MAP_PERSISTENT = GL_MAP_PERSISTENT_BIT,
-    MAP_COHERENT = GL_MAP_COHERENT_BIT,
+    MAP_READ = 1 << 3,
+    MAP_WRITE = 1 << 4,
+    MAP_PERSISTENT = 1 << 5,
+    MAP_COHERENT = 1 << 6,
   };
   DECLARE_FLAG_TYPE(BufferFlags, BufferFlag, uint32_t)
 
@@ -37,7 +34,7 @@ namespace GFX
     StaticBuffer(const void* data, size_t size, BufferFlags flags = BufferFlag::DYNAMIC_STORAGE);
 
     // copies another buffer's data store and contents
-    StaticBuffer(const StaticBuffer& other);
+    StaticBuffer(const StaticBuffer& other) = delete;
     StaticBuffer(StaticBuffer&& other) noexcept;
     StaticBuffer& operator=(StaticBuffer&& other) noexcept;
     ~StaticBuffer();
@@ -52,51 +49,35 @@ namespace GFX
     template<Target T>
     void Bind()
     {
-      static_assert(T != Target::SSBO && T != Target::UBO, "SSBO and UBO targets require an index.");
-      glBindBuffer((GLenum)T, rendererID_);
+      static_assert(T != Target::SHADER_STORAGE_BUFFER && T != Target::UNIFORM_BUFFER, "SSBO and UBO targets require an index.");
+      BindBuffer((uint32_t)T);
     }
 
     // for binding SSBOs and UBOs
     template<Target T>
     void Bind(GLuint index)
     {
-      static_assert(T == Target::SSBO || T == Target::UBO, "Only SSBO and UBO targets use an index.");
-      glBindBuffer((GLenum)T, rendererID_);
-      glBindBufferBase((GLenum)T, index, rendererID_);
-    }
-
-    // TODO: evaluate whether or not this is actually useful
-    template<Target T>
-    void Unbind() const
-    {
-      glBindBuffer((GLenum)T, 0);
+      static_assert(T == Target::SHADER_STORAGE_BUFFER || T == Target::UNIFORM_BUFFER, "Only SSBO and UBO targets use an index.");
+      BindBuffer((uint32_t)T);
+      BindBufferBase((uint32_t)T, index);
     }
 
     // Gets a read+write pointer back
-    void* GetMappedPointer()
-    {
-      return glMapNamedBuffer(rendererID_, GL_READ_WRITE);
-    }
+    [[nodiscard]] void* Map();
 
-    void UnmapPointer()
-    {
-      ASSERT_MSG(IsMapped(), "The buffer is not mapped.");
-      glUnmapNamedBuffer(rendererID_);
-    }
+    void Unmap();
 
     // TODO: this function doesn't work
-    bool IsMapped()
-    {
-      if (!rendererID_) return false;
-      GLint mapped{ GL_FALSE };
-      glGetNamedBufferParameteriv(rendererID_, GL_BUFFER_MAPPED, &mapped);
-      return mapped;
-    }
+    bool IsMapped();
 
     // for when this class doesn't offer enough functionality itself
     auto GetID() { return rendererID_; }
 
   private:
-    uint32_t rendererID_{ 0 };
+    void BindBuffer(uint32_t target);
+    void BindBufferBase(uint32_t target, uint32_t slot);
+
+    uint32_t rendererID_{};
+    uint32_t size_{};
   };
 }

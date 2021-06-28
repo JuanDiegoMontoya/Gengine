@@ -14,6 +14,7 @@
 #include <CoreEngine/Components/Transform.h>
 #include <CoreEngine/Components/Rendering.h>
 #include <CoreEngine/Components/Core.h>
+#include <glm/gtc/type_ptr.hpp>
 
 #include "KinematicPlayerController.h"
 

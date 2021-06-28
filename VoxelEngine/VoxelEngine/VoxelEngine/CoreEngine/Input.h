@@ -1,9 +1,10 @@
 #pragma once
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
-#include <entt/src/core/hashed_string.hpp>
+#include <Utilities/HashedString.h>
 #include <span>
 #include <variant>
+#include <unordered_map>
 
 //constexpr int MOUSE_OFFSET = GLFW_KEY_MENU;
 //constexpr int MOUSE_COUNT = GLFW_MOUSE_BUTTON_LAST;
@@ -64,13 +65,13 @@ public:
 
   static inline float sensitivity = 0.05f;
 
-  static void AddInputAction(entt::hashed_string action, std::span<InputActionType> keys);
-  static void RemoveInputAction(entt::hashed_string action);
-  static bool IsInputActionPressed(entt::hashed_string action);
+  static void AddInputAction(hashed_string action, std::span<InputActionType> keys);
+  static void RemoveInputAction(hashed_string action);
+  static bool IsInputActionPressed(hashed_string action);
 
-  static void AddInputAxis(entt::hashed_string action, std::span<InputAxisType> keys);
-  static void RemoveInputAxis(entt::hashed_string action);
-  static float GetInputAxis(entt::hashed_string action);
+  static void AddInputAxis(hashed_string action, std::span<InputAxisType> keys);
+  static void RemoveInputAxis(hashed_string action);
+  static float GetInputAxis(hashed_string action);
 
   static void SetCursorVisible(bool state);
   static bool GetCursorVisible();
@@ -92,6 +93,6 @@ private:
   static inline KeyState mouseButtonStates[MOUSE_BUTTON_STATES] = { KeyState(0) };
 
   // an action can be mapped to multiple keys
-  static inline std::unordered_multimap<entt::id_type, InputActionType> inputActions;
-  static inline std::unordered_multimap<entt::id_type, InputAxisType> inputAxes;
+  static inline std::unordered_multimap<uint32_t, InputActionType> inputActions;
+  static inline std::unordered_multimap<uint32_t, InputAxisType> inputAxes;
 };

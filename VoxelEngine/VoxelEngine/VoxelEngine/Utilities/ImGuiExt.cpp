@@ -70,7 +70,7 @@ void ImGui::PlotVarFlushOldEntries()
   for (PlotVarsMap::iterator it = g_PlotVarsMap.begin(); it != g_PlotVarsMap.end(); )
   {
     PlotVarData& pvd = it->second;
-    if (pvd.LastFrame < current_frame - glm::max(400, (int)pvd.Data.size()))
+    if (pvd.LastFrame < current_frame - std::max(400, (int)pvd.Data.size()))
       it = g_PlotVarsMap.erase(it);
     else
       ++it;

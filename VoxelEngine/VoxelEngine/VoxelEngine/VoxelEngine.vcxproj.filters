@@ -316,12 +316,6 @@
     <ClInclude Include="CoreEngine\DebugMarker.h">
       <Filter>CoreEngine\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="CoreEngine\TextureView.h">
-      <Filter>CoreEngine\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="CoreEngine\TextureSampler.h">
-      <Filter>CoreEngine\Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="CoreEngine\Texture.h">
       <Filter>CoreEngine\Graphics</Filter>
     </ClInclude>
@@ -511,12 +505,6 @@
       <Filter>CoreEngine</Filter>
     </ClCompile>
     <ClCompile Include="CoreEngine\DebugMarker.cpp">
-      <Filter>CoreEngine\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="CoreEngine\TextureView.cpp">
-      <Filter>CoreEngine\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="CoreEngine\TextureSampler.cpp">
       <Filter>CoreEngine\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="CoreEngine\Texture.cpp">

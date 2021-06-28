@@ -6,6 +6,8 @@
 #include <memory>
 #include <unordered_map>
 
+#include "shader.h"
+
 #include "ParticleSystem.h"
 #include "Scene.h"
 #include "utilities.h"
@@ -112,8 +114,8 @@ void ParticleSystem::Update(Scene& scene, float dt)
     ASSERT(emitterData);
     
     // set a few variables in a few buffers... (emitter and particle updates can be swapped, probably)
-    emitterData->particleBuffer->Bind<GFX::Target::SSBO>(0);
-    emitterData->freeStackBuffer->Bind<GFX::Target::SSBO>(1);
+    emitterData->particleBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(0);
+    emitterData->freeStackBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(1);
 
     emitterData->timer += dt;
     unsigned particlesToSpawn = 0;
@@ -170,10 +172,10 @@ void ParticleSystem::Update(Scene& scene, float dt)
     glClearNamedBufferSubData(emitterData->indirectDrawBuffer->GetID(), GL_R32UI, offsetof(DrawArraysIndirectCommand, instanceCount),
       sizeof(GLuint), GL_RED, GL_UNSIGNED_INT, &zero);
 
-    emitterData->particleBuffer->Bind<GFX::Target::SSBO>(0);
-    emitterData->freeStackBuffer->Bind<GFX::Target::SSBO>(1);
-    emitterData->indirectDrawBuffer->Bind<GFX::Target::SSBO>(2);
-    emitterData->indicesBuffer->Bind<GFX::Target::SSBO>(3);
+    emitterData->particleBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(0);
+    emitterData->freeStackBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(1);
+    emitterData->indirectDrawBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(2);
+    emitterData->indicesBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(3);
 
     int numGroups = (emitterData->maxParticles + localSize - 1) / localSize;
     glDispatchCompute(numGroups, 1, 1);
@@ -203,9 +205,9 @@ void ParticleManager::BindEmitter(uint64_t handle)
   auto& emitterData = data->handleToGPUParticleData_[handle];
 
   emitterData->texture->Bind(0);
-  emitterData->particleBuffer->Bind<GFX::Target::SSBO>(0);
-  emitterData->indicesBuffer->Bind<GFX::Target::SSBO>(1);
-  emitterData->indirectDrawBuffer->Bind<GFX::Target::DIB>();
+  emitterData->particleBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(0);
+  emitterData->indicesBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(1);
+  emitterData->indirectDrawBuffer->Bind<GFX::Target::DRAW_INDIRECT_BUFFER>();
 }
 
 uint64_t ParticleManager::MakeParticleEmitter(uint32_t maxp, const char* tex)

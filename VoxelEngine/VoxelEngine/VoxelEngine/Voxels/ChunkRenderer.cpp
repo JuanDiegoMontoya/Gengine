@@ -124,9 +124,9 @@ namespace Voxels
       dirtyAlloc = false;
     }
 
-    allocBuffer->Bind<GFX::Target::SSBO>(0);
-    dib->Bind<GFX::Target::SSBO>(1);
-    drawCountGPU->Bind<GFX::Target::SSBO>(2);
+    allocBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(0);
+    dib->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(1);
+    drawCountGPU->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(2);
 
     {
       int numBlocks = (allocs.size() + blockSize - 1) / blockSize;
@@ -134,8 +134,6 @@ namespace Voxels
       glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT); // make SSBO writes visible to subsequent execution
     }
 
-    drawCountGPU->Unbind<GFX::Target::SSBO>();
-    dib->Unbind<GFX::Target::SSBO>();
     activeAllocs = allocator->ActiveAllocs();
 
     //PERF_BENCHMARK_END;
@@ -150,7 +148,7 @@ namespace Voxels
     //  return;
 
     glBindVertexArray(vao);
-    dib->Bind<GFX::Target::DIB>();
+    dib->Bind<GFX::Target::DRAW_INDIRECT_BUFFER>();
     drawCountGPU->Bind<GFX::Target::PARAMETER_BUFFER>();
     glMultiDrawArraysIndirectCount(GL_TRIANGLES, (void*)0, (GLintptr)0, allocator->ActiveAllocs(), 0);
   }
@@ -222,7 +220,7 @@ namespace Voxels
 #endif
 
     glBindVertexArray(vao);
-    dib->Bind<GFX::Target::DIB>();
+    dib->Bind<GFX::Target::DRAW_INDIRECT_BUFFER>();
     drawCountGPU->Bind<GFX::Target::PARAMETER_BUFFER>();
     glMultiDrawArraysIndirectCount(GL_TRIANGLES, (void*)0, (GLintptr)0, activeAllocs, 0);
   }
@@ -268,7 +266,7 @@ namespace Voxels
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, dib->GetID());
 
     // copy # of chunks being drawn (parameter buffer) to instance count (DIB)
-    dibCull->Bind<GFX::Target::DIB>();
+    dibCull->Bind<GFX::Target::DRAW_INDIRECT_BUFFER>();
     glBindVertexArray(vaoCull);
     constexpr GLint offset = offsetof(DrawArraysIndirectCommand, instanceCount);
     glCopyNamedBufferSubData(drawCountGPU->GetID(), dibCull->GetID(), 0, offset, sizeof(GLuint));

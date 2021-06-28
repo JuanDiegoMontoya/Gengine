@@ -8,6 +8,7 @@
 #include <Voxels/prefab.h>
 #include <FastNoise2/include/FastNoise/FastNoise.h>
 #include <Voxels/ChunkManager.h>
+#include <CoreEngine/utilities.h>
 
 using namespace Voxels;
 

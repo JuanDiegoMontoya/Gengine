@@ -1,7 +1,7 @@
 #pragma once
-#include "DynamicBuffer.h"
 #include <CoreEngine/Debug.h>
 #include <CoreEngine/GraphicsIncludes.h>
+#include <glm/vec3.hpp>
 
 namespace GFX
 {
@@ -233,7 +233,7 @@ namespace GFX
     }
 
     vbo_ = std::make_unique<StaticBuffer>(&data[0][0], sizeof(glm::vec3) * data.size());
-    vbo_->Bind<GFX::Target::VBO>();
+    vbo_->Bind<GFX::Target::VERTEX_BUFFER>();
   }
 
 

@@ -10,6 +10,10 @@
 #include <functional>
 #include <execution>
 #include <type_traits>
+#include <variant>
+
+#include <cstdlib>
+#include <cstdio>
 
 // vendor
 #include <glm/glm.hpp>

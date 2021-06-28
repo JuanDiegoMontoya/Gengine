@@ -2,11 +2,6 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-#include <CoreEngine/utilities.h>
-#include <CoreEngine/shader.h>
-#include <CoreEngine/Vertices.h>
-#include <CoreEngine/StaticBuffer.h>
-
 // note: baseInstance is for glMultiDraw*Indirect ONLY
 // for any other purpose it must be zero
 

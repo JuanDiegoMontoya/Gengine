@@ -10,6 +10,7 @@
 #include <CoreEngine/DebugMarker.h>
 
 #include "ParticleSystem.h"
+#include "StaticBuffer.h"
 
 #include "Components/Transform.h"
 #include "Components/Rendering.h"
@@ -139,7 +140,7 @@ void Renderer::RenderBatchHelper(MaterialID mat, const std::vector<UniformData>&
 {
   // generate SSBO w/ uniforms
   auto uniformBuffer = std::make_unique<GFX::StaticBuffer>(uniforms.data(), uniforms.size() * sizeof(UniformData));
-  uniformBuffer->Bind<GFX::Target::SSBO>(0);
+  uniformBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(0);
 
   // generate DIB (one indirect command per mesh)
   std::vector<DrawElementsIndirectCommand> commands;
@@ -156,7 +157,7 @@ void Renderer::RenderBatchHelper(MaterialID mat, const std::vector<UniformData>&
       }
     });
   GFX::StaticBuffer dib(commands.data(), commands.size() * sizeof(DrawElementsIndirectCommand));
-  dib.Bind<GFX::Target::DIB>();
+  dib.Bind<GFX::Target::DRAW_INDIRECT_BUFFER>();
 
   // clear instance count for next GL draw command
   for (auto& info : meshBufferInfo)
@@ -393,7 +394,7 @@ void Renderer::DrawAxisIndicator()
     glGenVertexArrays(1, &axisVAO);
     glBindVertexArray(axisVAO);
     axisVBO = new GFX::StaticBuffer(indicatorVertices, sizeof(indicatorVertices));
-    axisVBO->Bind<GFX::Target::VBO>();
+    axisVBO->Bind<GFX::Target::VERTEX_BUFFER>();
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), 0);
@@ -489,7 +490,7 @@ void Renderer::EndFrame(float dt)
       const int Y_SIZE = 8;
       int xgroups = (computePixelsX + X_SIZE - 1) / X_SIZE;
       int ygroups = (computePixelsY + Y_SIZE - 1) / Y_SIZE;
-      histogramBuffer->Bind<GFX::Target::SSBO>(0);
+      histogramBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(0);
       glDispatchCompute(xgroups, ygroups, 1);
       glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
     }
@@ -501,8 +502,8 @@ void Renderer::EndFrame(float dt)
     // TODO: do this step on the CPU!
     {
       //glGenerateTextureMipmap(color);
-      exposureBuffer->Bind<GFX::Target::SSBO>(0);
-      histogramBuffer->Bind<GFX::Target::SSBO>(1);
+      exposureBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(0);
+      histogramBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(1);
       //floatBufferOut->Bind<GFX::Target::SSBO>(1);
       auto& cshdr = Shader::shaders["calc_exposure"];
       cshdr->Use();
