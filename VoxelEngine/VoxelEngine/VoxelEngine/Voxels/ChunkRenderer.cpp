@@ -104,7 +104,7 @@ namespace Voxels
     for (int i = 0; i < 5; i++) // ignore near plane
     {
       std::string uname = "u_viewfrustum.data_[" + std::to_string(i) + "]";
-      sdr->set1FloatArray(entt::hashed_string(uname.c_str()), fr.GetData()[i], 4);
+      sdr->set1FloatArray(hashed_string(uname.c_str()), fr.GetData()[i], 4);
     }
     sdr->setFloat("u_cullMinDist", settings.normalMin);
     sdr->setFloat("u_cullMaxDist", settings.normalMax);

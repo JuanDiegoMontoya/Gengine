@@ -1,7 +1,7 @@
 #include "PCH.h"
 #include "Material.h"
 
-MaterialID MaterialManager::CreateMaterial(MaterialInfo materialData, entt::hashed_string name)
+MaterialID MaterialManager::CreateMaterial(MaterialInfo materialData, hashed_string name)
 {
   MaterialInternalInfo info;
   info.tex2Dpaths = materialData.tex2Dpaths;
@@ -16,7 +16,7 @@ MaterialID MaterialManager::CreateMaterial(MaterialInfo materialData, entt::hash
   return name;
 }
 
-MaterialID MaterialManager::GetMaterial(entt::hashed_string name)
+MaterialID MaterialManager::GetMaterial(hashed_string name)
 {
   return handleMap_[name.value()];
 }

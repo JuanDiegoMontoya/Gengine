@@ -87,45 +87,96 @@ namespace GFX
     };
 
     static GLint sampleCounts[]{ 1, 2, 4, 8, 16 };
+
+    static GLint uploadFormats[]
+    {
+      0,
+      GL_R,
+      GL_RG,
+      GL_RGB,
+      GL_BGR,
+      GL_RGBA,
+      GL_BGRA,
+      GL_DEPTH_COMPONENT,
+      GL_STENCIL_INDEX,
+    };
+
+    static GLint uploadTypes[]
+    {
+      0,
+      GL_UNSIGNED_BYTE,
+      GL_BYTE,
+      GL_UNSIGNED_SHORT,
+      GL_SHORT,
+      GL_UNSIGNED_INT,
+      GL_INT,
+      GL_FLOAT,
+      GL_UNSIGNED_BYTE_3_3_2,
+      GL_UNSIGNED_BYTE_2_3_3_REV,
+      GL_UNSIGNED_SHORT_5_6_5,
+      GL_UNSIGNED_SHORT_5_6_5_REV,
+      GL_UNSIGNED_SHORT_4_4_4_4,
+      GL_UNSIGNED_SHORT_4_4_4_4_REV,
+      GL_UNSIGNED_SHORT_5_5_5_1,
+      GL_UNSIGNED_SHORT_1_5_5_5_REV,
+      GL_UNSIGNED_INT_8_8_8_8,
+      GL_UNSIGNED_INT_8_8_8_8_REV,
+      GL_UNSIGNED_INT_10_10_10_2,
+      GL_UNSIGNED_INT_2_10_10_10_REV,
+    };
+
+    static GLint addressModes[]
+    {
+      GL_REPEAT,
+      GL_MIRRORED_REPEAT,
+      GL_CLAMP_TO_EDGE,
+      GL_CLAMP_TO_BORDER,
+      GL_MIRROR_CLAMP_TO_EDGE,
+    };
+
+    static GLfloat anisotropies[]{ 1, 2, 4, 8, 16 };
   }
 
-  Texture::Texture(const TextureCreateInfo& createInfo)
-    : createInfo_(createInfo)
+  std::optional<Texture> Texture::Create(const TextureCreateInfo& createInfo)
   {
-    glCreateTextures(targets[(int)createInfo.imageType], 1, &id_);
+    Texture texture;
+    texture.createInfo_ = createInfo;
+    glCreateTextures(targets[(int)createInfo.imageType], 1, &texture.id_);
 
     switch (createInfo.imageType)
     {
     case ImageType::TEX_1D:
-      glTextureStorage1D(id_, createInfo.mipLevels, formats[(int)createInfo.format], createInfo.extent.width);
+      glTextureStorage1D(texture.id_, createInfo.mipLevels, formats[(int)createInfo.format], createInfo.extent.width);
       break;
     case ImageType::TEX_2D:
-      glTextureStorage2D(id_, createInfo.mipLevels, formats[(int)createInfo.format], createInfo.extent.width, createInfo.extent.height);
+      glTextureStorage2D(texture.id_, createInfo.mipLevels, formats[(int)createInfo.format], createInfo.extent.width, createInfo.extent.height);
       break;
     case ImageType::TEX_3D:
-      glTextureStorage3D(id_, createInfo.mipLevels, formats[(int)createInfo.format], createInfo.extent.width, createInfo.extent.height, createInfo.extent.depth);
+      glTextureStorage3D(texture.id_, createInfo.mipLevels, formats[(int)createInfo.format], createInfo.extent.width, createInfo.extent.height, createInfo.extent.depth);
       break;
     case ImageType::TEX_1D_ARRAY:
-      glTextureStorage2D(id_, createInfo.mipLevels, formats[(int)createInfo.format], createInfo.extent.width, createInfo.arrayLayers);
+      glTextureStorage2D(texture.id_, createInfo.mipLevels, formats[(int)createInfo.format], createInfo.extent.width, createInfo.arrayLayers);
       break;
     case ImageType::TEX_2D_ARRAY:
-      glTextureStorage3D(id_, createInfo.mipLevels, formats[(int)createInfo.format], createInfo.extent.width, createInfo.extent.height, createInfo.arrayLayers);
+      glTextureStorage3D(texture.id_, createInfo.mipLevels, formats[(int)createInfo.format], createInfo.extent.width, createInfo.extent.height, createInfo.arrayLayers);
       break;
     case ImageType::TEX_CUBEMAP:
-      glTextureStorage2D(id_, createInfo.mipLevels, formats[(int)createInfo.format], createInfo.extent.width, createInfo.extent.height);
+      glTextureStorage2D(texture.id_, createInfo.mipLevels, formats[(int)createInfo.format], createInfo.extent.width, createInfo.extent.height);
       break;
-    //case ImageType::TEX_CUBEMAP_ARRAY:
-    //  ASSERT(false);
-    //  break;
+      //case ImageType::TEX_CUBEMAP_ARRAY:
+      //  ASSERT(false);
+      //  break;
     case ImageType::TEX_2D_MULTISAMPLE:
-      glTextureStorage2DMultisample(id_, sampleCounts[(int)createInfo.sampleCount], formats[(int)createInfo.format], createInfo.extent.width, createInfo.extent.height, GL_FALSE);
+      glTextureStorage2DMultisample(texture.id_, sampleCounts[(int)createInfo.sampleCount], formats[(int)createInfo.format], createInfo.extent.width, createInfo.extent.height, GL_FALSE);
       break;
     case ImageType::TEX_2D_MULTISAMPLE_ARRAY:
-      glTextureStorage3DMultisample(id_, sampleCounts[(int)createInfo.sampleCount], formats[(int)createInfo.format], createInfo.extent.width, createInfo.extent.height, createInfo.arrayLayers, GL_FALSE);
+      glTextureStorage3DMultisample(texture.id_, sampleCounts[(int)createInfo.sampleCount], formats[(int)createInfo.format], createInfo.extent.width, createInfo.extent.height, createInfo.arrayLayers, GL_FALSE);
       break;
     default:
       break;
     }
+
+    return texture;
   }
 
   Texture::Texture(Texture&& old) noexcept
@@ -144,5 +195,175 @@ namespace GFX
   Texture::~Texture()
   {
     glDeleteTextures(1, &id_);
+  }
+
+  void Texture::SubImage(const TextureUpdateInfo& info)
+  {
+    // TODO: safety checks
+
+    switch (info.dimension)
+    {
+    case UploadDimension::ONE:
+      glTextureSubImage1D(id_, info.level, info.offset.width, info.size.width, uploadFormats[(int)info.format], uploadTypes[(int)info.type], info.pixels);
+      break;
+    case UploadDimension::TWO:
+      glTextureSubImage2D(id_, info.level, info.offset.width, info.offset.height, info.size.width, info.size.height, uploadFormats[(int)info.format], uploadTypes[(int)info.type], info.pixels);
+      break;
+    case UploadDimension::THREE:
+      glTextureSubImage3D(id_, info.level, info.offset.width, info.offset.height, info.offset.depth, info.size.width, info.size.height, info.size.depth, uploadFormats[(int)info.format], uploadTypes[(int)info.type], info.pixels);
+      break;
+    }
+  }
+
+
+
+  TextureView TextureView::Create(const TextureViewCreateInfo& createInfo, const Texture& texture)
+  {
+    TextureView view;
+    view.createInfo_ = createInfo;
+    view.extent = texture.createInfo_.extent;
+    glCreateTextures(targets[(int)createInfo.viewType], 1, &view.id_);
+    glTextureView(view.id_, targets[(int)createInfo.viewType], texture.id_, formats[(int)createInfo.format], createInfo.minLevel, createInfo.numLevels, createInfo.minLayer, createInfo.numLayers);
+    return view;
+  }
+
+  TextureView::TextureView(TextureView&& old) noexcept
+  {
+    *this = std::move(old);
+  }
+
+  TextureView& TextureView::operator=(TextureView&& old) noexcept
+  {
+    if (&old == this) return *this;
+    id_ = std::exchange(old.id_, 0);
+    createInfo_ = old.createInfo_;
+    return *this;
+  }
+
+  TextureView::~TextureView()
+  {
+    glDeleteTextures(1, &id_);
+  }
+
+  void TextureView::Bind(uint32_t slot, const TextureSampler& sampler)
+  {
+    glBindTextureUnit(slot, id_);
+    glBindSampler(slot, sampler.id_);
+  }
+
+  void TextureView::SubImage(const TextureUpdateInfo& info)
+  {
+    Texture temp(id_);
+    temp.SubImage(info);
+    temp.id_ = 0;
+  }
+
+  std::optional<TextureSampler> TextureSampler::Create(const SamplerState& state)
+  {
+    TextureSampler sampler;
+    glCreateSamplers(1, &sampler.id_);
+    sampler.SetState(state, true);
+    return sampler;
+  }
+
+  TextureSampler::TextureSampler(TextureSampler&& old) noexcept
+  {
+    *this = std::move(old);
+  }
+
+  TextureSampler& TextureSampler::operator=(TextureSampler&& old) noexcept
+  {
+    if (&old == this) return *this;
+    id_ = std::exchange(old.id_, 0);
+    samplerState_ = old.samplerState_;
+    return *this;
+  }
+
+  TextureSampler::~TextureSampler()
+  {
+    glDeleteSamplers(1, &id_);
+  }
+
+  void TextureSampler::SetState(const SamplerState& state)
+  {
+    SetState(state, false);
+  }
+
+  void TextureSampler::SetState(const SamplerState& state, bool force)
+  {
+    // early out
+    if (state.asUint32 == samplerState_.asUint32)
+      return;
+
+    if (state.asBitField.magFilter != samplerState_.asBitField.magFilter)
+    {
+      GLint filter = state.asBitField.magFilter == Filter::LINEAR ? GL_LINEAR : GL_NEAREST;
+      glSamplerParameteri(id_, GL_TEXTURE_MAG_FILTER, filter);
+    }
+    if (state.asBitField.minFilter != samplerState_.asBitField.minFilter)
+    {
+      GLint filter{};
+      if (state.asBitField.minFilter == Filter::LINEAR)
+        filter = state.asBitField.mipmapFilter == Filter::LINEAR ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR_MIPMAP_NEAREST;
+      else
+        filter = state.asBitField.mipmapFilter == Filter::LINEAR ? GL_NEAREST_MIPMAP_LINEAR : GL_NEAREST_MIPMAP_NEAREST;
+      glSamplerParameteri(id_, GL_TEXTURE_MAG_FILTER, filter);
+    }
+
+    if (state.asBitField.addressModeU != samplerState_.asBitField.addressModeU || force)
+      glSamplerParameteri(id_, GL_TEXTURE_WRAP_S, addressModes[(int)state.asBitField.addressModeU]);
+    if (state.asBitField.addressModeV != samplerState_.asBitField.addressModeV || force)
+      glSamplerParameteri(id_, GL_TEXTURE_WRAP_T, addressModes[(int)state.asBitField.addressModeV]);
+    if (state.asBitField.addressModeW != samplerState_.asBitField.addressModeW || force)
+      glSamplerParameteri(id_, GL_TEXTURE_WRAP_R, addressModes[(int)state.asBitField.addressModeW]);
+
+    if (state.asBitField.borderColor != samplerState_.asBitField.borderColor)
+    {
+      switch (state.asBitField.borderColor)
+      {
+      case BorderColor::FLOAT_TRANSPARENT_BLACK:
+      {
+        constexpr GLfloat color[4]{ 0, 0, 0, 0 };
+        glSamplerParameterfv(id_, GL_TEXTURE_BORDER_COLOR, color);
+        break;
+      }
+      case BorderColor::INT_TRANSPARENT_BLACK:
+      {
+        constexpr GLint color[4]{ 0, 0, 0, 0 };
+        glSamplerParameteriv(id_, GL_TEXTURE_BORDER_COLOR, color);
+        break;
+      }
+      case BorderColor::FLOAT_OPAQUE_BLACK:
+      {
+        constexpr GLfloat color[4]{ 0, 0, 0, 1 };
+        glSamplerParameterfv(id_, GL_TEXTURE_BORDER_COLOR, color);
+        break;
+      }
+      case BorderColor::INT_OPAQUE_BLACK:
+      {
+        constexpr GLint color[4]{ 0, 0, 0, 1 };
+        glSamplerParameteriv(id_, GL_TEXTURE_BORDER_COLOR, color);
+        break;
+      }
+      case BorderColor::FLOAT_OPAQUE_WHITE:
+      {
+        constexpr GLfloat color[4]{ 1, 1, 1, 1 };
+        glSamplerParameterfv(id_, GL_TEXTURE_BORDER_COLOR, color);
+        break;
+      }
+      case BorderColor::INT_OPAQUE_WHITE:
+      {
+        constexpr GLint color[4]{ 1, 1, 1, 1 };
+        glSamplerParameteriv(id_, GL_TEXTURE_BORDER_COLOR, color);
+        break;
+      }
+      default:
+        // unreachable
+        break;
+      }
+    }
+
+    if (state.asBitField.anisotropy != samplerState_.asBitField.anisotropy)
+      glSamplerParameterf(id_, GL_TEXTURE_MAX_ANISOTROPY, anisotropies[(int)state.asBitField.anisotropy]);
   }
 }

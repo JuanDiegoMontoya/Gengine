@@ -10,7 +10,7 @@
 
 static Assimp::Importer importer;
 
-MeshID MeshManager::CreateMeshBatched(const std::string& filename, entt::hashed_string name)
+MeshID MeshManager::CreateMeshBatched(const std::string& filename, hashed_string name)
 {
 	const aiScene* scene = importer.ReadFile(filename.c_str(), aiProcessPreset_TargetRealtime_Fast);
 
@@ -49,12 +49,12 @@ MeshID MeshManager::CreateMeshBatched(const std::string& filename, entt::hashed_
 	return name;
 }
 
-MeshID MeshManager::GetMeshBatched(entt::hashed_string name)
+MeshID MeshManager::GetMeshBatched(hashed_string name)
 {
 	return handleMap_[name];
 }
 
-void MeshManager::GenBatchedHandle_GL(entt::hashed_string handle, const std::vector<GLuint>& indices, const std::vector<Vertex>& vertices)
+void MeshManager::GenBatchedHandle_GL(hashed_string handle, const std::vector<GLuint>& indices, const std::vector<Vertex>& vertices)
 {
 	// never freed
 	auto vh = Renderer::vertexBuffer->Allocate(vertices.data(), vertices.size() * sizeof(Vertex));

@@ -1,8 +1,11 @@
 #pragma once
 #include <cinttypes>
+#include <optional>
 
 namespace GFX
 {
+  class TextureSampler;
+
   enum class ImageType : uint8_t
   {
     TEX_1D,
@@ -42,8 +45,8 @@ namespace GFX
     R8G8B8A8_SNORM,
     R10G10B10A2_UNORM,
     R10G10B10A2_UINT,
-    R12G12B12A12,
-    R16G16B16A16,
+    R12G12B12A12_UNORM,
+    R16G16B16A16_UNORM,
     R8G8B8_SRGB,
     R8G8B8A8_SRGB,
     R16_FLOAT,
@@ -90,7 +93,7 @@ namespace GFX
     uint32_t depth{};
   };
 
-  enum class SampleCount
+  enum class SampleCount : uint8_t
   {
     ONE,
     TWO,
@@ -99,36 +102,206 @@ namespace GFX
     SIXTEEN,
   };
 
+  enum class UploadDimension : uint8_t
+  {
+    ONE,
+    TWO,
+    THREE,
+  };
+
+  enum class UploadFormat : uint8_t
+  {
+    UNDEFINED,
+    R,
+    RG,
+    RGB,
+    BGR,
+    RGBA,
+    BGRA,
+    DEPTH_COMPONENT,
+    STENCIL_INDEX,
+  };
+
+  enum class UploadType : uint8_t
+  {
+    UNDEFINED,
+    UBYTE,
+    USHORT,
+    UINT,
+    SINT,
+    FLOAT,
+    UBYTE_3_3_2,
+    UBYTE_2_3_3,
+    USHORT_5_6_5,
+    USHORT_5_6_5_REV,
+    USHORT_4_4_4_4,
+    USHORT_4_4_4_4_REV,
+    USHORT_5_5_5_1,
+    USHORT_5_5_5_1_REV,
+    UINT_8_8_8_8,
+    UINT_8_8_8_8_REV,
+    UINT_10_10_10_2,
+    UINT_10_10_10_2_REV,
+  };
+
+  enum class Filter : uint8_t
+  {
+    NEAREST,
+    LINEAR,
+  };
+
+  enum class AddressMode : uint8_t
+  {
+    REPEAT,
+    MIRRORED_REPEAT,
+    CLAMP_TO_EDGE,
+    CLAMP_TO_BORDER,
+    MIRROR_CLAMP_TO_EDGE,
+  };
+
+  enum class BorderColor : uint8_t
+  {
+    FLOAT_TRANSPARENT_BLACK,
+    INT_TRANSPARENT_BLACK,
+    FLOAT_OPAQUE_BLACK,
+    INT_OPAQUE_BLACK,
+    FLOAT_OPAQUE_WHITE,
+    INT_OPAQUE_WHITE,
+  };
+
+  enum class Anisotropy
+  {
+    SAMPLES_1,
+    SAMPLES_2,
+    SAMPLES_4,
+    SAMPLES_8,
+    SAMPLES_16,
+  };
+
   struct TextureCreateInfo
   {
-    ImageType imageType = ImageType::TEX_2D;
-    Format format = Format::UNDEFINED;
+    ImageType imageType{};
+    Format format{};
     Extent3D extent{};
     uint32_t mipLevels{};
     uint32_t arrayLayers{};
-    SampleCount sampleCount = SampleCount::ONE;
+    SampleCount sampleCount{};
   };
 
-  //struct TextureUpdateInfo
-  //{
+  struct TextureUpdateInfo
+  {
+    UploadDimension dimension{};
+    uint32_t level{};
+    Extent3D offset{};
+    Extent3D size{};
+    UploadFormat format{};
+    UploadType type{};
+    void* pixels{};
+  };
 
-  //};
-
-  // serves as the raw storage for textures
+  // serves as the physical storage for textures
   // cannot be used directly for samplers
   class Texture
   {
   public:
-    Texture(const TextureCreateInfo& createInfo);
+    static std::optional<Texture> Create(const TextureCreateInfo& createInfo);
     Texture(Texture&& old) noexcept;
     Texture& operator=(Texture&& old) noexcept;
     ~Texture();
+
+    void SubImage(const TextureUpdateInfo& info);
 
     Texture(const Texture&) = delete;
     Texture& operator=(const Texture&) = delete;
 
   private:
+    friend class TextureView;
+    Texture() {};
+    Texture(uint32_t view) { id_ = view; }
     uint32_t id_{};
     TextureCreateInfo createInfo_{};
+  };
+
+
+
+  struct TextureViewCreateInfo
+  {
+    ImageType viewType{};
+    Format format{};
+    uint32_t minLevel{};
+    uint32_t numLevels{};
+    uint32_t minLayer{};
+    uint32_t numLayers{};
+  };
+
+  // serves as lightweight view of an image, meant to be passed around
+  class TextureView
+  {
+  public:
+    static TextureView Create(const TextureViewCreateInfo& createInfo, const Texture& texture);
+    TextureView(TextureView&& old) noexcept;
+    TextureView& operator=(TextureView&& old) noexcept;
+    ~TextureView();
+
+    void Bind(uint32_t slot, const TextureSampler& sampler);
+    void SubImage(const TextureUpdateInfo& info);
+
+    TextureView(const TextureView&) = delete;
+    TextureView& operator=(const TextureView&) = delete;
+
+  private:
+    TextureView() {};
+    uint32_t id_{};
+    TextureViewCreateInfo createInfo_{};
+    Extent3D extent{};
+  };
+
+
+
+  struct SamplerState
+  {
+    union
+    {
+      struct
+      {
+        Filter magFilter : 1 = Filter::LINEAR;
+        Filter minFilter : 1 = Filter::LINEAR;
+        Filter mipmapFilter : 1 = Filter::LINEAR;
+        AddressMode addressModeU : 3 = AddressMode::CLAMP_TO_EDGE;
+        AddressMode addressModeV : 3 = AddressMode::CLAMP_TO_EDGE;
+        AddressMode addressModeW : 3 = AddressMode::CLAMP_TO_EDGE;
+        BorderColor borderColor : 3 = BorderColor::INT_OPAQUE_WHITE;
+        Anisotropy anisotropy : 3 = Anisotropy::SAMPLES_1;
+      }asBitField;
+      uint32_t asUint32;
+    };
+
+    //float mipLodBias{ 0 };
+    //CompareOp compareOp;
+    //float minLod;
+    //float maxLod;
+  };
+
+  class TextureSampler
+  {
+  public:
+    static std::optional<TextureSampler> Create(const SamplerState& samplerState);
+    TextureSampler(TextureSampler&& old) noexcept;
+    TextureSampler& operator=(TextureSampler&& old) noexcept;
+    ~TextureSampler();
+
+    void SetState(const SamplerState& samplerState);
+    const SamplerState& GetState() const noexcept { return samplerState_; }
+
+    TextureSampler(const TextureSampler&) = delete;
+    TextureSampler& operator=(const TextureSampler&) = delete;
+
+  private:
+    friend class TextureView;
+    TextureSampler() {};
+    void SetState(const SamplerState& samplerState, bool force);
+
+    uint32_t id_{};
+    SamplerState samplerState_{};
   };
 }

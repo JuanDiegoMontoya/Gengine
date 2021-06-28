@@ -372,7 +372,7 @@ void OnDraw(float dt)
   Renderer::DrawAxisIndicator();
 }
 
-
+#include <CoreEngine/Texture.h>
 int main()
 {
   Application::SetStartCallback(OnStart);
@@ -382,6 +382,38 @@ int main()
   Application::Start();
   voxelManager.reset();
   Application::Shutdown();
+
+  GFX::TextureCreateInfo txInfo
+  {
+    .imageType = GFX::ImageType::TEX_2D,
+    .format = GFX::Format::R16G16B16A16_UNORM,
+    .extent
+    {
+      .width = 64,
+      .height = 64,
+      .depth = 1
+    },
+    .mipLevels = 1,
+    .arrayLayers = 1,
+    .sampleCount = GFX::SampleCount::ONE
+  };
+  auto tx = GFX::Texture::Create(txInfo);
+
+  GFX::TextureViewCreateInfo viewInfo
+  {
+    .viewType = GFX::ImageType::TEX_2D,
+    .format = GFX::Format::R16G16B16A16_UNORM,
+    .minLevel = 0,
+    .numLevels = 1,
+    .minLayer = 0,
+    .numLayers = 1
+  };
+  auto view = GFX::TextureView::Create(viewInfo, *tx);
+
+  GFX::SamplerState samplerState{};
+  auto sampler = GFX::TextureSampler::Create(samplerState);
+
+  view.Bind(0, *sampler);
 
   return 0;
 }

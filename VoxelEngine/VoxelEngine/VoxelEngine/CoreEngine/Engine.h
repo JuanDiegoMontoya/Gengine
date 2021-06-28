@@ -12,7 +12,6 @@ class LifetimeSystem;
 class Engine
 {
 public:
-  Engine();
   ~Engine();
 
   void InitScenes();
@@ -30,6 +29,7 @@ public:
 
 private:
   friend class Application;
+  Engine();
 
   float dt_{};
   std::vector<std::unique_ptr<Scene>> scenes_;

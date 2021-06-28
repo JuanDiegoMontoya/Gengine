@@ -8,7 +8,7 @@
 
 #include <CoreEngine/GraphicsIncludes.h>
 #include <shaderc/shaderc.hpp>
-#include <entt/src/core/hashed_string.hpp>
+#include <Utilities/HashedString.h>
 
 #pragma warning(push)
 #pragma warning(disable : 4267) // 8->4 byte int conversion
@@ -71,92 +71,92 @@ public:
     glUseProgram(0);
   }
 
-  void setBool(entt::hashed_string uniform, bool value)
+  void setBool(hashed_string uniform, bool value)
   {
     ASSERT(Uniforms.find(uniform) != Uniforms.end());
     glProgramUniform1i(programID, Uniforms[uniform], static_cast<int>(value));
   }
-  void setInt(entt::hashed_string uniform, int value)
+  void setInt(hashed_string uniform, int value)
   {
     ASSERT(Uniforms.find(uniform) != Uniforms.end());
     glProgramUniform1i(programID, Uniforms[uniform], value);
   }
-  void setUInt(entt::hashed_string uniform, unsigned int value)
+  void setUInt(hashed_string uniform, unsigned int value)
   {
     ASSERT(Uniforms.find(uniform) != Uniforms.end());
     glProgramUniform1ui(programID, Uniforms[uniform], value);
   }
-  void setFloat(entt::hashed_string uniform, float value)
+  void setFloat(hashed_string uniform, float value)
   {
     ASSERT(Uniforms.find(uniform) != Uniforms.end());
     glProgramUniform1f(programID, Uniforms[uniform], value);
   }
-  void set1FloatArray(entt::hashed_string uniform, std::span<const float> value)
+  void set1FloatArray(hashed_string uniform, std::span<const float> value)
   {
     ASSERT(Uniforms.find(uniform) != Uniforms.end());
     glProgramUniform1fv(programID, Uniforms[uniform], value.size(), value.data());
   }
-  void set1FloatArray(entt::hashed_string uniform, const float* value, GLsizei count)
+  void set1FloatArray(hashed_string uniform, const float* value, GLsizei count)
   {
     ASSERT(Uniforms.find(uniform) != Uniforms.end());
     glProgramUniform1fv(programID, Uniforms[uniform], count, value);
   }
-  void set2FloatArray(entt::hashed_string uniform, std::span<const glm::vec2> value)
+  void set2FloatArray(hashed_string uniform, std::span<const glm::vec2> value)
   {
     ASSERT(Uniforms.find(uniform) != Uniforms.end());
     glProgramUniform2fv(programID, Uniforms[uniform], value.size(), glm::value_ptr(value.front()));
   }
-  void set3FloatArray(entt::hashed_string uniform, std::span<const glm::vec3> value)
+  void set3FloatArray(hashed_string uniform, std::span<const glm::vec3> value)
   {
     ASSERT(Uniforms.find(uniform) != Uniforms.end());
     glProgramUniform3fv(programID, Uniforms[uniform], value.size(), glm::value_ptr(value.front()));
   }
-  void set4FloatArray(entt::hashed_string uniform, std::span<const glm::vec4> value)
+  void set4FloatArray(hashed_string uniform, std::span<const glm::vec4> value)
   {
     ASSERT(Uniforms.find(uniform) != Uniforms.end());
     glProgramUniform4fv(programID, Uniforms[uniform], value.size(), glm::value_ptr(value.front()));
   }
-  void setIntArray(entt::hashed_string uniform, std::span<const int> value)
+  void setIntArray(hashed_string uniform, std::span<const int> value)
   {
     ASSERT(Uniforms.find(uniform) != Uniforms.end());
     glProgramUniform1iv(programID, Uniforms[uniform], value.size(), value.data());
   }
-  void setVec2(entt::hashed_string uniform, const glm::vec2& value)
+  void setVec2(hashed_string uniform, const glm::vec2& value)
   {
     ASSERT(Uniforms.find(uniform) != Uniforms.end());
     glProgramUniform2fv(programID, Uniforms[uniform], 1, glm::value_ptr(value));
   }
-  void setVec2(entt::hashed_string uniform, float x, float y)
+  void setVec2(hashed_string uniform, float x, float y)
   {
     ASSERT(Uniforms.find(uniform) != Uniforms.end());
     glProgramUniform2f(programID, Uniforms[uniform], x, y);
   }
-  void setVec3(entt::hashed_string uniform, const glm::vec3& value)
+  void setVec3(hashed_string uniform, const glm::vec3& value)
   {
     ASSERT(Uniforms.find(uniform) != Uniforms.end());
     glProgramUniform3fv(programID, Uniforms[uniform], 1, glm::value_ptr(value));
   }
-  void setVec3(entt::hashed_string uniform, float x, float y, float z)
+  void setVec3(hashed_string uniform, float x, float y, float z)
   {
     ASSERT(Uniforms.find(uniform) != Uniforms.end());
     glProgramUniform3f(programID, Uniforms[uniform], x, y, z);
   }
-  void setVec4(entt::hashed_string uniform, const glm::vec4& value)
+  void setVec4(hashed_string uniform, const glm::vec4& value)
   {
     ASSERT(Uniforms.find(uniform) != Uniforms.end());
     glProgramUniform4fv(programID, Uniforms[uniform], 1, glm::value_ptr(value));
   }
-  void setVec4(entt::hashed_string uniform, float x, float y, float z, float w)
+  void setVec4(hashed_string uniform, float x, float y, float z, float w)
   {
     ASSERT(Uniforms.find(uniform) != Uniforms.end());
     glProgramUniform4f(programID, Uniforms[uniform], x, y, z, w);
   }
-  void setMat3(entt::hashed_string uniform, const glm::mat3& mat)
+  void setMat3(hashed_string uniform, const glm::mat3& mat)
   {
     ASSERT(Uniforms.find(uniform) != Uniforms.end());
     glProgramUniformMatrix3fv(programID, Uniforms[uniform], 1, GL_FALSE, glm::value_ptr(mat));
   }
-  void setMat4(entt::hashed_string uniform, const glm::mat4& mat)
+  void setMat4(hashed_string uniform, const glm::mat4& mat)
   {
     ASSERT(Uniforms.find(uniform) != Uniforms.end());
     glProgramUniformMatrix4fv(programID, Uniforms[uniform], 1, GL_FALSE, glm::value_ptr(mat));
@@ -165,10 +165,10 @@ public:
   auto GetID() const noexcept { return programID; }
 
   // list of all shader programs
-  static inline std::unordered_map<entt::hashed_string, std::optional<Shader>> shaders;
+  static inline std::unordered_map<hashed_string, std::optional<Shader>> shaders;
 private:
 
-  std::unordered_map<entt::hashed_string, GLint> Uniforms;
+  std::unordered_map<hashed_string, GLint> Uniforms;
   GLuint programID{ 0 };
 
   using shaderType = GLenum;
