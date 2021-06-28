@@ -295,7 +295,7 @@ void OnStart(Scene* scene)
       entity.AddComponent<Component::Material>().handle = batchMaterial;
       //entity.AddComponent<Components::NativeScriptComponent>().Bind<TestObj>();
       Component::ParticleEmitter emitter;
-      emitter.handle = ParticleManager::MakeParticleEmitter(150, "stone.png");
+      emitter.handle = ParticleManager::Get().MakeParticleEmitter(150, "stone.png");
 #if 1
       emitter.data.minLife = 1.0f;
       emitter.data.maxLife = 2.0f;

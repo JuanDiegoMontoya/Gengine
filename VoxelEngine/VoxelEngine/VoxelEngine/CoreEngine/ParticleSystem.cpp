@@ -3,6 +3,8 @@
 #include <execution>
 #include <algorithm>
 #include <bit>
+#include <memory>
+#include <unordered_map>
 
 #include "ParticleSystem.h"
 #include "Scene.h"
@@ -11,6 +13,8 @@
 
 #include "Components/ParticleEmitter.h"
 #include "Components/Transform.h"
+#include "StaticBuffer.h"
+#include "Texture2D.h"
 
 namespace
 {
@@ -52,7 +56,26 @@ namespace
     int alive{ 0 };
     glm::vec2 scale{ 1 };
   };
+
 }
+
+struct InternalEmitterData
+{
+  std::unique_ptr<GFX::StaticBuffer> particleBuffer{};
+  std::unique_ptr<GFX::StaticBuffer> freeStackBuffer{};
+  std::unique_ptr<GFX::StaticBuffer> indirectDrawBuffer{};
+  std::unique_ptr<GFX::StaticBuffer> indicesBuffer{};
+  std::unique_ptr<GFX::Texture2D> texture{};
+  uint32_t maxParticles{}; // const
+  uint32_t numParticles{};
+  float timer{ 0.0f };
+};
+
+struct ParticleManagerData
+{
+  uint64_t curHandle_{};
+  std::unordered_map<uint64_t, std::unique_ptr<InternalEmitterData>> handleToGPUParticleData_;
+};
 
 static void OnEmitterConstruct(entt::basic_registry<entt::entity>& registry, entt::entity entity)
 {
@@ -63,7 +86,7 @@ static void OnEmitterDestroy(entt::basic_registry<entt::entity>& registry, entt:
 {
   printf("Destroyed particle emitter on entity %d\n", entity);
   auto& emitter = registry.get<Component::ParticleEmitter>(entity);
-  ParticleManager::DestroyParticleEmitter(emitter.handle);
+  ParticleManager::Get().DestroyParticleEmitter(emitter.handle);
 }
 
 void ParticleSystem::InitScene(Scene& scene)
@@ -85,7 +108,7 @@ void ParticleSystem::Update(Scene& scene, float dt)
   for (entt::entity entity : view)
   {
     auto [emitter, transform] = view.get<ParticleEmitter, Transform>(entity);
-    auto& emitterData = ParticleManager::handleToGPUParticleData_[emitter.handle];
+    auto& emitterData = ParticleManager::Get().data->handleToGPUParticleData_[emitter.handle];
     ASSERT(emitterData);
     
     // set a few variables in a few buffers... (emitter and particle updates can be swapped, probably)
@@ -140,7 +163,7 @@ void ParticleSystem::Update(Scene& scene, float dt)
   for (entt::entity entity : view)
   {
     auto [emitter, transform] = view.get<ParticleEmitter, Transform>(entity);
-    auto& emitterData = ParticleManager::handleToGPUParticleData_[emitter.handle];
+    auto& emitterData = ParticleManager::Get().data->handleToGPUParticleData_[emitter.handle];
     ASSERT(emitterData);
 
     GLuint zero{ 0 };
@@ -164,11 +187,32 @@ void ParticleSystem::Update(Scene& scene, float dt)
   }
 }
 
-uint64_t ParticleManager::MakeParticleEmitter(uint32_t maxp, std::string tex)
+ParticleManager& ParticleManager::Get()
 {
-  uint64_t newHandle = ++curHandle_;
+  static ParticleManager manager;
+  return manager;
+}
 
-  auto& newEmitter = (handleToGPUParticleData_[newHandle] = std::make_unique<InternalEmitterData>());
+ParticleManager::ParticleManager()
+{
+  data = new ParticleManagerData;
+}
+
+void ParticleManager::BindEmitter(uint64_t handle)
+{
+  auto& emitterData = data->handleToGPUParticleData_[handle];
+
+  emitterData->texture->Bind(0);
+  emitterData->particleBuffer->Bind<GFX::Target::SSBO>(0);
+  emitterData->indicesBuffer->Bind<GFX::Target::SSBO>(1);
+  emitterData->indirectDrawBuffer->Bind<GFX::Target::DIB>();
+}
+
+uint64_t ParticleManager::MakeParticleEmitter(uint32_t maxp, const char* tex)
+{
+  uint64_t newHandle = ++data->curHandle_;
+
+  auto& newEmitter = (data->handleToGPUParticleData_[newHandle] = std::make_unique<InternalEmitterData>());
   newEmitter->maxParticles = maxp;
 
   auto tp = std::make_unique<Particle[]>(maxp);
@@ -203,7 +247,7 @@ uint64_t ParticleManager::MakeParticleEmitter(uint32_t maxp, std::string tex)
 void ParticleManager::DestroyParticleEmitter(uint64_t handle)
 {
   if (handle == 0) return;
-  auto it = handleToGPUParticleData_.find(handle);
-  ASSERT(it != handleToGPUParticleData_.end());
-  handleToGPUParticleData_.erase(it);
+  auto it = data->handleToGPUParticleData_.find(handle);
+  ASSERT(it != data->handleToGPUParticleData_.end());
+  data->handleToGPUParticleData_.erase(it);
 }

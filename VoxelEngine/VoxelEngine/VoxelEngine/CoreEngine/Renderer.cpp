@@ -196,12 +196,7 @@ void Renderer::RenderParticleEmitter(const Component::ParticleEmitter& emitter, 
   shader->setVec3("u_cameraRight", v[0][0], v[1][0], v[2][0]);
   shader->setVec3("u_cameraUp", v[0][1], v[1][1], v[2][1]);
 
-  auto& emitterData = ParticleManager::handleToGPUParticleData_[emitter.handle];
-  
-  emitterData->texture->Bind(0);
-  emitterData->particleBuffer->Bind<GFX::Target::SSBO>(0);
-  emitterData->indicesBuffer->Bind<GFX::Target::SSBO>(1);
-  emitterData->indirectDrawBuffer->Bind<GFX::Target::DIB>();
+  ParticleManager::Get().BindEmitter(emitter.handle);
   //glDrawArraysInstanced(GL_TRIANGLE_FAN, 0, 4, emitter.maxParticles);
   glDrawArraysIndirect(GL_TRIANGLE_FAN, 0);
 }

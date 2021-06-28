@@ -94,9 +94,9 @@ namespace GFX
     }
 
     // for when this class doesn't offer enough functionality itself
-    GLuint GetID() { return rendererID_; }
+    auto GetID() { return rendererID_; }
 
   private:
-    GLuint rendererID_{ 0 };
+    uint32_t rendererID_{ 0 };
   };
 }

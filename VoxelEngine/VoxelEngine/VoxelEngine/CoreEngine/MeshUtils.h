@@ -1,10 +1,10 @@
 #pragma once
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <entt.hpp>
+#include <glm/vec2.hpp>
+#include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
+#include <cinttypes>
 
-using MeshID = entt::id_type;
+using MeshID = uint32_t;
 
 enum class RenderFlags : uint64_t
 {

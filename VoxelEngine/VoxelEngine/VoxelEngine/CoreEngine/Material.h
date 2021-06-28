@@ -8,7 +8,7 @@
 
 class Shader;
 
-using MaterialID = entt::id_type;
+using MaterialID = uint32_t;
 
 // the user can use this struct to query and set material data
 // idk what else should be here tbh

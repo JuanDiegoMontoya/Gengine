@@ -1,6 +1,6 @@
 #pragma once
 #include <cinttypes>
-#include <glm/glm.hpp>
+#include <glm/vec3.hpp>
 #include "../MeshUtils.h"
 
 namespace Component
