@@ -45,7 +45,7 @@ void GraphicsSystem::StartFrame()
   }
   ImGui::Separator();
   ImGui::Text("Loaded Materials");
-  for (const auto& p : MaterialManager::handleMap_)
+  for (const auto& p : MaterialManager::Get()->handleMap_)
   {
     ImGui::Text("ID: %u", p.first);
   }

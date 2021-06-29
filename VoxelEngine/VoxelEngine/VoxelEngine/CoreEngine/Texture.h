@@ -217,7 +217,6 @@ namespace GFX
   private:
     friend class TextureView;
     Texture() {};
-    Texture(uint32_t view) { id_ = view; }
     uint32_t id_{};
     TextureCreateInfo createInfo_{};
   };
@@ -238,18 +237,19 @@ namespace GFX
   class TextureView
   {
   public:
-    static TextureView Create(const TextureViewCreateInfo& createInfo, const Texture& texture);
+    static std::optional<TextureView> Create(const TextureViewCreateInfo& createInfo, const Texture& texture);
+    TextureView(const TextureView& other);
     TextureView(TextureView&& old) noexcept;
+    TextureView& operator=(const TextureView& other);
     TextureView& operator=(TextureView&& old) noexcept;
     ~TextureView();
 
     void Bind(uint32_t slot, const TextureSampler& sampler);
     void SubImage(const TextureUpdateInfo& info);
 
-    TextureView(const TextureView&) = delete;
-    TextureView& operator=(const TextureView&) = delete;
 
   private:
+    static std::optional<TextureView> Create(const TextureViewCreateInfo& createInfo, uint32_t texture, Extent3D extent);
     TextureView() {};
     uint32_t id_{};
     TextureViewCreateInfo createInfo_{};
@@ -264,14 +264,14 @@ namespace GFX
     {
       struct
       {
-        Filter magFilter : 1 = Filter::LINEAR;
-        Filter minFilter : 1 = Filter::LINEAR;
-        Filter mipmapFilter : 1 = Filter::LINEAR;
+        Filter magFilter         : 1 = Filter::LINEAR;
+        Filter minFilter         : 1 = Filter::LINEAR;
+        Filter mipmapFilter      : 1 = Filter::LINEAR;
         AddressMode addressModeU : 3 = AddressMode::CLAMP_TO_EDGE;
         AddressMode addressModeV : 3 = AddressMode::CLAMP_TO_EDGE;
         AddressMode addressModeW : 3 = AddressMode::CLAMP_TO_EDGE;
-        BorderColor borderColor : 3 = BorderColor::INT_OPAQUE_WHITE;
-        Anisotropy anisotropy : 3 = Anisotropy::SAMPLES_1;
+        BorderColor borderColor  : 3 = BorderColor::INT_OPAQUE_WHITE;
+        Anisotropy anisotropy    : 3 = Anisotropy::SAMPLES_1;
       }asBitField;
       uint32_t asUint32;
     };
@@ -282,19 +282,21 @@ namespace GFX
     //float maxLod;
   };
 
+  // stores texture sampling parameters
+  // copy + move constructible
   class TextureSampler
   {
   public:
     static std::optional<TextureSampler> Create(const SamplerState& samplerState);
+    TextureSampler(const TextureSampler& other);
     TextureSampler(TextureSampler&& old) noexcept;
+    TextureSampler& operator=(const TextureSampler& other);
     TextureSampler& operator=(TextureSampler&& old) noexcept;
     ~TextureSampler();
 
     void SetState(const SamplerState& samplerState);
     const SamplerState& GetState() const noexcept { return samplerState_; }
 
-    TextureSampler(const TextureSampler&) = delete;
-    TextureSampler& operator=(const TextureSampler&) = delete;
 
   private:
     friend class TextureView;

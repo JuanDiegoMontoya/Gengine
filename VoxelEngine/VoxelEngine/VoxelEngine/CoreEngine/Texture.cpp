@@ -5,7 +5,7 @@
 
 namespace GFX
 {
-  namespace
+  namespace // detail
   {
     static GLint targets[]
     {
@@ -135,7 +135,27 @@ namespace GFX
     };
 
     static GLfloat anisotropies[]{ 1, 2, 4, 8, 16 };
+
+    void subImage(uint32_t texture, const TextureUpdateInfo& info)
+    {
+      // TODO: safety checks
+
+      switch (info.dimension)
+      {
+      case UploadDimension::ONE:
+        glTextureSubImage1D(texture, info.level, info.offset.width, info.size.width, uploadFormats[(int)info.format], uploadTypes[(int)info.type], info.pixels);
+        break;
+      case UploadDimension::TWO:
+        glTextureSubImage2D(texture, info.level, info.offset.width, info.offset.height, info.size.width, info.size.height, uploadFormats[(int)info.format], uploadTypes[(int)info.type], info.pixels);
+        break;
+      case UploadDimension::THREE:
+        glTextureSubImage3D(texture, info.level, info.offset.width, info.offset.height, info.offset.depth, info.size.width, info.size.height, info.size.depth, uploadFormats[(int)info.format], uploadTypes[(int)info.type], info.pixels);
+        break;
+      }
+    }
   }
+
+
 
   std::optional<Texture> Texture::Create(const TextureCreateInfo& createInfo)
   {
@@ -199,37 +219,41 @@ namespace GFX
 
   void Texture::SubImage(const TextureUpdateInfo& info)
   {
-    // TODO: safety checks
-
-    switch (info.dimension)
-    {
-    case UploadDimension::ONE:
-      glTextureSubImage1D(id_, info.level, info.offset.width, info.size.width, uploadFormats[(int)info.format], uploadTypes[(int)info.type], info.pixels);
-      break;
-    case UploadDimension::TWO:
-      glTextureSubImage2D(id_, info.level, info.offset.width, info.offset.height, info.size.width, info.size.height, uploadFormats[(int)info.format], uploadTypes[(int)info.type], info.pixels);
-      break;
-    case UploadDimension::THREE:
-      glTextureSubImage3D(id_, info.level, info.offset.width, info.offset.height, info.offset.depth, info.size.width, info.size.height, info.size.depth, uploadFormats[(int)info.format], uploadTypes[(int)info.type], info.pixels);
-      break;
-    }
+    subImage(id_, info);
   }
 
 
 
-  TextureView TextureView::Create(const TextureViewCreateInfo& createInfo, const Texture& texture)
+  std::optional<TextureView> TextureView::Create(const TextureViewCreateInfo& createInfo, const Texture& texture)
+  {
+    return Create(createInfo, texture.id_, texture.createInfo_.extent);
+  }
+
+  std::optional<TextureView> TextureView::Create(const TextureViewCreateInfo& createInfo, uint32_t texture, Extent3D extent)
   {
     TextureView view;
     view.createInfo_ = createInfo;
-    view.extent = texture.createInfo_.extent;
+    view.extent = extent;
     glCreateTextures(targets[(int)createInfo.viewType], 1, &view.id_);
-    glTextureView(view.id_, targets[(int)createInfo.viewType], texture.id_, formats[(int)createInfo.format], createInfo.minLevel, createInfo.numLevels, createInfo.minLayer, createInfo.numLayers);
+    glTextureView(view.id_, targets[(int)createInfo.viewType], texture, formats[(int)createInfo.format], createInfo.minLevel, createInfo.numLevels, createInfo.minLayer, createInfo.numLayers);
     return view;
+  }
+
+  TextureView::TextureView(const TextureView& other)
+  {
+    *this = other;
   }
 
   TextureView::TextureView(TextureView&& old) noexcept
   {
     *this = std::move(old);
+  }
+
+  TextureView& TextureView::operator=(const TextureView& other)
+  {
+    if (&other == this) return *this;
+    *this = std::move(*Create(other.createInfo_, other.id_, other.extent));
+    return *this;
   }
 
   TextureView& TextureView::operator=(TextureView&& old) noexcept
@@ -253,10 +277,10 @@ namespace GFX
 
   void TextureView::SubImage(const TextureUpdateInfo& info)
   {
-    Texture temp(id_);
-    temp.SubImage(info);
-    temp.id_ = 0;
+    subImage(id_, info);
   }
+
+
 
   std::optional<TextureSampler> TextureSampler::Create(const SamplerState& state)
   {
@@ -266,9 +290,21 @@ namespace GFX
     return sampler;
   }
 
+  TextureSampler::TextureSampler(const TextureSampler& other)
+  {
+    *this = std::move(*Create(other.samplerState_));
+  }
+
   TextureSampler::TextureSampler(TextureSampler&& old) noexcept
   {
     *this = std::move(old);
+  }
+
+  TextureSampler& TextureSampler::operator=(const TextureSampler& other)
+  {
+    if (&other == this) return *this;
+    SetState(other.samplerState_);
+    return *this;
   }
 
   TextureSampler& TextureSampler::operator=(TextureSampler&& old) noexcept

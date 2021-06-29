@@ -1,6 +1,12 @@
 #include "PCH.h"
 #include "Material.h"
 
+MaterialManager* MaterialManager::Get()
+{
+  static MaterialManager manager;
+  return &manager;
+}
+
 MaterialID MaterialManager::CreateMaterial(MaterialInfo materialData, hashed_string name)
 {
   MaterialInternalInfo info;

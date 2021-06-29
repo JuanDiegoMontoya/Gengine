@@ -51,7 +51,7 @@ void PlayerActions::OnUpdate(float dt)
     Entity ent = CreateEntity("Arrow");
     ent.AddComponent<Component::Transform>().SetTranslation(cam.GetWorldPos() + (cam.GetForward() * 1.5f));
     ent.AddComponent<Component::BatchedMesh>().handle = MeshManager::GetMeshBatched("big_cube");
-    ent.AddComponent<Component::Material>().handle = MaterialManager::GetMaterial("batchMaterial");
+    ent.AddComponent<Component::Material>().handle = MaterialManager::Get()->GetMaterial("batchMaterial");
     auto collider = Physics::BoxCollider(glm::vec3(.5f));
     Component::DynamicPhysics phys(ent, Physics::MaterialType::TERRAIN, collider);
     auto& physics = ent.AddComponent<Component::DynamicPhysics>(std::move(phys));
@@ -108,7 +108,7 @@ void PlayerActions::OnUpdate(float dt)
     Entity ent = CreateEntity("Arrow");
     ent.AddComponent<Component::Transform>().SetTranslation(cam.GetWorldPos() + (cam.GetForward() * 1.5f));
     ent.AddComponent<Component::BatchedMesh>().handle = MeshManager::GetMeshBatched("big_cube");
-    ent.AddComponent<Component::Material>().handle = MaterialManager::GetMaterial("batchMaterial");
+    ent.AddComponent<Component::Material>().handle = MaterialManager::Get()->GetMaterial("batchMaterial");
     auto collider = Physics::BoxCollider(glm::vec3(.5f));
     Component::DynamicPhysics phys(ent, Physics::MaterialType::TERRAIN, collider);
     ent.AddComponent<Component::DynamicPhysics>(std::move(phys));

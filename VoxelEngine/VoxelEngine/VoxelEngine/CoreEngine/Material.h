@@ -2,7 +2,6 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
-#include <memory>
 #include <Utilities/HashedString.h>
 #include <CoreEngine/Texture2D.h>
 
@@ -22,8 +21,9 @@ struct MaterialInfo
 class MaterialManager
 {
 public:
-  static MaterialID CreateMaterial(MaterialInfo materialData, hashed_string name);
-  static MaterialID GetMaterial(hashed_string name);
+  static MaterialManager* Get();
+  MaterialID CreateMaterial(MaterialInfo materialData, hashed_string name);
+  MaterialID GetMaterial(hashed_string name);
 
   // TODO: add ways to query material info here
   //static const MaterialInfo& GetMaterialInfo(Material material);
@@ -42,8 +42,8 @@ private:
 
   // There may be an argument to make this mapping public and switch to hashed strings
   // In the meantime, we'll see how this works
-  static inline std::unordered_map<uint32_t, MaterialInternalInfo> materials_;
-  static inline std::unordered_map<uint32_t, MaterialID> handleMap_;
+  std::unordered_map<uint32_t, MaterialInternalInfo> materials_;
+  std::unordered_map<uint32_t, MaterialID> handleMap_;
 
   // 0 is reserved for invalid materials
   //static inline MaterialHandle nextKey = 1;

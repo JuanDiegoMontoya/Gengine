@@ -1,6 +1,5 @@
 #pragma once
 #include <GL/glew.h>
-#include <GLFW/glfw3.h>
 
 // note: baseInstance is for glMultiDraw*Indirect ONLY
 // for any other purpose it must be zero

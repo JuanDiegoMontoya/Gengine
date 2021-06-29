@@ -73,7 +73,7 @@ void OnStart(Scene* scene)
   MaterialInfo info{};
   info.shaderID = "batched";
   info.tex2Dpaths.push_back("==intentionally invalid texture==");
-  auto batchMaterial = MaterialManager::CreateMaterial(info, "batchMaterial");
+  auto batchMaterial = MaterialManager::Get()->CreateMaterial(info, "batchMaterial");
 
   // add game manager entity
   {
@@ -166,7 +166,7 @@ void OnStart(Scene* scene)
       //parent.AddComponent<Components::Mesh>().meshHandle = bunny;
       //parent.AddComponent<Components::Material>(userMaterial);
       parent.AddComponent<Component::BatchedMesh>().handle = MeshManager::GetMeshBatched("big_cube");
-      parent.AddComponent<Component::Material>(MaterialManager::GetMaterial("batchMaterial"));
+      parent.AddComponent<Component::Material>(MaterialManager::Get()->GetMaterial("batchMaterial"));
 
       for (int i = 0; i < 1000; i++)
       {
@@ -224,7 +224,7 @@ void OnStart(Scene* scene)
         glm::vec3 scale{ 1, .4f, glm::clamp(1 + i * (.02f), .1f, 10.f) };
         entity.GetComponent<Component::Transform>().SetScale(scale);
         entity.AddComponent<Component::BatchedMesh>().handle = MeshManager::GetMeshBatched("big_cube");
-        entity.AddComponent<Component::Material>().handle = MaterialManager::GetMaterial("batchMaterial");
+        entity.AddComponent<Component::Material>().handle = MaterialManager::Get()->GetMaterial("batchMaterial");
         auto collider = Physics::BoxCollider(scale * .5f);
         Component::DynamicPhysics phys(entity, Physics::MaterialType::TERRAIN, collider);
         entity.AddComponent<Component::DynamicPhysics>(std::move(phys));
@@ -413,7 +413,7 @@ int main()
   GFX::SamplerState samplerState{};
   auto sampler = GFX::TextureSampler::Create(samplerState);
 
-  view.Bind(0, *sampler);
+  view->Bind(0, *sampler);
 
   return 0;
 }

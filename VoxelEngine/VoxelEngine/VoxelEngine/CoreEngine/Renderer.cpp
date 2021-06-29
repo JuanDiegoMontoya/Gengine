@@ -1,5 +1,6 @@
 #include "PCH.h"
 #include <GL/glew.h>
+#include <GLFW/glfw3.h>
 #include "Renderer.h"
 
 #include <CoreEngine/shader.h>
@@ -18,6 +19,14 @@
 
 #include <execution>
 #include <iostream>
+#include "CVar.h"
+
+void vsyncCallback(const char* cvar, cvar_float val)
+{
+  glfwSwapInterval(val != 0); // 0 == no vsync, 1 == vsync
+}
+
+AutoCVar<cvar_float> vsync("r.vsync", "- Whether vertical sync is enabled", 0.0, CVarFlag::NONE, vsyncCallback);
 
 static void GLAPIENTRY
 GLerrorCB(GLenum source,
@@ -166,7 +175,7 @@ void Renderer::RenderBatchHelper(MaterialID mat, const std::vector<UniformData>&
   }
 
   // do the actual draw
-  auto& material = MaterialManager::materials_[mat];
+  auto& material = MaterialManager::Get()->materials_[mat];
   auto& shader = Shader::shaders[material.shaderID];
   shader->Use();
 

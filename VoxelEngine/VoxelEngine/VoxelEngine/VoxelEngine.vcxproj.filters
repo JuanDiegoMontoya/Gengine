@@ -319,6 +319,9 @@
     <ClInclude Include="CoreEngine\Texture.h">
       <Filter>CoreEngine\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="CoreEngine\TextureManager.h">
+      <Filter>CoreEngine\Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Voxels\prefab.cpp">
@@ -508,6 +511,9 @@
       <Filter>CoreEngine\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="CoreEngine\Texture.cpp">
+      <Filter>CoreEngine\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreEngine\TextureManager.cpp">
       <Filter>CoreEngine\Graphics</Filter>
     </ClCompile>
   </ItemGroup>
