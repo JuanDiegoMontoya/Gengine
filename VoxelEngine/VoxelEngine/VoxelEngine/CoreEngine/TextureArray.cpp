@@ -10,9 +10,10 @@ namespace GFX
   TextureArray::TextureArray(std::span<std::string> textures, glm::ivec2 xyDim)
     : dim(xyDim)
   {
+    int numMips = 1 + glm::floor(glm::log2((float)glm::max(xyDim.x, xyDim.y)));
     const GLsizei layerCount = static_cast<GLsizei>(textures.size());
     glCreateTextures(GL_TEXTURE_2D_ARRAY, 1, &rendererID_);
-    glTextureStorage3D(rendererID_, 1, GL_SRGB8_ALPHA8, dim.x, dim.y, layerCount);
+    glTextureStorage3D(rendererID_, numMips, GL_SRGB8_ALPHA8, dim.x, dim.y, layerCount);
     
     stbi_set_flip_vertically_on_load(true);
 
@@ -54,7 +55,7 @@ namespace GFX
     glTextureParameterf(rendererID_, GL_TEXTURE_MAX_ANISOTROPY, 1.0f);
 
     // TODO: play with this parameter for optimal looks, maybe make it user-selectable
-    glTextureParameteri(rendererID_, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
+    glTextureParameteri(rendererID_, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTextureParameteri(rendererID_, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTextureParameteri(rendererID_, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTextureParameteri(rendererID_, GL_TEXTURE_WRAP_T, GL_REPEAT);

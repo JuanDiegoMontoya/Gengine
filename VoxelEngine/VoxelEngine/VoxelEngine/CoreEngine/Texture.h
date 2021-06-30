@@ -210,6 +210,7 @@ namespace GFX
     ~Texture();
 
     void SubImage(const TextureUpdateInfo& info);
+    void GenMipmaps();
 
     Texture(const Texture&) = delete;
     Texture& operator=(const Texture&) = delete;

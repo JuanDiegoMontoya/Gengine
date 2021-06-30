@@ -322,6 +322,15 @@
     <ClInclude Include="CoreEngine\TextureManager.h">
       <Filter>CoreEngine\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="CoreEngine\TextureLoader.h">
+      <Filter>CoreEngine\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\vPCH.h">
+      <Filter>Voxel Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\gPCH.h">
+      <Filter>Game</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Voxels\prefab.cpp">
@@ -515,6 +524,15 @@
     </ClCompile>
     <ClCompile Include="CoreEngine\TextureManager.cpp">
       <Filter>CoreEngine\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreEngine\TextureLoader.cpp">
+      <Filter>CoreEngine\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Voxels\vPCH.cpp">
+      <Filter>Voxel Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\gPCH.cpp">
+      <Filter>Game</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

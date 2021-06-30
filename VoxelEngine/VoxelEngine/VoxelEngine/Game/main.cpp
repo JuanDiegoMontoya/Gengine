@@ -1,3 +1,4 @@
+#include "gPCH.h"
 #include <CoreEngine/GraphicsIncludes.h> // this needs to be first or everything breaks
 #include <CoreEngine/Application.h>
 #include <CoreEngine/Scene.h>

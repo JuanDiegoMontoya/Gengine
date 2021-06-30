@@ -5,6 +5,7 @@
 
 class Editor;
 class Scene;
+class WorldGen;
 
 namespace Voxels
 {

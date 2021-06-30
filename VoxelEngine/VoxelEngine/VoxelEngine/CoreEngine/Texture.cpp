@@ -222,6 +222,11 @@ namespace GFX
     subImage(id_, info);
   }
 
+  void Texture::GenMipmaps()
+  {
+    glGenerateTextureMipmap(id_);
+  }
+
 
 
   std::optional<TextureView> TextureView::Create(const TextureViewCreateInfo& createInfo, const Texture& texture)

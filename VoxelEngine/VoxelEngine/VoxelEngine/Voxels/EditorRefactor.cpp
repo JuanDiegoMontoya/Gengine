@@ -1,3 +1,4 @@
+#include "vPCH.h"
 #include "EditorRefactor.h"
 #include <CoreEngine/GraphicsIncludes.h>
 #include <CoreEngine/Input.h>

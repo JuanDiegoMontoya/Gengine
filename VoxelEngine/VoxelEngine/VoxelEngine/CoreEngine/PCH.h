@@ -1,3 +1,4 @@
+#pragma once
 // PCH
 
 // std lib
@@ -23,3 +24,8 @@
 
 #include <Utilities/HashedString.h>
 #include "GAssert.h"
+
+constexpr inline std::string_view AssetDir = "./Resources/";
+constexpr inline std::string_view TextureDir = "./Resources/Textures/";
+constexpr inline std::string_view ShaderDir = "./Resources/Shaders/";
+constexpr inline std::string_view ModelDir = "./Resources/Models/";
