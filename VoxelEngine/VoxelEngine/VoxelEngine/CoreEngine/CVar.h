@@ -1,8 +1,7 @@
 #pragma once
-#include <cinttypes>
+#include <cstdint>
 #include "Flags.h"
 #include <glm/fwd.hpp>
-//#include <variant>
 
 enum class CVarFlag
 {

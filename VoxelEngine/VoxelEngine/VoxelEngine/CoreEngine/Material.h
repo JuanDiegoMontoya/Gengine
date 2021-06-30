@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <Utilities/HashedString.h>
 #include <CoreEngine/Texture2D.h>
+#include "Texture.h"
 
 class Shader;
 
@@ -13,16 +14,16 @@ using MaterialID = uint32_t;
 // idk what else should be here tbh
 struct MaterialInfo
 {
-  std::vector<std::string> tex2Dpaths;
+  std::vector<std::pair<GFX::TextureView&, GFX::TextureSampler&>> viewSamplers;
   hashed_string shaderID;
-  // user-exposed uniforms here (user puts a list of uniform names and variants)
+  // TODO: list of user-set uniforms
 };
 
 class MaterialManager
 {
 public:
   static MaterialManager* Get();
-  MaterialID CreateMaterial(MaterialInfo materialData, hashed_string name);
+  MaterialID AddMaterial(hashed_string name, const MaterialInfo& materialInfo);
   MaterialID GetMaterial(hashed_string name);
 
   // TODO: add ways to query material info here
@@ -32,18 +33,9 @@ private:
   friend class GraphicsSystem;
   friend class Renderer;
 
-  // the user doesn't get to know about this
-  struct MaterialInternalInfo
-  {
-    std::vector<std::string> tex2Dpaths;
-    hashed_string shaderID;
-    std::vector<GFX::Texture2D> textures;
-  };
-
   // There may be an argument to make this mapping public and switch to hashed strings
   // In the meantime, we'll see how this works
-  std::unordered_map<uint32_t, MaterialInternalInfo> materials_;
-  std::unordered_map<uint32_t, MaterialID> handleMap_;
+  std::unordered_map<uint32_t, MaterialInfo> materials_;
 
   // 0 is reserved for invalid materials
   //static inline MaterialHandle nextKey = 1;

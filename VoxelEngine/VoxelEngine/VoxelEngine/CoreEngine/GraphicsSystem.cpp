@@ -39,15 +39,15 @@ void GraphicsSystem::StartFrame()
 
   ImGui::Begin("Graphics");
   ImGui::Text("Loaded Meshes");
-  for (const auto& p : MeshManager::handleMap_)
+  for (const auto& [id, info] : MeshManager::handleMap_)
   {
-    ImGui::Text("%s, ID: %u", p.first.data(), p.first.value());
+    ImGui::Text("%s, ID: %u", id.data(), id.value());
   }
   ImGui::Separator();
   ImGui::Text("Loaded Materials");
-  for (const auto& p : MaterialManager::Get()->handleMap_)
+  for (const auto& [id, info] : MaterialManager::Get()->materials_)
   {
-    ImGui::Text("ID: %u", p.first);
+    ImGui::Text("ID: %u", id);
   }
   ImGui::End();
 

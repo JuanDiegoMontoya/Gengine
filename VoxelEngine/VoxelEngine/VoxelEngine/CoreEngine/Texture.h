@@ -1,5 +1,5 @@
 #pragma once
-#include <cinttypes>
+#include <cstdint>
 #include <optional>
 
 namespace GFX
@@ -238,7 +238,12 @@ namespace GFX
   class TextureView
   {
   public:
+    // make a texture view with explicit parameters
     static std::optional<TextureView> Create(const TextureViewCreateInfo& createInfo, const Texture& texture);
+
+    // make a texture view with automatic parameters (view of whole texture, same type)
+    static std::optional<TextureView> Create(const Texture& texture);
+
     TextureView(const TextureView& other);
     TextureView(TextureView&& old) noexcept;
     TextureView& operator=(const TextureView& other);
@@ -247,7 +252,6 @@ namespace GFX
 
     void Bind(uint32_t slot, const TextureSampler& sampler);
     void SubImage(const TextureUpdateInfo& info);
-
 
   private:
     static std::optional<TextureView> Create(const TextureViewCreateInfo& createInfo, uint32_t texture, Extent3D extent);
@@ -277,6 +281,7 @@ namespace GFX
       uint32_t asUint32;
     };
 
+    // TODO: maybe add these later
     //float mipLodBias{ 0 };
     //CompareOp compareOp;
     //float minLod;

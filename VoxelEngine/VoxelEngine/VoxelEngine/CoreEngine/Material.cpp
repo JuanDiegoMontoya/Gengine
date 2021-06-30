@@ -7,35 +7,17 @@ MaterialManager* MaterialManager::Get()
   return &manager;
 }
 
-MaterialID MaterialManager::CreateMaterial(MaterialInfo materialData, hashed_string name)
+MaterialID MaterialManager::AddMaterial(hashed_string name, const MaterialInfo& materialInfo)
 {
-  MaterialInternalInfo info;
-  info.tex2Dpaths = materialData.tex2Dpaths;
-  info.shaderID = materialData.shaderID;
-  for (const auto& path : materialData.tex2Dpaths)
-  {
-    info.textures.emplace_back(path);
-  }
-
-  handleMap_.emplace(name.value(), name);
-  materials_.emplace(name.value(), std::move(info));
+  ASSERT_MSG(materialInfo.viewSamplers.size() <= 16, "Per-material view/sampler limit exceeded");
+  if (materials_.find(name) != materials_.end())
+    return 0;
+  materials_.emplace(name, materialInfo); // invoke copy constructors
   return name;
 }
 
 MaterialID MaterialManager::GetMaterial(hashed_string name)
 {
-  return handleMap_[name.value()];
+  // hide mapping from the user in case it changes
+  return name;
 }
-
-//void MaterialManager::DestroyMaterial(MaterialID handle)
-//{
-//  materials_.erase(handle);
-//  handleMap_.erase(handle);
-//}
-
-//const MaterialInfo& MaterialManager::GetMaterialInfo(Material material)
-//{
-//  auto fr = materials.find(material);
-//  ASSERT(fr != materials.end());
-//  return fr->second.data;
-//}

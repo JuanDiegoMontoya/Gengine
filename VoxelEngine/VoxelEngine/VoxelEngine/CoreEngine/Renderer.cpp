@@ -175,9 +175,14 @@ void Renderer::RenderBatchHelper(MaterialID mat, const std::vector<UniformData>&
   }
 
   // do the actual draw
-  auto& material = MaterialManager::Get()->materials_[mat];
-  auto& shader = Shader::shaders[material.shaderID];
+  auto material = MaterialManager::Get()->materials_.find(mat);
+  auto& shader = Shader::shaders[material->second.shaderID];
   shader->Use();
+
+  for (int i = 0; auto& [view, sampler] : material->second.viewSamplers)
+  {
+    view.Bind(i++, sampler);
+  }
 
   const auto& vp = CameraSystem::GetViewProj();
   shader->setMat4("u_viewProj", vp);

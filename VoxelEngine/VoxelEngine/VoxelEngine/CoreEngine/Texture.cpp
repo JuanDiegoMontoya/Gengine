@@ -244,6 +244,20 @@ namespace GFX
     return view;
   }
 
+  std::optional<TextureView> TextureView::Create(const Texture& texture)
+  {
+    TextureViewCreateInfo createInfo
+    {
+      .viewType = texture.createInfo_.imageType,
+      .format = texture.createInfo_.format,
+      .minLevel = 0,
+      .numLevels = texture.createInfo_.mipLevels,
+      .minLayer = 0,
+      .numLayers = texture.createInfo_.arrayLayers
+    };
+    return Create(createInfo, texture);
+  }
+
   TextureView::TextureView(const TextureView& other)
   {
     *this = other;
