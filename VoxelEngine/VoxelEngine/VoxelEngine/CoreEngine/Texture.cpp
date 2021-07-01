@@ -239,7 +239,7 @@ namespace GFX
     TextureView view;
     view.createInfo_ = createInfo;
     view.extent = extent;
-    glCreateTextures(targets[(int)createInfo.viewType], 1, &view.id_);
+    glGenTextures(1, &view.id_); // glCreateTextures does not work here
     glTextureView(view.id_, targets[(int)createInfo.viewType], texture, formats[(int)createInfo.format], createInfo.minLevel, createInfo.numLevels, createInfo.minLayer, createInfo.numLayers);
     return view;
   }
@@ -292,6 +292,12 @@ namespace GFX
   {
     glBindTextureUnit(slot, id_);
     glBindSampler(slot, sampler.id_);
+  }
+
+  void TextureView::Unbind(uint32_t slot)
+  {
+    glBindTextureUnit(slot, 0);
+    glBindSampler(slot, 0);
   }
 
   void TextureView::SubImage(const TextureUpdateInfo& info)

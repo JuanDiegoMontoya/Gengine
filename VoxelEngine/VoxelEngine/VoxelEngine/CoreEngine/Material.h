@@ -14,8 +14,8 @@ using MaterialID = uint32_t;
 // idk what else should be here tbh
 struct MaterialInfo
 {
-  std::vector<std::pair<GFX::TextureView&, GFX::TextureSampler&>> viewSamplers;
   hashed_string shaderID;
+  std::vector<std::pair<GFX::TextureView, GFX::TextureSampler>> viewSamplers;
   // TODO: list of user-set uniforms
 };
 

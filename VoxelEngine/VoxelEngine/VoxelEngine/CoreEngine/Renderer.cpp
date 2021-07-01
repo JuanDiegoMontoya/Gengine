@@ -189,6 +189,11 @@ void Renderer::RenderBatchHelper(MaterialID mat, const std::vector<UniformData>&
 
   glBindVertexArray(batchVAO);
   glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, (void*)0, static_cast<GLsizei>(commands.size()), 0);
+
+  for (int i = 0; auto & [view, sampler] : material->second.viewSamplers)
+  {
+    view.Unbind(i++);
+  }
 }
 
 void Renderer::BeginRenderParticleEmitter()

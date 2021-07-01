@@ -11,6 +11,9 @@
 #include <Voxels/ChunkSerialize.h>
 #include <Voxels/ChunkRenderer.h>
 #include "WorldGen.h"
+#include <CoreEngine/Texture.h>
+#include <CoreEngine/TextureManager.h>
+#include <CoreEngine/TextureLoader.h>
 
 // eh
 #include <CoreEngine/Renderer.h>
@@ -47,9 +50,9 @@ void OnStart(Scene* scene)
   WorldGen wg(*voxelManager);
   wg.Init();
   wg.GenerateWorld();
-//#if !DEBUG
+  //#if !DEBUG
   wg.InitializeSunlight();
-//#endif
+  //#endif
   wg.InitMeshes();
   wg.InitBuffers();
   //auto compressed = CompressChunk(voxelManager->GetChunk(glm::ivec3(0))->GetStorage());
@@ -71,10 +74,14 @@ void OnStart(Scene* scene)
   Input::AddInputAxis("Sprint", sprintButtons);
   Input::AddInputAxis("Crouch", crouchButtons);
 
-  MaterialInfo info{};
-  info.shaderID = "batched";
-  //info.tex2Dpaths.push_back("==intentionally invalid texture==");
-  //auto batchMaterial = MaterialManager::Get()->CreateMaterial(info, "batchMaterial");
+  GFX::TextureManager::Get()->AddTexture("error", *GFX::LoadTexture2D("error.png"));
+  auto view = *GFX::TextureView::Create(*GFX::TextureManager::Get()->GetTexture("error"));
+  auto sampler = *GFX::TextureSampler::Create(GFX::SamplerState{});
+  MaterialInfo info
+  {
+    .shaderID = "batched",
+    .viewSamplers = {{std::move(view), std::move(sampler)}},
+  };
   MaterialID batchMaterial = MaterialManager::Get()->AddMaterial("batchMaterial", info);
 
   // add game manager entity

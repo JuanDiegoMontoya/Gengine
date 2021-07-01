@@ -251,6 +251,7 @@ namespace GFX
     ~TextureView();
 
     void Bind(uint32_t slot, const TextureSampler& sampler);
+    void Unbind(uint32_t slot);
     void SubImage(const TextureUpdateInfo& info);
 
   private:
