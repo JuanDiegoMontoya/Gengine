@@ -202,6 +202,15 @@ namespace Voxels
 
     textures->Bind(0);
     currShader->SetInt("textures", 0);
+    static bool filter = true;
+    static float anisotropic = 1.0f;
+    ImGui::Checkbox("Filter textures", &filter);
+    ImGui::SliderFloat("Anisotrpic", &anisotropic, 1.0f, 16.0f);
+    glTextureParameteri(textures->ID(), GL_TEXTURE_MIN_FILTER, filter ? GL_LINEAR_MIPMAP_LINEAR : GL_NEAREST);
+    glTextureParameteri(textures->ID(), GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTextureParameterf(textures->ID(), GL_TEXTURE_MAX_ANISOTROPY, anisotropic);
+
+
     blueNoise64->Bind(1);
     currShader->SetInt("blueNoise", 1);
 

@@ -9,10 +9,9 @@ namespace GFX
   class TextureManager
   {
   public:
-    static TextureManager* Get();
-
-    Texture* GetTexture(hashed_string name) const;
+    [[nodiscard]] static TextureManager* Get();
     bool AddTexture(hashed_string name, Texture&& texture);
+    [[nodiscard]] Texture* GetTexture(hashed_string name) const;
 
   private:
     TextureManager();

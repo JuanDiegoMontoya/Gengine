@@ -26,9 +26,9 @@ namespace GFX
   class ShaderManager
   {
   public:
-    static ShaderManager* Get();
+    [[nodiscard]] static ShaderManager* Get();
     std::optional<Shader> AddShader(hashed_string name, const std::vector<ShaderCreateInfo>& createInfos);
-    std::optional<Shader> GetShader(hashed_string name);
+    [[nodiscard]] std::optional<Shader> GetShader(hashed_string name);
 
   private:
     ShaderManager();

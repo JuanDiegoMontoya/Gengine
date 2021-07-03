@@ -221,27 +221,6 @@ namespace GFX
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   struct ShaderManagerStorage
   {
     std::unordered_map<uint32_t, ShaderData> shaders;

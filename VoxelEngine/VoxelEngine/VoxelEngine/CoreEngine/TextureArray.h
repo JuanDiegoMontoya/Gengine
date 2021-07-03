@@ -14,6 +14,7 @@ namespace GFX
     void Bind(unsigned slot = 0) const;
 
     glm::ivec2 GetDimensions() const { return dim; }
+    auto ID() const { return rendererID_; }
 
   private:
     unsigned rendererID_ = 0;

@@ -204,7 +204,7 @@ namespace GFX
   class Texture
   {
   public:
-    static std::optional<Texture> Create(const TextureCreateInfo& createInfo);
+    [[nodiscard]] static std::optional<Texture> Create(const TextureCreateInfo& createInfo);
     Texture(Texture&& old) noexcept;
     Texture& operator=(Texture&& old) noexcept;
     ~Texture();
@@ -239,10 +239,10 @@ namespace GFX
   {
   public:
     // make a texture view with explicit parameters
-    static std::optional<TextureView> Create(const TextureViewCreateInfo& createInfo, const Texture& texture);
+    [[nodiscard]] static std::optional<TextureView> Create(const TextureViewCreateInfo& createInfo, const Texture& texture);
 
     // make a texture view with automatic parameters (view of whole texture, same type)
-    static std::optional<TextureView> Create(const Texture& texture);
+    [[nodiscard]] static std::optional<TextureView> Create(const Texture& texture);
 
     TextureView(const TextureView& other);
     TextureView(TextureView&& old) noexcept;
@@ -294,7 +294,7 @@ namespace GFX
   class TextureSampler
   {
   public:
-    static std::optional<TextureSampler> Create(const SamplerState& samplerState);
+    [[nodiscard]] static std::optional<TextureSampler> Create(const SamplerState& samplerState);
     TextureSampler(const TextureSampler& other);
     TextureSampler(TextureSampler&& old) noexcept;
     TextureSampler& operator=(const TextureSampler& other);
@@ -302,7 +302,7 @@ namespace GFX
     ~TextureSampler();
 
     void SetState(const SamplerState& samplerState);
-    const SamplerState& GetState() const noexcept { return samplerState_; }
+    [[nodiscard]] const SamplerState& GetState() const noexcept { return samplerState_; }
 
 
   private:

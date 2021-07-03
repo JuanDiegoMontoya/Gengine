@@ -23,6 +23,6 @@ namespace Component
   // Do not add this component yourself unless you know what you are doing!
   struct ScheduledDeletion
   {
-    char8_t dummy;
+    [[no_unique_address]] char8_t dummy;
   };
 }

@@ -1,9 +1,7 @@
 #pragma once
-#include <string>
 #include <vector>
 #include <unordered_map>
 #include <Utilities/HashedString.h>
-#include <CoreEngine/Texture2D.h>
 #include "Texture.h"
 
 class Shader;
@@ -22,9 +20,9 @@ struct MaterialInfo
 class MaterialManager
 {
 public:
-  static MaterialManager* Get();
+  [[nodiscard]] static MaterialManager* Get();
   MaterialID AddMaterial(hashed_string name, const MaterialInfo& materialInfo);
-  MaterialID GetMaterial(hashed_string name);
+  [[nodiscard]] MaterialID GetMaterial(hashed_string name);
 
   // TODO: add ways to query material info here
   //static const MaterialInfo& GetMaterialInfo(Material material);
