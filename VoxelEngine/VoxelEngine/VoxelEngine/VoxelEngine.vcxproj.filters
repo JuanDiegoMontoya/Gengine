@@ -331,6 +331,9 @@
     <ClInclude Include="Game\gPCH.h">
       <Filter>Game</Filter>
     </ClInclude>
+    <ClInclude Include="CoreEngine\ShaderManager.h">
+      <Filter>CoreEngine\Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Voxels\prefab.cpp">
@@ -533,6 +536,9 @@
     </ClCompile>
     <ClCompile Include="Game\gPCH.cpp">
       <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreEngine\ShaderManager.cpp">
+      <Filter>CoreEngine\Graphics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

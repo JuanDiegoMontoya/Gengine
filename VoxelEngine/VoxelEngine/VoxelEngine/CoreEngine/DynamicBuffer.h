@@ -35,13 +35,13 @@ namespace GFX
     // query information about the allocator
     const auto& GetAlloc(uint64_t handle) { return *std::find_if(allocs_.begin(), allocs_.end(), [=](const auto& alloc) { return alloc.handle == handle; }); }
     const auto& GetAllocs() { return allocs_; }
-    GLuint ActiveAllocs() { return numActiveAllocs_; }
-    GLuint GetGPUHandle() { return buffer->GetID(); }
+    uint32_t ActiveAllocs() { return numActiveAllocs_; }
+    uint32_t GetGPUHandle() { return buffer->GetID(); }
 
     // compare return values of this func to see if the state has change
     std::pair<uint64_t, GLuint> GetStateInfo() { return { nextHandle, numActiveAllocs_ }; }
 
-    const GLsizei align_; // allocation alignment
+    const size_t align_; // allocation alignment
 
     template<typename UT = UserT>
     struct allocationData
@@ -89,8 +89,8 @@ namespace GFX
 
     std::unique_ptr<StaticBuffer> buffer;
     uint64_t nextHandle = 1;
-    GLuint numActiveAllocs_ = 0;
-    const GLuint capacity_; // for fixed size buffers
+    uint32_t numActiveAllocs_ = 0;
+    const uint32_t capacity_; // for fixed size buffers
     Timer timer;
   };
 
@@ -102,7 +102,7 @@ namespace GFX
     void GenDrawData();
 
   private:
-    GLuint vao_{};
+    uint32_t vao_{};
     std::unique_ptr<StaticBuffer> vbo_;
   };
 }

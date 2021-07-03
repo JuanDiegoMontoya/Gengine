@@ -74,7 +74,7 @@ void DecodeVertex(in uint encoded, out vec3 modelPos, out vec3 normal, out vec3 
 
 // decodes lighting information into a usable vec4
 // also decodes dircent info
-void DecodeLight(in uint encoded, out vec4 lighting, out vec3 dirCent, out uint ambientOcclusion)
+void DecodeLight(in uint encoded, inout vec4 lighting, out vec3 dirCent, out uint ambientOcclusion)
 {
   ambientOcclusion = (encoded >> 19) & 0x3;
 
@@ -104,7 +104,7 @@ void main()
   uint ambientOcclusion;
   DecodeLight(aLighting, vLighting, dirCent, ambientOcclusion);
 
-  vAmbientOcclusion = ambientOcclusion / 3.0;
+  vAmbientOcclusion = float(ambientOcclusion) / 3.0;
   vBlockPos = vPos + dirCent; // block position = vertex pos + direction to center of block
 
   gl_Position = u_viewProj * vec4(vPos, 1.0);

@@ -6,7 +6,7 @@
 #include <CoreEngine/Camera.h>
 #include <CoreEngine/Frustum.h>
 #include <execution>
-#include <CoreEngine/Shader.h>
+#include <CoreEngine/ShaderManager.h>
 #include <CoreEngine/Vertices.h>
 #include <CoreEngine/Texture2D.h>
 #include <CoreEngine/TextureArray.h>
@@ -94,23 +94,23 @@ namespace Voxels
 #endif
 
     //Camera* cam = Camera::ActiveCamera;
-    auto& sdr = Shader::shaders["compact_batch"];
-    sdr->Use();
+    auto sdr = GFX::ShaderManager::Get()->GetShader("compact_batch");
+    sdr->Bind();
 
     // set uniforms for chunk rendering
     //sdr->setVec3("u_viewpos", cam->GetPos());
     //Frustum fr = *cam->GetFrustum();
-    sdr->setVec3("u_viewpos", CameraSystem::GetPos());
+    sdr->SetVec3("u_viewpos", CameraSystem::GetPos());
     Frustum fr = *CameraSystem::GetFrustum();
     for (int i = 0; i < 5; i++) // ignore near plane
     {
-      std::string uname = "u_viewfrustum.data_[" + std::to_string(i) + "]";
-      sdr->set1FloatArray(hashed_string(uname.c_str()), fr.GetData()[i], 4);
+      std::string uname = "u_viewfrustum.data_[" + std::to_string(i) + "][0]";
+      sdr->Set1FloatArray(hashed_string(uname.c_str()), std::span<float, 4>(fr.GetData()[i]));
     }
-    sdr->setFloat("u_cullMinDist", settings.normalMin);
-    sdr->setFloat("u_cullMaxDist", settings.normalMax);
-    sdr->setUInt("u_reservedVertices", 2);
-    sdr->setUInt("u_vertexSize", sizeof(GLuint) * 2);
+    sdr->SetFloat("u_cullMinDist", settings.normalMin);
+    sdr->SetFloat("u_cullMaxDist", settings.normalMax);
+    sdr->SetUInt("u_reservedVertices", 2);
+    sdr->SetUInt("u_vertexSize", sizeof(GLuint) * 2);
 
     GLint zero = 0;
     drawCountGPU->SubData(&zero, sizeof(GLint));
@@ -158,12 +158,12 @@ namespace Voxels
   {
     glDisable(GL_DEPTH_TEST);
 
-    auto& sdr = Shader::shaders["buffer_vis"];
-    sdr->Use();
+    auto sdr = GFX::ShaderManager::Get()->GetShader("buffer_vis");
+    sdr->Bind();
     glm::mat4 model(1);
     model = glm::scale(model, { 1, 1, 1 });
     model = glm::translate(model, { -.5, -.90, 0 });
-    sdr->setMat4("u_model", model);
+    sdr->SetMat4("u_model", model);
 
     glLineWidth(50);
     //allocator->Draw();
@@ -178,14 +178,14 @@ namespace Voxels
     glCullFace(GL_BACK); // don't forget to reset original culling face
 
     // render blocks in each active chunk
-    auto& currShader = Shader::shaders["chunk_optimized"];
-    currShader->Use();
+    auto currShader = GFX::ShaderManager::Get()->GetShader("chunk_optimized");
+    currShader->Bind();
 
     //Camera* cam = Camera::ActiveCamera;
     //float angle = glm::max(glm::dot(-glm::normalize(NuRenderer::activeSun_->GetDir()), glm::vec3(0, 1, 0)), 0.f);
     static float angle = 2.0f;
     ImGui::SliderFloat("Sunlight strength", &angle, 0.f, 5.f);
-    currShader->setFloat("sunAngle", angle);
+    currShader->SetFloat("sunAngle", angle);
 
     // undo gamma correction for sky color
     static const glm::vec3 skyColor(
@@ -193,17 +193,17 @@ namespace Voxels
       glm::pow(.808f, 2.2f),
       glm::pow(.922f, 2.2f));
     //currShader->setVec3("viewPos", cam->GetPos());
-    currShader->setVec3("viewPos", CameraSystem::GetPos());
-    currShader->setFloat("fogStart", 400.0f);
-    currShader->setFloat("fogEnd", 2000.0f);
-    currShader->setVec3("fogColor", skyColor);
+    currShader->SetVec3("viewPos", CameraSystem::GetPos());
+    currShader->SetFloat("fogStart", 400.0f);
+    currShader->SetFloat("fogEnd", 2000.0f);
+    currShader->SetVec3("fogColor", skyColor);
     //currShader->setMat4("u_viewProj", cam->GetProj() * cam->GetView());
-    currShader->setMat4("u_viewProj", CameraSystem::GetProj() * CameraSystem::GetView());
+    currShader->SetMat4("u_viewProj", CameraSystem::GetProj() * CameraSystem::GetView());
 
     textures->Bind(0);
-    currShader->setInt("textures", 0);
+    currShader->SetInt("textures", 0);
     blueNoise64->Bind(1);
-    currShader->setInt("blueNoise", 1);
+    currShader->SetInt("blueNoise", 1);
 
     RenderVisible();
     GenerateDIB();
@@ -250,15 +250,15 @@ namespace Voxels
     }
     glDisable(GL_CULL_FACE);
 
-    auto& sr = Shader::shaders["chunk_render_cull"];
-    sr->Use();
+    auto sr = GFX::ShaderManager::Get()->GetShader("chunk_render_cull");
+    sr->Bind();
 
     //const glm::mat4 viewProj = cam->GetProj() * cam->GetView();
     //Camera* cam = Camera::ActiveCamera;
     const glm::mat4 viewProj = CameraSystem::GetProj() * CameraSystem::GetView();
-    sr->setMat4("u_viewProj", viewProj);
-    sr->setUInt("u_chunk_size", Chunk::CHUNK_SIZE);
-    sr->setBool("u_debugDraw", settings.debug_drawOcclusionCulling);
+    sr->SetMat4("u_viewProj", viewProj);
+    sr->SetUInt("u_chunk_size", Chunk::CHUNK_SIZE);
+    sr->SetBool("u_debugDraw", settings.debug_drawOcclusionCulling);
 
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, allocator->GetGPUHandle());
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, allocator->GetGPUHandle());

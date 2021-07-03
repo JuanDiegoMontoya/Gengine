@@ -2,7 +2,7 @@
 #include <Voxels/HUDRefactor.h>
 #include <CoreEngine/Input.h>
 #include <CoreEngine/Camera.h>
-#include <CoreEngine/Shader.h>
+#include <CoreEngine/ShaderManager.h>
 #include <CoreEngine/Renderer.h>
 #include <CoreEngine/TextureArray.h>
 #include <imgui/imgui.h>
@@ -35,26 +35,26 @@ void HUD::Update()
     glm::rotate(glm::mat4(1), (float)glfwGetTime(), rot) *
     glm::scale(glm::mat4(1), scl);
   {
-    auto& curr = Shader::shaders["textured_array"];
-    curr->Use();
-    curr->setMat4("u_model", model);
-    curr->setMat4("u_proj", CameraSystem::GetProj());
-    curr->setMat4("u_view", glm::mat4(1));
+    auto curr = GFX::ShaderManager::Get()->GetShader("textured_array");
+    curr->Bind();
+    curr->SetMat4("u_model", model);
+    curr->SetMat4("u_proj", CameraSystem::GetProj());
+    curr->SetMat4("u_view", glm::mat4(1));
     //curr->setVec4("u_color", Block::PropertiesTable[int(selected_)].color);
     ASSERT_MSG(false, "Do something to make next line work");
     //Renderer::GetBlockTextures()->Bind(0);
-    curr->setInt("u_textures", 0);
-    curr->setInt("u_texIdx", int(selected_));
+    curr->SetInt("u_textures", 0);
+    curr->SetInt("u_texIdx", int(selected_));
     //Renderer::DrawCube(); // block // TODO
   }
 
   {
-    auto& curr = Shader::shaders["flat_color"];
-    curr->setVec4("u_color", glm::vec4(1));
+    auto curr = GFX::ShaderManager::Get()->GetShader("flat_color");
+    curr->SetVec4("u_color", glm::vec4(1));
     model = glm::scale(model, { 1.1, 1.1, 1.1 });
-    curr->setMat4("u_model", model);
-    curr->setMat4("u_proj", CameraSystem::GetProj());
-    curr->setMat4("u_view", glm::mat4(1));
+    curr->SetMat4("u_model", model);
+    curr->SetMat4("u_proj", CameraSystem::GetProj());
+    curr->SetMat4("u_view", glm::mat4(1));
   }
 
   GLint polygonMode;

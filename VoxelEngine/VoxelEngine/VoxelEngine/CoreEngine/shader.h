@@ -1,196 +1,45 @@
 #pragma once
-#include "utilities.h"
 #include <unordered_map>
-#include <optional>
 #include <span>
-#include <CoreEngine/GAssert.h>
-#include <glm/gtc/type_ptr.hpp>
-
-#include <CoreEngine/GraphicsIncludes.h>
-#include <shaderc/shaderc.hpp>
 #include <Utilities/HashedString.h>
 
-#pragma warning(push)
-#pragma warning(disable : 4267) // 8->4 byte int conversion
-
-struct ShaderInfo
+namespace GFX
 {
-  ShaderInfo(std::string p, GLenum t, std::vector<std::pair<std::string, std::string>> r = {}) : path(p), type(t), replace(r) {}
+  // simple shader interface
+  class Shader
+  {
+  public:
+    void Bind() const;
 
-  std::string path{};
-  GLenum type{};
-  std::vector<std::pair<std::string, std::string>> replace{};
-};
+    void SetBool(hashed_string uniform, bool value);
+    void SetInt(hashed_string uniform, int value);
+    void SetUInt(hashed_string uniform, unsigned int value);
+    void SetFloat(hashed_string uniform, float value);
+    void Set1FloatArray(hashed_string uniform, std::span<const float> value);
+    void Set2FloatArray(hashed_string uniform, std::span<const glm::vec2> value);
+    void Set3FloatArray(hashed_string uniform, std::span<const glm::vec3> value);
+    void Set4FloatArray(hashed_string uniform, std::span<const glm::vec4> value);
+    void SetIntArray(hashed_string uniform, std::span<const int> value);
+    void SetVec2(hashed_string uniform, const glm::vec2& value);
+    void SetIVec2(hashed_string uniform, const glm::ivec2& value);
+    void SetVec3(hashed_string uniform, const glm::vec3& value);
+    void SetVec4(hashed_string uniform, const glm::vec4& value);
+    void SetMat3(hashed_string uniform, const glm::mat3& mat);
+    void SetMat4(hashed_string uniform, const glm::mat4& mat);
 
-// encapsulates shaders by storing uniforms and its GPU memory location
-// also stores the program's name and both shader paths for recompiling
-class Shader
-{
-public:
-  // standard constructor
-  Shader(
-    std::optional<std::string> vertexPath,
-    std::optional<std::string> fragmentPath,
-    std::optional<std::string> tessCtrlPath = std::nullopt,
-    std::optional<std::string> tessEvalPath = std::nullopt,
-    std::optional<std::string> geometryPath = std::nullopt);
+    Shader(const Shader&) = default;
+    Shader(Shader&&) = default;
+    Shader& operator=(const Shader&) = default;
+    Shader& operator=(Shader&&) = default;
 
-  // compute shader constructor
-  Shader(int, std::string computePath);
+  private:
+    friend class ShaderManager;
+    Shader(std::unordered_map<uint32_t, uint32_t>& uniforms, uint32_t id)
+      : uniformIDs_(uniforms), id_(id)
+    {
+    }
 
-  // universal SPIR-V constructor (takes a list of paths and shader types)
-  Shader(std::vector<ShaderInfo> shaders);
-
-  // default constructor (currently no uses)
-  Shader()
-  {
-    //type = sDefault;
-    programID = 0;
-  }
-
-  // move constructor
-  Shader(Shader&& other) noexcept : Uniforms(std::move(other.Uniforms)), programID(other.programID)
-  {
-    other.programID = 0;
-  }
-
-  ~Shader()
-  {
-    if (programID != 0)
-      glDeleteProgram(programID);
-  }
-
-  // set the active shader to this one
-  void Use() const
-  {
-    glUseProgram(programID);
-  }
-
-  void Unuse() const
-  {
-    glUseProgram(0);
-  }
-
-  void setBool(hashed_string uniform, bool value)
-  {
-    ASSERT(Uniforms.find(uniform) != Uniforms.end());
-    glProgramUniform1i(programID, Uniforms[uniform], static_cast<int>(value));
-  }
-  void setInt(hashed_string uniform, int value)
-  {
-    ASSERT(Uniforms.find(uniform) != Uniforms.end());
-    glProgramUniform1i(programID, Uniforms[uniform], value);
-  }
-  void setUInt(hashed_string uniform, unsigned int value)
-  {
-    ASSERT(Uniforms.find(uniform) != Uniforms.end());
-    glProgramUniform1ui(programID, Uniforms[uniform], value);
-  }
-  void setFloat(hashed_string uniform, float value)
-  {
-    ASSERT(Uniforms.find(uniform) != Uniforms.end());
-    glProgramUniform1f(programID, Uniforms[uniform], value);
-  }
-  void set1FloatArray(hashed_string uniform, std::span<const float> value)
-  {
-    ASSERT(Uniforms.find(uniform) != Uniforms.end());
-    glProgramUniform1fv(programID, Uniforms[uniform], value.size(), value.data());
-  }
-  void set1FloatArray(hashed_string uniform, const float* value, GLsizei count)
-  {
-    ASSERT(Uniforms.find(uniform) != Uniforms.end());
-    glProgramUniform1fv(programID, Uniforms[uniform], count, value);
-  }
-  void set2FloatArray(hashed_string uniform, std::span<const glm::vec2> value)
-  {
-    ASSERT(Uniforms.find(uniform) != Uniforms.end());
-    glProgramUniform2fv(programID, Uniforms[uniform], value.size(), glm::value_ptr(value.front()));
-  }
-  void set3FloatArray(hashed_string uniform, std::span<const glm::vec3> value)
-  {
-    ASSERT(Uniforms.find(uniform) != Uniforms.end());
-    glProgramUniform3fv(programID, Uniforms[uniform], value.size(), glm::value_ptr(value.front()));
-  }
-  void set4FloatArray(hashed_string uniform, std::span<const glm::vec4> value)
-  {
-    ASSERT(Uniforms.find(uniform) != Uniforms.end());
-    glProgramUniform4fv(programID, Uniforms[uniform], value.size(), glm::value_ptr(value.front()));
-  }
-  void setIntArray(hashed_string uniform, std::span<const int> value)
-  {
-    ASSERT(Uniforms.find(uniform) != Uniforms.end());
-    glProgramUniform1iv(programID, Uniforms[uniform], value.size(), value.data());
-  }
-  void setVec2(hashed_string uniform, const glm::vec2& value)
-  {
-    ASSERT(Uniforms.find(uniform) != Uniforms.end());
-    glProgramUniform2fv(programID, Uniforms[uniform], 1, glm::value_ptr(value));
-  }
-  void setVec2(hashed_string uniform, float x, float y)
-  {
-    ASSERT(Uniforms.find(uniform) != Uniforms.end());
-    glProgramUniform2f(programID, Uniforms[uniform], x, y);
-  }
-  void setVec3(hashed_string uniform, const glm::vec3& value)
-  {
-    ASSERT(Uniforms.find(uniform) != Uniforms.end());
-    glProgramUniform3fv(programID, Uniforms[uniform], 1, glm::value_ptr(value));
-  }
-  void setVec3(hashed_string uniform, float x, float y, float z)
-  {
-    ASSERT(Uniforms.find(uniform) != Uniforms.end());
-    glProgramUniform3f(programID, Uniforms[uniform], x, y, z);
-  }
-  void setVec4(hashed_string uniform, const glm::vec4& value)
-  {
-    ASSERT(Uniforms.find(uniform) != Uniforms.end());
-    glProgramUniform4fv(programID, Uniforms[uniform], 1, glm::value_ptr(value));
-  }
-  void setVec4(hashed_string uniform, float x, float y, float z, float w)
-  {
-    ASSERT(Uniforms.find(uniform) != Uniforms.end());
-    glProgramUniform4f(programID, Uniforms[uniform], x, y, z, w);
-  }
-  void setMat3(hashed_string uniform, const glm::mat3& mat)
-  {
-    ASSERT(Uniforms.find(uniform) != Uniforms.end());
-    glProgramUniformMatrix3fv(programID, Uniforms[uniform], 1, GL_FALSE, glm::value_ptr(mat));
-  }
-  void setMat4(hashed_string uniform, const glm::mat4& mat)
-  {
-    ASSERT(Uniforms.find(uniform) != Uniforms.end());
-    glProgramUniformMatrix4fv(programID, Uniforms[uniform], 1, GL_FALSE, glm::value_ptr(mat));
-  }
-
-  auto GetID() const noexcept { return programID; }
-
-  // list of all shader programs
-  static inline std::unordered_map<hashed_string, std::optional<Shader>> shaders;
-private:
-
-  std::unordered_map<hashed_string, GLint> Uniforms;
-  GLuint programID{ 0 };
-
-  using shaderType = GLenum;
-  friend class IncludeHandler;
-
-  // shader dir includes source and headers alike
-  static constexpr const char* shader_dir_ = "./Resources/Shaders/";
-  static std::string loadFile(std::string path);
-
-  GLint compileShader(shaderType type, const std::vector<std::string>& src, std::string_view path);
-  void initUniforms();
-  void checkLinkStatus(std::vector<std::string_view> files);
-
-  // returns compiled SPIR-V
-  std::vector<uint32_t>
-    spvPreprocessAndCompile(
-      shaderc::Compiler& compiler,
-      const shaderc::CompileOptions options,
-      const std::vector<std::pair<std::string, std::string>>& replace,
-      std::string path,
-      shaderc_shader_kind a);
-
-};
-
-#pragma warning(pop)
+    std::unordered_map<uint32_t, uint32_t>& uniformIDs_;
+    uint32_t id_{};
+  };
+}

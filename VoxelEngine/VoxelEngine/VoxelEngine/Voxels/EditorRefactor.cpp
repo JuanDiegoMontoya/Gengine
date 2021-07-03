@@ -3,7 +3,7 @@
 #include <CoreEngine/GraphicsIncludes.h>
 #include <CoreEngine/Input.h>
 #include <CoreEngine/Camera.h>
-#include <CoreEngine/shader.h>
+#include <CoreEngine/ShaderManager.h>
 #include <CoreEngine/Renderer.h>
 #include <CoreEngine/Scene.h>
 #include <Game/PlayerActions.h>
@@ -185,12 +185,12 @@ void Editor::DrawSelection()
     glGetIntegerv(GL_POLYGON_MODE, &polygonMode);
     glDisable(GL_CULL_FACE);
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    auto& curr = Shader::shaders["flat_color"];
-    curr->Use();
-    curr->setMat4("u_model", tPos * tScale);
-    curr->setMat4("u_view", CameraSystem::GetView());
-    curr->setMat4("u_proj", CameraSystem::GetProj());
-    curr->setVec4("u_color", glm::vec4(1.f, .3f, 1.f, 1.f));
+    auto curr = GFX::ShaderManager::Get()->GetShader("flat_color");
+    curr->Bind();
+    curr->SetMat4("u_model", tPos * tScale);
+    curr->SetMat4("u_view", CameraSystem::GetView());
+    curr->SetMat4("u_proj", CameraSystem::GetProj());
+    curr->SetVec4("u_color", glm::vec4(1.f, .3f, 1.f, 1.f));
     //Renderer::DrawCube(); // TODO
     glPolygonMode(GL_FRONT_AND_BACK, polygonMode);
     glEnable(GL_CULL_FACE);

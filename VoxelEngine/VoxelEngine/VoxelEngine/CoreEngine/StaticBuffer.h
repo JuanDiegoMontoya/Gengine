@@ -55,7 +55,7 @@ namespace GFX
 
     // for binding SSBOs and UBOs
     template<Target T>
-    void Bind(GLuint index)
+    void Bind(uint32_t index)
     {
       static_assert(T == Target::SHADER_STORAGE_BUFFER || T == Target::UNIFORM_BUFFER, "Only SSBO and UBO targets use an index.");
       BindBuffer((uint32_t)T);

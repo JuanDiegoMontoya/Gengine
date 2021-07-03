@@ -65,6 +65,7 @@
     <ClInclude Include="CoreEngine\MeshUtils.h" />
     <ClInclude Include="CoreEngine\Parser.h" />
     <ClInclude Include="CoreEngine\ParticleSystem.h" />
+    <ClInclude Include="CoreEngine\ShaderManager.h" />
     <ClInclude Include="CoreEngine\Texture.h" />
     <ClInclude Include="CoreEngine\TextureCube.h" />
     <ClInclude Include="CoreEngine\TextureLoader.h" />
@@ -360,6 +361,10 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">EnginePCH.h</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PCH.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <ClCompile Include="CoreEngine\ShaderManager.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="CoreEngine\StaticBuffer.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>

@@ -251,7 +251,7 @@ namespace GFX
     ~TextureView();
 
     void Bind(uint32_t slot, const TextureSampler& sampler);
-    void Unbind(uint32_t slot);
+    void Unbind(uint32_t slot); // unfortunate, but necessary to prevent state leakage until everything is upgraded
     void SubImage(const TextureUpdateInfo& info);
 
   private:

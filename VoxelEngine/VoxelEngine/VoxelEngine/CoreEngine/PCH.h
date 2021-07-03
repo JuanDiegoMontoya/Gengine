@@ -12,6 +12,7 @@
 #include <execution>
 #include <type_traits>
 #include <variant>
+#include <span>
 
 #include <cstdlib>
 #include <cstdio>

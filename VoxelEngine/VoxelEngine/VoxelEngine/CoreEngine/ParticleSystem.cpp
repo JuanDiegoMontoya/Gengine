@@ -6,7 +6,7 @@
 #include <memory>
 #include <unordered_map>
 
-#include "shader.h"
+#include "ShaderManager.h"
 
 #include "ParticleSystem.h"
 #include "Scene.h"
@@ -102,8 +102,9 @@ void ParticleSystem::InitScene(Scene& scene)
 void ParticleSystem::Update(Scene& scene, float dt)
 {
   static Timer timer;
-  auto& emitter_shader = Shader::shaders["update_particle_emitter"];
-  emitter_shader->Use();
+  //auto emitter_shader = Shader::shaders["update_particle_emitter"];
+  auto emitter_shader = GFX::ShaderManager::Get()->GetShader("update_particle_emitter");
+  emitter_shader->Bind();
   const int localSize = 128; // maybe should query shader for this value
   using namespace Component;
   auto view = scene.GetRegistry().view<ParticleEmitter, Transform>();
@@ -134,21 +135,21 @@ void ParticleSystem::Update(Scene& scene, float dt)
     if (particlesToSpawn > 0)
     {
 #pragma region uniforms
-      emitter_shader->setInt("u_particlesToSpawn", particlesToSpawn);
-      emitter_shader->setFloat("u_time", static_cast<float>(timer.elapsed()) + 1.61803f);
-      emitter_shader->setMat4("u_model", transform.GetModel());
-      emitter_shader->setFloat("u_emitter.minLife", emitter.data.minLife);
-      emitter_shader->setFloat("u_emitter.maxLife", emitter.data.maxLife);
-      emitter_shader->setVec3("u_emitter.minParticleOffset", emitter.data.minParticleOffset);
-      emitter_shader->setVec3("u_emitter.maxParticleOffset", emitter.data.maxParticleOffset);
-      emitter_shader->setVec3("u_emitter.minParticleVelocity", emitter.data.minParticleVelocity);
-      emitter_shader->setVec3("u_emitter.maxParticleVelocity", emitter.data.maxParticleVelocity);
-      emitter_shader->setVec3("u_emitter.minParticleAccel", emitter.data.minParticleAccel);
-      emitter_shader->setVec3("u_emitter.maxParticleAccel", emitter.data.maxParticleAccel);
-      emitter_shader->setVec2("u_emitter.minParticleScale", emitter.data.minParticleScale);
-      emitter_shader->setVec2("u_emitter.maxParticleScale", emitter.data.maxParticleScale);
-      emitter_shader->setVec4("u_emitter.minParticleColor", emitter.data.minParticleColor);
-      emitter_shader->setVec4("u_emitter.maxParticleColor", emitter.data.maxParticleColor);
+      emitter_shader->SetInt("u_particlesToSpawn", particlesToSpawn);
+      emitter_shader->SetFloat("u_time", static_cast<float>(timer.elapsed()) + 1.61803f);
+      emitter_shader->SetMat4("u_model", transform.GetModel());
+      emitter_shader->SetFloat("u_emitter.minLife", emitter.data.minLife);
+      emitter_shader->SetFloat("u_emitter.maxLife", emitter.data.maxLife);
+      emitter_shader->SetVec3("u_emitter.minParticleOffset", emitter.data.minParticleOffset);
+      emitter_shader->SetVec3("u_emitter.maxParticleOffset", emitter.data.maxParticleOffset);
+      emitter_shader->SetVec3("u_emitter.minParticleVelocity", emitter.data.minParticleVelocity);
+      emitter_shader->SetVec3("u_emitter.maxParticleVelocity", emitter.data.maxParticleVelocity);
+      emitter_shader->SetVec3("u_emitter.minParticleAccel", emitter.data.minParticleAccel);
+      emitter_shader->SetVec3("u_emitter.maxParticleAccel", emitter.data.maxParticleAccel);
+      emitter_shader->SetVec2("u_emitter.minParticleScale", emitter.data.minParticleScale);
+      emitter_shader->SetVec2("u_emitter.maxParticleScale", emitter.data.maxParticleScale);
+      emitter_shader->SetVec4("u_emitter.minParticleColor", emitter.data.minParticleColor);
+      emitter_shader->SetVec4("u_emitter.maxParticleColor", emitter.data.maxParticleColor);
 #pragma endregion
 
       int numGroups = (particlesToSpawn + localSize - 1) / localSize;
@@ -158,9 +159,9 @@ void ParticleSystem::Update(Scene& scene, float dt)
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
   // update particles in the emitter
-  auto& particle_shader = Shader::shaders["update_particle"];
-  particle_shader->Use();
-  particle_shader->setFloat("u_dt", dt);
+  auto particle_shader = GFX::ShaderManager::Get()->GetShader("update_particle");
+  particle_shader->Bind();
+  particle_shader->SetFloat("u_dt", dt);
 
   for (entt::entity entity : view)
   {
