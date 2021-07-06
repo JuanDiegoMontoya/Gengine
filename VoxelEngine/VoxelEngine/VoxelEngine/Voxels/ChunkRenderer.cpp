@@ -12,6 +12,7 @@
 #include <CoreEngine/TextureArray.h>
 #include <CoreEngine/MeshUtils.h>
 #include <CoreEngine/TextureLoader.h>
+#include <CoreEngine/DebugMarker.h>
 
 #include <filesystem>
 
@@ -80,7 +81,7 @@ namespace Voxels
       bool hasTex = std::filesystem::exists(realPath);
       if (!hasTex)
       {
-        printf("Texture %s does not exist, using fallback.", path.c_str());
+        printf("Texture %s does not exist, using fallback.\n", path.c_str());
         path = "error.png";
       }
       texs.push_back(path);
@@ -114,6 +115,7 @@ namespace Voxels
 
   void ChunkRenderer::GenerateDrawCommandsGPU()
   {
+    GFX::DebugMarker marker("Frustum cull chunks");
     //PERF_BENCHMARK_START;
 #ifdef TRACY_ENABLE
     TracyGpuZone("Gen draw commands norm");
@@ -200,6 +202,7 @@ namespace Voxels
 
   void ChunkRenderer::Draw()
   {
+    GFX::DebugMarker marker("Draw voxels");
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK); // don't forget to reset original culling face
 
@@ -245,6 +248,7 @@ namespace Voxels
 
   void ChunkRenderer::RenderVisible()
   {
+    GFX::DebugMarker marker("Draw visible chunks");
     if (!dib)
       return;
 
@@ -272,6 +276,7 @@ namespace Voxels
 
   void ChunkRenderer::RenderOcclusion()
   {
+    GFX::DebugMarker marker("Draw occlusion volumes");
     if (settings.freezeCulling)
       return;
 
@@ -317,6 +322,7 @@ namespace Voxels
 
   void ChunkRenderer::RenderRest()
   {
+    GFX::DebugMarker marker("Draw disoccluded chunks");
     // Drawing logic:
     // for each Chunk in Chunks
     //   if Chunk was not rendered in RenderVisible and not occluded

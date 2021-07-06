@@ -17,6 +17,7 @@
 #include "Components/Transform.h"
 #include "StaticBuffer.h"
 #include "Texture2D.h"
+#include "DebugMarker.h"
 
 namespace
 {
@@ -101,87 +102,95 @@ void ParticleSystem::InitScene(Scene& scene)
 
 void ParticleSystem::Update(Scene& scene, float dt)
 {
+  GFX::DebugMarker marker("Particle system update");
   static Timer timer;
-  //auto emitter_shader = Shader::shaders["update_particle_emitter"];
-  auto emitter_shader = GFX::ShaderManager::Get()->GetShader("update_particle_emitter");
-  emitter_shader->Bind();
   const int localSize = 128; // maybe should query shader for this value
+
   using namespace Component;
   auto view = scene.GetRegistry().view<ParticleEmitter, Transform>();
-  for (entt::entity entity : view)
+
   {
-    auto [emitter, transform] = view.get<ParticleEmitter, Transform>(entity);
-    auto& emitterData = ParticleManager::Get().data->handleToGPUParticleData_[emitter.handle];
-    ASSERT(emitterData);
-    
-    // set a few variables in a few buffers... (emitter and particle updates can be swapped, probably)
-    emitterData->particleBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(0);
-    emitterData->freeStackBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(1);
-
-    emitterData->timer += dt;
-    unsigned particlesToSpawn = 0;
-    while (emitterData->timer > emitter.data.interval)
+    GFX::DebugMarker emitterMarker("Update emitters");
+    auto emitter_shader = GFX::ShaderManager::Get()->GetShader("update_particle_emitter");
+    emitter_shader->Bind();
+    for (entt::entity entity : view)
     {
-      particlesToSpawn++;
-      emitterData->timer -= emitter.data.interval;
-    }
-    //unsigned particlesToSpawn = glm::floor(emitter.timer / emitter.interval);
-    //particlesToSpawn = glm::min(particlesToSpawn, emitter.maxParticles - emitter.numParticles);
-    //emitter.numParticles += particlesToSpawn;
-    //emitter.timer = glm::mod(emitter.timer, emitter.interval);
-    ASSERT(particlesToSpawn >= 0);
+      auto [emitter, transform] = view.get<ParticleEmitter, Transform>(entity);
+      auto& emitterData = ParticleManager::Get().data->handleToGPUParticleData_[emitter.handle];
+      ASSERT(emitterData);
 
-    // update emitter
-    if (particlesToSpawn > 0)
-    {
+      // set a few variables in a few buffers... (emitter and particle updates can be swapped, probably)
+      emitterData->particleBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(0);
+      emitterData->freeStackBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(1);
+
+      emitterData->timer += dt;
+      unsigned particlesToSpawn = 0;
+      while (emitterData->timer > emitter.data.interval)
+      {
+        particlesToSpawn++;
+        emitterData->timer -= emitter.data.interval;
+      }
+      //unsigned particlesToSpawn = glm::floor(emitter.timer / emitter.interval);
+      //particlesToSpawn = glm::min(particlesToSpawn, emitter.maxParticles - emitter.numParticles);
+      //emitter.numParticles += particlesToSpawn;
+      //emitter.timer = glm::mod(emitter.timer, emitter.interval);
+      ASSERT(particlesToSpawn >= 0);
+
+      // update emitter
+      if (particlesToSpawn > 0)
+      {
 #pragma region uniforms
-      emitter_shader->SetInt("u_particlesToSpawn", particlesToSpawn);
-      emitter_shader->SetFloat("u_time", static_cast<float>(timer.elapsed()) + 1.61803f);
-      emitter_shader->SetMat4("u_model", transform.GetModel());
-      emitter_shader->SetFloat("u_emitter.minLife", emitter.data.minLife);
-      emitter_shader->SetFloat("u_emitter.maxLife", emitter.data.maxLife);
-      emitter_shader->SetVec3("u_emitter.minParticleOffset", emitter.data.minParticleOffset);
-      emitter_shader->SetVec3("u_emitter.maxParticleOffset", emitter.data.maxParticleOffset);
-      emitter_shader->SetVec3("u_emitter.minParticleVelocity", emitter.data.minParticleVelocity);
-      emitter_shader->SetVec3("u_emitter.maxParticleVelocity", emitter.data.maxParticleVelocity);
-      emitter_shader->SetVec3("u_emitter.minParticleAccel", emitter.data.minParticleAccel);
-      emitter_shader->SetVec3("u_emitter.maxParticleAccel", emitter.data.maxParticleAccel);
-      emitter_shader->SetVec2("u_emitter.minParticleScale", emitter.data.minParticleScale);
-      emitter_shader->SetVec2("u_emitter.maxParticleScale", emitter.data.maxParticleScale);
-      emitter_shader->SetVec4("u_emitter.minParticleColor", emitter.data.minParticleColor);
-      emitter_shader->SetVec4("u_emitter.maxParticleColor", emitter.data.maxParticleColor);
+        emitter_shader->SetInt("u_particlesToSpawn", particlesToSpawn);
+        emitter_shader->SetFloat("u_time", static_cast<float>(timer.elapsed()) + 1.61803f);
+        emitter_shader->SetMat4("u_model", transform.GetModel());
+        emitter_shader->SetFloat("u_emitter.minLife", emitter.data.minLife);
+        emitter_shader->SetFloat("u_emitter.maxLife", emitter.data.maxLife);
+        emitter_shader->SetVec3("u_emitter.minParticleOffset", emitter.data.minParticleOffset);
+        emitter_shader->SetVec3("u_emitter.maxParticleOffset", emitter.data.maxParticleOffset);
+        emitter_shader->SetVec3("u_emitter.minParticleVelocity", emitter.data.minParticleVelocity);
+        emitter_shader->SetVec3("u_emitter.maxParticleVelocity", emitter.data.maxParticleVelocity);
+        emitter_shader->SetVec3("u_emitter.minParticleAccel", emitter.data.minParticleAccel);
+        emitter_shader->SetVec3("u_emitter.maxParticleAccel", emitter.data.maxParticleAccel);
+        emitter_shader->SetVec2("u_emitter.minParticleScale", emitter.data.minParticleScale);
+        emitter_shader->SetVec2("u_emitter.maxParticleScale", emitter.data.maxParticleScale);
+        emitter_shader->SetVec4("u_emitter.minParticleColor", emitter.data.minParticleColor);
+        emitter_shader->SetVec4("u_emitter.maxParticleColor", emitter.data.maxParticleColor);
 #pragma endregion
 
-      int numGroups = (particlesToSpawn + localSize - 1) / localSize;
-      glDispatchCompute(numGroups, 1, 1);
+        int numGroups = (particlesToSpawn + localSize - 1) / localSize;
+        glDispatchCompute(numGroups, 1, 1);
+      }
     }
+    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
   }
-  glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
   // update particles in the emitter
-  auto particle_shader = GFX::ShaderManager::Get()->GetShader("update_particle");
-  particle_shader->Bind();
-  particle_shader->SetFloat("u_dt", dt);
-
-  for (entt::entity entity : view)
   {
-    auto [emitter, transform] = view.get<ParticleEmitter, Transform>(entity);
-    auto& emitterData = ParticleManager::Get().data->handleToGPUParticleData_[emitter.handle];
-    ASSERT(emitterData);
+    GFX::DebugMarker particleMarker("Update particle dynamic state");
+    auto particle_shader = GFX::ShaderManager::Get()->GetShader("update_particle");
+    particle_shader->Bind();
+    particle_shader->SetFloat("u_dt", dt);
 
-    GLuint zero{ 0 };
-    glClearNamedBufferSubData(emitterData->indirectDrawBuffer->GetID(), GL_R32UI, offsetof(DrawArraysIndirectCommand, instanceCount),
-      sizeof(GLuint), GL_RED, GL_UNSIGNED_INT, &zero);
+    for (entt::entity entity : view)
+    {
+      auto [emitter, transform] = view.get<ParticleEmitter, Transform>(entity);
+      auto& emitterData = ParticleManager::Get().data->handleToGPUParticleData_[emitter.handle];
+      ASSERT(emitterData);
 
-    emitterData->particleBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(0);
-    emitterData->freeStackBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(1);
-    emitterData->indirectDrawBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(2);
-    emitterData->indicesBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(3);
+      GLuint zero{ 0 };
+      glClearNamedBufferSubData(emitterData->indirectDrawBuffer->GetID(), GL_R32UI, offsetof(DrawArraysIndirectCommand, instanceCount),
+        sizeof(GLuint), GL_RED, GL_UNSIGNED_INT, &zero);
 
-    int numGroups = (emitterData->maxParticles + localSize - 1) / localSize;
-    glDispatchCompute(numGroups, 1, 1);
+      emitterData->particleBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(0);
+      emitterData->freeStackBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(1);
+      emitterData->indirectDrawBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(2);
+      emitterData->indicesBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(3);
+
+      int numGroups = (emitterData->maxParticles + localSize - 1) / localSize;
+      glDispatchCompute(numGroups, 1, 1);
+    }
+    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
   }
-  glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
   // reset timer every 10 seconds to avoid precision issues
   if (timer.elapsed() > 10.0)

@@ -94,6 +94,7 @@ void Renderer::Submit(const Component::Transform& model, const Component::Batche
 
 void Renderer::RenderBatch()
 {
+  GFX::DebugMarker marker("Draw scene objects");
   userCommands.resize(cmdIndex);
   //cmdIndex.store(0, std::memory_order_release);
   cmdIndex = 0;
@@ -405,7 +406,7 @@ void Renderer::CompileShaders()
 
 void Renderer::DrawAxisIndicator()
 {
-  GFX::DebugMarker marker("Axis Indicator");
+  GFX::DebugMarker marker("Draw axis indicator");
   static GLuint axisVAO{ 0 };
   static GFX::StaticBuffer* axisVBO{};
   if (axisVAO == 0)
@@ -446,6 +447,7 @@ void Renderer::DrawAxisIndicator()
 
 void Renderer::DrawSkybox()
 {
+  GFX::DebugMarker marker("Draw skybox");
   auto shdr = GFX::ShaderManager::Get()->GetShader("skybox");
   glDepthMask(GL_FALSE);
   glDisable(GL_CULL_FACE);
@@ -496,6 +498,7 @@ void Renderer::StartFrame()
 
 void Renderer::EndFrame(float dt)
 {
+  GFX::DebugMarker endframeMarker("Postprocessing");
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
   if (gammaCorrection)
   {
@@ -504,6 +507,7 @@ void Renderer::EndFrame(float dt)
 
   if (tonemapping)
   {
+    GFX::DebugMarker tonemappingMarker("Tone mapping");
     glBindTextureUnit(1, color); // HDR buffer
 
     const float logLowLum = glm::log(targetLuminance / maxExposure);
@@ -512,6 +516,7 @@ void Renderer::EndFrame(float dt)
     const int computePixelsY = fboHeight / 4;
 
     {
+      GFX::DebugMarker marker("Generate luminance histogram");
       auto hshdr = GFX::ShaderManager::Get()->GetShader("generate_histogram");
       hshdr->Bind();
       hshdr->SetInt("u_hdrBuffer", 1);
@@ -530,8 +535,8 @@ void Renderer::EndFrame(float dt)
     //glGetNamedBufferSubData(exposureBuffer->GetID(), 0, sizeof(float), &expo);
     //printf("Exposure: %f\n", expo);
 
-    // TODO: do this step on the CPU!
     {
+      GFX::DebugMarker marker("Compute camera exposure");
       //glGenerateTextureMipmap(color);
       exposureBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(0);
       histogramBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(1);
@@ -549,6 +554,7 @@ void Renderer::EndFrame(float dt)
       glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
     }
 
+    GFX::DebugMarker marker("Apply tone mapping");
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glViewport(0, 0, fboWidth, fboHeight);
     auto shdr = GFX::ShaderManager::Get()->GetShader("tonemap");
