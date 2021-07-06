@@ -3,6 +3,7 @@
 #include <CoreEngine/Shapes.h>
 #include <memory>
 #include <string>
+#include <CoreEngine/Texture.h>
 
 namespace GFX
 {
@@ -70,7 +71,7 @@ namespace Voxels
     std::unique_ptr<GFX::StaticBuffer> drawCountGPU;
 
     // size of compute block  for the compute shader
-    const int blockSize = 64; // defined in compact_batch.cs
+    const int groupSize = 64; // defined in compact_batch.cs
 
     // resets each frame BEFORE the culling phase
     //GLuint allocDataBuffer = 0;
@@ -83,7 +84,12 @@ namespace Voxels
     std::unique_ptr<GFX::StaticBuffer> allocBuffer;
 
     // resources
-    std::unique_ptr<GFX::TextureArray> textures;
-    std::unique_ptr<GFX::Texture2D> blueNoise64;
+    std::optional<GFX::Texture> blockTextures;
+    std::optional<GFX::TextureView> blockTexturesView;
+    std::optional<GFX::TextureSampler> blockTexturesSampler;
+
+    std::optional<GFX::Texture> blueNoiseTexture;
+    std::optional<GFX::TextureView> blueNoiseView;
+    std::optional<GFX::TextureSampler> blueNoiseSampler;
   };
 }

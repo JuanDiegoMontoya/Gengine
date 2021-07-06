@@ -126,7 +126,9 @@ namespace GFX
   {
     UNDEFINED,
     UBYTE,
+    SBYTE,
     USHORT,
+    SSHORT,
     UINT,
     SINT,
     FLOAT,
@@ -169,7 +171,7 @@ namespace GFX
     INT_OPAQUE_WHITE,
   };
 
-  enum class Anisotropy
+  enum class Anisotropy : uint8_t
   {
     SAMPLES_1,
     SAMPLES_2,
@@ -204,13 +206,14 @@ namespace GFX
   class Texture
   {
   public:
-    [[nodiscard]] static std::optional<Texture> Create(const TextureCreateInfo& createInfo);
+    [[nodiscard]] static std::optional<Texture> Create(const TextureCreateInfo& createInfo, const std::string_view name = "");
     Texture(Texture&& old) noexcept;
     Texture& operator=(Texture&& old) noexcept;
     ~Texture();
 
     void SubImage(const TextureUpdateInfo& info);
     void GenMipmaps();
+    [[nodiscard]] const TextureCreateInfo& CreateInfo() const { return createInfo_; }
 
     Texture(const Texture&) = delete;
     Texture& operator=(const Texture&) = delete;
@@ -239,10 +242,10 @@ namespace GFX
   {
   public:
     // make a texture view with explicit parameters
-    [[nodiscard]] static std::optional<TextureView> Create(const TextureViewCreateInfo& createInfo, const Texture& texture);
+    [[nodiscard]] static std::optional<TextureView> Create(const TextureViewCreateInfo& createInfo, const Texture& texture, const std::string_view name = "");
 
     // make a texture view with automatic parameters (view of whole texture, same type)
-    [[nodiscard]] static std::optional<TextureView> Create(const Texture& texture);
+    [[nodiscard]] static std::optional<TextureView> Create(const Texture& texture, const std::string_view name = "");
 
     TextureView(const TextureView& other);
     TextureView(TextureView&& old) noexcept;
@@ -255,7 +258,7 @@ namespace GFX
     void SubImage(const TextureUpdateInfo& info);
 
   private:
-    static std::optional<TextureView> Create(const TextureViewCreateInfo& createInfo, uint32_t texture, Extent3D extent);
+    static std::optional<TextureView> Create(const TextureViewCreateInfo& createInfo, uint32_t texture, Extent3D extent, const std::string_view name = "");
     TextureView() {};
     uint32_t id_{};
     TextureViewCreateInfo createInfo_{};
@@ -266,6 +269,7 @@ namespace GFX
 
   struct SamplerState
   {
+    SamplerState() {};
     union
     {
       struct
@@ -278,7 +282,7 @@ namespace GFX
         AddressMode addressModeW : 3 = AddressMode::CLAMP_TO_EDGE;
         BorderColor borderColor  : 3 = BorderColor::INT_OPAQUE_WHITE;
         Anisotropy anisotropy    : 3 = Anisotropy::SAMPLES_1;
-      }asBitField;
+      }asBitField{};
       uint32_t asUint32;
     };
 
@@ -294,7 +298,7 @@ namespace GFX
   class TextureSampler
   {
   public:
-    [[nodiscard]] static std::optional<TextureSampler> Create(const SamplerState& samplerState);
+    [[nodiscard]] static std::optional<TextureSampler> Create(const SamplerState& samplerState, const std::string_view name = "");
     TextureSampler(const TextureSampler& other);
     TextureSampler(TextureSampler&& old) noexcept;
     TextureSampler& operator=(const TextureSampler& other);

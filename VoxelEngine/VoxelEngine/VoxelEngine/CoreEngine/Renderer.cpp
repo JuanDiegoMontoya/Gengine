@@ -1,5 +1,5 @@
 #include "PCH.h"
-#include <GL/glew.h>
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include "Renderer.h"
 
@@ -453,7 +453,8 @@ void Renderer::DrawSkybox()
   shdr->SetMat4("u_proj", CameraSystem::GetProj());
   shdr->SetMat4("u_modview", glm::translate(CameraSystem::GetView(), CameraSystem::GetPos()));
   shdr->SetInt("u_skybox", 0);
-  CameraSystem::ActiveCamera->skybox->Bind(0);
+  //CameraSystem::ActiveCamera->skybox->Bind(0);
+  CameraSystem::ActiveCamera->skyboxTexture->Bind(0, *CameraSystem::ActiveCamera->skyboxSampler);
   glBindVertexArray(emptyVao);
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 14);
   glDepthMask(GL_TRUE);

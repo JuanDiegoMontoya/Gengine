@@ -2,6 +2,7 @@
 #include <cstdint>
 #include "Flags.h"
 #include <glm/fwd.hpp>
+#include <functional>
 
 enum class CVarFlag
 {
@@ -33,7 +34,7 @@ enum class CVarFlag
 DECLARE_FLAG_TYPE(CVarFlags, CVarFlag, uint32_t)
 
 template<typename T>
-using OnChangeCallback = void(*)(const char*, T);
+using OnChangeCallback = std::function<void(const char*, T)>;
 
 using cvar_float = double;
 using cvar_string = const char*;

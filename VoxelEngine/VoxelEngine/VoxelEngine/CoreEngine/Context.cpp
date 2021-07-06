@@ -1,7 +1,7 @@
 #include "PCH.h"
 #include <CoreEngine/Context.h>
 
-#include <GL/glew.h>
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
 
@@ -88,10 +88,9 @@ GLFWwindow* init_glfw_context()
   glfwMakeContextCurrent(window);
   set_glfw_callbacks(window);
 
-  glewExperimental = GL_FALSE;
-  if (glewInit() != GLEW_OK)
+  if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
   {
-    std::cout << "Failed to initialize GLEW" << std::endl;
+    std::cout << "Failed to initialize GLAD\n";
     return nullptr;
   }
 

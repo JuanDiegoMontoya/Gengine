@@ -3,7 +3,7 @@
 #include "../MeshUtils.h"
 #include "../Entity.h"
 
-#include <CoreEngine/TextureCube.h>
+#include "../Texture.h"
 #include <memory>
 
 namespace Component
@@ -64,7 +64,9 @@ namespace Component
     float zNear = 0.1f;
     float zFar = 1000.0f;
 
-    std::unique_ptr<GFX::TextureCube> skybox{};
+    //std::unique_ptr<GFX::TextureCube> skybox{};
+    std::optional<GFX::TextureView> skyboxTexture;
+    std::optional<GFX::TextureSampler> skyboxSampler;
     uint32_t renderTexture = 0;
   };
 

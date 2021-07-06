@@ -1,5 +1,5 @@
 #include "PCH.h"
-#include <GL/glew.h>
+#include <glad/glad.h>
 #include "Engine.h"
 #include <Utilities/Timer.h>
 #include <CoreEngine/Input.h>
@@ -13,6 +13,7 @@
 #include "LifetimeSystem.h"
 
 #include "Console.h"
+#include "CVar.h"
 #include "Parser.h"
 
 Engine::Engine()
@@ -62,6 +63,10 @@ Engine::Engine()
   Console::Get()->RegisterCommand("quit", "- Exits the engine", exitFunc);
   Console::Get()->RegisterCommand("help", "- Find help about a convar / concommand", helpFunc);
   Console::Get()->RegisterCommand("clear", "- Clears the console", [](const char*) { Console::Get()->Clear(); });
+  CVarSystem::Get()->RegisterCVar<cvar_float>("timescale", "- Engine timescale", 1.0, CVarFlag::CHEAT, [this](const char*, cvar_float ts)
+    {
+      this->SetTimescale(ts);
+    });
 }
 
 Engine::~Engine()
@@ -85,7 +90,7 @@ void Engine::Run()
   Timer timer;
   while (running_)
   {
-    dt_ = static_cast<float>(timer.elapsed());
+    dt_ = static_cast<float>(timer.elapsed()) * timescale_;
     timer.reset();
 
     if (paused_) dt_ = 0;

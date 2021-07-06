@@ -75,8 +75,8 @@ void OnStart(Scene* scene)
   Input::AddInputAxis("Crouch", crouchButtons);
 
   GFX::TextureManager::Get()->AddTexture("error", *GFX::LoadTexture2D("error.png"));
-  auto view = *GFX::TextureView::Create(*GFX::TextureManager::Get()->GetTexture("error"));
-  auto sampler = *GFX::TextureSampler::Create(GFX::SamplerState{});
+  auto view = *GFX::TextureView::Create(*GFX::TextureManager::Get()->GetTexture("error"), "batched material view");
+  auto sampler = *GFX::TextureSampler::Create(GFX::SamplerState{}, "batched material sampler");
   MaterialInfo info
   {
     .shaderID = "batched",
@@ -120,6 +120,7 @@ void OnStart(Scene* scene)
     "autumn_sky_hdr/pz.hdr",
     "autumn_sky_hdr/nz.hdr",
   };
+  std::vector<std::string_view> facesView(faces.begin(), faces.end());
 
   //const std::vector<std::string> faces =
   //{
@@ -139,7 +140,10 @@ void OnStart(Scene* scene)
     player.AddComponent<Component::NativeScriptComponent>().Bind<KinematicPlayerController>();
     //player.AddComponent<Components::Camera>(Camera::ActiveCamera);
     auto& cam = player.AddComponent<Component::Camera>(player);
-    cam.skybox = std::make_unique<GFX::TextureCube>(std::span<const std::string, 6>(faces.data(), faces.size()));
+    //cam.skybox = std::make_unique<GFX::TextureCube>(std::span<const std::string, 6>(faces.data(), faces.size()));
+    GFX::TextureManager::Get()->AddTexture("skycube", *GFX::LoadTextureCube(std::span<const std::string_view, 6>(facesView)));
+    cam.skyboxTexture = GFX::TextureView::Create(*GFX::TextureManager::Get()->GetTexture("skycube"), "skycube view");
+    cam.skyboxSampler = GFX::TextureSampler::Create(GFX::SamplerState{}, "skycube sampler");
     cam.SetPos({ 0, .65, 0 });
     Physics::CapsuleCollider collider(0.3, 0.5);
     //Physics::BoxCollider collider({ 1, 1, 1 });

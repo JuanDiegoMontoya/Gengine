@@ -54,7 +54,7 @@ void GraphicsSystem::StartFrame()
   const auto& camList = CameraSystem::GetCameraList();
   for (Component::Camera* camera : camList)
   {
-    if (!camera->skybox)
+    if (!camera->skyboxTexture)
     {
       continue;
     }

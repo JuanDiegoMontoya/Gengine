@@ -1,5 +1,5 @@
 #include "PCH.h"
-#include <GL/glew.h>
+#include <glad/glad.h>
 
 #include "Mesh.h"
 #include "AssimpUtils.h"

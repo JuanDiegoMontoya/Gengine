@@ -462,15 +462,39 @@ void Console::ExecuteCommand(const char* cmd)
 
   if (it != console->commands.end())
   {
-    // TODO: try get cvar with id
     it->func(parser.GetRemaining().c_str());
     return;
   }
 
-  //auto* params = CVarSystem::Get()->GetCVarParams(id->name.c_str());
-  bool success = CVarSystem::Get()->SetCVarParse(id->name.c_str(), parser.GetRemaining().c_str());
-
-  if (!success)
+  auto* params = CVarSystem::Get()->GetCVarParams(id->name.c_str());
+  if (params)
+  {
+    std::string remaining = parser.GetRemaining();
+    if (remaining.empty())
+    {
+      Log("%s\n", params->description.c_str());
+    }
+    else
+    {
+      bool success = CVarSystem::Get()->SetCVarParse(id->name.c_str(), remaining.c_str());
+      if (!success)
+      {
+        switch (params->type)
+        {
+        case CVarType::FLOAT:
+          Log("Usage: %s <float>\n", params->name);
+          break;
+        case CVarType::STRING:
+          Log("Usage: %s <string>\n", params->name);
+          break;
+        case CVarType::VEC3:
+          Log("Usage: %s <vec3>\n", params->name);
+          break;
+        }
+      }
+    }
+  }
+  else
   {
     Log("No cvar or concommand with identifier <%s> exists\n", id->name.c_str());
   }

@@ -1,7 +1,9 @@
 #include "PCH.h"
 #include "Texture.h"
-#include <GL/glew.h>
+#include <glad/glad.h>
 #include <utility>
+
+#define MAX_NAME_LEN 256
 
 namespace GFX
 {
@@ -91,7 +93,7 @@ namespace GFX
     static GLint uploadFormats[]
     {
       0,
-      GL_R,
+      GL_RED,
       GL_RG,
       GL_RGB,
       GL_BGR,
@@ -157,7 +159,7 @@ namespace GFX
 
 
 
-  std::optional<Texture> Texture::Create(const TextureCreateInfo& createInfo)
+  std::optional<Texture> Texture::Create(const TextureCreateInfo& createInfo, const std::string_view name)
   {
     Texture texture;
     texture.createInfo_ = createInfo;
@@ -196,6 +198,10 @@ namespace GFX
       break;
     }
 
+    if (!name.empty())
+    {
+      glObjectLabel(GL_TEXTURE, texture.id_, name.length(), name.data());
+    }
     return texture;
   }
 
@@ -229,22 +235,12 @@ namespace GFX
 
 
 
-  std::optional<TextureView> TextureView::Create(const TextureViewCreateInfo& createInfo, const Texture& texture)
+  std::optional<TextureView> TextureView::Create(const TextureViewCreateInfo& createInfo, const Texture& texture, const std::string_view name)
   {
     return Create(createInfo, texture.id_, texture.createInfo_.extent);
   }
 
-  std::optional<TextureView> TextureView::Create(const TextureViewCreateInfo& createInfo, uint32_t texture, Extent3D extent)
-  {
-    TextureView view;
-    view.createInfo_ = createInfo;
-    view.extent = extent;
-    glGenTextures(1, &view.id_); // glCreateTextures does not work here
-    glTextureView(view.id_, targets[(int)createInfo.viewType], texture, formats[(int)createInfo.format], createInfo.minLevel, createInfo.numLevels, createInfo.minLayer, createInfo.numLayers);
-    return view;
-  }
-
-  std::optional<TextureView> TextureView::Create(const Texture& texture)
+  std::optional<TextureView> TextureView::Create(const Texture& texture, const std::string_view name)
   {
     TextureViewCreateInfo createInfo
     {
@@ -255,12 +251,36 @@ namespace GFX
       .minLayer = 0,
       .numLayers = texture.createInfo_.arrayLayers
     };
-    return Create(createInfo, texture);
+    return Create(createInfo, texture, name);
+  }
+
+  std::optional<TextureView> TextureView::Create(const TextureViewCreateInfo& createInfo, uint32_t texture, Extent3D extent, const std::string_view name)
+  {
+    TextureView view;
+    view.createInfo_ = createInfo;
+    view.extent = extent;
+    glGenTextures(1, &view.id_); // glCreateTextures does not work here
+    glTextureView(view.id_, targets[(int)createInfo.viewType], texture,
+      formats[(int)createInfo.format], createInfo.minLevel,
+      createInfo.numLevels, createInfo.minLayer,
+      createInfo.numLayers);
+    if (!name.empty())
+    {
+      glObjectLabel(GL_TEXTURE, view.id_, name.length(), name.data());
+    }
+    return view;
   }
 
   TextureView::TextureView(const TextureView& other)
   {
+    char name[MAX_NAME_LEN]{};
+    GLsizei len{};
+    glGetObjectLabel(GL_TEXTURE, other.id_, MAX_NAME_LEN, &len, name);
     *this = other;
+    if (len > 0)
+    {
+      glObjectLabel(GL_TEXTURE, id_, len, name);
+    }
   }
 
   TextureView::TextureView(TextureView&& old) noexcept
@@ -271,7 +291,7 @@ namespace GFX
   TextureView& TextureView::operator=(const TextureView& other)
   {
     if (&other == this) return *this;
-    *this = std::move(*Create(other.createInfo_, other.id_, other.extent));
+    *this = *Create(other.createInfo_, other.id_, other.extent); // invokes move assignment
     return *this;
   }
 
@@ -307,17 +327,28 @@ namespace GFX
 
 
 
-  std::optional<TextureSampler> TextureSampler::Create(const SamplerState& state)
+  std::optional<TextureSampler> TextureSampler::Create(const SamplerState& state, const std::string_view name)
   {
     TextureSampler sampler;
     glCreateSamplers(1, &sampler.id_);
     sampler.SetState(state, true);
+    if (!name.empty())
+    {
+      glObjectLabel(GL_SAMPLER, sampler.id_, name.length(), name.data());
+    }
     return sampler;
   }
 
   TextureSampler::TextureSampler(const TextureSampler& other)
   {
-    *this = std::move(*Create(other.samplerState_));
+    char name[MAX_NAME_LEN]{};
+    GLsizei len{};
+    glGetObjectLabel(GL_SAMPLER, other.id_, MAX_NAME_LEN, &len, name);
+    *this = other;
+    if (len > 0)
+    {
+      glObjectLabel(GL_SAMPLER, id_, len, name);
+    }
   }
 
   TextureSampler::TextureSampler(TextureSampler&& old) noexcept
@@ -328,7 +359,7 @@ namespace GFX
   TextureSampler& TextureSampler::operator=(const TextureSampler& other)
   {
     if (&other == this) return *this;
-    SetState(other.samplerState_);
+    *this = *Create(other.samplerState_); // invokes move assignment
     return *this;
   }
 

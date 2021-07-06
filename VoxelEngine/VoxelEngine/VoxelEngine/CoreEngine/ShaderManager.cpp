@@ -1,5 +1,5 @@
 #include "PCH.h"
-#include <GL/glew.h>
+#include <glad/glad.h>
 #include <shaderc/shaderc.hpp>
 #include "ShaderManager.h"
 #include <unordered_map>
@@ -37,7 +37,7 @@ namespace GFX
   struct ShaderData
   {
     std::unordered_map<uint32_t, uint32_t> uniformIDs;
-    uint32_t id;
+    uint32_t id{};
   };
 
   static std::string loadFile(std::string_view path)

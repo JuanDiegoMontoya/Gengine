@@ -11,6 +11,9 @@
 #include <CoreEngine/Texture2D.h>
 #include <CoreEngine/TextureArray.h>
 #include <CoreEngine/MeshUtils.h>
+#include <CoreEngine/TextureLoader.h>
+
+#include <filesystem>
 
 #include <imgui/imgui.h>
 
@@ -72,12 +75,35 @@ namespace Voxels
     std::vector<std::string> texs;
     for (const auto& prop : Block::PropertiesTable)
     {
-      texs.push_back(std::string(prop.name) + ".png");
+      std::string path = std::string(prop.name) + ".png";
+      std::string realPath = std::string(TextureDir) + std::string(path);
+      bool hasTex = std::filesystem::exists(realPath);
+      if (!hasTex)
+      {
+        printf("Texture %s does not exist, using fallback.", path.c_str());
+        path = "error.png";
+      }
+      texs.push_back(path);
     }
+    std::vector<std::string_view> texsView(texs.begin(), texs.end());
     //std::span texSpan(texs.data(), texs.size());
-    textures = std::make_unique<GFX::TextureArray>(std::span(texs.data(), texs.size()), glm::ivec2(32));
+    //textures = std::make_unique<GFX::TextureArray>(std::span(texs.data(), texs.size()), glm::ivec2(32));
+    blockTextures = GFX::LoadTexture2DArray(texsView);
+    auto texturesInfo = blockTextures->CreateInfo();
 
-    blueNoise64 = std::make_unique<GFX::Texture2D>("BlueNoise/64_64/LDR_LLL1_0.png");
+    blockTexturesView = GFX::TextureView::Create(*blockTextures);
+
+    GFX::SamplerState ss;
+    ss.asBitField.magFilter = GFX::Filter::NEAREST;
+    ss.asBitField.minFilter = GFX::Filter::LINEAR;
+    ss.asBitField.mipmapFilter = GFX::Filter::LINEAR;
+    ss.asBitField.anisotropy = GFX::Anisotropy::SAMPLES_16;
+    blockTexturesSampler = GFX::TextureSampler::Create(ss);
+
+    blueNoiseTexture = GFX::LoadTexture2D("BlueNoise/64_64/LDR_LLL1_0.png", GFX::Format::R8G8B8A8_UNORM);
+    blueNoiseView = GFX::TextureView::Create(*blueNoiseTexture);
+    blueNoiseSampler = GFX::TextureSampler::Create(GFX::SamplerState{});
+    //blueNoise64 = std::make_unique<GFX::Texture2D>("BlueNoise/64_64/LDR_LLL1_0.png");
     //blueNoise64 = std::make_unique<Texture2D>("BlueNoise/256_256/LDR_LLL1_0.png");
 
   }
@@ -130,7 +156,7 @@ namespace Voxels
     drawCountGPU->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(2);
 
     {
-      int numBlocks = (allocs.size() + blockSize - 1) / blockSize;
+      int numBlocks = (allocs.size() + groupSize - 1) / groupSize;
       glDispatchCompute(numBlocks, 1, 1);
       glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT); // make SSBO writes visible to subsequent execution
     }
@@ -200,19 +226,16 @@ namespace Voxels
     //currShader->setMat4("u_viewProj", cam->GetProj() * cam->GetView());
     currShader->SetMat4("u_viewProj", CameraSystem::GetProj() * CameraSystem::GetView());
 
-    textures->Bind(0);
-    currShader->SetInt("textures", 0);
-    static bool filter = true;
-    static float anisotropic = 1.0f;
-    ImGui::Checkbox("Filter textures", &filter);
-    ImGui::SliderFloat("Anisotrpic", &anisotropic, 1.0f, 16.0f);
-    glTextureParameteri(textures->ID(), GL_TEXTURE_MIN_FILTER, filter ? GL_LINEAR_MIPMAP_LINEAR : GL_NEAREST);
-    glTextureParameteri(textures->ID(), GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTextureParameterf(textures->ID(), GL_TEXTURE_MAX_ANISOTROPY, anisotropic);
+    //textures->Bind(0);
+    //currShader->SetInt("textures", 0);
+    //static bool filter = true;
+    //static float anisotropic = 1.0f;
+    //ImGui::Checkbox("Filter textures", &filter);
+    //ImGui::SliderFloat("Anisotrpic", &anisotropic, 1.0f, 16.0f);
+    //glTextureParameteri(textures->ID(), GL_TEXTURE_MIN_FILTER, filter ? GL_LINEAR_MIPMAP_LINEAR : GL_NEAREST);
+    //glTextureParameteri(textures->ID(), GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    //glTextureParameterf(textures->ID(), GL_TEXTURE_MAX_ANISOTROPY, anisotropic);
 
-
-    blueNoise64->Bind(1);
-    currShader->SetInt("blueNoise", 1);
 
     RenderVisible();
     GenerateDIB();
@@ -232,7 +255,11 @@ namespace Voxels
     glBindVertexArray(vao);
     dib->Bind<GFX::Target::DRAW_INDIRECT_BUFFER>();
     drawCountGPU->Bind<GFX::Target::PARAMETER_BUFFER>();
+    blockTexturesView->Bind(0, *blockTexturesSampler);
+    blueNoiseView->Bind(1, *blueNoiseSampler);
     glMultiDrawArraysIndirectCount(GL_TRIANGLES, (void*)0, (GLintptr)0, activeAllocs, 0);
+    blueNoiseView->Unbind(1);
+    blockTexturesView->Unbind(0);
   }
 
   void ChunkRenderer::GenerateDIB()

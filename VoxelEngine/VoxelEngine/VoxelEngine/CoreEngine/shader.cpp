@@ -1,6 +1,6 @@
 #include "PCH.h"
 #include "Shader.h"
-#include <GL/glew.h>
+#include <glad/glad.h>
 #include <glm/gtc/type_ptr.hpp>
 
 namespace GFX

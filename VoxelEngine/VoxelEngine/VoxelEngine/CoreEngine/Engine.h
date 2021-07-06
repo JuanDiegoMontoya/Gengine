@@ -27,11 +27,15 @@ public:
   bool IsPaused() const { return paused_; }
   void Stop() { running_ = false; }
 
+  void SetTimescale(float ts) { timescale_ = ts; }
+  float GetTimescale() const { return timescale_; }
+
 private:
   friend class Application;
   Engine();
 
   float dt_{};
+  float timescale_{ 1.0f };
   std::vector<std::unique_ptr<Scene>> scenes_;
   Scene* activeScene_ = nullptr;
 

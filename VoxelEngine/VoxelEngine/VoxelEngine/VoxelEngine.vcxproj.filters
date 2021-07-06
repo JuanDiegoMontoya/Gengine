@@ -38,6 +38,9 @@
     <Filter Include="CoreEngine\ECS\Systems">
       <UniqueIdentifier>{a424d2fa-a058-426a-b560-cefda8ce9e5a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="3rd Party\glad">
+      <UniqueIdentifier>{e5d6c160-ebae-4986-93af-6157a5ecd416}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Voxels\prefab.h">
@@ -334,6 +337,12 @@
     <ClInclude Include="CoreEngine\ShaderManager.h">
       <Filter>CoreEngine\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="3rdParty\glad\include\glad\glad.h">
+      <Filter>3rd Party\glad</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\glad\include\KHR\khrplatform.h">
+      <Filter>3rd Party\glad</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Voxels\prefab.cpp">
@@ -539,6 +548,9 @@
     </ClCompile>
     <ClCompile Include="CoreEngine\ShaderManager.cpp">
       <Filter>CoreEngine\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\glad\src\glad.c">
+      <Filter>3rd Party\glad</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

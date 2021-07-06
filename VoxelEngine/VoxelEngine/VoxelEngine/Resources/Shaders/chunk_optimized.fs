@@ -13,14 +13,13 @@ layout (location = 5) in float vAmbientOcclusion;
 
 layout (location = 1) uniform vec3 viewPos;   // world space
 layout (location = 2) uniform float sunAngle; // cos sun angle to normal of horizon, 0-1
-layout (location = 3) uniform sampler2D textureAtlas;
 
 layout (location = 4) uniform float fogStart; // world space
 layout (location = 5) uniform float fogEnd;   // world space
 layout (location = 6) uniform vec3 fogColor;
 
-layout (location = 7) uniform sampler2DArray textures;
-layout (location = 8) uniform sampler2D blueNoise;
+layout (location = 7, binding = 0) uniform sampler2DArray textures;
+layout (location = 8, binding = 1) uniform sampler2D blueNoise;
 
 layout (location = 9) uniform float u_ambientOcclusionStrength = 0.5;
 
