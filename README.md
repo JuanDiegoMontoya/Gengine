@@ -1,11 +1,10 @@
 # Gengine (Game Engine)
-Gallery at the bottom!  
-A code-oriented game engine designed to be efficient, extensible, and simple to use. It is being developed with the goal of making a specific game, so some features may be missing or lacking. 
+A code-oriented game engine designed to be efficient, extensible, and simple to use (not necessarily in that order). It is being developed with the goal of making a specific game, so some features may be missing or lacking.
 
 ## Features
 - Voxel engine (see [the Voxel Engine repo](https://github.com/JuanDiegoMontoya/3D_Voxel_Engine) for more detail)
 - Batch renderer
-- ECS
+- ECS using EnTT
 - Entity scripting
 - Entity transformation hierarchy
 - Model loading
@@ -21,20 +20,24 @@ A code-oriented game engine designed to be efficient, extensible, and simple to 
 - Extend physics API with collision callbacks, filtering, etc.
 - More graphical features like skeletal animation, better transparency, etc.
 - ECS improvements based on gameplay needs
+- General code cleanup and better dependency management
 
 ## Dependencies
 - assimp
 - cereal
 - Dear ImGui
-- entt
+- EnTT
 - FastNoise2
-- glew
+- glad
 - glfw
 - glm
 - PhysX
 - shaderc
 - stb_image
 - zlib
+
+## License
+A suitable license is yet to be chosen.
 
 ## Gallery
 ### Animated (click to view videos)
