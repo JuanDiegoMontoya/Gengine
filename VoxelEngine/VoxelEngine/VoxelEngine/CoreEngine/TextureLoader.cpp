@@ -6,7 +6,6 @@
 
 namespace GFX
 {
-
   namespace
   {
     enum class TypeWidth : uint8_t
@@ -15,7 +14,7 @@ namespace GFX
       SHORT,
       WORD,
     };
-
+    
     TypeWidth GetUploadTypeWidth(UploadType type)
     {
       ASSERT(type != UploadType::UNDEFINED);
@@ -48,9 +47,7 @@ namespace GFX
         break;
       }
 
-      ASSERT(0);
-      return TypeWidth::WORD;
-      // UNREACHABLE
+      UNREACHABLE;
     }
 
     struct TextureData

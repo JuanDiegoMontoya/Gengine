@@ -43,7 +43,7 @@ namespace GFX
     bool operator==(const StaticBuffer&) const = default;
 
     // updates a subset of the buffer's data store
-    void SubData(const void* data, GLuint size, GLuint offset = 0);
+    void SubData(const void* data, size_t size, size_t offset = 0);
 
     // for binding everything EXCEPT SSBOs and UBOs
     template<Target T>

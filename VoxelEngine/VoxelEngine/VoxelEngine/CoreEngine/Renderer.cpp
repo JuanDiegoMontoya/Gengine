@@ -243,7 +243,7 @@ void Renderer::Init()
   std::vector<int> zeros(NUM_BUCKETS, 0);
   //floatBufferIn = std::make_unique<GFX::StaticBuffer>(zeros.data(), pow2Size * sizeof(float), GFX::BufferFlag::CLIENT_STORAGE | GFX::BufferFlag::DYNAMIC_STORAGE);
   //floatBufferOut = std::make_unique<GFX::StaticBuffer>(zeros.data(), pow2Size * sizeof(float), GFX::BufferFlag::CLIENT_STORAGE);
-  exposureBuffer = std::make_unique<GFX::StaticBuffer>(&exposure, 2 * sizeof(float));
+  exposureBuffer = std::make_unique<GFX::StaticBuffer>(zeros.data(), 2 * sizeof(float));
   histogramBuffer = std::make_unique<GFX::StaticBuffer>(zeros.data(), NUM_BUCKETS * sizeof(int));
 
   glEnable(GL_DEBUG_OUTPUT);
@@ -539,7 +539,7 @@ void Renderer::EndFrame(float dt)
       auto cshdr = GFX::ShaderManager::Get()->GetShader("calc_exposure");
       cshdr->Bind();
       //cshdr->setFloat("u_targetLuminance", targetLuminance);
-      cshdr->SetFloat("u_dt", dt);
+      cshdr->SetFloat("u_dt", glm::clamp(dt, 0.001f, 1.0f));
       cshdr->SetFloat("u_adjustmentSpeed", adjustmentSpeed);
       cshdr->SetFloat("u_logLowLum", logLowLum);
       cshdr->SetFloat("u_logMaxLum", logMaxLum);

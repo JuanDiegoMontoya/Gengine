@@ -64,9 +64,9 @@ namespace GFX
     glDeleteBuffers(1, &rendererID_);
   }
 
-  void StaticBuffer::SubData(const void* data, GLuint size, GLuint offset)
+  void StaticBuffer::SubData(const void* data, size_t size, size_t offset)
   {
-    glNamedBufferSubData(rendererID_, offset, size, data);
+    glNamedBufferSubData(rendererID_, static_cast<GLuint>(offset), static_cast<GLuint>(size), data);
   }
 
   void* StaticBuffer::Map()

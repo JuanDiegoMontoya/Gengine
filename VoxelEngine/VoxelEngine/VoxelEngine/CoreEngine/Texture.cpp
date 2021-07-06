@@ -450,7 +450,7 @@ namespace GFX
         break;
       }
       default:
-        // unreachable
+        UNREACHABLE;
         break;
       }
     }
