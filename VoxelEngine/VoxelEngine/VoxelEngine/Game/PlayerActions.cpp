@@ -16,6 +16,7 @@
 #include <CoreEngine/Components/Rendering.h>
 #include <CoreEngine/Components/Core.h>
 #include <glm/gtc/type_ptr.hpp>
+#include <CoreEngine/TextureManager.h>
 
 #include "KinematicPlayerController.h"
 
@@ -64,7 +65,7 @@ void PlayerActions::OnUpdate(float dt)
 
     {
       Component::ParticleEmitter emitter{};
-      emitter.handle = ParticleManager::Get().MakeParticleEmitter(1500, "smoke.png");
+      emitter.handle = ParticleManager::Get().MakeParticleEmitter(1500, "smoke");
       emitter.data.minLife = 1.0f;
       emitter.data.maxLife = 2.0f;
       emitter.data.interval = .001;
@@ -87,7 +88,7 @@ void PlayerActions::OnUpdate(float dt)
     child.AddComponent<Component::LocalTransform>();
     {
       Component::ParticleEmitter emitter2{};
-      emitter2.handle = ParticleManager::Get().MakeParticleEmitter(3500, "smoke.png");
+      emitter2.handle = ParticleManager::Get().MakeParticleEmitter(3500, "smoke");
       emitter2.data.minLife = 3.0f;
       emitter2.data.maxLife = 4.0f;
       emitter2.data.interval = .001;
@@ -115,7 +116,7 @@ void PlayerActions::OnUpdate(float dt)
     ent.AddComponent<Component::DynamicPhysics>(std::move(phys));
 
     Component::ParticleEmitter emitter{};
-    emitter.handle = ParticleManager::Get().MakeParticleEmitter(maxParticles, "smoke.png");
+    emitter.handle = ParticleManager::Get().MakeParticleEmitter(maxParticles, "smoke");
     emitter.data.minLife = minLife;
     emitter.data.maxLife = maxLife;
     emitter.data.interval = interval;

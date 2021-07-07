@@ -5,9 +5,7 @@
 
 #include "ShaderManager.h"
 #include "Camera.h"
-#include "Texture2D.h"
 #include "Mesh.h"
-#include "TextureCube.h"
 #include "DebugMarker.h"
 
 #include "ParticleSystem.h"

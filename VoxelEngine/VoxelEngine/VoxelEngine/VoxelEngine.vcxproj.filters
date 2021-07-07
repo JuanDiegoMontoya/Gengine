@@ -73,9 +73,6 @@
     <ClInclude Include="CoreEngine\DebugSystem.h">
       <Filter>CoreEngine\ECS\Systems</Filter>
     </ClInclude>
-    <ClInclude Include="CoreEngine\Texture2D.h">
-      <Filter>CoreEngine\Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="CoreEngine\Renderer.h">
       <Filter>CoreEngine\Graphics</Filter>
     </ClInclude>
@@ -163,9 +160,6 @@
     <ClInclude Include="CoreEngine\StaticBuffer.h">
       <Filter>CoreEngine\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="CoreEngine\TextureArray.h">
-      <Filter>CoreEngine\Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="CoreEngine\Vertices.h">
       <Filter>CoreEngine\Graphics</Filter>
     </ClInclude>
@@ -240,9 +234,6 @@
     </ClInclude>
     <ClInclude Include="CoreEngine\ParticleSystem.h">
       <Filter>CoreEngine\ECS\Systems</Filter>
-    </ClInclude>
-    <ClInclude Include="CoreEngine\TextureCube.h">
-      <Filter>CoreEngine\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="3rdParty\ctpl_stl.h">
       <Filter>3rd Party</Filter>
@@ -390,9 +381,6 @@
     <ClCompile Include="CoreEngine\DebugSystem.cpp">
       <Filter>CoreEngine\ECS\Systems</Filter>
     </ClCompile>
-    <ClCompile Include="CoreEngine\Texture2D.cpp">
-      <Filter>CoreEngine\Graphics</Filter>
-    </ClCompile>
     <ClCompile Include="CoreEngine\Renderer.cpp">
       <Filter>CoreEngine\Graphics</Filter>
     </ClCompile>
@@ -459,9 +447,6 @@
     <ClCompile Include="CoreEngine\stbiImpl.cpp">
       <Filter>CoreEngine\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="CoreEngine\TextureArray.cpp">
-      <Filter>CoreEngine\Graphics</Filter>
-    </ClCompile>
     <ClCompile Include="CoreEngine\Shader.cpp">
       <Filter>CoreEngine\Graphics</Filter>
     </ClCompile>
@@ -485,9 +470,6 @@
     </ClCompile>
     <ClCompile Include="Game\PlayerActions.cpp">
       <Filter>Game</Filter>
-    </ClCompile>
-    <ClCompile Include="CoreEngine\TextureCube.cpp">
-      <Filter>CoreEngine\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="CoreEngine\PCH.cpp">
       <Filter>CoreEngine</Filter>

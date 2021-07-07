@@ -8,8 +8,6 @@
 #include <execution>
 #include <CoreEngine/ShaderManager.h>
 #include <CoreEngine/Vertices.h>
-#include <CoreEngine/Texture2D.h>
-#include <CoreEngine/TextureArray.h>
 #include <CoreEngine/MeshUtils.h>
 #include <CoreEngine/TextureLoader.h>
 #include <CoreEngine/DebugMarker.h>

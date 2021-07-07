@@ -1,4 +1,6 @@
 #pragma once
+#include "Texture.h"
+#include <Utilities/HashedString.h>
 
 class Scene;
 struct ParticleManagerData;
@@ -13,7 +15,8 @@ class ParticleManager
 {
 public:
   static ParticleManager& Get();
-  uint64_t MakeParticleEmitter(uint32_t maxp, const char* tex);
+  [[nodiscard]] uint64_t MakeParticleEmitter(uint32_t maxp, hashed_string textureName);
+  [[nodiscard]] uint64_t MakeParticleEmitter(uint32_t maxp, const GFX::TextureView& texView, const GFX::TextureSampler& sampler);
   void DestroyParticleEmitter(uint64_t handle);
 
 private:

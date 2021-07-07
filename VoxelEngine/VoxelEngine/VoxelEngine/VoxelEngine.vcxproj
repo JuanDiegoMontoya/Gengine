@@ -69,7 +69,6 @@
     <ClInclude Include="CoreEngine\ParticleSystem.h" />
     <ClInclude Include="CoreEngine\ShaderManager.h" />
     <ClInclude Include="CoreEngine\Texture.h" />
-    <ClInclude Include="CoreEngine\TextureCube.h" />
     <ClInclude Include="CoreEngine\TextureLoader.h" />
     <ClInclude Include="CoreEngine\TextureManager.h" />
     <ClInclude Include="CoreEngine\utilities.h" />
@@ -82,8 +81,6 @@
     <ClInclude Include="CoreEngine\Shader.h" />
     <ClInclude Include="CoreEngine\Shapes.h" />
     <ClInclude Include="CoreEngine\StaticBuffer.h" />
-    <ClInclude Include="CoreEngine\Texture2D.h" />
-    <ClInclude Include="CoreEngine\TextureArray.h" />
     <ClInclude Include="CoreEngine\Vertices.h" />
     <ClInclude Include="Game\FlyingPlayerController.h" />
     <ClInclude Include="Game\GameManager.h" />
@@ -399,32 +396,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PCH.h</PrecompiledHeaderFile>
     </ClCompile>
-    <ClCompile Include="CoreEngine\Texture2D.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PCH.h</PrecompiledHeaderFile>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnginePCH.h</PrecompiledHeaderFile>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">EnginePCH.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PCH.h</PrecompiledHeaderFile>
-    </ClCompile>
-    <ClCompile Include="CoreEngine\TextureArray.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PCH.h</PrecompiledHeaderFile>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnginePCH.h</PrecompiledHeaderFile>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">EnginePCH.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PCH.h</PrecompiledHeaderFile>
-    </ClCompile>
-    <ClCompile Include="CoreEngine\TextureCube.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PCH.h</PrecompiledHeaderFile>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PCH.h</PrecompiledHeaderFile>
-    </ClCompile>
     <ClCompile Include="CoreEngine\TextureLoader.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
@@ -617,6 +588,8 @@
     <LibraryPath>$(ProjectDir)3rdParty\assimp-3.3.1\lib\x64;$(ProjectDir)3rdParty\glfw-3.3-win64\lib-vc2019;$(ProjectDir)3rdParty\shaderc\lib;$(ProjectDir)3rdParty\zlib-1.2.11\zlib123dllx64\static_x64;$(ProjectDir)3rdParty\PhysX\bin\x64\debug;$(ProjectDir)3rdParty\FastNoise2\bin\Debug;$(LibraryPath)</LibraryPath>
     <RunCodeAnalysis>true</RunCodeAnalysis>
     <ExternalIncludePath>$(ProjectDir)3rdParty;$(ProjectDir)3rdParty\PhysX\include;$(ProjectDir)3rdParty\PhysX\sharedinclude;$(ProjectDir)3rdParty\assimp-3.3.1\include;$(ProjectDir)3rdParty\shaderc\include;$(ProjectDir)3rdParty\entt\src;$(ProjectDir)3rdParty\stb;$(ProjectDir)3rdParty\glfw-3.3-win64\include;$(ProjectDir)3rdParty\cereal-1.2.2\include;$(ProjectDir)3rdParty\zlib-1.2.11;$(ProjectDir)3rdParty\glad\include;$(ProjectDir)3rdParty\FastNoise2\include;$(ExternalIncludePath)</ExternalIncludePath>
+    <OutDir>$(ProjectDir)\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(ProjectDir)\temp\$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -636,6 +609,8 @@
     <LibraryPath>$(ProjectDir)3rdParty\assimp-3.3.1\lib\x64;$(ProjectDir)3rdParty\glfw-3.3-win64\lib-vc2019;$(ProjectDir)3rdParty\shaderc\lib;$(ProjectDir)3rdParty\zlib-1.2.11\zlib123dllx64\static_x64;$(ProjectDir)3rdParty\PhysX\bin\x64\debug;$(ProjectDir)3rdParty\FastNoise2\bin\Release;$(LibraryPath)</LibraryPath>
     <RunCodeAnalysis>true</RunCodeAnalysis>
     <ExternalIncludePath>$(ProjectDir)3rdParty;$(ProjectDir)3rdParty\PhysX\include;$(ProjectDir)3rdParty\PhysX\sharedinclude;$(ProjectDir)3rdParty\assimp-3.3.1\include;$(ProjectDir)3rdParty\shaderc\include;$(ProjectDir)3rdParty\entt\src;$(ProjectDir)3rdParty\stb;$(ProjectDir)3rdParty\glfw-3.3-win64\include;$(ProjectDir)3rdParty\cereal-1.2.2\include;$(ProjectDir)3rdParty\zlib-1.2.11;$(ProjectDir)3rdParty\glad\include;$(ProjectDir)3rdParty\FastNoise2\include;$(ExternalIncludePath)</ExternalIncludePath>
+    <OutDir>$(ProjectDir)\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(ProjectDir)\temp\$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

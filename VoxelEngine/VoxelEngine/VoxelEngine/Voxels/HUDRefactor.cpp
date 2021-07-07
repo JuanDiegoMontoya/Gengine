@@ -4,7 +4,6 @@
 #include <CoreEngine/Camera.h>
 #include <CoreEngine/ShaderManager.h>
 #include <CoreEngine/Renderer.h>
-#include <CoreEngine/TextureArray.h>
 #include <imgui/imgui.h>
 
 

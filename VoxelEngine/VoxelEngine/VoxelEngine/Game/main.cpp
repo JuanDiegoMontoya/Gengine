@@ -19,7 +19,6 @@
 #include <CoreEngine/Renderer.h>
 #include <CoreEngine/Camera.h>
 #include <Voxels/prefab.h>
-#include <CoreEngine/TextureCube.h>
 #include <CoreEngine/ParticleSystem.h>
 
 #include <iostream>
@@ -90,7 +89,8 @@ void OnStart(Scene* scene)
     gameManager.AddComponent<Component::NativeScriptComponent>().Bind<GameManager>();
   }
 
-  std::cout << "User function, initial scene name: " << scene->GetName() << '\n';
+  GFX::TextureManager::Get()->AddTexture("smoke", *GFX::LoadTexture2D("smoke.png"));
+  GFX::TextureManager::Get()->AddTexture("stone", *GFX::LoadTexture2D("stone.png"));
 
 
   //const std::vector<std::string> faces =
@@ -165,10 +165,10 @@ void OnStart(Scene* scene)
     //auto notbatch = MeshManager::CreateMesh("./Resources/Models/sphere.obj", l, o)[0];
 
     std::vector<MeshID> meshes;
-    meshes.push_back(MeshManager::CreateMeshBatched("./Resources/Models/big_cube.obj", "big_cube"));
-    meshes.push_back(MeshManager::CreateMeshBatched("./Resources/Models/bunny.obj", "bunny"));
-    meshes.push_back(MeshManager::CreateMeshBatched("./Resources/Models/goodSphere.obj", "sphere"));
-    meshes.push_back(MeshManager::CreateMeshBatched("./Resources/Models/teapot.obj", "teapot"));
+    meshes.push_back(MeshManager::CreateMeshBatched(std::string(ModelDir) + "big_cube.obj", "big_cube"));
+    meshes.push_back(MeshManager::CreateMeshBatched(std::string(ModelDir) + "bunny.obj", "bunny"));
+    meshes.push_back(MeshManager::CreateMeshBatched(std::string(ModelDir) + "goodSphere.obj", "sphere"));
+    meshes.push_back(MeshManager::CreateMeshBatched(std::string(ModelDir) + "teapot.obj", "teapot"));
 
     if (0) // creating a really tall parenting chain of objects
     {
@@ -308,7 +308,7 @@ void OnStart(Scene* scene)
       entity.AddComponent<Component::Material>().handle = batchMaterial;
       //entity.AddComponent<Components::NativeScriptComponent>().Bind<TestObj>();
       Component::ParticleEmitter emitter;
-      emitter.handle = ParticleManager::Get().MakeParticleEmitter(150, "stone.png");
+      emitter.handle = ParticleManager::Get().MakeParticleEmitter(150, "stone");
 #if 1
       emitter.data.minLife = 1.0f;
       emitter.data.maxLife = 2.0f;

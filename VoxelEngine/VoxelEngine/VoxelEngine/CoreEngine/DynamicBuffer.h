@@ -39,7 +39,7 @@ namespace GFX
     uint32_t GetGPUHandle() { return buffer->GetID(); }
 
     // compare return values of this func to see if the state has change
-    std::pair<uint64_t, GLuint> GetStateInfo() { return { nextHandle, numActiveAllocs_ }; }
+    std::pair<uint64_t, uint32_t> GetStateInfo() { return { nextHandle, numActiveAllocs_ }; }
 
     const size_t align_; // allocation alignment
 

@@ -16,8 +16,8 @@
 #include "Components/ParticleEmitter.h"
 #include "Components/Transform.h"
 #include "StaticBuffer.h"
-#include "Texture2D.h"
 #include "DebugMarker.h"
+#include "TextureManager.h"
 
 namespace
 {
@@ -68,7 +68,8 @@ struct InternalEmitterData
   std::unique_ptr<GFX::StaticBuffer> freeStackBuffer{};
   std::unique_ptr<GFX::StaticBuffer> indirectDrawBuffer{};
   std::unique_ptr<GFX::StaticBuffer> indicesBuffer{};
-  std::unique_ptr<GFX::Texture2D> texture{};
+  std::optional<GFX::TextureView> textureView;
+  std::optional<GFX::TextureSampler> textureSampler;
   uint32_t maxParticles{}; // const
   uint32_t numParticles{};
   float timer{ 0.0f };
@@ -214,13 +215,13 @@ void ParticleManager::BindEmitter(uint64_t handle)
 {
   auto& emitterData = data->handleToGPUParticleData_[handle];
 
-  emitterData->texture->Bind(0);
+  emitterData->textureView->Bind(0, *emitterData->textureSampler);
   emitterData->particleBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(0);
   emitterData->indicesBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(1);
   emitterData->indirectDrawBuffer->Bind<GFX::Target::DRAW_INDIRECT_BUFFER>();
 }
 
-uint64_t ParticleManager::MakeParticleEmitter(uint32_t maxp, const char* tex)
+uint64_t ParticleManager::MakeParticleEmitter(uint32_t maxp, const GFX::TextureView& texView, const GFX::TextureSampler& sampler)
 {
   uint64_t newHandle = ++data->curHandle_;
 
@@ -251,9 +252,23 @@ uint64_t ParticleManager::MakeParticleEmitter(uint32_t maxp, const char* tex)
   newEmitter->indirectDrawBuffer = std::make_unique<GFX::StaticBuffer>(&cmd, sizeof(cmd));
   newEmitter->indicesBuffer = std::make_unique<GFX::StaticBuffer>(nullptr, sizeof(GLuint) * maxp);
 
-  newEmitter->texture = std::make_unique<GFX::Texture2D>(tex);
+  newEmitter->textureView = texView;
+  newEmitter->textureSampler = sampler;
 
   return newHandle;
+}
+
+uint64_t ParticleManager::MakeParticleEmitter(uint32_t maxp, hashed_string textureName)
+{
+  GFX::Texture* texture = GFX::TextureManager::Get()->GetTexture(textureName);
+  if (!texture)
+  {
+    return 0;
+  }
+
+  return MakeParticleEmitter(maxp,
+    *GFX::TextureView::Create(*texture),
+    *GFX::TextureSampler::Create(GFX::SamplerState{}));
 }
 
 void ParticleManager::DestroyParticleEmitter(uint64_t handle)
