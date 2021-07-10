@@ -24,7 +24,6 @@ public:
 
   virtual void OnUpdate(float dt) override
   {
-    auto& cam = *CameraSystem::ActiveCamera;
     const auto& transform = GetComponent<Component::Transform>();
     CameraSystem::SetPos(transform.GetTranslation()); // TODO: TEMP BULLSHIT
     auto& physics = GetComponent<Component::DynamicPhysics>();

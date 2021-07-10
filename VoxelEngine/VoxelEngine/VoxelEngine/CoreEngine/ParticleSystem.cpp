@@ -81,7 +81,7 @@ struct ParticleManagerData
   std::unordered_map<uint64_t, std::unique_ptr<InternalEmitterData>> handleToGPUParticleData_;
 };
 
-static void OnEmitterConstruct(entt::basic_registry<entt::entity>& registry, entt::entity entity)
+static void OnEmitterConstruct([[maybe_unused]] entt::basic_registry<entt::entity>& registry, entt::entity entity)
 {
   printf("Constructed particle emitter on entity %d\n", entity);
 }

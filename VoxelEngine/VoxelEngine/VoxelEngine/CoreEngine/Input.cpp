@@ -315,12 +315,12 @@ float Input::GetInputAxis(hashed_string action)
 void Input::SetCursorVisible(bool state)
 {
   if (state)
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
   else
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 }
 
 bool Input::GetCursorVisible()
 {
-  return glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_NORMAL;
+  return glfwGetInputMode(window_, GLFW_CURSOR) == GLFW_CURSOR_NORMAL;
 }

@@ -19,7 +19,7 @@
 #include <iostream>
 #include "CVar.h"
 
-void vsyncCallback(const char* cvar, cvar_float val)
+void vsyncCallback([[maybe_unused]] const char* cvar, cvar_float val)
 {
   glfwSwapInterval(val != 0); // 0 == no vsync, 1 == vsync
 }
@@ -31,7 +31,7 @@ GLerrorCB(GLenum source,
   GLenum type,
   GLuint id,
   GLenum severity,
-  GLsizei length,
+  [[maybe_unused]] GLsizei length,
   const GLchar* message,
   [[maybe_unused]] const void* userParam)
 {
@@ -205,7 +205,7 @@ void Renderer::BeginRenderParticleEmitter()
   //glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 }
 
-void Renderer::RenderParticleEmitter(const Component::ParticleEmitter& emitter, const Component::Transform& model)
+void Renderer::RenderParticleEmitter(const Component::ParticleEmitter& emitter, [[maybe_unused]] const Component::Transform& model)
 {
   auto shader = GFX::ShaderManager::Get()->GetShader("particle");
 

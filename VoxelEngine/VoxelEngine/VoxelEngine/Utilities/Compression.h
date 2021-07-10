@@ -35,7 +35,7 @@ namespace Compression
     uint64_t compressedSize = uncompressedSize * 1.1 + 12; // zlib-recommended size increase
     auto compressedTemp = std::make_unique<std::byte[]>(compressedSize);
     
-    int z_result = compress(
+    [[maybe_unused]] int z_result = compress(
       (Byte*)compressedTemp.get(),
       (uLong*)&compressedSize,
       (Byte*)array.data(),

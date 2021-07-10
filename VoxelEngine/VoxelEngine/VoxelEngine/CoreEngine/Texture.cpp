@@ -237,7 +237,7 @@ namespace GFX
 
   std::optional<TextureView> TextureView::Create(const TextureViewCreateInfo& createInfo, const Texture& texture, const std::string_view name)
   {
-    return Create(createInfo, texture.id_, texture.createInfo_.extent);
+    return Create(createInfo, texture.id_, texture.createInfo_.extent, name);
   }
 
   std::optional<TextureView> TextureView::Create(const Texture& texture, const std::string_view name)

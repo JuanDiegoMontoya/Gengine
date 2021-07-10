@@ -86,7 +86,7 @@ void MeshManager::GenBatchedHandle_GL(hashed_string handle, const std::vector<GL
 //	//handleMap_.erase(handle);
 //}
 
-void MeshManager::LoadMesh(const aiScene* scene, aiMesh* mesh, std::vector<GLuint>& indices, std::vector<Vertex>& vertices)
+void MeshManager::LoadMesh([[maybe_unused]] const aiScene* scene, aiMesh* mesh, std::vector<GLuint>& indices, std::vector<Vertex>& vertices)
 {
 	for (unsigned i = 0; i < mesh->mNumVertices; i++)
 	{

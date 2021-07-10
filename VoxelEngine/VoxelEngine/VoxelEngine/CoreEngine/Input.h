@@ -76,7 +76,7 @@ public:
   static void SetCursorVisible(bool state);
   static bool GetCursorVisible();
 
-  static inline GLFWwindow* window;
+  static inline GLFWwindow* window_;
 
 private:
   static inline glm::vec2 screenPos;

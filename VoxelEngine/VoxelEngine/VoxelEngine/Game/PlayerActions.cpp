@@ -323,7 +323,7 @@ void PlayerActions::checkBlockDestruction(float dt)
       CameraSystem::GetFront(),
       5,
       std::function<bool(glm::vec3, Block, glm::vec3)>
-      ([&](glm::vec3 pos, Block block, glm::vec3 side)->bool
+      ([&](glm::vec3 pos, Block block, [[maybe_unused]] glm::vec3 side)->bool
         {
           if (block.GetType() == BlockType::bAir)
             return false;
@@ -377,7 +377,7 @@ void PlayerActions::checkBlockPick()
       CameraSystem::GetFront(),
       5,
       std::function<bool(glm::vec3, Block, glm::vec3)>
-      ([&](glm::vec3 pos, Block block, glm::vec3 side)->bool
+      ([&]([[maybe_unused]] glm::vec3 pos, Block block, [[maybe_unused]] glm::vec3 side)->bool
         {
           if (block.GetType() == BlockType::bAir)
             return false;

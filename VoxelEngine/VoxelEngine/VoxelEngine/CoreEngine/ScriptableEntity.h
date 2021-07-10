@@ -36,7 +36,7 @@ public:
 protected:
 	virtual void OnCreate() {}
 	virtual void OnDestroy() {}
-	virtual void OnUpdate(float dt) {}
+	virtual void OnUpdate([[maybe_unused]] float dt) {}
 
 private:
 	Entity entity_;

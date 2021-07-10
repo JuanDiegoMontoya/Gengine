@@ -90,7 +90,7 @@ void GraphicsSystem::DrawOpaque(Scene& scene, float dt)
   }
 }
 
-void GraphicsSystem::DrawTransparent(Scene& scene, float dt)
+void GraphicsSystem::DrawTransparent(Scene& scene, [[maybe_unused]] float dt)
 {
   const auto& camList = CameraSystem::GetCameraList();
   for (Component::Camera* camera : camList)

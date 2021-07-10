@@ -46,11 +46,11 @@ namespace Voxels
     void RemoveEmptyPaletteData(const T& emptyVal)
     {
       // get indices of empty entries in palettes
-      int indexLen = palette.paletteEntryLength_;
-      int emptyIndex = std::find(palette.palette_.begin(), palette.palette_.end(), emptyVal) - palette.palette_.begin();
+      size_t indexLen = palette.paletteEntryLength_;
+      size_t emptyIndex = std::find(palette.palette_.begin(), palette.palette_.end(), emptyVal) - palette.palette_.begin();
 
       // remove empty entries from palettes and from data
-      const int toRemove = palette.palette_[emptyIndex].refcount;
+      const size_t toRemove = palette.palette_[emptyIndex].refcount;
       palette.palette_.erase(palette.palette_.begin() + emptyIndex);
       auto prevSize = palette.data_.size();
       palette.data_ = palette.data_.FindAll(indexLen, [emptyIndex](auto n) { return n != emptyIndex; });

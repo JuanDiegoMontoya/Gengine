@@ -309,7 +309,7 @@ namespace Voxels
     addQuad(blockPos, block, face, nearChunk, light);
   }
 
-  inline void ChunkMesh::addQuad(const glm::ivec3& lpos, BlockType block, int face, const Chunk* nearChunk, Light light)
+  inline void ChunkMesh::addQuad(const glm::ivec3& lpos, BlockType block, int face, [[maybe_unused]] const Chunk* nearChunk, Light light)
   {
     if (voxelReady_)
     {

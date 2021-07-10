@@ -350,7 +350,7 @@ void OnStart(Scene* scene)
   //}
 }
 
-void OnUpdate(float dt)
+void OnUpdate([[maybe_unused]] float dt)
 {
   if (Input::IsKeyDown(GLFW_KEY_LEFT_SHIFT))
   {
@@ -379,7 +379,7 @@ void OnUpdate(float dt)
   voxelManager->Update();
 }
 
-void OnDraw(float dt)
+void OnDraw([[maybe_unused]] float dt)
 {
   voxelManager->Draw();
   Renderer::DrawAxisIndicator();

@@ -3,6 +3,7 @@
 #include "GAssert.h"
 #include "CVarInternal.h"
 #include <vector>
+#include <charconv>
 
 static std::vector<std::string> split(const char* str)
 {
@@ -182,11 +183,13 @@ CmdAtom CmdParser::NextAtom()
     glm::vec3 vec{};
     for (int i = 0; i < 3; i++)
     {
-      size_t read{};
-      vec[i] = stof_nothrow(tokens[i], &read);
-      if (read != tokens[i].size())
+      //size_t read{};
+      //vec[i] = stof_nothrow(tokens[i], &read);
+      //if (read != tokens[i].size())
+      auto result = std::from_chars(tokens[i].c_str(), tokens[i].c_str() + tokens[i].size(), vec[i]);
+      if (result.ec == std::errc::invalid_argument)
       {
-        return ParseError{ .where = current, .what = "Failed to read float value" };
+        return ParseError{ .where = (size_t)(result.ptr - tokens[i].c_str()), .what = "Failed to read float value" };
       }
     }
     return vec;
@@ -195,5 +198,5 @@ CmdAtom CmdParser::NextAtom()
     return ParseError{ .where = current, .what = "Could not determine type" };
   }
 
-  // unreachable
+  UNREACHABLE;
 }

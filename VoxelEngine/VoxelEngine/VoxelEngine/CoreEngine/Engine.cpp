@@ -47,16 +47,18 @@ Engine::Engine()
       identifier = std::get_if<Identifier>(&atoms[0]);
     }
 
-    const char* desc;
-    if (atoms.empty() ||
+    
+    if (const char* desc;
+      atoms.empty() ||
       !identifier ||
-      !(desc = Console::Get()->GetCommandDesc(identifier->name.c_str())))
+      (desc = Console::Get()->GetCommandDesc(identifier->name.c_str())) == nullptr)
     {
       Console::Get()->Log("Usage: help <convar>");
-      return;
     }
-
-    Console::Get()->Log("%s\n%s", identifier->name, desc);
+    else
+    {
+      Console::Get()->Log("%s\n%s", identifier->name.c_str(), desc);
+    }
   };
 
   Console::Get()->RegisterCommand("exit", "- Exits the engine", exitFunc);

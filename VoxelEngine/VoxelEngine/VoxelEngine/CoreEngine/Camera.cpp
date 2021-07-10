@@ -23,7 +23,7 @@ void CameraSystem::RegisterCamera(Component::Camera* cam)
 	cameraList.push_back(cam);
 }
 
-void CameraSystem::Update(float dt)
+void CameraSystem::Update([[maybe_unused]] float dt)
 {
 	// View Setup
 	worldpos_ = ActiveCamera->GetWorldPos();

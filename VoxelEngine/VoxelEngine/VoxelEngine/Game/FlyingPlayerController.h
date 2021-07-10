@@ -20,7 +20,6 @@ public:
   virtual void OnUpdate(float dt) override
   {
     auto translation = GetComponent<Component::Transform>().GetTranslation();
-    auto& cam = *CameraSystem::ActiveCamera;
 
     float speed = 3.5f;
 

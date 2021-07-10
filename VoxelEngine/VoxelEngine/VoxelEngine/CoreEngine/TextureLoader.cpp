@@ -141,7 +141,7 @@ namespace GFX
   std::optional<Texture> LoadTexture2DArray(std::span<const std::string_view> files,
     uint32_t xSize, uint32_t ySize,
     Format internalFormat,
-    UploadType uploadType)
+    [[maybe_unused]] UploadType uploadType)
   {
     if (files.empty())
     {
@@ -168,9 +168,9 @@ namespace GFX
       int xDim{};
       int yDim{};
       auto* pixels = (float*)stbi_loadf(texPath.c_str(), &xDim, &yDim, nullptr, 4);
-      if (pixels == nullptr || (!infer_x_size && xDim != xSize) || (!infer_y_size && yDim != ySize))
+      if (pixels == nullptr || (!infer_x_size && xDim != static_cast<int>(xSize)) || (!infer_y_size && yDim != static_cast<int>(ySize)))
       {
-        for (auto pixels : texturesCPU) stbi_image_free(pixels);
+        for (auto pixelsLocal : texturesCPU) stbi_image_free(pixelsLocal);
         return std::nullopt;
       }
       if (infer_x_size) xSize = static_cast<uint32_t>(xDim);
@@ -244,9 +244,9 @@ namespace GFX
       int xDim{};
       int yDim{};
       float* pixels = (float*)stbi_loadf(texPath.c_str(), &xDim, &yDim, nullptr, 4);
-      if (pixels == nullptr || (!infer_x_size && xDim != xSize) || (!infer_y_size && yDim != ySize))
+      if (pixels == nullptr || (!infer_x_size && xDim != static_cast<int>(xSize)) || (!infer_y_size && yDim != static_cast<int>(ySize)))
       {
-        for (auto pixels : texturesCPU) stbi_image_free(pixels);
+        for (auto pixelsLocal : texturesCPU) stbi_image_free(pixelsLocal);
         return std::nullopt;
       }
       if (infer_x_size) xSize = static_cast<uint32_t>(xDim);

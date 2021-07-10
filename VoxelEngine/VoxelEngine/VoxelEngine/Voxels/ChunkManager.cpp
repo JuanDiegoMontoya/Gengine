@@ -324,9 +324,9 @@ namespace Voxels
       }
     }
 
-    for (auto chunk : potentiallyModifiedSet)
+    for (auto modifiedChunk : potentiallyModifiedSet)
     {
-      chunk->Unlock();
+      modifiedChunk->Unlock();
     }
 
     return definitelyModifiedSet;
@@ -373,7 +373,7 @@ namespace Voxels
       lightRemovalQueue.pop();
 
       auto plightLocalPos = ChunkHelpers::WorldPosToLocalPos(plight);
-      auto pchunk = voxelManager.GetChunkNoCheck(plightLocalPos.chunk_pos);
+      //auto pchunk = voxelManager.GetChunkNoCheck(plightLocalPos.chunk_pos);
 
       for (const auto& dir : dirs)
       {
@@ -417,17 +417,17 @@ namespace Voxels
       }
     }
 
-    for (auto chunk : potentiallyModifiedSet)
+    for (auto modifiedChunk : potentiallyModifiedSet)
     {
-      chunk->Unlock();
+      modifiedChunk->Unlock();
     }
 
     // re-propogate lights in queue, otherwise we're left with hard edges
     while (!lightReadditionQueue.empty())
     {
-      const auto& [pos, light] = lightReadditionQueue.front();
+      const auto& [pos, nextLight] = lightReadditionQueue.front();
       lightReadditionQueue.pop();
-      std::vector<Chunk*> readdedSet = lightPropagateAdd(pos, light);
+      std::vector<Chunk*> readdedSet = lightPropagateAdd(pos, nextLight);
       definitelyModifiedSet.insert(std::end(definitelyModifiedSet), std::begin(readdedSet), std::end(readdedSet));
     }
 

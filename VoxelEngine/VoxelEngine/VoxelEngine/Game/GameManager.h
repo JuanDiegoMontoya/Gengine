@@ -16,7 +16,7 @@ public:
 
   }
 
-  virtual void OnUpdate(float dt) override
+  virtual void OnUpdate([[maybe_unused]] float dt) override
   {
     if (Input::IsKeyDown(GLFW_KEY_ESCAPE))
       Application::Quit();

@@ -20,8 +20,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="3rdParty\ctpl_stl.h" />
-    <ClInclude Include="3rdParty\FastNoiseSIMD\FastNoiseSIMD.h" />
-    <ClInclude Include="3rdParty\FastNoiseSIMD\FastNoiseSIMD_internal.h" />
     <ClInclude Include="3rdParty\glad\include\glad\glad.h" />
     <ClInclude Include="3rdParty\glad\include\KHR\khrplatform.h" />
     <ClInclude Include="3rdParty\imgui\imconfig.h" />
@@ -118,13 +116,6 @@
     <ClInclude Include="Voxels\World.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="3rdParty\FastNoiseSIMD\FastNoiseSIMD.cpp" />
-    <ClCompile Include="3rdParty\FastNoiseSIMD\FastNoiseSIMD_avx2.cpp" />
-    <ClCompile Include="3rdParty\FastNoiseSIMD\FastNoiseSIMD_avx512.cpp" />
-    <ClCompile Include="3rdParty\FastNoiseSIMD\FastNoiseSIMD_internal.cpp" />
-    <ClCompile Include="3rdParty\FastNoiseSIMD\FastNoiseSIMD_neon.cpp" />
-    <ClCompile Include="3rdParty\FastNoiseSIMD\FastNoiseSIMD_sse2.cpp" />
-    <ClCompile Include="3rdParty\FastNoiseSIMD\FastNoiseSIMD_sse41.cpp" />
     <ClCompile Include="3rdParty\glad\src\glad.c" />
     <ClCompile Include="3rdParty\imgui\imgui.cpp" />
     <ClCompile Include="3rdParty\imgui\imgui_demo.cpp" />
@@ -581,7 +572,6 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>$(ProjectDir);$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
-    <PreBuildEventUseInBuild>false</PreBuildEventUseInBuild>
     <CustomBuildBeforeTargets>
     </CustomBuildBeforeTargets>
     <CustomBuildAfterTargets>PreBuildEvent</CustomBuildAfterTargets>
@@ -602,7 +592,6 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(ProjectDir);$(IncludePath)</IncludePath>
-    <PreBuildEventUseInBuild>false</PreBuildEventUseInBuild>
     <CustomBuildBeforeTargets>
     </CustomBuildBeforeTargets>
     <CustomBuildAfterTargets>PreBuildEvent</CustomBuildAfterTargets>
@@ -643,20 +632,21 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
-      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <Optimization>Disabled</Optimization>
       <TreatWarningAsError>true</TreatWarningAsError>
-      <DisableSpecificWarnings>26451;6297;4267;26812;4305;4312;4244</DisableSpecificWarnings>
+      <DisableSpecificWarnings>26451;6297;4267;26812;4305;4312;4244;4505</DisableSpecificWarnings>
       <PrecompiledHeaderFile>PCH.h</PrecompiledHeaderFile>
       <ExternalWarningLevel>TurnOffAllWarnings</ExternalWarningLevel>
+      <SupportJustMyCode>true</SupportJustMyCode>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -725,21 +715,21 @@ copy "$(ProjectDir)3rdParty\PhysX\bin\x64\debug\PhysXDevice64.dll" "$(TargetDir)
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <FunctionLevelLinking>false</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <Optimization>MaxSpeed</Optimization>
       <TreatWarningAsError>true</TreatWarningAsError>
-      <DisableSpecificWarnings>26451;6297;4267;26812;4305;4312;4244</DisableSpecificWarnings>
+      <DisableSpecificWarnings>26451;6297;4267;26812;4305;4312;4244;4505</DisableSpecificWarnings>
       <PrecompiledHeaderFile>PCH.h</PrecompiledHeaderFile>
       <ExternalWarningLevel>TurnOffAllWarnings</ExternalWarningLevel>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

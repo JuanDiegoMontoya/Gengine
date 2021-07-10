@@ -33,11 +33,7 @@ static void trimStart(std::string& str)
 
 struct CColor
 {
-  union
-  {
-    float val[3];
-    struct { float r, g, b; };
-  };
+  float r{}, g{}, b{};
 };
 
 int TextEditCallback(ImGuiInputTextCallbackData* data, ConsoleStorage* console);
@@ -482,13 +478,13 @@ void Console::ExecuteCommand(const char* cmd)
         switch (params->type)
         {
         case CVarType::FLOAT:
-          Log("Usage: %s <float>\n", params->name);
+          Log("Usage: %s <float>\n", params->name.c_str());
           break;
         case CVarType::STRING:
-          Log("Usage: %s <string>\n", params->name);
+          Log("Usage: %s <string>\n", params->name.c_str());
           break;
         case CVarType::VEC3:
-          Log("Usage: %s <vec3>\n", params->name);
+          Log("Usage: %s <vec3>\n", params->name.c_str());
           break;
         }
       }

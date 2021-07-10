@@ -18,7 +18,7 @@ public:
 
   }
 
-  virtual void OnUpdate(float dt) override
+  virtual void OnUpdate([[maybe_unused]] float dt) override
   {
     // make a new physics entity
     if (Input::IsKeyPressed(GLFW_KEY_B))

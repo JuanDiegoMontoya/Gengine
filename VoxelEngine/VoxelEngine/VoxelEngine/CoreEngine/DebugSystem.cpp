@@ -18,7 +18,7 @@ void DebugSystem::Init(GLFWwindow* win)
   ImGui_ImplGlfw_InitForOpenGL(window, false);
   ImGui_ImplOpenGL3_Init();
   ImGui::StyleColorsDark();
-  Input::window = window;
+  Input::window_ = window;
 }
 
 void DebugSystem::End()
@@ -27,7 +27,7 @@ void DebugSystem::End()
   ImGui::DestroyContext();
 }
 
-void DebugSystem::StartFrame(Scene& scene, float dt)
+void DebugSystem::StartFrame(Scene& scene, [[maybe_unused]] float dt)
 {
   if (glfwWindowShouldClose(window))
   {
@@ -39,7 +39,7 @@ void DebugSystem::StartFrame(Scene& scene, float dt)
   ImGui::NewFrame();
 }
 
-void DebugSystem::Update(Scene& scene, float dt)
+void DebugSystem::Update([[maybe_unused]] Scene& scene, float dt)
 {
   {
     ImGui::Begin("Graphs");
@@ -69,7 +69,7 @@ void DebugSystem::Update(Scene& scene, float dt)
   }
 }
 
-void DebugSystem::EndFrame(Scene& scene, float dt)
+void DebugSystem::EndFrame([[maybe_unused]] Scene& scene, [[maybe_unused]] float dt)
 {
   static bool ting = false;
   if (Input::IsKeyPressed(GLFW_KEY_F1))

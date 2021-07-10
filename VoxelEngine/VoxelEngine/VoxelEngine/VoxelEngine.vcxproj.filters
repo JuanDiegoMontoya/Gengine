@@ -14,9 +14,6 @@
     <Filter Include="Voxel Engine">
       <UniqueIdentifier>{dc663184-9198-480c-b860-fe5e6cb9fc67}</UniqueIdentifier>
     </Filter>
-    <Filter Include="3rd Party\FastNoiseSIMD">
-      <UniqueIdentifier>{1973af87-01d3-4bc4-9d86-e5188afc5b26}</UniqueIdentifier>
-    </Filter>
     <Filter Include="CoreEngine">
       <UniqueIdentifier>{6f5b3298-6999-4eeb-ad86-9dc0fe8c6a25}</UniqueIdentifier>
     </Filter>
@@ -48,12 +45,6 @@
     </ClInclude>
     <ClInclude Include="Voxels\biome.h">
       <Filter>Voxel Engine</Filter>
-    </ClInclude>
-    <ClInclude Include="3rdParty\FastNoiseSIMD\FastNoiseSIMD.h">
-      <Filter>3rd Party\FastNoiseSIMD</Filter>
-    </ClInclude>
-    <ClInclude Include="3rdParty\FastNoiseSIMD\FastNoiseSIMD_internal.h">
-      <Filter>3rd Party\FastNoiseSIMD</Filter>
     </ClInclude>
     <ClInclude Include="CoreEngine\Input.h">
       <Filter>CoreEngine</Filter>
@@ -341,27 +332,6 @@
     </ClCompile>
     <ClCompile Include="Voxels\biome.cpp">
       <Filter>Voxel Engine</Filter>
-    </ClCompile>
-    <ClCompile Include="3rdParty\FastNoiseSIMD\FastNoiseSIMD.cpp">
-      <Filter>3rd Party\FastNoiseSIMD</Filter>
-    </ClCompile>
-    <ClCompile Include="3rdParty\FastNoiseSIMD\FastNoiseSIMD_avx2.cpp">
-      <Filter>3rd Party\FastNoiseSIMD</Filter>
-    </ClCompile>
-    <ClCompile Include="3rdParty\FastNoiseSIMD\FastNoiseSIMD_avx512.cpp">
-      <Filter>3rd Party\FastNoiseSIMD</Filter>
-    </ClCompile>
-    <ClCompile Include="3rdParty\FastNoiseSIMD\FastNoiseSIMD_internal.cpp">
-      <Filter>3rd Party\FastNoiseSIMD</Filter>
-    </ClCompile>
-    <ClCompile Include="3rdParty\FastNoiseSIMD\FastNoiseSIMD_sse2.cpp">
-      <Filter>3rd Party\FastNoiseSIMD</Filter>
-    </ClCompile>
-    <ClCompile Include="3rdParty\FastNoiseSIMD\FastNoiseSIMD_sse41.cpp">
-      <Filter>3rd Party\FastNoiseSIMD</Filter>
-    </ClCompile>
-    <ClCompile Include="3rdParty\FastNoiseSIMD\FastNoiseSIMD_neon.cpp">
-      <Filter>3rd Party\FastNoiseSIMD</Filter>
     </ClCompile>
     <ClCompile Include="CoreEngine\Input.cpp">
       <Filter>CoreEngine</Filter>

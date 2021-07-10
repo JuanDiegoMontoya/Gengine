@@ -27,7 +27,6 @@ public:
     }
 
     auto& cam = GetComponent<Component::Camera>();// *CameraSystem::ActiveCamera;
-    const auto& transform = GetComponent<Component::Transform>();
     //cam.SetPos(transform.GetTranslation()); // TODO: TEMP BULLSHIT
     auto& controller = GetComponent<Component::CharacterController>();
 

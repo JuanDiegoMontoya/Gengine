@@ -8,7 +8,7 @@
 // TODO: horrible
 #include <CoreEngine/Input.h>
 
-static void error_cb(int error, char const* description)
+static void error_cb([[maybe_unused]] int error, char const* description)
 {
   std::cerr << "GLFW error: " << description << std::endl;
 }
@@ -20,7 +20,7 @@ static void framebuffer_size_callback([[maybe_unused]] GLFWwindow* window, int w
 }
 
 // window was minimized
-static void iconify_callback([[maybe_unused]] GLFWwindow* window, int mode)
+static void iconify_callback([[maybe_unused]] GLFWwindow* window, [[maybe_unused]] int mode)
 {
 }
 
@@ -65,7 +65,7 @@ GLFWwindow* init_glfw_context()
   glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
   glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
   
-  const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+  [[maybe_unused]] const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
 
   int window_width = 1920; //mode->width;
   int window_height = 1080; //mode->height;

@@ -20,7 +20,7 @@ namespace GFX
     GLuint id;
     glGenQueries(1, &id);
     glBeginQuery(GL_TIME_ELAPSED, id);
-    GLenum result = glClientWaitSync(sync_, GL_SYNC_FLUSH_COMMANDS_BIT, -1);
+    [[maybe_unused]] GLenum result = glClientWaitSync(sync_, GL_SYNC_FLUSH_COMMANDS_BIT, static_cast<GLuint64>(-1));
     glEndQuery(GL_TIME_ELAPSED);
     uint64_t elapsed;
     glGetQueryObjectui64v(id, GL_QUERY_RESULT, &elapsed);

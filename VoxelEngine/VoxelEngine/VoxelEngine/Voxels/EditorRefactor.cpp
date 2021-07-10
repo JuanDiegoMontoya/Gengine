@@ -203,7 +203,6 @@ void Editor::Update()
     open = !open;
   if (open)
   {
-    const auto cam = CameraSystem::ActiveCamera;
     voxels.Raycast(
       CameraSystem::GetPos(),
       CameraSystem::GetFront(),

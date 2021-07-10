@@ -3,7 +3,6 @@
 #include <Voxels/Chunk.h>
 #include <Voxels/ChunkHelpers.h>
 #include <execution>
-#include <FastNoiseSIMD/FastNoiseSIMD.h>
 #include <Utilities/Timer.h>
 #include <Voxels/VoxelManager.h>
 #include <Voxels/prefab.h>
@@ -34,10 +33,10 @@ void WorldGen::Init()
 void WorldGen::GenerateWorld()
 {
   Timer timer;
-  std::unique_ptr<FastNoiseSIMD> noisey(FastNoiseSIMD::NewFastNoiseSIMD());
-  noisey->SetFractalLacunarity(2.0);
-  noisey->SetFractalOctaves(5);
-  noisey->SetSeed(7);
+  //std::unique_ptr<FastNoiseSIMD> noisey(FastNoiseSIMD::NewFastNoiseSIMD());
+  //noisey->SetFractalLacunarity(2.0);
+  //noisey->SetFractalOctaves(5);
+  //noisey->SetSeed(7);
   //noisey->SetFrequency(.04);
   //noisey->SetPerturbType(FastNoiseSIMD::Gradient);
   //noisey->SetPerturbAmp(0.4);

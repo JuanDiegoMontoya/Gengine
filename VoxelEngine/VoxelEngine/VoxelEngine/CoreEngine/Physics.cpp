@@ -133,7 +133,7 @@ private:
   void onSleep(PxActor** actors, PxU32 count) { PX_UNUSED(actors); PX_UNUSED(count); }
   void onTrigger(PxTriggerPair* pairs, PxU32 count) { PX_UNUSED(pairs); PX_UNUSED(count); }
   void onAdvance(const PxRigidBody* const*, const PxTransform*, const PxU32) {}
-  void onContact(const PxContactPairHeader& pairHeader, const PxContactPair* pairs, PxU32 nbPairs)
+  void onContact(const PxContactPairHeader& pairHeader, [[maybe_unused]] const PxContactPair* pairs, [[maybe_unused]] PxU32 nbPairs)
   {
     auto it1 = gEntityActors.find(pairHeader.actors[0]);
     auto it2 = gEntityActors.find(pairHeader.actors[1]);
