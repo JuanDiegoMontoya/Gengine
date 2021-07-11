@@ -88,7 +88,7 @@ namespace Voxels
     //std::span texSpan(texs.data(), texs.size());
     //textures = std::make_unique<GFX::TextureArray>(std::span(texs.data(), texs.size()), glm::ivec2(32));
     blockTextures = GFX::LoadTexture2DArray(texsView);
-    auto texturesInfo = blockTextures->CreateInfo();
+    //const auto& texturesInfo = blockTextures->CreateInfo();
 
     blockTexturesView = GFX::TextureView::Create(*blockTextures);
 
