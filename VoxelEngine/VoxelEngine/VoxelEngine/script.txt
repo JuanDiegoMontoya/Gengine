@@ -1,2 +1,0 @@
-cloc command:
-cloc --force-lang="glsl",cs --force-lang="glsl",vs --force-lang="glsl",fs --exclude-dir=3rdParty,Quarantine .

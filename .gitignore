@@ -335,28 +335,3 @@ ASALocalRun/
 /open_git-86.bat
 
 # temp data storage files
-
-doc
-docs
-docs
-doc
-examples
-examples
-doc
-/Source/lib/glew-2.1.0/Makefile
-/Source/lib/glew-2.1.0/auto
-/Source/lib/glew-2.1.0/bin
-/Source/lib/glew-2.1.0/build
-/Source/lib/glew-2.1.0/config
-/Source/lib/glew-2.1.0/doc
-/Source/lib/glew-2.1.0/src
-/Source/lib/glew-2.1.0/glew.pc.in
-/Source/lib/freetype/contrib
-/Source/lib/freetype/man
-/Source/lib/freetype/manifest
-/Source/lib/freetype/share
-/Source/lib/glm-0.9.9.0/test
-/Source/lib/glm-0.9.9.0/cmake_uninstall.cmake.in
-/Source/lib/glm-0.9.9.0/CMakeLists.txt
-/Source/lib/glm-0.9.9.0/.travis.yml
-/Source/lib/glm-0.9.9.0/cmake
