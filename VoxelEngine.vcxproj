@@ -81,6 +81,7 @@
     <ClInclude Include="src\utility\AtomicQueue.h" />
     <ClInclude Include="src\utility\BitArray.h" />
     <ClInclude Include="src\utility\Compression.h" />
+    <ClInclude Include="src\utility\Defer.h" />
     <ClInclude Include="src\utility\HashedString.h" />
     <ClInclude Include="src\utility\ImGuiExt.h" />
     <ClInclude Include="src\utility\Palette.h" />

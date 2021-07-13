@@ -6,6 +6,7 @@
 #include <fstream>
 #include <iostream>
 #include <regex>
+#include <utility/Defer.h>
 
 namespace GFX
 {
@@ -36,11 +37,13 @@ namespace GFX
 
   struct ShaderData
   {
+    std::string name;
     std::unordered_map<uint32_t, uint32_t> uniformIDs;
     uint32_t id{};
+    std::vector<ShaderCreateInfo> createInfos;
   };
 
-  static std::string loadFile(std::string_view path)
+  static std::string LoadFile(std::string_view path)
   {
     std::string shaderpath = std::string(ShaderDir) + std::string(path);
     std::string content;
@@ -58,7 +61,7 @@ namespace GFX
     return content;
   }
 
-  GLuint compileShader(GLenum type, const std::string& src, std::string_view path)
+  GLuint CompileShader(GLenum type, const std::string& src, std::string_view path)
   {
     GLuint shader = 0;
     GLchar infoLog[512];
@@ -84,14 +87,14 @@ namespace GFX
     return shader;
   }
 
-  std::string preprocessShader(
+  std::string PreprocessShader(
     shaderc::Compiler& compiler,
     const shaderc::CompileOptions options,
     const std::vector<std::pair<std::string, std::string>>& replace,
     std::string path,
     shaderc_shader_kind shaderType)
   {
-    std::string rawSrc = loadFile(path);
+    std::string rawSrc = LoadFile(path);
     for (const auto& [search, replacement] : replace)
     {
       rawSrc = std::regex_replace(rawSrc, std::regex(search), replacement);
@@ -112,14 +115,14 @@ namespace GFX
 
   // returns compiled SPIR-V
   std::vector<uint32_t>
-    spvPreprocessAndCompile(
+    PreprocessAndCompileSPIRV(
       shaderc::Compiler& compiler,
       const shaderc::CompileOptions options,
       const std::vector<std::pair<std::string, std::string>>& replace,
       std::string path,
       shaderc_shader_kind shaderType)
   {
-    std::string preprocessResult = preprocessShader(compiler, options, replace, path, shaderType);
+    std::string preprocessResult = PreprocessShader(compiler, options, replace, path, shaderType);
 
     auto CompileResult = compiler.CompileGlslToSpv(
       preprocessResult.c_str(), shaderType, path.c_str(), options);
@@ -144,7 +147,7 @@ namespace GFX
     {
       auto* data = new shaderc_include_result;
 
-      content = new std::string(loadFile(requested_source));
+      content = new std::string(LoadFile(requested_source));
       source_name = new std::string(requested_source);
 
       data->content = content->c_str();
@@ -257,14 +260,34 @@ namespace GFX
     options.SetAutoBindUniforms(true);
 
     std::vector<GLuint> shaderIDs;
+    Defer deleteShaders = [&shaderIDs]()
+    {
+      for (auto shaderID : shaderIDs)
+      {
+        glDeleteShader(shaderID);
+      }
+    };
+
     for (auto& [shaderPath, shaderType, replace] : createInfos)
     {
-      std::string preprocessedSource = preprocessShader(compiler, options, replace, shaderPath, shaderTypeToShadercType[(int)shaderType]);
-      GLuint shaderID = compileShader(shaderTypeToGLType[(int)shaderType], preprocessedSource, shaderPath);
+      std::string preprocessedSource = PreprocessShader(compiler, options, replace, shaderPath, shaderTypeToShadercType[(int)shaderType]);
+      GLuint shaderID = CompileShader(shaderTypeToGLType[(int)shaderType], preprocessedSource, shaderPath);
       shaderIDs.push_back(shaderID);
     }
 
     GLuint programID = glCreateProgram();
+    if (programID == 0)
+    {
+      return std::nullopt;
+    }
+
+    Defer detachShaders = [&shaderIDs, programID]()
+    {
+      for (auto shaderID : shaderIDs)
+      {
+        glDetachShader(programID, shaderID);
+      }
+    };
 
     for (auto ID : shaderIDs)
     {
@@ -278,18 +301,19 @@ namespace GFX
     {
       strs.push_back(shaderPath);
     }
+
     if (!CheckLinkStatus(strs, programID))
+    {
       return std::nullopt;
+    }
 
     ShaderData shader;
+    shader.name = name.data();
     shader.id = programID;
+    shader.createInfos = createInfos;
     InitUniforms(shader);
-
-    for (auto shaderID : shaderIDs)
-    {
-      glDetachShader(programID, shaderID);
-      glDeleteShader(shaderID);
-    }
+    //printf("Shader: %s\n", name.data());
+    glObjectLabel(GL_PROGRAM, shader.id, -1, name.data());
 
     storage->shaders.emplace(name, std::move(shader));
     auto& shr = storage->shaders[name];
@@ -301,5 +325,32 @@ namespace GFX
     if (auto it = storage->shaders.find(name); it != storage->shaders.end())
       return Shader(it->second.uniformIDs, it->second.id);
     return std::nullopt;
+  }
+
+  std::optional<Shader> ShaderManager::RecompileShader(hashed_string name)
+  {
+    auto it = storage->shaders.find(name);
+    if (it == storage->shaders.end())
+    {
+      return std::nullopt;
+    }
+
+    glDeleteProgram(it->second.id);
+    auto createInfos = it->second.createInfos;
+    storage->shaders.erase(it);
+
+    return AddShader(name, createInfos);
+  }
+
+
+  std::vector<std::string> ShaderManager::GetAllShaderNames()
+  {
+    std::vector<std::string> names;
+    names.reserve(storage->shaders.size());
+    for (const auto& [id, data] : storage->shaders)
+    {
+      names.push_back(data.name);
+    }
+    return names;
   }
 }

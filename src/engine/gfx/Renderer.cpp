@@ -18,10 +18,47 @@
 #include <execution>
 #include <iostream>
 #include "../CVar.h"
+#include "../Console.h"
+#include "../Parser.h"
 
 void vsyncCallback([[maybe_unused]] const char* cvar, cvar_float val)
 {
   glfwSwapInterval(val != 0); // 0 == no vsync, 1 == vsync
+}
+
+void logShaderNames(const char*)
+{
+  auto shaderNames = GFX::ShaderManager::Get()->GetAllShaderNames();
+  for (const auto& name : shaderNames)
+  {
+    Console::Get()->Log("%s\n", name.c_str());
+  }
+}
+
+void recompileShader(const char* arg)
+{
+  CmdParser parser(arg);
+  
+  CmdAtom atom = parser.NextAtom();
+  std::string* str = std::get_if<std::string>(&atom);
+  if (!str)
+  {
+    Console::Get()->Log("Usage: RecompileShader <string>");
+    return;
+  }
+
+  auto id = hashed_string(str->c_str());
+  if (!GFX::ShaderManager::Get()->GetShader(id))
+  {
+    Console::Get()->Log("No shader found with name %s\n", str->c_str());
+    return;
+  }
+
+  if (!GFX::ShaderManager::Get()->RecompileShader(id))
+  {
+    Console::Get()->Log("Failed to recompile shader %s\n", str->c_str());
+    return;
+  }
 }
 
 AutoCVar<cvar_float> vsync("r.vsync", "- Whether vertical sync is enabled", 0.0, CVarFlag::NONE, vsyncCallback);
@@ -285,30 +322,9 @@ void Renderer::Init()
   glVertexArrayElementBuffer(batchVAO, indexBuffer->GetGPUHandle());
 
   glCreateVertexArrays(1, &emptyVao);
-  //compute_test();
 
-  /*Layout layout = Window::layout;
-
-  int width = layout.width;
-  int height = layout.height;
-
-  // Setup frameBuffer
-  glGenFramebuffers(1, &RenderBuffer);
-  glBindFramebuffer(GL_FRAMEBUFFER, RenderBuffer);
-
-  // Setup render texture
-  glGenTextures(1, &RenderTexture);
-  glBindTexture(GL_TEXTURE_2D, RenderTexture);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, RenderTexture, 0);
-
-  if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-  {
-    std::cout << "ERROR::FRAMEBUFFER:: Framebuffer in Raytrace Renderer is not complete!" << std::endl;
-  }*/
+  Console::Get()->RegisterCommand("ShowShaders", "- Lists all shader names", logShaderNames);
+  Console::Get()->RegisterCommand("RecompileShader", "- Recompiles a named shader", recompileShader);
 }
 
 void Renderer::CompileShaders()

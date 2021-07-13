@@ -51,10 +51,12 @@ struct ConsoleStorage
   std::vector<std::pair<std::string, CColor>> logEntries;
   std::vector<std::string> inputHistory;
   int historyPos{ -1 };
-  int autocompletePos{ 0 };
+  //int autocompletePos{ 0 };
   std::array<char, INPUT_BUF_SIZE> inputBuffer{ 0 };
   std::vector<Command> commands;
   std::vector<std::string> autocompleteCandidates;
+  bool autoScroll = true;
+  bool scrollToBottom = false;
 
   struct PopupState
   {
@@ -219,8 +221,9 @@ void Console::DrawWindow()
     {
       if (ImGui::MenuItem("Clear", nullptr, nullptr))
       {
-        printf("test");
+        Clear();
       }
+      ImGui::MenuItem("Auto Scroll", nullptr, &console->autoScroll);
       ImGui::EndMenu();
     }
     ImGui::EndMenuBar();
@@ -252,9 +255,11 @@ void Console::DrawWindow()
     ImGui::PopStyleColor();
   }
 
-  //if (ScrollToBottom || (AutoScroll && ImGui::GetScrollY() >= ImGui::GetScrollMaxY()))
-  //  ImGui::SetScrollHereY(1.0f);
-  //ScrollToBottom = false;
+  if (console->scrollToBottom || (console->autoScroll && ImGui::GetScrollY() >= ImGui::GetScrollMaxY()))
+  {
+    ImGui::SetScrollHereY(1.0f);
+  }
+  console->scrollToBottom = false;
 
   ImGui::PopStyleVar();
   ImGui::EndChild();
@@ -285,8 +290,12 @@ void Console::DrawWindow()
       }
     }
   }
-  //console->autocompletePos = std::min((int)console->autocompleteCandidates.size() - 1, console->autocompletePos);
-  //console->autocompletePos = std::max(0, console->autocompletePos);
+
+  if (console->state.activeIdx == -1 && console->autocompleteCandidates.size() > 0)
+  {
+    console->state.activeIdx = 0;
+    console->state.selectionChanged = true;
+  }
 
   auto textEditCallbackStub = [](ImGuiInputTextCallbackData* data) -> int
   {
@@ -302,31 +311,29 @@ void Console::DrawWindow()
     ImGuiInputTextFlags_CallbackAlways |
     ImGuiInputTextFlags_CallbackEdit;
 
+
+  auto submit = [this]()
+  {
+    std::string s = console->inputBuffer.data();
+    trimEnd(s);
+    if (s[0])
+    {
+      ExecuteCommand(s.c_str());
+    }
+    console->inputBuffer[0] = NULL;
+    console->state.isPopupOpen = false;
+    console->state.activeIdx = -1;
+    console->scrollToBottom = true;
+  };
+
   bool reclaim_focus = false;
-  if (ImGui::InputText("##Input", console->inputBuffer.data(), console->inputBuffer.size(),
-    input_text_flags, textEditCallbackStub, (void*)console))
+  if (ImGui::InputText("##Input", console->inputBuffer.data(), console->inputBuffer.size(), input_text_flags, textEditCallbackStub, (void*)console))
   {
     ImGui::SetKeyboardFocusHere(-1);
 
-    if (console->state.isPopupOpen && console->state.activeIdx != -1)
-    {
-      const auto& selection = console->autocompleteCandidates[console->state.activeIdx];
-      memcpy_s(console->inputBuffer.data(), INPUT_BUF_SIZE, selection.c_str(), selection.size());
-    }
-    else
-    {
-      std::string s = console->inputBuffer.data();
-      trimEnd(s);
-      if (s[0])
-      {
-        ExecuteCommand(s.c_str());
-      }
-      console->inputBuffer[0] = NULL;
-    }
+    submit();
 
     reclaim_focus = true;
-    console->state.isPopupOpen = false;
-    console->state.activeIdx = -1;
   }
 
   if (console->state.clickedIdx != -1)
@@ -361,7 +368,7 @@ void Console::DrawWindow()
 
   if (ImGui::Button("Submit"))
   {
-    // does nothing lol
+    submit();
   }
 
   ImGui::End();
@@ -380,11 +387,13 @@ void Console::DrawPopup()
     ImGuiWindowFlags_NoMove |
     ImGuiWindowFlags_NoSavedSettings |
     ImGuiWindowFlags_HorizontalScrollbar |
-    ImGuiWindowFlags_NoFocusOnAppearing;
+    ImGuiWindowFlags_NoFocusOnAppearing |
+    ImGuiWindowFlags_AlwaysAutoResize;
 
+  // allow the popup to auto resize to any height, but constrain the X axis
   ImGui::SetNextWindowPos(console->state.popupPos);
-  ImGui::SetNextWindowSize(console->state.popupSize);
-  ImGui::Begin("popup", nullptr, flags);
+  ImGui::SetNextWindowSizeConstraints({ console->state.popupSize.x, 0 }, { console->state.popupSize.x, FLT_MAX });
+  ImGui::Begin("console popup", nullptr, flags);
   ImGui::PushAllowKeyboardFocus(false);
 
   for (int i = 0; const auto& candidate : console->autocompleteCandidates)
@@ -398,7 +407,6 @@ void Console::DrawPopup()
     ImGui::PushID(i);
     if (ImGui::Selectable(candidate.c_str(), isIndexActive))
     {
-      //memcpy_s(console->inputBuffer.data(), INPUT_BUF_SIZE, candidate.c_str(), candidate.size());
       console->state.clickedIdx = i;
     }
     ImGui::PopID();
