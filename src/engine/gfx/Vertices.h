@@ -1,4 +1,5 @@
 #pragma once
+// TODO: refactor
 
 namespace Vertices
 {

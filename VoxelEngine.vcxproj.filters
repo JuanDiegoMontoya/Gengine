@@ -39,7 +39,7 @@
     <ClInclude Include="src\engine\CVar.h" />
     <ClInclude Include="src\engine\CVarInternal.h" />
     <ClInclude Include="src\engine\Engine.h" />
-    <ClInclude Include="src\engine\Flags.h" />
+    <ClInclude Include="src\utility\Flags.h" />
     <ClInclude Include="src\engine\GAssert.h" />
     <ClInclude Include="src\engine\Input.h" />
     <ClInclude Include="src\engine\Parser.h" />
@@ -49,7 +49,7 @@
     <ClInclude Include="src\engine\ecs\ScriptableEntity.h" />
     <ClInclude Include="src\engine\Shapes.h" />
     <ClInclude Include="src\engine\utilities.h" />
-    <ClInclude Include="src\engine\Vertices.h" />
+    <ClInclude Include="src\engine\gfx\Vertices.h" />
     <ClInclude Include="src\game\FlyingPlayerController.h" />
     <ClInclude Include="src\game\GameManager.h" />
     <ClInclude Include="src\game\gPCH.h" />
@@ -143,6 +143,7 @@
     <ClInclude Include="third_party\imgui\imstb_textedit.h" />
     <ClInclude Include="third_party\imgui\imstb_truetype.h" />
     <ClInclude Include="src\utility\Defer.h" />
+    <ClInclude Include="src\engine\gfx\MeshManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\engine\ecs\component\ParticleEmitter.cpp" />
@@ -177,7 +178,7 @@
     <ClCompile Include="src\engine\PCH.cpp" />
     <ClCompile Include="src\engine\Physics.cpp" />
     <ClCompile Include="src\engine\Scene.cpp" />
-    <ClCompile Include="src\engine\stbiImpl.cpp" />
+    <ClCompile Include="src\engine\gfx\stbiImpl.cpp" />
     <ClCompile Include="src\game\gPCH.cpp" />
     <ClCompile Include="src\game\main.cpp" />
     <ClCompile Include="src\game\PlayerActions.cpp" />
@@ -202,6 +203,7 @@
     <ClCompile Include="third_party\imgui\imgui_impl_opengl3.cpp" />
     <ClCompile Include="third_party\imgui\imgui_tables.cpp" />
     <ClCompile Include="third_party\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="src\engine\gfx\MeshManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="src\engine\gfx\DynamicBuffer.inl" />

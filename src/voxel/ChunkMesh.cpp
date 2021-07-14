@@ -2,7 +2,7 @@
 #include <voxel/ChunkMesh.h>
 #include <voxel/Chunk.h>
 #include <voxel/ChunkHelpers.h>
-#include <engine/Vertices.h>
+#include <engine/gfx/Vertices.h>
 #include <engine/gfx/DynamicBuffer.h>
 #include <voxel/ChunkRenderer.h>
 #include <voxel/VoxelManager.h>

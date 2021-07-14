@@ -1,7 +1,8 @@
 #pragma once
+// TODO: refactor
 #include <ostream>
 #include <glm/glm.hpp>
-#include "Flags.h"
+#include <utility/Flags.h>
 #include <utility/HashedString.h>
 
 namespace Utils

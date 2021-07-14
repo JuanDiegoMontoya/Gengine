@@ -43,7 +43,7 @@ void recompileShader(const char* arg)
   std::string* str = std::get_if<std::string>(&atom);
   if (!str)
   {
-    Console::Get()->Log("Usage: RecompileShader <string>");
+    Console::Get()->Log("Usage: recompile <string>");
     return;
   }
 
@@ -323,8 +323,8 @@ void Renderer::Init()
 
   glCreateVertexArrays(1, &emptyVao);
 
-  Console::Get()->RegisterCommand("ShowShaders", "- Lists all shader names", logShaderNames);
-  Console::Get()->RegisterCommand("RecompileShader", "- Recompiles a named shader", recompileShader);
+  Console::Get()->RegisterCommand("showShaders", "- Lists all shader names", logShaderNames);
+  Console::Get()->RegisterCommand("recompile", "- Recompiles a named shader", recompileShader);
 }
 
 void Renderer::CompileShaders()

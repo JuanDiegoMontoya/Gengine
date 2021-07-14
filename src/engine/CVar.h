@@ -1,6 +1,6 @@
 #pragma once
 #include <cstdint>
-#include "Flags.h"
+#include <utility/Flags.h>
 #include <glm/fwd.hpp>
 #include <functional>
 

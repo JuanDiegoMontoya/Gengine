@@ -47,7 +47,7 @@ Engine::Engine()
       identifier = std::get_if<Identifier>(&atoms[0]);
     }
 
-    
+
     if (const char* desc;
       atoms.empty() ||
       !identifier ||

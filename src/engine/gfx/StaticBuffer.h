@@ -1,5 +1,5 @@
 #pragma once
-#include "../Flags.h"
+#include <utility/Flags.h>
 
 namespace GFX
 {

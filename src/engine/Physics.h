@@ -2,7 +2,7 @@
 #include <glm/glm.hpp>
 #include <engine/ecs/Entity.h>
 #include <memory>
-#include "Flags.h"
+#include <utility/Flags.h>
 
 namespace physx
 {

@@ -6,7 +6,7 @@
 #include <engine/gfx/Frustum.h>
 #include <execution>
 #include <engine/gfx/ShaderManager.h>
-#include <engine/Vertices.h>
+#include <engine/gfx/Vertices.h>
 #include <engine/gfx/MeshUtils.h>
 #include <engine/gfx/TextureLoader.h>
 #include <engine/gfx/DebugMarker.h>

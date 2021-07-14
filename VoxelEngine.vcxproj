@@ -41,7 +41,8 @@
     <ClInclude Include="src\engine\ecs\system\PhysicsSystem.h" />
     <ClInclude Include="src\engine\ecs\system\ScriptSystem.h" />
     <ClInclude Include="src\engine\Engine.h" />
-    <ClInclude Include="src\engine\Flags.h" />
+    <ClInclude Include="src\engine\gfx\MeshManager.h" />
+    <ClInclude Include="src\utility\Flags.h" />
     <ClInclude Include="src\engine\GAssert.h" />
     <ClInclude Include="src\engine\gfx\AssimpUtils.h" />
     <ClInclude Include="src\engine\gfx\DebugMarker.h" />
@@ -67,7 +68,7 @@
     <ClInclude Include="src\engine\ecs\ScriptableEntity.h" />
     <ClInclude Include="src\engine\Shapes.h" />
     <ClInclude Include="src\engine\utilities.h" />
-    <ClInclude Include="src\engine\Vertices.h" />
+    <ClInclude Include="src\engine\gfx\Vertices.h" />
     <ClInclude Include="src\game\FlyingPlayerController.h" />
     <ClInclude Include="src\game\GameManager.h" />
     <ClInclude Include="src\game\gPCH.h" />
@@ -269,6 +270,12 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">../PCH.h</PrecompiledHeaderFile>
     </ClCompile>
+    <ClCompile Include="src\engine\gfx\MeshManager.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../PCH.h</PrecompiledHeaderFile>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">../PCH.h</PrecompiledHeaderFile>
+    </ClCompile>
     <ClCompile Include="src\engine\gfx\Renderer.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../PCH.h</PrecompiledHeaderFile>
@@ -331,7 +338,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="src\engine\stbiImpl.cpp" />
+    <ClCompile Include="src\engine\gfx\stbiImpl.cpp" />
     <ClCompile Include="src\game\gPCH.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">gPCH.h</PrecompiledHeaderFile>
