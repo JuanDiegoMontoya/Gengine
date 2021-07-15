@@ -457,5 +457,7 @@ namespace GFX
 
     if (state.asBitField.anisotropy != samplerState_.asBitField.anisotropy)
       glSamplerParameterf(id_, GL_TEXTURE_MAX_ANISOTROPY, anisotropies[(int)state.asBitField.anisotropy]);
+
+    samplerState_ = state;
   }
 }

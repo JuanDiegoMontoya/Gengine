@@ -43,17 +43,6 @@ namespace Voxels
 
     $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$*/
 
-
-    // TODO: make private after NuRenderer no longer needs this
-    struct Settings
-    {
-      // visibility
-      float normalMin = 0;
-      float normalMax = 2000;
-      bool freezeCulling = false;
-      bool debug_drawOcclusionCulling = false;
-    }settings;
-
   private:
     friend class ChunkMesh;
     friend class VoxelManager;

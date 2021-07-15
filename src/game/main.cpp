@@ -361,21 +361,6 @@ void OnUpdate([[maybe_unused]] float dt)
     if (Input::IsKeyDown(GLFW_KEY_3))
       glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
   }
-
-  {
-    auto& sett = voxelManager->chunkRenderer_->settings;
-    if (Input::IsKeyPressed(GLFW_KEY_5))
-    {
-      sett.freezeCulling = !sett.freezeCulling;
-      std::cout << "Freeze culling " << std::boolalpha << sett.freezeCulling << '\n';
-    }
-    if (Input::IsKeyPressed(GLFW_KEY_6))
-    {
-      // TODO: shading/wireframe on this drawing mode
-      sett.debug_drawOcclusionCulling = !sett.debug_drawOcclusionCulling;
-      std::cout << "DbgDrawOccCulling " << std::boolalpha << sett.debug_drawOcclusionCulling << '\n';
-    }
-  }
   voxelManager->Update();
 }
 

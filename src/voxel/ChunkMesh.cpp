@@ -8,7 +8,6 @@
 #include <voxel/VoxelManager.h>
 #include <glm/gtc/matrix_transform.hpp>
 
-
 #include <iomanip>
 #include <mutex>
 #include <shared_mutex>

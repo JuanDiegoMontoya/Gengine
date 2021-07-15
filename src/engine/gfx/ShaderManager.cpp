@@ -147,29 +147,25 @@ namespace GFX
     {
       auto* data = new shaderc_include_result;
 
-      content = new std::string(LoadFile(requested_source));
-      source_name = new std::string(requested_source);
+      content = LoadFile(requested_source);
+      source_name = requested_source;
 
-      data->content = content->c_str();
-      data->source_name = source_name->c_str();
-      data->content_length = content->size();
-      data->source_name_length = source_name->size();
+      data->content = content.c_str();
+      data->source_name = source_name.c_str();
+      data->content_length = content.size();
+      data->source_name_length = source_name.size();
       data->user_data = nullptr;
 
       return data;
     }
 
-    virtual void ReleaseInclude(shaderc_include_result* data)
+    virtual void ReleaseInclude([[maybe_unused]] shaderc_include_result* data)
     {
-      // hopefully this isn't dumb
-      delete content;
-      delete source_name;
-      delete data;
     }
 
   private:
-    std::string* content{};
-    std::string* source_name{};
+    std::string content{};
+    std::string source_name{};
   };
 
   void InitUniforms(ShaderData& program)

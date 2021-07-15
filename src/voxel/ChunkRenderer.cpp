@@ -11,10 +11,28 @@
 #include <engine/gfx/TextureLoader.h>
 #include <engine/gfx/DebugMarker.h>
 #include <engine/gfx/Indirect.h>
+#include <engine/CVar.h>
 
 #include <filesystem>
 
 #include <imgui/imgui.h>
+
+static GFX::Anisotropy anisotropy = GFX::Anisotropy::SAMPLES_16;
+
+static void setAnisotropy(const char*, cvar_float val)
+{
+  if (val >= 16) anisotropy = GFX::Anisotropy::SAMPLES_16;
+  else if (val >= 8) anisotropy = GFX::Anisotropy::SAMPLES_8;
+  else if (val >= 4) anisotropy = GFX::Anisotropy::SAMPLES_4;
+  else if (val >= 2) anisotropy = GFX::Anisotropy::SAMPLES_2;
+  else anisotropy = GFX::Anisotropy::SAMPLES_1;
+}
+
+AutoCVar<cvar_float> cullDistanceMinCVar("v.cullDistanceMin", "- Minimum distance at which chunks should render", 0);
+AutoCVar<cvar_float> cullDistanceMaxCVar("v.cullDistanceMax", "- Maximum distance at which chunks should render", 2000);
+AutoCVar<cvar_float> freezeCullingCVar("v.freezeCulling", "- If enabled, freezes chunk culling", 0, CVarFlag::CHEAT);
+AutoCVar<cvar_float> drawOcclusionVolumesCVar("v.drawOcclusionVolumes", "- If enabled, draws occlusion volumes", 0, CVarFlag::CHEAT);
+AutoCVar<cvar_float> anisotropyCVar("v.anisotropy", "- Level of anisotropic filtering to apply to voxels", 16, CVarFlag::NONE, setAnisotropy);
 
 namespace Voxels
 {
@@ -34,33 +52,29 @@ namespace Voxels
     Draw commands will specify where in memory the draw call starts. This will account for variable offsets.
 
         :::::::::::BUFFER FORMAT:::::::::::*/
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-    // bind big data buffer (interleaved)
-    glBindBuffer(GL_ARRAY_BUFFER, allocator->GetGPUHandle());
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
-    glEnableVertexAttribArray(2);
-    glVertexAttribDivisor(2, 1); // only 1 instance of a chunk should render, so divisor *should* be infinity
-    GLuint offset = 0;
+    glCreateVertexArrays(1, &vao);
+    glEnableVertexArrayAttrib(vao, 0); // lighting
+    glEnableVertexArrayAttrib(vao, 1); // encoded data
+    glEnableVertexArrayAttrib(vao, 2); // chunk position (one per instance)
+
     // stride is sizeof(vertex) so baseinstance can be set to cmd.first and work (hopefully)
-    glVertexAttribIPointer(2, 3, GL_INT, 2 * sizeof(GLuint), (void*)offset); // chunk position (one per instance)
-    offset += sizeof(glm::ivec4); // move forward by TWO vertex sizes (vertex aligned)
+    glVertexArrayAttribIFormat(vao, 2, 3, GL_INT, 0);
 
-    glVertexAttribIPointer(0, 1, GL_UNSIGNED_INT, 2 * sizeof(GLuint), (void*)offset); // encoded data
-    offset += 1 * sizeof(GLfloat);
+    // move forward by TWO vertex sizes (vertex aligned)
+    glVertexArrayAttribIFormat(vao, 0, 1, GL_UNSIGNED_INT, 4 * sizeof(uint32_t));
+    
+    glVertexArrayAttribIFormat(vao, 1, 1, GL_UNSIGNED_INT, 5 * sizeof(uint32_t));
 
-    glVertexAttribIPointer(1, 1, GL_UNSIGNED_INT, 2 * sizeof(GLuint), (void*)offset); // lighting
+    glVertexArrayAttribBinding(vao, 0, 0);
+    glVertexArrayAttribBinding(vao, 1, 0);
+    glVertexArrayAttribBinding(vao, 2, 1);
+    glVertexArrayBindingDivisor(vao, 1, 1);
+
+    glVertexArrayVertexBuffer(vao, 0, allocator->GetGPUHandle(), 0, 2 * sizeof(uint32_t));
+    glVertexArrayVertexBuffer(vao, 1, allocator->GetGPUHandle(), 0, 2 * sizeof(uint32_t));
 
     // setup vertex buffer for cube that will be used for culling
-    glGenVertexArrays(1, &vaoCull);
-    //vaoCull->Bind();
-    //vboCull = std::make_unique<GFX::StaticBuffer>(Vertices::cube, sizeof(Vertices::cube));
-    //vboCull->Bind<GFX::Target::VBO>();
-    //glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-    //glEnableVertexAttribArray(0);
-    //vboCull->Unbind<GFX::Target::VBO>();
-    //vaoCull->Unbind();
+    glCreateVertexArrays(1, &vaoCull);
 
     DrawElementsIndirectCommand cmd;
     cmd.count = 14; // vertices on cube
@@ -85,10 +99,7 @@ namespace Voxels
       texs.push_back(path);
     }
     std::vector<std::string_view> texsView(texs.begin(), texs.end());
-    //std::span texSpan(texs.data(), texs.size());
-    //textures = std::make_unique<GFX::TextureArray>(std::span(texs.data(), texs.size()), glm::ivec2(32));
     blockTextures = GFX::LoadTexture2DArray(texsView);
-    //const auto& texturesInfo = blockTextures->CreateInfo();
 
     blockTexturesView = GFX::TextureView::Create(*blockTextures);
 
@@ -102,9 +113,6 @@ namespace Voxels
     blueNoiseTexture = GFX::LoadTexture2D("BlueNoise/64_64/LDR_LLL1_0.png", GFX::Format::R8G8B8A8_UNORM);
     blueNoiseView = GFX::TextureView::Create(*blueNoiseTexture);
     blueNoiseSampler = GFX::TextureSampler::Create(GFX::SamplerState{});
-    //blueNoise64 = std::make_unique<GFX::Texture2D>("BlueNoise/64_64/LDR_LLL1_0.png");
-    //blueNoise64 = std::make_unique<Texture2D>("BlueNoise/256_256/LDR_LLL1_0.png");
-
   }
 
   ChunkRenderer::~ChunkRenderer()
@@ -133,8 +141,8 @@ namespace Voxels
       std::string uname = "u_viewfrustum.data_[" + std::to_string(i) + "][0]";
       sdr->Set1FloatArray(hashed_string(uname.c_str()), std::span<float, 4>(fr.GetData()[i]));
     }
-    sdr->SetFloat("u_cullMinDist", settings.normalMin);
-    sdr->SetFloat("u_cullMaxDist", settings.normalMax);
+    sdr->SetFloat("u_cullMinDist", cullDistanceMinCVar.Get());
+    sdr->SetFloat("u_cullMaxDist", cullDistanceMaxCVar.Get());
     sdr->SetUInt("u_reservedVertices", 2);
     sdr->SetUInt("u_vertexSize", sizeof(GLuint) * 2);
 
@@ -257,6 +265,9 @@ namespace Voxels
     glBindVertexArray(vao);
     dib->Bind<GFX::Target::DRAW_INDIRECT_BUFFER>();
     drawCountGPU->Bind<GFX::Target::PARAMETER_BUFFER>();
+    auto state = blockTexturesSampler->GetState();
+    state.asBitField.anisotropy = anisotropy;
+    blockTexturesSampler->SetState(state);
     blockTexturesView->Bind(0, *blockTexturesSampler);
     blueNoiseView->Bind(1, *blueNoiseSampler);
     glMultiDrawArraysIndirectCount(GL_TRIANGLES, (void*)0, (GLintptr)0, activeAllocs, 0);
@@ -266,7 +277,7 @@ namespace Voxels
 
   void ChunkRenderer::GenerateDIB()
   {
-    if (settings.freezeCulling)
+    if (freezeCullingCVar.Get())
       return;
 
     GenerateDrawCommandsGPU();
@@ -275,14 +286,14 @@ namespace Voxels
   void ChunkRenderer::RenderOcclusion()
   {
     GFX::DebugMarker marker("Draw occlusion volumes");
-    if (settings.freezeCulling)
+    if (freezeCullingCVar.Get())
       return;
 
 #ifdef TRACY_ENABLE
     TracyGpuZone("Occlusion Render");
 #endif
 
-    if (settings.debug_drawOcclusionCulling == false)
+    if (drawOcclusionVolumesCVar.Get() == 0.0)
     {
       glColorMask(false, false, false, false); // false = can't be written
       glDepthMask(false);
@@ -297,7 +308,7 @@ namespace Voxels
     const glm::mat4 viewProj = CameraSystem::GetProj() * CameraSystem::GetView();
     sr->SetMat4("u_viewProj", viewProj);
     sr->SetUInt("u_chunk_size", Chunk::CHUNK_SIZE);
-    sr->SetBool("u_debugDraw", settings.debug_drawOcclusionCulling);
+    sr->SetBool("u_debugDraw", drawOcclusionVolumesCVar.Get() != 0.0);
 
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, allocator->GetGPUHandle());
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, allocator->GetGPUHandle());
