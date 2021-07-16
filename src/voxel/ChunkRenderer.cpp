@@ -17,22 +17,21 @@
 
 #include <imgui/imgui.h>
 
-static GFX::Anisotropy anisotropy = GFX::Anisotropy::SAMPLES_16;
-
-static void setAnisotropy(const char*, cvar_float val)
-{
-  if (val >= 16) anisotropy = GFX::Anisotropy::SAMPLES_16;
-  else if (val >= 8) anisotropy = GFX::Anisotropy::SAMPLES_8;
-  else if (val >= 4) anisotropy = GFX::Anisotropy::SAMPLES_4;
-  else if (val >= 2) anisotropy = GFX::Anisotropy::SAMPLES_2;
-  else anisotropy = GFX::Anisotropy::SAMPLES_1;
-}
-
 AutoCVar<cvar_float> cullDistanceMinCVar("v.cullDistanceMin", "- Minimum distance at which chunks should render", 0);
 AutoCVar<cvar_float> cullDistanceMaxCVar("v.cullDistanceMax", "- Maximum distance at which chunks should render", 2000);
-AutoCVar<cvar_float> freezeCullingCVar("v.freezeCulling", "- If enabled, freezes chunk culling", 0, CVarFlag::CHEAT);
-AutoCVar<cvar_float> drawOcclusionVolumesCVar("v.drawOcclusionVolumes", "- If enabled, draws occlusion volumes", 0, CVarFlag::CHEAT);
-AutoCVar<cvar_float> anisotropyCVar("v.anisotropy", "- Level of anisotropic filtering to apply to voxels", 16, CVarFlag::NONE, setAnisotropy);
+AutoCVar<cvar_float> freezeCullingCVar("v.freezeCulling", "- If enabled, freezes chunk culling", 0, 0, 1, CVarFlag::CHEAT);
+AutoCVar<cvar_float> drawOcclusionVolumesCVar("v.drawOcclusionVolumes", "- If enabled, draws occlusion volumes", 0, 0, 1, CVarFlag::CHEAT);
+AutoCVar<cvar_float> anisotropyCVar("v.anisotropy", "- Level of anisotropic filtering to apply to voxels", 16, 1, 16);
+
+
+static GFX::Anisotropy getAnisotropy(cvar_float val)
+{
+  if (val >= 16) return GFX::Anisotropy::SAMPLES_16;
+  else if (val >= 8) return GFX::Anisotropy::SAMPLES_8;
+  else if (val >= 4) return GFX::Anisotropy::SAMPLES_4;
+  else if (val >= 2) return GFX::Anisotropy::SAMPLES_2;
+  return GFX::Anisotropy::SAMPLES_1;
+}
 
 namespace Voxels
 {
@@ -266,7 +265,7 @@ namespace Voxels
     dib->Bind<GFX::Target::DRAW_INDIRECT_BUFFER>();
     drawCountGPU->Bind<GFX::Target::PARAMETER_BUFFER>();
     auto state = blockTexturesSampler->GetState();
-    state.asBitField.anisotropy = anisotropy;
+    state.asBitField.anisotropy = getAnisotropy(anisotropyCVar.Get());
     blockTexturesSampler->SetState(state);
     blockTexturesView->Bind(0, *blockTexturesSampler);
     blueNoiseView->Bind(1, *blueNoiseSampler);

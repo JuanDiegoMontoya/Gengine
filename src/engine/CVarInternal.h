@@ -1,5 +1,4 @@
 #pragma once
-#include <concepts>
 #include <shared_mutex>
 #include <unordered_map>
 #include <utility/HashedString.h>
@@ -7,6 +6,8 @@
 #include <glm/vec3.hpp>
 #include "GAssert.h"
 #include "CVar.h"
+#include <limits>
+#include <concepts>
 
 template<typename T>
 concept Number = 
@@ -69,7 +70,7 @@ struct CVarArray
     delete[] cvars;
   }
 
-  int AddCVar(const T& value, CVarParameters* params, OnChangeCallback<CB> callback)
+  int AddCVar(const T& value, CVarParameters* params, OnChangeCallback<CB> callback, T min = T{}, T max = T{})
   {
     int index = nextIndex++;
     ASSERT_MSG(index < Capacity, "CVar count exceeds storage capacity");
@@ -78,6 +79,25 @@ struct CVarArray
     cvars[index].current = value;
     cvars[index].parameters = params;
     cvars[index].callback = callback;
+    if constexpr (std::same_as<T, cvar_float> || std::same_as<T, cvar_vec3>)
+    //if constexpr (requires { typename Number; })
+    {
+      if (min == T{} && max == T{})
+      {
+        if constexpr (std::same_as<T, cvar_vec3>)
+        {
+          min = { -std::numeric_limits<float>::max() };
+          max = { std::numeric_limits<float>::max() };
+        }
+        if constexpr (std::same_as<T, cvar_float>)
+        {
+          min = -std::numeric_limits<cvar_float>::max();
+          max = std::numeric_limits<cvar_float>::max();
+        }
+      }
+      cvars[index].min = min;
+      cvars[index].max = max;
+    }
 
     params->index = index;
     return index;

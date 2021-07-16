@@ -31,8 +31,6 @@ namespace GFX
     ~Fence();
     Fence(const Fence&) = delete;
     Fence& operator=(const Fence&) = delete;
-    Fence(Fence&&) noexcept = delete;
-    Fence& operator=(Fence&&) noexcept = delete;
 
     // returns how long (in ns) we were blocked for
     uint64_t Sync();
@@ -48,8 +46,6 @@ namespace GFX
     ~TimerQuery();
     TimerQuery(const TimerQuery&) = delete;
     TimerQuery& operator=(const TimerQuery&) = delete;
-    TimerQuery(TimerQuery&&) noexcept = delete;
-    TimerQuery& operator=(TimerQuery&&) noexcept = delete;
 
     // returns how (in ns) we blocked for (invalidates this object) (BLOCKS)
     uint64_t Elapsed();

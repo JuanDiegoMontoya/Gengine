@@ -65,7 +65,7 @@ Engine::Engine()
   Console::Get()->RegisterCommand("quit", "- Exits the engine", exitFunc);
   Console::Get()->RegisterCommand("help", "- Find help about a convar / concommand", helpFunc);
   Console::Get()->RegisterCommand("clear", "- Clears the console", [](const char*) { Console::Get()->Clear(); });
-  CVarSystem::Get()->RegisterCVar<cvar_float>("timescale", "- Engine timescale", 1.0, CVarFlag::CHEAT, [this](const char*, cvar_float ts)
+  CVarSystem::Get()->RegisterCVar("timescale", "- Engine timescale", 1.0, .0001, 1000, CVarFlag::CHEAT, [this](const char*, cvar_float ts)
     {
       this->SetTimescale(ts);
     });

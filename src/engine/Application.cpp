@@ -8,7 +8,7 @@
 #include <engine/Parser.h>
 #include <engine/Console.h>
 
-void callback(const char* name, double value)
+void callback(const char* name, cvar_float value)
 {
   printf("float cvar \"%s\" changed to %f", name, value);
 }
@@ -44,42 +44,42 @@ void TestParse(const char* str)
   }
 }
 
-AutoCVar<cvar_float> testCVarFloat("cl_testfloat", "desc", 100, CVarFlag::READ_ONLY | CVarFlag::ARCHIVE, callback);
-AutoCVar<cvar_string> testCVarStr("stringy", "desc", "hallo");
+//AutoCVar<cvar_float> testCVarFloat("cl_testfloat", "desc", 100, CVarFlag::READ_ONLY | CVarFlag::ARCHIVE, callback);
+//AutoCVar<cvar_string> testCVarStr("stringy", "desc", "hallo");
 
 void Application::Start()
 {
-  CVarSystem::Get()->RegisterCVar<cvar_float>("test name", "test description", 42.2);
-  printf("value: %f\n", CVarSystem::Get()->GetCVar<cvar_float>("test name"));
+  //CVarSystem::Get()->RegisterCVar<cvar_float>("test name", "test description", 42.2);
+  //printf("value: %f\n", CVarSystem::Get()->GetCVar<cvar_float>("test name"));
 
-  CVarSystem::Get()->SetCVar<cvar_float>("test name", 2);
-  printf("value: %f\n", CVarSystem::Get()->GetCVar<cvar_float>("test name"));
+  //CVarSystem::Get()->SetCVar<cvar_float>("test name", 2);
+  //printf("value: %f\n", CVarSystem::Get()->GetCVar<cvar_float>("test name"));
 
-  OnChangeCallback<cvar_float> cb;
-  cb = callback;
-  CVarSystem::Get()->RegisterCVar<cvar_float>("test name2", "test description", 5.5, CVarFlag::NONE, callback);
-  CVarSystem::Get()->SetCVar<cvar_float>("test name2", 3.0);
-  printf("value: %f\n", CVarSystem::Get()->GetCVar<cvar_float>("test name2"));
-  printf("value: %f\n", CVarSystem::Get()->GetCVar<cvar_float>("test name"));
+  //OnChangeCallback<cvar_float> cb;
+  //cb = callback;
+  //CVarSystem::Get()->RegisterCVar<cvar_float>("test name2", "test description", 5.5, CVarFlag::NONE, callback);
+  //CVarSystem::Get()->SetCVar<cvar_float>("test name2", 3.0);
+  //printf("value: %f\n", CVarSystem::Get()->GetCVar<cvar_float>("test name2"));
+  //printf("value: %f\n", CVarSystem::Get()->GetCVar<cvar_float>("test name"));
 
-  CVarSystem::Get()->RegisterCVar<cvar_string>("string cvar", "string desc", "hello");
-  printf("value: %s\n", CVarSystem::Get()->GetCVar<cvar_string>("string cvar"));
-  CVarSystem::Get()->SetCVar<cvar_string>("string cvar", "goodbye");
-  printf("value: %s\n", CVarSystem::Get()->GetCVar<cvar_string>("string cvar"));
+  //CVarSystem::Get()->RegisterCVar<cvar_string>("string cvar", "string desc", "hello");
+  //printf("value: %s\n", CVarSystem::Get()->GetCVar<cvar_string>("string cvar"));
+  //CVarSystem::Get()->SetCVar<cvar_string>("string cvar", "goodbye");
+  //printf("value: %s\n", CVarSystem::Get()->GetCVar<cvar_string>("string cvar"));
 
 
-  printf("value: %f\n", testCVarFloat.Get());
-  testCVarFloat.Set(101.0101);
-  printf("value: %f\n", testCVarFloat.Get());
+  //printf("value: %f\n", testCVarFloat.Get());
+  //testCVarFloat.Set(101.0101);
+  //printf("value: %f\n", testCVarFloat.Get());
 
-  printf("value: %s\n", testCVarStr.Get());
-  testCVarStr.Set("aloha");
-  printf("value: %s\n", testCVarStr.Get());
+  //printf("value: %s\n", testCVarStr.Get());
+  //testCVarStr.Set("aloha");
+  //printf("value: %s\n", testCVarStr.Get());
 
-  TestParse("__hello__ \"world\" I want 24.2 (2 3 4) bananas %%4");
-  TestParse("{34.30 3 3 0 )");
-  TestParse("{1.123   4 5]");
-  TestParse("{1.123 a  5]");
+  //TestParse("__hello__ \"world\" I want 24.2 (2 3 4) bananas %%4");
+  //TestParse("{34.30 3 3 0 )");
+  //TestParse("{1.123   4 5]");
+  //TestParse("{1.123 a  5]");
 
   ASSERT(start);
   engine_ = new Engine();

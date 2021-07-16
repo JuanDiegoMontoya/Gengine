@@ -61,7 +61,7 @@ void recompileShader(const char* arg)
   }
 }
 
-AutoCVar<cvar_float> vsync("r.vsync", "- Whether vertical sync is enabled", 0.0, CVarFlag::NONE, vsyncCallback);
+AutoCVar<cvar_float> vsync("r.vsync", "- Whether vertical sync is enabled", 0, 0, 1, CVarFlag::NONE, vsyncCallback);
 
 static void GLAPIENTRY
 GLerrorCB(GLenum source,
