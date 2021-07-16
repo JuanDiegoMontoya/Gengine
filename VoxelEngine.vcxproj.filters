@@ -144,6 +144,7 @@
     <ClInclude Include="third_party\imgui\imstb_truetype.h" />
     <ClInclude Include="src\utility\Defer.h" />
     <ClInclude Include="src\engine\gfx\MeshManager.h" />
+    <ClInclude Include="src\engine\Timestep.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\engine\ecs\component\ParticleEmitter.cpp" />
@@ -204,6 +205,7 @@
     <ClCompile Include="third_party\imgui\imgui_tables.cpp" />
     <ClCompile Include="third_party\imgui\imgui_widgets.cpp" />
     <ClCompile Include="src\engine\gfx\MeshManager.cpp" />
+    <ClCompile Include="src\utility\Timer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="src\engine\gfx\DynamicBuffer.inl" />

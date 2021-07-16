@@ -42,6 +42,7 @@
     <ClInclude Include="src\engine\ecs\system\ScriptSystem.h" />
     <ClInclude Include="src\engine\Engine.h" />
     <ClInclude Include="src\engine\gfx\MeshManager.h" />
+    <ClInclude Include="src\engine\Timestep.h" />
     <ClInclude Include="src\utility\Flags.h" />
     <ClInclude Include="src\engine\GAssert.h" />
     <ClInclude Include="src\engine\gfx\AssimpUtils.h" />
@@ -364,6 +365,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">gPCH.h</PrecompiledHeaderFile>
     </ClCompile>
     <ClCompile Include="src\utility\ImGuiExt.cpp" />
+    <ClCompile Include="src\utility\Timer.cpp" />
     <ClCompile Include="src\voxel\block.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">vPCH.h</PrecompiledHeaderFile>

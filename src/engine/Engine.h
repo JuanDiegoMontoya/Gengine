@@ -1,5 +1,6 @@
 #pragma once
 #include "Scene.h"
+#include "Timestep.h"
 #include <memory>
 
 class GraphicsSystem;
@@ -34,8 +35,7 @@ private:
   friend class Application;
   Engine();
 
-  float dt_{};
-  float timescale_{ 1.0f };
+  double timescale_{ 1.0f };
   std::vector<std::unique_ptr<Scene>> scenes_;
   Scene* activeScene_ = nullptr;
 

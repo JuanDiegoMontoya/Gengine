@@ -90,9 +90,11 @@ void Engine::InitScenes()
 void Engine::Run()
 {
   Timer timer;
+  Timestep timestep;
   while (running_)
   {
-    dt_ = static_cast<float>(timer.elapsed()) * timescale_;
+    float dt_ = static_cast<float>(timer.elapsed()) * timescale_;
+    //timestep.dt_actual = 
     timer.reset();
 
     if (paused_) dt_ = 0;
