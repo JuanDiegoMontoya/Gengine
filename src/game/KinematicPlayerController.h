@@ -18,7 +18,7 @@ public:
 
   }
 
-  virtual void OnUpdate(float dt) override
+  virtual void OnUpdate(Timestep timestep) override
   {
     if (Input::IsKeyPressed(GLFW_KEY_GRAVE_ACCENT))
     {
@@ -48,7 +48,7 @@ public:
       maxXZSpeed = slowSpeed;
     }
 
-    float currSpeed = acceleration * dt;
+    float currSpeed = acceleration * timestep.dt_effective;
     bool speeding = false;
     glm::vec2 xzForce{ 0 };
     //if (Input::IsKeyDown(GLFW_KEY_W))
@@ -65,7 +65,7 @@ public:
       xzForce = glm::normalize(xzForce) * currSpeed;
     if (Input::IsKeyDown(GLFW_KEY_T))
     {
-      velocity += cam.GetForward() * dt * 100.f;
+      velocity += cam.GetForward() * (float)timestep.dt_effective * 100.f;
       speeding = true;
     }
 
@@ -84,17 +84,17 @@ public:
     glm::vec3 startPosition = controller.Interface().GetPosition();
     glm::vec3 expectedPosition = startPosition;
 
-    accumulator += dt;
-    dt = tick;
+    accumulator += timestep.dt_effective;
+    float dtFixed = tick;
     while (accumulator > tick)
     {
       accumulator -= tick;
 
-      velocity.y += gravity * dt;
+      velocity.y += gravity * dtFixed;
       glm::vec2 velXZ{ velocity.x, velocity.z };
       float deceleration = 0;
-      expectedPosition += velocity * dt;
-      flags = controller.Interface().Move(velocity * dt, dt);
+      expectedPosition += velocity * dtFixed;
+      flags = controller.Interface().Move(velocity * dtFixed, dtFixed);
       if (flags & Physics::ControllerCollisionFlag::COLLISION_DOWN || flags & Physics::ControllerCollisionFlag::COLLISION_UP)
       {
         velocity.y = 0;
@@ -118,7 +118,7 @@ public:
         if (glm::all(glm::epsilonEqual(velXZ, glm::vec2(0), .001f)))
           dV = { 0,0 };
         else
-          dV = glm::clamp(glm::abs(glm::normalize(velXZ)) * deceleration * dt, 0.001f, 1.0f);// linear friction
+          dV = glm::clamp(glm::abs(glm::normalize(velXZ)) * deceleration * dtFixed, 0.001f, 1.0f);// linear friction
         velXZ -= glm::min(glm::abs(dV), glm::abs(velXZ)) * glm::sign(velXZ);
       }
       velocity.x = velXZ.x;
@@ -131,7 +131,7 @@ public:
       // if the actual position is less than if you added velocity to previous position (i.e. you collided with something),
       // then lower the velocity correspondingly
       glm::vec3 actualPosition = controller.Interface().GetPosition();
-      glm::vec3 actualVelocity = (actualPosition - startPosition) / dt;
+      glm::vec3 actualVelocity = (actualPosition - startPosition) / dtFixed;
       if (glm::length(glm::vec2(actualVelocity.x, actualVelocity.z)) < glm::length(glm::vec2(velocity.x, velocity.z)))
       {
         velocity.x = actualVelocity.x;
@@ -179,7 +179,7 @@ public:
   glm::vec3 velocity{ 0, 0, 0 };
 
   // fix step bookkeeping
-  const float tick = 1.0f / 200.0f;
+  const double tick = 1.0f / 200.0f;
   float accumulator = 0;
   Physics::ControllerCollisionFlags flags{};
 

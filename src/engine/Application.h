@@ -1,5 +1,6 @@
 #pragma once
 #include <engine/GAssert.h>
+#include <engine/Timestep.h>
 
 class Engine;
 class Scene;
@@ -17,8 +18,8 @@ public:
   static void Quit();
 
   static void SetStartCallback(void(*fn)(Scene*)) { start = fn; }
-  static void SetUpdateCallback(void(*fn)(float)) { update = fn; }
-  static void SetDrawCallback(void(*fn)(float)) { draw = fn; }
+  static void SetUpdateCallback(void(*fn)(Timestep)) { update = fn; }
+  static void SetDrawCallback(void(*fn)(Timestep)) { draw = fn; }
   static void SetLoadSceneCallback(void(*fn)(const char*)) { loadSceneStr = fn; }
   static void SetLoadSceneCallback(void(*fn)(unsigned)) { loadSceneIndex = fn; }
   static void SetUnloadSceneCallback(void(*fn)(const char*)) { unloadSceneStr = fn; }
@@ -26,8 +27,8 @@ public:
 
 private:
   static inline void(*start)(Scene*) = nullptr;
-  static inline void(*update)(float) = nullptr;
-  static inline void(*draw)(float) = nullptr;
+  static inline void(*update)(Timestep) = nullptr;
+  static inline void(*draw)(Timestep) = nullptr;
   static inline void(*loadSceneStr)(const char*) = nullptr;
   static inline void(*loadSceneIndex)(unsigned) = nullptr;
   static inline void(*unloadSceneStr)(const char*) = nullptr;

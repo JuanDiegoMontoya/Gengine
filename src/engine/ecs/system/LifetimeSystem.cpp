@@ -8,7 +8,7 @@
 static void DeleteEntityAndChildren(Entity entity, std::vector<entt::entity>& entitiesToDelete)
 {
   entitiesToDelete.push_back(entity);
-  printf("Killing entity %d, %s\n", entity.operator entt::entity(), entity.GetComponent<Component::Tag>().tag.c_str());
+  printf("Killing entity %u, %s\n", uint32_t(entity), entity.GetComponent<Component::Tag>().tag.c_str());
 
   // DFS child removal
   if (entity.HasComponent<Component::Children>())
@@ -21,7 +21,7 @@ static void DeleteEntityAndChildren(Entity entity, std::vector<entt::entity>& en
   }
 }
 
-void LifetimeSystem::Update(Scene& scene, float dt)
+void LifetimeSystem::Update(Scene& scene, Timestep timestep)
 {
   auto lifeview = scene.GetRegistry().view<Component::Lifetime>();
   for (auto entity : lifeview)
@@ -30,7 +30,7 @@ void LifetimeSystem::Update(Scene& scene, float dt)
 
     if (lifetime.active)
     {
-      lifetime.remainingSeconds -= dt;
+      lifetime.remainingSeconds -= timestep.dt_effective;
       if (lifetime.remainingSeconds <= 0)
       {
         Entity ent(entity, &scene);

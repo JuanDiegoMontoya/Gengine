@@ -49,7 +49,7 @@ namespace GFX
     newAlloc.handle = nextHandle++;
     newAlloc.offset = small->offset;
     newAlloc.size = size;
-    newAlloc.time = timer.elapsed();
+    newAlloc.time = timer.Elapsed();
     newAlloc.flags = 0;
     //newAlloc.userdata = userdata;
 

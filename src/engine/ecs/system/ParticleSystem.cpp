@@ -102,7 +102,7 @@ void ParticleSystem::InitScene(Scene& scene)
     .connect<&OnEmitterDestroy>();
 }
 
-void ParticleSystem::Update(Scene& scene, float dt)
+void ParticleSystem::Update(Scene& scene, Timestep timestep)
 {
   GFX::DebugMarker marker("Particle system update");
   static Timer timer;
@@ -125,7 +125,7 @@ void ParticleSystem::Update(Scene& scene, float dt)
       emitterData->particleBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(0);
       emitterData->freeStackBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(1);
 
-      emitterData->timer += dt;
+      emitterData->timer += timestep.dt_effective;
       unsigned particlesToSpawn = 0;
       while (emitterData->timer > emitter.data.interval)
       {
@@ -143,7 +143,7 @@ void ParticleSystem::Update(Scene& scene, float dt)
       {
 #pragma region uniforms
         emitter_shader->SetInt("u_particlesToSpawn", particlesToSpawn);
-        emitter_shader->SetFloat("u_time", static_cast<float>(timer.elapsed()) + 1.61803f);
+        emitter_shader->SetFloat("u_time", static_cast<float>(timer.Elapsed()) + 1.61803f);
         emitter_shader->SetMat4("u_model", transform.GetModel());
         emitter_shader->SetFloat("u_emitter.minLife", emitter.data.minLife);
         emitter_shader->SetFloat("u_emitter.maxLife", emitter.data.maxLife);
@@ -171,7 +171,7 @@ void ParticleSystem::Update(Scene& scene, float dt)
     GFX::DebugMarker particleMarker("Update particle dynamic state");
     auto particle_shader = GFX::ShaderManager::Get()->GetShader("update_particle");
     particle_shader->Bind();
-    particle_shader->SetFloat("u_dt", dt);
+    particle_shader->SetFloat("u_dt", timestep.dt_effective);
 
     for (entt::entity entity : view)
     {
@@ -195,9 +195,9 @@ void ParticleSystem::Update(Scene& scene, float dt)
   }
 
   // reset timer every 10 seconds to avoid precision issues
-  if (timer.elapsed() > 10.0)
+  if (timer.Elapsed() > 10.0)
   {
-    timer.reset();
+    timer.Reset();
   }
 }
 

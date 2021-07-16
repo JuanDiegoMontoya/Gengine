@@ -14,7 +14,7 @@ public:
 	static void Init();
   //~CameraSystem();
 
-  static void Update(float dt);
+  static void Update();
 
   static void RegisterCamera(Component::Camera* cam);
 

@@ -22,7 +22,7 @@ public:
 
   }
 
-  virtual void OnUpdate(float dt) override
+  virtual void OnUpdate(Timestep timestep) override
   {
     const auto& transform = GetComponent<Component::Transform>();
     CameraSystem::SetPos(transform.GetTranslation()); // TODO: TEMP BULLSHIT
@@ -32,17 +32,17 @@ public:
     const glm::vec2 xzForward = glm::normalize(glm::vec2(CameraSystem::GetDir().x, CameraSystem::GetDir().z));
     const glm::vec2 xzRight = glm::normalize(glm::vec2(xzForward.y, -xzForward.x));
     //
-    float currSpeed = normalForce * dt;
+    float currSpeed = normalForce * timestep.dt_effective;
     float maxSpeed = normalSpeed;
     if (Input::IsKeyDown(GLFW_KEY_LEFT_SHIFT))
     {
       maxSpeed = fastSpeed;
-      currSpeed = fastForce * dt;
+      currSpeed = fastForce * timestep.dt_effective;
     }
     if (Input::IsKeyDown(GLFW_KEY_LEFT_CONTROL))
     {
       maxSpeed = slowSpeed;
-      currSpeed = slowForce * dt;
+      currSpeed = slowForce * timestep.dt_effective;
     }
     if (Input::IsKeyDown(GLFW_KEY_T))
     {

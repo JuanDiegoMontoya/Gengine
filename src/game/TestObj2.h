@@ -16,9 +16,9 @@ public:
 
   }
 
-  virtual void OnUpdate(float dt) override
+  virtual void OnUpdate(Timestep timestep) override
   {
-    time += dt;
+    time += timestep.dt_effective;
     auto* transform = &GetComponent<Component::LocalTransform>().transform;
     auto translation = transform->GetTranslation();
     translation.y = glm::sin(time) * 5;

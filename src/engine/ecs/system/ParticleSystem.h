@@ -1,6 +1,7 @@
 #pragma once
 #include <engine/gfx/Texture.h>
 #include <utility/HashedString.h>
+#include "../../Timestep.h"
 
 class Scene;
 struct ParticleManagerData;
@@ -33,7 +34,7 @@ class ParticleSystem
 {
 public:
   void InitScene(Scene& scene);
-  void Update(Scene& scene, float dt);
+  void Update(Scene& scene, Timestep timestep);
 
 private:
 };

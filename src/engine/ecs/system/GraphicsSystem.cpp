@@ -59,18 +59,18 @@ void GraphicsSystem::StartFrame()
       continue;
     }
     CameraSystem::ActiveCamera = camera;
-    CameraSystem::Update(0);
+    CameraSystem::Update();
     Renderer::DrawSkybox();
   }
 }
 
-void GraphicsSystem::DrawOpaque(Scene& scene, float dt)
+void GraphicsSystem::DrawOpaque(Scene& scene)
 {
   const auto& camList = CameraSystem::GetCameraList();
   for (Component::Camera* camera : camList)
   {
     CameraSystem::ActiveCamera = camera;
-    CameraSystem::Update(dt);
+    CameraSystem::Update();
 
     // draw batched objects in the scene
     using namespace Component;
@@ -90,7 +90,7 @@ void GraphicsSystem::DrawOpaque(Scene& scene, float dt)
   }
 }
 
-void GraphicsSystem::DrawTransparent(Scene& scene, [[maybe_unused]] float dt)
+void GraphicsSystem::DrawTransparent(Scene& scene)
 {
   const auto& camList = CameraSystem::GetCameraList();
   for (Component::Camera* camera : camList)
@@ -131,9 +131,9 @@ void GraphicsSystem::DrawTransparent(Scene& scene, [[maybe_unused]] float dt)
   }
 }
 
-void GraphicsSystem::EndFrame(float dt)
+void GraphicsSystem::EndFrame(Timestep timestep)
 {
-  Renderer::EndFrame(dt);
+  Renderer::EndFrame(timestep.dt_effective);
 }
 
 void GraphicsSystem::SwapBuffers()

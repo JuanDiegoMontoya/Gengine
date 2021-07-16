@@ -17,13 +17,13 @@ public:
 
   }
 
-  virtual void OnUpdate(float dt) override
+  virtual void OnUpdate(Timestep timestep) override
   {
     auto translation = GetComponent<Component::Transform>().GetTranslation();
 
     float speed = 3.5f;
 
-    float currSpeed = speed * dt;
+    float currSpeed = speed * timestep.dt_effective;
     if (Input::IsKeyDown(GLFW_KEY_LEFT_SHIFT))
       currSpeed *= 10;
     if (Input::IsKeyDown(GLFW_KEY_LEFT_CONTROL))

@@ -31,7 +31,7 @@ void PlayerActions::OnDestroy()
 {
 }
 
-void PlayerActions::OnUpdate(float dt)
+void PlayerActions::OnUpdate(Timestep timestep)
 {
   if (Input::IsKeyPressed(GLFW_KEY_P))
   {
@@ -154,7 +154,7 @@ void PlayerActions::OnUpdate(float dt)
 
   checkTestButton();
   checkBlockPick();
-  checkBlockDestruction(dt);
+  checkBlockDestruction(timestep.dt_effective);
   checkBlockPlacement();
 
   selected = (BlockType)glm::clamp((int)selected + (int)Input::GetScrollOffset().y, 0, (int)Block::PropertiesTable.size() - 1);

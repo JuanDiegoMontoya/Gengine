@@ -350,7 +350,7 @@ void OnStart(Scene* scene)
   //}
 }
 
-void OnUpdate([[maybe_unused]] float dt)
+void OnUpdate([[maybe_unused]] Timestep timestep)
 {
   if (Input::IsKeyDown(GLFW_KEY_LEFT_SHIFT))
   {
@@ -364,7 +364,7 @@ void OnUpdate([[maybe_unused]] float dt)
   voxelManager->Update();
 }
 
-void OnDraw([[maybe_unused]] float dt)
+void OnDraw([[maybe_unused]] Timestep timestep)
 {
   voxelManager->Draw();
   Renderer::DrawAxisIndicator();

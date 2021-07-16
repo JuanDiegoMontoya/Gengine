@@ -15,7 +15,7 @@ void ScriptSystem::InitScene(Scene& scene)
     .connect<&OnScriptDestroy>();
 }
 
-void ScriptSystem::Update(Scene& scene, float dt)
+void ScriptSystem::Update(Scene& scene, Timestep timestep)
 {
   auto view = scene.GetRegistry().view<Component::NativeScriptComponent>();
   for (auto entity : view)
@@ -28,6 +28,6 @@ void ScriptSystem::Update(Scene& scene, float dt)
       script.Instance->OnCreate();
     }
 
-    script.Instance->OnUpdate(dt);
+    script.Instance->OnUpdate(timestep);
   }
 }

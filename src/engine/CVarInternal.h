@@ -86,8 +86,8 @@ struct CVarArray
       {
         if constexpr (std::same_as<T, cvar_vec3>)
         {
-          min = { -std::numeric_limits<float>::max() };
-          max = { std::numeric_limits<float>::max() };
+          min = { -std::numeric_limits<T::value_type>::max() };
+          max = { std::numeric_limits<T::value_type>::max() };
         }
         if constexpr (std::same_as<T, cvar_float>)
         {

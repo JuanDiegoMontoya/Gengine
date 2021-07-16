@@ -1,4 +1,5 @@
 #pragma once
+#include "../../Timestep.h"
 
 class Scene;
 struct GLFWwindow;
@@ -10,9 +11,9 @@ public:
   void Shutdown();
 
   void StartFrame();
-  void DrawOpaque(Scene& scene, float dt);
-  void DrawTransparent(Scene& scene, float dt);
-  void EndFrame(float dt);
+  void DrawOpaque(Scene& scene);
+  void DrawTransparent(Scene& scene);
+  void EndFrame(Timestep timestep);
   void SwapBuffers();
 
   GLFWwindow* GetWindow() { return window; }

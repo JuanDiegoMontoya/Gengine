@@ -39,8 +39,8 @@ private:
   std::vector<std::unique_ptr<Scene>> scenes_;
   Scene* activeScene_ = nullptr;
 
-  void(*updateCallback)(float) = nullptr;
-  void(*drawCallback)(float) = nullptr;
+  void(*updateCallback)(Timestep) = nullptr;
+  void(*drawCallback)(Timestep) = nullptr;
 
   bool running_ = true;
   bool paused_ = false;

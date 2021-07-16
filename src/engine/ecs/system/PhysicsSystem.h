@@ -1,5 +1,6 @@
 #pragma once
-#include <engine/Scene.h>
+#include "../../Scene.h"
+#include "../../Timestep.h"
 
 class PhysicsSystem
 {
@@ -7,7 +8,7 @@ public:
   PhysicsSystem();
   ~PhysicsSystem();
   void InitScene(Scene& scene);
-  void Update(Scene& scene, float dt);
+  void Update(Scene& scene, Timestep timestep);
 
 private:
 };

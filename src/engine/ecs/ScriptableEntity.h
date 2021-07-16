@@ -1,5 +1,6 @@
 #pragma once
 #include "Entity.h"
+#include "../Timestep.h"
 
 class ScriptableEntity
 {
@@ -36,7 +37,7 @@ public:
 protected:
 	virtual void OnCreate() {}
 	virtual void OnDestroy() {}
-	virtual void OnUpdate([[maybe_unused]] float dt) {}
+	virtual void OnUpdate([[maybe_unused]] Timestep timestep) {}
 
 private:
 	Entity entity_;

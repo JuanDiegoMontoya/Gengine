@@ -93,40 +93,42 @@ void Engine::Run()
   Timestep timestep;
   while (running_)
   {
-    float dt_ = static_cast<float>(timer.elapsed()) * timescale_;
-    //timestep.dt_actual = 
-    timer.reset();
+    double dt = static_cast<float>(timer.Elapsed());
+    timer.Reset();
 
-    if (paused_) dt_ = 0;
+    timestep.dt_actual = dt;
+    timestep.dt_effective = dt * timescale_;
+
+    if (paused_) timestep.dt_effective = 0;
 
     Input::Update();
-    debugSystem->StartFrame(*activeScene_, dt_);
+    debugSystem->StartFrame(*activeScene_);
 
     // idk when this should be called tbh
-    scriptSystem->Update(*activeScene_, dt_);
+    scriptSystem->Update(*activeScene_, timestep);
 
-    lifetimeSystem->Update(*activeScene_, dt_);
+    lifetimeSystem->Update(*activeScene_, timestep);
 
     if (updateCallback != nullptr)
     {
-      updateCallback(dt_);
+      updateCallback(timestep);
     }
 
-    particleSystem->Update(*activeScene_, dt_);
+    particleSystem->Update(*activeScene_, timestep);
 
     graphicsSystem->StartFrame();
-    graphicsSystem->DrawOpaque(*activeScene_, dt_);
+    graphicsSystem->DrawOpaque(*activeScene_);
     if (drawCallback)
     {
-      drawCallback(dt_);
+      drawCallback(timestep);
     }
-    graphicsSystem->DrawTransparent(*activeScene_, dt_);
+    graphicsSystem->DrawTransparent(*activeScene_);
 
-    physicsSystem->Update(*activeScene_, dt_);
-    debugSystem->Update(*activeScene_, dt_);
+    physicsSystem->Update(*activeScene_, timestep);
+    debugSystem->Update(*activeScene_, timestep);
 
-    graphicsSystem->EndFrame(dt_);
-    debugSystem->EndFrame(*activeScene_, dt_); // render UI on top of everything else
+    graphicsSystem->EndFrame(timestep);
+    debugSystem->EndFrame(*activeScene_); // render UI on top of everything else
     graphicsSystem->SwapBuffers();
   }
 

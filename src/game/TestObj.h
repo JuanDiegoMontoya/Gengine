@@ -17,8 +17,9 @@ public:
 
   }
 
-  virtual void OnUpdate(float dt) override
+  virtual void OnUpdate(Timestep timestep) override
   {
+    float dt = (float)timestep.dt_effective;
     if (Input::IsKeyPressed(GLFW_KEY_K))
     {
       //auto entity = GetScene()->GetEntity("parentBigly");

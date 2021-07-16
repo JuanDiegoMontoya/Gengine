@@ -51,7 +51,7 @@ void PhysicsSystem::InitScene(Scene& scene)
     .connect<&OnCharacterControllerDelete>();
 }
 
-void PhysicsSystem::Update(Scene& scene, float dt)
+void PhysicsSystem::Update(Scene& scene, Timestep timestep)
 {
 	// update local transforms
 	{
@@ -103,5 +103,5 @@ void PhysicsSystem::Update(Scene& scene, float dt)
 		}
 	}
 
-	Physics::PhysicsManager::Simulate(dt);
+	Physics::PhysicsManager::Simulate(timestep.dt_effective);
 }

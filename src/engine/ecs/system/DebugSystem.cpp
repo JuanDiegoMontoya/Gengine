@@ -30,7 +30,7 @@ void DebugSystem::End()
   ImGui::DestroyContext();
 }
 
-void DebugSystem::StartFrame(Scene& scene, [[maybe_unused]] float dt)
+void DebugSystem::StartFrame(Scene& scene)
 {
   if (glfwWindowShouldClose(window))
   {
@@ -42,11 +42,11 @@ void DebugSystem::StartFrame(Scene& scene, [[maybe_unused]] float dt)
   ImGui::NewFrame();
 }
 
-void DebugSystem::Update([[maybe_unused]] Scene& scene, float dt)
+void DebugSystem::Update([[maybe_unused]] Scene& scene, Timestep timestep)
 {
   {
     ImGui::Begin("Graphs");
-    ImGui::PlotVar("Frametime (ms)", dt * 1000.0f, 0.f, .05f * 1000.f, 240, ImVec2(300, 100));
+    ImGui::PlotVar("Frametime (ms)", timestep.dt_actual * 1000.0f, 0.f, .05f * 1000.f, 240, ImVec2(300, 100));
     ImGui::End();
   }
 
@@ -57,8 +57,8 @@ void DebugSystem::Update([[maybe_unused]] Scene& scene, float dt)
     static double frameTimeExp = 0;
     static double alpha = .01;
 
-    frameTimeExp = alpha * dt + (1.0 - alpha) * frameTimeExp;
-    alpha = glm::clamp((float)dt, 0.0f, 1.0f);
+    frameTimeExp = alpha * timestep.dt_actual + (1.0 - alpha) * frameTimeExp;
+    alpha = glm::clamp(timestep.dt_actual, 0.0, 1.0);
 
     ImGui::Text("FPS: %.0f (%.2f ms)", 1.f / frameTimeExp, frameTimeExp * 1000);
 
@@ -72,7 +72,7 @@ void DebugSystem::Update([[maybe_unused]] Scene& scene, float dt)
   }
 }
 
-void DebugSystem::EndFrame([[maybe_unused]] Scene& scene, [[maybe_unused]] float dt)
+void DebugSystem::EndFrame([[maybe_unused]] Scene& scene)
 {
   static bool ting = false;
   if (Input::IsKeyPressed(GLFW_KEY_F1))

@@ -11,7 +11,7 @@ public:
 
   virtual void OnCreate() override;
   virtual void OnDestroy() override;
-  virtual void OnUpdate(float dt) override;
+  virtual void OnUpdate(Timestep timestep) override;
 
   void checkTestButton();
   void checkBlockPlacement();
