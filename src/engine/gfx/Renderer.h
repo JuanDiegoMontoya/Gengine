@@ -72,7 +72,9 @@ private:
   static inline uint32_t emptyVao{};
 
   // HDR inverse-z framebuffer stuff
-  static inline unsigned fbo;
+  static inline uint32_t fbo{};
+  static inline uint32_t ldrFbo{};
+  static inline uint32_t ldrColor{};
   static inline int windowWidth = 1920, windowHeight = 1017;
   static inline int fboWidth = 1920, fboHeight = 1017;
   //static inline int windowWidth = 10, windowHeight = 10;
@@ -84,7 +86,6 @@ private:
   static inline float maxExposure = 10.0f;
   static inline float targetLuminance = .22f;
   static inline float adjustmentSpeed = 0.5f;
-  static inline bool tonemapping = true;
   static inline bool gammaCorrection = true;
   static inline std::unique_ptr<GFX::StaticBuffer> exposureBuffer;
   static inline std::unique_ptr<GFX::StaticBuffer> histogramBuffer;
@@ -93,4 +94,12 @@ private:
   static inline std::optional<GFX::TextureView> blueNoiseView;
   static inline std::optional<GFX::TextureSampler> blueNoiseSampler;
   static inline bool tonemapDither = true;
+  struct FXAA
+  {
+    bool enabled{ true };
+    float contrastThreshold = 0.0312;
+    float relativeThreshold = 0.125;
+    float pixelBlendStrength = 0.2;
+    float edgeBlendStrength = 1.0;
+  }static inline fxaa;
 };

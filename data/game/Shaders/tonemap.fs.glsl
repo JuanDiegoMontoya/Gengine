@@ -3,7 +3,8 @@
 layout(location = 1, binding = 1) uniform sampler2D u_hdrBuffer;
 layout(location = 2, binding = 2) uniform sampler2D u_blueNoise;
 layout(location = 3) uniform bool u_useDithering = true;
-layout(location = 4) uniform float u_exposureFactor = 1.0;
+layout(location = 4) uniform bool u_encodeSRGB = true;
+layout(location = 5) uniform float u_exposureFactor = 1.0;
 
 layout(location = 0) in vec2 vTexCoord;
 layout(location = 0) out vec4 fragColor;
@@ -28,6 +29,37 @@ vec3 aces_approx(vec3 v)
   float d = 0.59f;
   float e = 0.14f;
   return clamp((v * (a * v + b)) / (v * (c * v + d) + e), 0.0f, 1.0f);
+}
+
+vec3 ACESFitted(vec3 color);
+
+vec3 sRGB(vec3 linearColor)
+{
+  bvec3 cutoff = lessThan(linearColor, vec3(0.0031308));
+  vec3 higher = vec3(1.055) * pow(linearColor, vec3(1.0 / 2.4)) - vec3(0.055);
+  vec3 lower = linearColor * vec3(12.92);
+
+  return mix(higher, lower, cutoff);
+}
+
+void main()
+{
+  vec3 hdrColor = texture(u_hdrBuffer, vTexCoord).rgb;
+  vec3 ldr = ACESFitted(hdrColor) * u_exposureFactor * readExposure;
+
+  if (u_useDithering)
+  {
+    vec2 uvNoise = vTexCoord * (vec2(textureSize(u_hdrBuffer, 0)) / vec2(textureSize(u_blueNoise, 0)));
+    vec3 noiseSample = texture(u_blueNoise, uvNoise).rgb;
+    ldr += vec3((noiseSample - 0.5) / 256.0);
+  }
+
+  if (u_encodeSRGB)
+  {
+    ldr = sRGB(ldr);
+  }
+
+  fragColor = vec4(ldr, 1.0);
 }
 
 // The code in this file after this line was originally written by Stephen Hill (@self_shadow), who deserves all
@@ -68,23 +100,4 @@ vec3 ACESFitted(vec3 color)
   color = clamp(color, 0.0, 1.0);
 
   return color;
-}
-
-void main()
-{
-  const float gamma = 2.2;
-
-  vec3 hdrColor = texture(u_hdrBuffer, vTexCoord).rgb;
-  vec3 ldr = ACESFitted(hdrColor) * u_exposureFactor * readExposure;
-
-  if (u_useDithering)
-  {
-    vec2 uvNoise = vTexCoord * (vec2(textureSize(u_hdrBuffer, 0)) / vec2(textureSize(u_blueNoise, 0)));
-    vec3 noiseSample = texture(u_blueNoise, uvNoise).rgb;
-    ldr += vec3((noiseSample - 0.5) / 256.0);
-  }
-
-  //ldr = pow(mapped, vec3(1.0 / 2.2));
-
-  fragColor = vec4(ldr, 1.0);
 }

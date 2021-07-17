@@ -277,6 +277,16 @@ void Renderer::Init()
   {
     fprintf(stderr, "glCheckNamedFramebufferStatus: %x\n", status);
   }
+
+  glCreateTextures(GL_TEXTURE_2D, 1, &ldrColor);
+  glTextureStorage2D(ldrColor, 1, GL_RGBA16, fboWidth, fboHeight);
+  glCreateFramebuffers(1, &ldrFbo);
+  glNamedFramebufferTexture(ldrFbo, GL_COLOR_ATTACHMENT0, ldrColor, 0);
+  if (GLenum status = glCheckNamedFramebufferStatus(ldrFbo, GL_FRAMEBUFFER); status != GL_FRAMEBUFFER_COMPLETE)
+  {
+    fprintf(stderr, "glCheckNamedFramebufferStatus: %x\n", status);
+  }
+
   //size_t pow2Size = glm::exp2(glm::ceil(glm::log2(double(fboWidth * fboHeight)))); // next power of 2
   std::vector<int> zeros(NUM_BUCKETS, 0);
   //floatBufferIn = std::make_unique<GFX::StaticBuffer>(zeros.data(), pow2Size * sizeof(float), GFX::BufferFlag::CLIENT_STORAGE | GFX::BufferFlag::DYNAMIC_STORAGE);
@@ -408,6 +418,11 @@ void Renderer::CompileShaders()
       { "flat_color.vs.glsl", GFX::ShaderType::VERTEX },
       { "flat_color.fs.glsl", GFX::ShaderType::FRAGMENT }
     });
+  GFX::ShaderManager::Get()->AddShader("fxaa",
+    {
+      { "fullscreen_tri.vs.glsl", GFX::ShaderType::VERTEX },
+      { "fxaa.fs.glsl", GFX::ShaderType::FRAGMENT }
+    });
 }
 
 void Renderer::DrawAxisIndicator()
@@ -467,6 +482,7 @@ void Renderer::DrawSkybox()
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 14);
   glDepthMask(GL_TRUE);
   glEnable(GL_CULL_FACE);
+  CameraSystem::ActiveCamera->skyboxTexture->Unbind(0);
 }
 
 #include <imgui/imgui.h>
@@ -482,7 +498,7 @@ void Renderer::StartFrame()
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   ImGui::Begin("Tonemapping");
-  ImGui::Checkbox("Enabled", &tonemapping);
+  ImGui::Checkbox("FXAA", &fxaa.enabled);
   ImGui::Checkbox("Dither", &tonemapDither);
   ImGui::Checkbox("Gamma Correction", &gammaCorrection);
   ImGui::SliderFloat("Exposure Factor", &exposure, .5f, 2.0f, "%.2f");
@@ -506,13 +522,8 @@ void Renderer::StartFrame()
 void Renderer::EndFrame(float dt)
 {
   GFX::DebugMarker endframeMarker("Postprocessing");
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-  if (gammaCorrection)
-  {
-    glEnable(GL_FRAMEBUFFER_SRGB);
-  }
+  glBindFramebuffer(GL_FRAMEBUFFER, ldrFbo);
 
-  if (tonemapping)
   {
     GFX::DebugMarker tonemappingMarker("Tone mapping");
     glBindTextureUnit(1, color); // HDR buffer
@@ -570,19 +581,42 @@ void Renderer::EndFrame(float dt)
     shdr->Bind();
     shdr->SetFloat("u_exposureFactor", exposure);
     shdr->SetBool("u_useDithering", tonemapDither);
+    shdr->SetBool("u_encodeSRGB", gammaCorrection);
     blueNoiseView->Bind(2, *blueNoiseSampler);
     glBindVertexArray(emptyVao);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+    glDepthMask(GL_TRUE);
+    glEnable(GL_CULL_FACE);
+    blueNoiseView->Unbind(2);
+  }
+
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  
+  if (fxaa.enabled)
+  {
+    glBindSampler(0, 0);
+    glBindTextureUnit(0, ldrColor);
+    GFX::DebugMarker marker("FXAA");
+    auto shdr = GFX::ShaderManager::Get()->GetShader("fxaa");
+    shdr->Bind();
+    shdr->SetVec2("u_invScreenSize", { 1.0f / fboWidth, 1.0f / fboHeight });
+    shdr->SetFloat("u_contrastThreshold", fxaa.contrastThreshold);
+    shdr->SetFloat("u_relativeThreshold", fxaa.relativeThreshold);
+    shdr->SetFloat("u_pixelBlendStrength", fxaa.pixelBlendStrength);
+    shdr->SetFloat("u_edgeBlendStrength", fxaa.edgeBlendStrength);
+    glViewport(0, 0, windowWidth, windowHeight);
+    glBindVertexArray(emptyVao);
+    glDepthMask(GL_FALSE);
+    glDisable(GL_CULL_FACE);
     glDrawArrays(GL_TRIANGLES, 0, 3);
     glDepthMask(GL_TRUE);
     glEnable(GL_CULL_FACE);
   }
   else
   {
-    glBlitNamedFramebuffer(fbo, 0,
+    glBlitNamedFramebuffer(ldrFbo, 0,
       0, 0, fboWidth, fboHeight,
       0, 0, windowWidth, windowHeight,
       GL_COLOR_BUFFER_BIT, GL_LINEAR);
   }
-
-  glDisable(GL_FRAMEBUFFER_SRGB);
 }
