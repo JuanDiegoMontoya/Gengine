@@ -268,6 +268,7 @@ namespace GFX
     {
       std::string preprocessedSource = PreprocessShader(compiler, options, replace, shaderPath, shaderTypeToShadercType[(int)shaderType]);
       GLuint shaderID = CompileShader(shaderTypeToGLType[(int)shaderType], preprocessedSource, shaderPath);
+      if (shaderID == 0) return std::nullopt;
       shaderIDs.push_back(shaderID);
     }
 

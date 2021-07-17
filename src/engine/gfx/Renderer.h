@@ -6,6 +6,7 @@
 #include <engine/gfx/Material.h>
 #include <engine/gfx/DynamicBuffer.h>
 #include <engine/gfx/Indirect.h>
+#include "Texture.h"
 
 namespace Component
 {
@@ -89,4 +90,7 @@ private:
   static inline std::unique_ptr<GFX::StaticBuffer> histogramBuffer;
   static inline const int NUM_BUCKETS = 128;
   static inline std::unique_ptr<GFX::StaticBuffer> floatBufferIn, floatBufferOut;
+  static inline std::optional<GFX::TextureView> blueNoiseView;
+  static inline std::optional<GFX::TextureSampler> blueNoiseSampler;
+  static inline bool tonemapDither = true;
 };

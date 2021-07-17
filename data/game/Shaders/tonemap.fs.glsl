@@ -1,22 +1,24 @@
 #version 460 core
 
-layout (location = 1) uniform sampler2D u_hdrBuffer;
-layout (location = 2) uniform float u_exposureFactor = 1.0;
+layout(location = 1, binding = 1) uniform sampler2D u_hdrBuffer;
+layout(location = 2, binding = 2) uniform sampler2D u_blueNoise;
+layout(location = 3) uniform bool u_useDithering = true;
+layout(location = 4) uniform float u_exposureFactor = 1.0;
 
-layout (location = 0) in vec2 vTexCoord;
-layout (location = 0) out vec4 fragColor;
+layout(location = 0) in vec2 vTexCoord;
+layout(location = 0) out vec4 fragColor;
 
-layout (std430, binding = 0) readonly buffer exposures
+layout(std430, binding = 0) readonly buffer exposures
 {
   float readExposure;
   float writeExposure;
 };
 
-vec3 ACESFitted(vec3 color);
 vec3 reinhard(vec3 v)
 {
   return v / (1.0f + v);
 }
+
 vec3 aces_approx(vec3 v)
 {
   v *= 0.6f;
@@ -25,18 +27,7 @@ vec3 aces_approx(vec3 v)
   float c = 2.43f;
   float d = 0.59f;
   float e = 0.14f;
-  return clamp((v*(a*v+b))/(v*(c*v+d)+e), 0.0f, 1.0f);
-}
-
-void main()
-{
-  const float gamma = 2.2;
-  
-  vec3 hdrColor = texture(u_hdrBuffer, vTexCoord).rgb;
-  vec3 mapped = ACESFitted(hdrColor) * u_exposureFactor * readExposure;
-  //mapped = pow(mapped, vec3(1.0 / 2.2));
-
-  fragColor = vec4(mapped, 1.0);
+  return clamp((v * (a * v + b)) / (v * (c * v + d) + e), 0.0f, 1.0f);
 }
 
 // The code in this file after this line was originally written by Stephen Hill (@self_shadow), who deserves all
@@ -77,4 +68,23 @@ vec3 ACESFitted(vec3 color)
   color = clamp(color, 0.0, 1.0);
 
   return color;
+}
+
+void main()
+{
+  const float gamma = 2.2;
+
+  vec3 hdrColor = texture(u_hdrBuffer, vTexCoord).rgb;
+  vec3 ldr = ACESFitted(hdrColor) * u_exposureFactor * readExposure;
+
+  if (u_useDithering)
+  {
+    vec2 uvNoise = vTexCoord * (vec2(textureSize(u_hdrBuffer, 0)) / vec2(textureSize(u_blueNoise, 0)));
+    vec3 noiseSample = texture(u_blueNoise, uvNoise).rgb;
+    ldr += vec3((noiseSample - 0.5) / 256.0);
+  }
+
+  //ldr = pow(mapped, vec3(1.0 / 2.2));
+
+  fragColor = vec4(ldr, 1.0);
 }

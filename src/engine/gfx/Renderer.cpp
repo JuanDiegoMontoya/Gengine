@@ -14,6 +14,8 @@
 #include <engine/ecs/component/Transform.h>
 #include <engine/ecs/component/Rendering.h>
 #include <engine/ecs/component/ParticleEmitter.h>
+#include "TextureManager.h"
+#include "TextureLoader.h"
 
 #include <execution>
 #include <iostream>
@@ -38,7 +40,7 @@ void logShaderNames(const char*)
 void recompileShader(const char* arg)
 {
   CmdParser parser(arg);
-  
+
   CmdAtom atom = parser.NextAtom();
   std::string* str = std::get_if<std::string>(&atom);
   if (!str)
@@ -215,7 +217,7 @@ void Renderer::RenderBatchHelper(MaterialID mat, const std::vector<UniformData>&
   auto shader = GFX::ShaderManager::Get()->GetShader(material->second.shaderID);
   shader->Bind();
 
-  for (int i = 0; auto& [view, sampler] : material->second.viewSamplers)
+  for (int i = 0; auto & [view, sampler] : material->second.viewSamplers)
   {
     view.Bind(i++, sampler);
   }
@@ -325,97 +327,87 @@ void Renderer::Init()
 
   Console::Get()->RegisterCommand("showShaders", "- Lists all shader names", logShaderNames);
   Console::Get()->RegisterCommand("recompile", "- Recompiles a named shader", recompileShader);
+
+  GFX::TextureManager::Get()->AddTexture("blueNoiseRGB",
+    *GFX::LoadTexture2D("BlueNoise/64_64/LDR_RGB1_0.png", GFX::Format::R8G8B8A8_UNORM));
+  blueNoiseView = GFX::TextureView::Create(*GFX::TextureManager::Get()->GetTexture("blueNoiseRGB"), "BlueNoiseRGBView");
+  GFX::SamplerState samplerState{};
+  samplerState.asBitField.addressModeU = GFX::AddressMode::REPEAT;
+  samplerState.asBitField.addressModeV = GFX::AddressMode::REPEAT;
+  blueNoiseSampler = GFX::TextureSampler::Create(samplerState, "BlueNoiseRGBSampler");
 }
 
 void Renderer::CompileShaders()
 {
   GFX::ShaderManager::Get()->AddShader("batched",
     {
-      { "TexturedMeshBatched.vs", GFX::ShaderType::VERTEX },
-      { "TexturedMesh.fs", GFX::ShaderType::FRAGMENT }
+      { "TexturedMeshBatched.vs.glsl", GFX::ShaderType::VERTEX },
+      { "TexturedMesh.fs.glsl", GFX::ShaderType::FRAGMENT }
     });
 
   GFX::ShaderManager::Get()->AddShader("chunk_optimized",
     {
-      { "chunk_optimized.vs", GFX::ShaderType::VERTEX },
-      { "chunk_optimized.fs", GFX::ShaderType::FRAGMENT }
+      { "chunk_optimized.vs.glsl", GFX::ShaderType::VERTEX },
+      { "chunk_optimized.fs.glsl", GFX::ShaderType::FRAGMENT }
     });
-  //GFX::ShaderManager::Get()->AddShader("chunk_splat"] = new Shader("chunk_splat.vs", "chunk_splat.fs");
   GFX::ShaderManager::Get()->AddShader("compact_batch",
-    { { "compact_batch.cs", GFX::ShaderType::COMPUTE } });
+    { { "compact_batch.cs.glsl", GFX::ShaderType::COMPUTE } });
   GFX::ShaderManager::Get()->AddShader("update_particle_emitter",
-    { { "update_particle_emitter.cs", GFX::ShaderType::COMPUTE } });
+    { { "update_particle_emitter.cs.glsl", GFX::ShaderType::COMPUTE } });
   GFX::ShaderManager::Get()->AddShader("update_particle",
-    { { "update_particle.cs", GFX::ShaderType::COMPUTE } });
-  //GFX::ShaderManager::Get()->AddShader("compact_batch"] = new Shader(0, "compact_batch.cs");
+    { { "update_particle.cs.glsl", GFX::ShaderType::COMPUTE } });
   GFX::ShaderManager::Get()->AddShader("textured_array",
     {
-      { "textured_array.vs", GFX::ShaderType::VERTEX },
-      { "textured_array.fs", GFX::ShaderType::FRAGMENT }
+      { "textured_array.vs.glsl", GFX::ShaderType::VERTEX },
+      { "textured_array.fs.glsl", GFX::ShaderType::FRAGMENT }
     });
   GFX::ShaderManager::Get()->AddShader("buffer_vis",
     {
-      { "buffer_vis.fs", GFX::ShaderType::FRAGMENT },
-      { "buffer_vis.vs", GFX::ShaderType::VERTEX }
+      { "buffer_vis.fs.glsl", GFX::ShaderType::FRAGMENT },
+      { "buffer_vis.vs.glsl", GFX::ShaderType::VERTEX }
     });
   GFX::ShaderManager::Get()->AddShader("chunk_render_cull",
     {
-      { "chunk_render_cull.vs", GFX::ShaderType::VERTEX },
-      { "chunk_render_cull.fs", GFX::ShaderType::FRAGMENT }
+      { "chunk_render_cull.vs.glsl", GFX::ShaderType::VERTEX },
+      { "chunk_render_cull.fs.glsl", GFX::ShaderType::FRAGMENT }
     });
   GFX::ShaderManager::Get()->AddShader("particle",
     {
-      { "particle.vs", GFX::ShaderType::VERTEX },
-      { "particle.fs", GFX::ShaderType::FRAGMENT }
+      { "particle.vs.glsl", GFX::ShaderType::VERTEX },
+      { "particle.fs.glsl", GFX::ShaderType::FRAGMENT }
     });
   GFX::ShaderManager::Get()->AddShader("skybox",
     {
-      { "skybox.vs", GFX::ShaderType::VERTEX },
-      { "skybox.fs", GFX::ShaderType::FRAGMENT }
+      { "skybox.vs.glsl", GFX::ShaderType::VERTEX },
+      { "skybox.fs.glsl", GFX::ShaderType::FRAGMENT }
     });
   GFX::ShaderManager::Get()->AddShader("tonemap",
     {
-      { "fullscreen_tri.vs", GFX::ShaderType::VERTEX },
-      { "tonemap.fs", GFX::ShaderType::FRAGMENT }
+      { "fullscreen_tri.vs.glsl", GFX::ShaderType::VERTEX },
+      { "tonemap.fs.glsl", GFX::ShaderType::FRAGMENT }
     });
   GFX::ShaderManager::Get()->AddShader("calc_exposure",
-    { { "calc_exposure.cs", GFX::ShaderType::COMPUTE } });
+    { { "calc_exposure.cs.glsl", GFX::ShaderType::COMPUTE } });
   GFX::ShaderManager::Get()->AddShader("linearize_log_lum_tex",
-    { { "linearize_tex.cs", GFX::ShaderType::COMPUTE } });
+    { { "linearize_tex.cs.glsl", GFX::ShaderType::COMPUTE } });
   GFX::ShaderManager::Get()->AddShader("generate_histogram",
-    { { "generate_histogram.cs", GFX::ShaderType::COMPUTE } });
-  GFX::ShaderManager::Get()->AddShader("reduce_sum_1024",
-    { { "reduce_sum.cs", GFX::ShaderType::COMPUTE } });
-  GFX::ShaderManager::Get()->AddShader("reduce_sum_512",
-    { { "reduce_sum.cs", GFX::ShaderType::COMPUTE, {{"#define WORKGROUP_SIZE 1024", "#define WORKGROUP_SIZE 512"}} } });
-  GFX::ShaderManager::Get()->AddShader("reduce_sum_256",
-    { { "reduce_sum.cs", GFX::ShaderType::COMPUTE, {{"#define WORKGROUP_SIZE 1024", "#define WORKGROUP_SIZE 256"}} } });
-  GFX::ShaderManager::Get()->AddShader("reduce_sum_128",
-    { { "reduce_sum.cs", GFX::ShaderType::COMPUTE, {{"#define WORKGROUP_SIZE 1024", "#define WORKGROUP_SIZE 128"}} } });
-  GFX::ShaderManager::Get()->AddShader("reduce_sum_64",
-    { { "reduce_sum.cs", GFX::ShaderType::COMPUTE, {{"#define WORKGROUP_SIZE 1024", "#define WORKGROUP_SIZE 64"}} } });
-  GFX::ShaderManager::Get()->AddShader("reduce_sum_32",
-    { { "reduce_sum.cs", GFX::ShaderType::COMPUTE, {{"#define WORKGROUP_SIZE 1024", "#define WORKGROUP_SIZE 32"}} } });
+    { { "generate_histogram.cs.glsl", GFX::ShaderType::COMPUTE } });
 
-  // TODO: convert these to new create method
   GFX::ShaderManager::Get()->AddShader("sun",
     {
-      { "flat_sun.vs", GFX::ShaderType::VERTEX },
-      { "flat_sun.fs", GFX::ShaderType::FRAGMENT }
+      { "flat_sun.vs.glsl", GFX::ShaderType::VERTEX },
+      { "flat_sun.fs.glsl", GFX::ShaderType::FRAGMENT }
     });
   GFX::ShaderManager::Get()->AddShader("axis",
     {
-      { "axis.vs", GFX::ShaderType::VERTEX },
-      { "axis.fs", GFX::ShaderType::FRAGMENT }
+      { "axis.vs.glsl", GFX::ShaderType::VERTEX },
+      { "axis.fs.glsl", GFX::ShaderType::FRAGMENT }
     });
   GFX::ShaderManager::Get()->AddShader("flat_color",
     {
-      { "flat_color.vs", GFX::ShaderType::VERTEX },
-      { "flat_color.fs", GFX::ShaderType::FRAGMENT }
+      { "flat_color.vs.glsl", GFX::ShaderType::VERTEX },
+      { "flat_color.fs.glsl", GFX::ShaderType::FRAGMENT }
     });
-  //GFX::ShaderManager::Get()->AddShader("sun","flat_sun.vs", "flat_sun.fs");
-  //GFX::ShaderManager::Get()->AddShader("axis","axis.vs", "axis.fs"));
-  //GFX::ShaderManager::Get()->AddShader("flat_color","flat_color.vs", "flat_color.fs");
 }
 
 void Renderer::DrawAxisIndicator()
@@ -491,6 +483,7 @@ void Renderer::StartFrame()
 
   ImGui::Begin("Tonemapping");
   ImGui::Checkbox("Enabled", &tonemapping);
+  ImGui::Checkbox("Dither", &tonemapDither);
   ImGui::Checkbox("Gamma Correction", &gammaCorrection);
   ImGui::SliderFloat("Exposure Factor", &exposure, .5f, 2.0f, "%.2f");
   ImGui::SliderFloat("Min Exposure", &minExposure, .01f, 30.0f, "%.2f", ImGuiSliderFlags_Logarithmic);
@@ -504,8 +497,8 @@ void Renderer::StartFrame()
         { "fullscreen_tri.vs", GFX::ShaderType::VERTEX },
         { "tonemap.fs", GFX::ShaderType::FRAGMENT }
       });
-  GFX::ShaderManager::Get()->AddShader("calc_exposure",
-    { { "calc_exposure.cs", GFX::ShaderType::COMPUTE } });
+    GFX::ShaderManager::Get()->AddShader("calc_exposure",
+      { { "calc_exposure.cs", GFX::ShaderType::COMPUTE } });
   }
   ImGui::End();
 }
@@ -576,7 +569,8 @@ void Renderer::EndFrame(float dt)
     glDisable(GL_CULL_FACE);
     shdr->Bind();
     shdr->SetFloat("u_exposureFactor", exposure);
-    shdr->SetInt("u_hdrBuffer", 1);
+    shdr->SetBool("u_useDithering", tonemapDither);
+    blueNoiseView->Bind(2, *blueNoiseSampler);
     glBindVertexArray(emptyVao);
     glDrawArrays(GL_TRIANGLES, 0, 3);
     glDepthMask(GL_TRUE);
