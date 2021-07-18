@@ -218,6 +218,85 @@ namespace GFX
     return true;
   }
 
+  ShaderData CompileShader(hashed_string name, const std::vector<ShaderCreateInfo>& createInfos)
+  {
+    ShaderData shader;
+    shaderc::Compiler compiler;
+    ASSERT(compiler.IsValid());
+
+    shaderc::CompileOptions options;
+    options.SetSourceLanguage(shaderc_source_language_glsl);
+    options.SetTargetEnvironment(shaderc_target_env_opengl, 450);
+    options.SetIncluder(std::make_unique<IncludeHandler>());
+    options.SetWarningsAsErrors();
+    options.SetAutoMapLocations(true);
+    options.SetAutoBindUniforms(true);
+
+    std::vector<GLuint> shaderIDs;
+    Defer deleteShaders = [&shaderIDs]()
+    {
+      for (auto shaderID : shaderIDs)
+      {
+        glDeleteShader(shaderID);
+      }
+    };
+
+    for (auto& [shaderPath, shaderType, replace] : createInfos)
+    {
+      std::string preprocessedSource = PreprocessShader(compiler, options, replace, shaderPath, shaderTypeToShadercType[(int)shaderType]);
+      GLuint shaderID = CompileShader(shaderTypeToGLType[(int)shaderType], preprocessedSource, shaderPath);
+      if (shaderID == 0)
+      {
+        return shader;
+      }
+      shaderIDs.push_back(shaderID);
+    }
+
+    GLuint programID = glCreateProgram();
+    if (programID == 0)
+    {
+      return shader;
+    }
+
+    Defer detachShaders = [&shaderIDs, programID]()
+    {
+      for (auto shaderID : shaderIDs)
+      {
+        glDetachShader(programID, shaderID);
+      }
+    };
+
+    for (auto ID : shaderIDs)
+    {
+      glAttachShader(programID, ID);
+    }
+
+    glLinkProgram(programID);
+
+    std::vector<std::string_view> strs;
+    for (const auto& [shaderPath, shaderType, replace] : createInfos)
+    {
+      strs.push_back(shaderPath);
+    }
+
+    if (!CheckLinkStatus(strs, programID))
+    {
+      return shader;
+    }
+
+    shader.name = name.data();
+    shader.id = programID;
+    shader.createInfos = createInfos;
+    InitUniforms(shader);
+    //printf("Shader: %s\n", name.data());
+    glObjectLabel(GL_PROGRAM, shader.id, -1, name.data());
+
+    //storage->shaders.emplace(name, std::move(shader));
+    //auto& shr = storage->shaders[name];
+    //return Shader(shr.uniformIDs, shr.id);
+    return shader;
+  }
+
 
 
   struct ShaderManagerStorage
@@ -244,77 +323,13 @@ namespace GFX
 
   std::optional<Shader> ShaderManager::AddShader(hashed_string name, const std::vector<ShaderCreateInfo>& createInfos)
   {
-    shaderc::Compiler compiler;
-    ASSERT(compiler.IsValid());
-
-    shaderc::CompileOptions options;
-    options.SetSourceLanguage(shaderc_source_language_glsl);
-    options.SetTargetEnvironment(shaderc_target_env_opengl, 450);
-    options.SetIncluder(std::make_unique<IncludeHandler>());
-    options.SetWarningsAsErrors();
-    options.SetAutoMapLocations(true);
-    options.SetAutoBindUniforms(true);
-
-    std::vector<GLuint> shaderIDs;
-    Defer deleteShaders = [&shaderIDs]()
+    auto data = CompileShader(name, createInfos);
+    if (data.id != 0 && !storage->shaders.contains(name))
     {
-      for (auto shaderID : shaderIDs)
-      {
-        glDeleteShader(shaderID);
-      }
-    };
-
-    for (auto& [shaderPath, shaderType, replace] : createInfos)
-    {
-      std::string preprocessedSource = PreprocessShader(compiler, options, replace, shaderPath, shaderTypeToShadercType[(int)shaderType]);
-      GLuint shaderID = CompileShader(shaderTypeToGLType[(int)shaderType], preprocessedSource, shaderPath);
-      if (shaderID == 0) return std::nullopt;
-      shaderIDs.push_back(shaderID);
+      auto it = storage->shaders.emplace(name, std::move(data));
+      return Shader(it.first->second.uniformIDs, it.first->second.id);
     }
-
-    GLuint programID = glCreateProgram();
-    if (programID == 0)
-    {
-      return std::nullopt;
-    }
-
-    Defer detachShaders = [&shaderIDs, programID]()
-    {
-      for (auto shaderID : shaderIDs)
-      {
-        glDetachShader(programID, shaderID);
-      }
-    };
-
-    for (auto ID : shaderIDs)
-    {
-      glAttachShader(programID, ID);
-    }
-
-    glLinkProgram(programID);
-
-    std::vector<std::string_view> strs;
-    for (const auto& [shaderPath, shaderType, replace] : createInfos)
-    {
-      strs.push_back(shaderPath);
-    }
-
-    if (!CheckLinkStatus(strs, programID))
-    {
-      return std::nullopt;
-    }
-
-    ShaderData shader;
-    shader.name = name.data();
-    shader.id = programID;
-    shader.createInfos = createInfos;
-    InitUniforms(shader);
-    //printf("Shader: %s\n", name.data());
-    glObjectLabel(GL_PROGRAM, shader.id, -1, name.data());
-
-    storage->shaders.emplace(name, std::move(shader));
-    auto& shr = storage->shaders[name];
-    return Shader(shr.uniformIDs, shr.id);
+    return std::nullopt;
   }
 
   std::optional<Shader> ShaderManager::GetShader(hashed_string name)
@@ -332,11 +347,18 @@ namespace GFX
       return std::nullopt;
     }
 
+    auto data = CompileShader(name, it->second.createInfos);
+    if (data.id == 0) // compile failed
+    {
+      return std::nullopt;
+    }
+
     glDeleteProgram(it->second.id);
     auto createInfos = it->second.createInfos;
     storage->shaders.erase(it);
 
-    return AddShader(name, createInfos);
+    auto it2 = storage->shaders.emplace(name, std::move(data));
+    return Shader(it2.first->second.uniformIDs, it2.first->second.id);
   }
 
 

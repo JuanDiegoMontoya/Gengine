@@ -143,7 +143,11 @@ void OnStart(Scene* scene)
     //cam.skybox = std::make_unique<GFX::TextureCube>(std::span<const std::string, 6>(faces.data(), faces.size()));
     GFX::TextureManager::Get()->AddTexture("skycube", *GFX::LoadTextureCube(std::span<const std::string_view, 6>(facesView)));
     cam.skyboxTexture = GFX::TextureView::Create(*GFX::TextureManager::Get()->GetTexture("skycube"), "skycube view");
-    cam.skyboxSampler = GFX::TextureSampler::Create(GFX::SamplerState{}, "skycube sampler");
+    GFX::SamplerState cubesampler{};
+    cubesampler.asBitField.addressModeU = GFX::AddressMode::MIRRORED_REPEAT;
+    cubesampler.asBitField.addressModeV = GFX::AddressMode::MIRRORED_REPEAT;
+    cubesampler.asBitField.addressModeW = GFX::AddressMode::MIRRORED_REPEAT;
+    cam.skyboxSampler = GFX::TextureSampler::Create(cubesampler, "skycube sampler");
     cam.SetPos({ 0, .65, 0 });
     Physics::CapsuleCollider collider(0.3, 0.5);
     //Physics::BoxCollider collider({ 1, 1, 1 });

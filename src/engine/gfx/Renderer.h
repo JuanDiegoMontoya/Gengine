@@ -72,29 +72,33 @@ private:
   static inline uint32_t emptyVao{};
 
   // HDR inverse-z framebuffer stuff
-  static inline uint32_t fbo{};
+  static inline uint32_t hdrFbo{};
   static inline uint32_t ldrFbo{};
-  static inline uint32_t ldrColor{};
+  static inline uint32_t ldrColorTex{};
   static inline int windowWidth = 1920, windowHeight = 1017;
   static inline int fboWidth = 1920, fboHeight = 1017;
   //static inline int windowWidth = 10, windowHeight = 10;
   //static inline int fboWidth = 10, fboHeight = 10;
-  static inline uint32_t color;
-  static inline uint32_t depth;
-  static inline float exposure = 1.0f;
-  static inline float minExposure = 0.1f;
-  static inline float maxExposure = 10.0f;
-  static inline float targetLuminance = .22f;
-  static inline float adjustmentSpeed = 0.5f;
-  static inline bool gammaCorrection = true;
-  static inline std::unique_ptr<GFX::StaticBuffer> exposureBuffer;
-  static inline std::unique_ptr<GFX::StaticBuffer> histogramBuffer;
-  static inline const int NUM_BUCKETS = 128;
-  static inline std::unique_ptr<GFX::StaticBuffer> floatBufferIn, floatBufferOut;
-  static inline std::optional<GFX::TextureView> blueNoiseView;
-  static inline std::optional<GFX::TextureSampler> blueNoiseSampler;
-  static inline bool tonemapDither = true;
-  struct FXAA
+  static inline uint32_t hdrColorTex;
+  static inline uint32_t hdrDepthTex;
+
+  struct
+  {
+    float exposure = 1.0f;
+    float minExposure = 0.1f;
+    float maxExposure = 10.0f;
+    float targetLuminance = .22f;
+    float adjustmentSpeed = 0.5f;
+    bool gammaCorrection = true;
+    std::unique_ptr<GFX::StaticBuffer> exposureBuffer;
+    std::unique_ptr<GFX::StaticBuffer> histogramBuffer;
+    const int NUM_BUCKETS = 128;
+    std::optional<GFX::TextureView> blueNoiseView;
+    std::optional<GFX::TextureSampler> blueNoiseSampler;
+    bool tonemapDither = true;
+  }static inline tonemap;
+
+  struct
   {
     bool enabled{ true };
     float contrastThreshold = 0.0312;

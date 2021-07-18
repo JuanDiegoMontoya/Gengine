@@ -264,35 +264,32 @@ void Renderer::Init()
   glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
 
   //const int levels = glm::floor(glm::log2(glm::max(fboWidth, fboHeight))) + 1;
-  glCreateTextures(GL_TEXTURE_2D, 1, &color);
-  glTextureStorage2D(color, 1, GL_RGBA16F, fboWidth, fboHeight);
+  glCreateTextures(GL_TEXTURE_2D, 1, &hdrColorTex);
+  glTextureStorage2D(hdrColorTex, 1, GL_RGBA16F, fboWidth, fboHeight);
 
-  glCreateTextures(GL_TEXTURE_2D, 1, &depth);
-  glTextureStorage2D(depth, 1, GL_DEPTH_COMPONENT32F, fboWidth, fboHeight);
+  glCreateTextures(GL_TEXTURE_2D, 1, &hdrDepthTex);
+  glTextureStorage2D(hdrDepthTex, 1, GL_DEPTH_COMPONENT32F, fboWidth, fboHeight);
 
-  glCreateFramebuffers(1, &fbo);
-  glNamedFramebufferTexture(fbo, GL_COLOR_ATTACHMENT0, color, 0);
-  glNamedFramebufferTexture(fbo, GL_DEPTH_ATTACHMENT, depth, 0);
-  if (GLenum status = glCheckNamedFramebufferStatus(fbo, GL_FRAMEBUFFER); status != GL_FRAMEBUFFER_COMPLETE)
+  glCreateFramebuffers(1, &hdrFbo);
+  glNamedFramebufferTexture(hdrFbo, GL_COLOR_ATTACHMENT0, hdrColorTex, 0);
+  glNamedFramebufferTexture(hdrFbo, GL_DEPTH_ATTACHMENT, hdrDepthTex, 0);
+  if (GLenum status = glCheckNamedFramebufferStatus(hdrFbo, GL_FRAMEBUFFER); status != GL_FRAMEBUFFER_COMPLETE)
   {
     fprintf(stderr, "glCheckNamedFramebufferStatus: %x\n", status);
   }
 
-  glCreateTextures(GL_TEXTURE_2D, 1, &ldrColor);
-  glTextureStorage2D(ldrColor, 1, GL_RGBA16, fboWidth, fboHeight);
+  glCreateTextures(GL_TEXTURE_2D, 1, &ldrColorTex);
+  glTextureStorage2D(ldrColorTex, 1, GL_RGBA16, fboWidth, fboHeight);
   glCreateFramebuffers(1, &ldrFbo);
-  glNamedFramebufferTexture(ldrFbo, GL_COLOR_ATTACHMENT0, ldrColor, 0);
+  glNamedFramebufferTexture(ldrFbo, GL_COLOR_ATTACHMENT0, ldrColorTex, 0);
   if (GLenum status = glCheckNamedFramebufferStatus(ldrFbo, GL_FRAMEBUFFER); status != GL_FRAMEBUFFER_COMPLETE)
   {
     fprintf(stderr, "glCheckNamedFramebufferStatus: %x\n", status);
   }
 
-  //size_t pow2Size = glm::exp2(glm::ceil(glm::log2(double(fboWidth * fboHeight)))); // next power of 2
-  std::vector<int> zeros(NUM_BUCKETS, 0);
-  //floatBufferIn = std::make_unique<GFX::StaticBuffer>(zeros.data(), pow2Size * sizeof(float), GFX::BufferFlag::CLIENT_STORAGE | GFX::BufferFlag::DYNAMIC_STORAGE);
-  //floatBufferOut = std::make_unique<GFX::StaticBuffer>(zeros.data(), pow2Size * sizeof(float), GFX::BufferFlag::CLIENT_STORAGE);
-  exposureBuffer = std::make_unique<GFX::StaticBuffer>(zeros.data(), 2 * sizeof(float));
-  histogramBuffer = std::make_unique<GFX::StaticBuffer>(zeros.data(), NUM_BUCKETS * sizeof(int));
+  std::vector<int> zeros(tonemap.NUM_BUCKETS, 0);
+  tonemap.exposureBuffer = std::make_unique<GFX::StaticBuffer>(zeros.data(), 2 * sizeof(float));
+  tonemap.histogramBuffer = std::make_unique<GFX::StaticBuffer>(zeros.data(), tonemap.NUM_BUCKETS * sizeof(int));
 
   glEnable(GL_DEBUG_OUTPUT);
   glEnable(GL_DEPTH_TEST);
@@ -339,12 +336,12 @@ void Renderer::Init()
   Console::Get()->RegisterCommand("recompile", "- Recompiles a named shader", recompileShader);
 
   GFX::TextureManager::Get()->AddTexture("blueNoiseRGB",
-    *GFX::LoadTexture2D("BlueNoise/64_64/LDR_RGB1_0.png", GFX::Format::R8G8B8A8_UNORM));
-  blueNoiseView = GFX::TextureView::Create(*GFX::TextureManager::Get()->GetTexture("blueNoiseRGB"), "BlueNoiseRGBView");
+    *GFX::LoadTexture2D("BlueNoise/16_16/LDR_RGB1_0.png", GFX::Format::R8G8B8A8_UNORM));
+  tonemap.blueNoiseView = GFX::TextureView::Create(*GFX::TextureManager::Get()->GetTexture("blueNoiseRGB"), "BlueNoiseRGBView");
   GFX::SamplerState samplerState{};
   samplerState.asBitField.addressModeU = GFX::AddressMode::REPEAT;
   samplerState.asBitField.addressModeV = GFX::AddressMode::REPEAT;
-  blueNoiseSampler = GFX::TextureSampler::Create(samplerState, "BlueNoiseRGBSampler");
+  tonemap.blueNoiseSampler = GFX::TextureSampler::Create(samplerState, "BlueNoiseRGBSampler");
 }
 
 void Renderer::CompileShaders()
@@ -488,7 +485,7 @@ void Renderer::DrawSkybox()
 #include <imgui/imgui.h>
 void Renderer::StartFrame()
 {
-  glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+  glBindFramebuffer(GL_FRAMEBUFFER, hdrFbo);
   glClearDepth(0.0f);
   auto cc = glm::vec3(.529f, .808f, .922f);
   glClearColor(cc.r, cc.g, cc.b, 1.f);
@@ -499,13 +496,13 @@ void Renderer::StartFrame()
 
   ImGui::Begin("Tonemapping");
   ImGui::Checkbox("FXAA", &fxaa.enabled);
-  ImGui::Checkbox("Dither", &tonemapDither);
-  ImGui::Checkbox("Gamma Correction", &gammaCorrection);
-  ImGui::SliderFloat("Exposure Factor", &exposure, .5f, 2.0f, "%.2f");
-  ImGui::SliderFloat("Min Exposure", &minExposure, .01f, 30.0f, "%.2f", ImGuiSliderFlags_Logarithmic);
-  ImGui::SliderFloat("Max Exposure", &maxExposure, .01f, 30.0f, "%.2f", ImGuiSliderFlags_Logarithmic);
-  ImGui::SliderFloat("Target Luminance", &targetLuminance, .1f, 10.0f, "%.2f", ImGuiSliderFlags_Logarithmic);
-  ImGui::SliderFloat("Adjustment Speed", &adjustmentSpeed, .1f, 10.0f, "%.2f");
+  ImGui::Checkbox("Dither", &tonemap.tonemapDither);
+  ImGui::Checkbox("Gamma Correction", &tonemap.gammaCorrection);
+  ImGui::SliderFloat("Exposure Factor", &tonemap.exposure, .5f, 2.0f, "%.2f");
+  ImGui::SliderFloat("Min Exposure", &tonemap.minExposure, .01f, 30.0f, "%.2f", ImGuiSliderFlags_Logarithmic);
+  ImGui::SliderFloat("Max Exposure", &tonemap.maxExposure, .01f, 30.0f, "%.2f", ImGuiSliderFlags_Logarithmic);
+  ImGui::SliderFloat("Target Luminance", &tonemap.targetLuminance, .1f, 10.0f, "%.2f", ImGuiSliderFlags_Logarithmic);
+  ImGui::SliderFloat("Adjustment Speed", &tonemap.adjustmentSpeed, .1f, 10.0f, "%.2f");
   if (ImGui::Button("Recompile"))
   {
     GFX::ShaderManager::Get()->AddShader("tonemap",
@@ -526,10 +523,10 @@ void Renderer::EndFrame(float dt)
 
   {
     GFX::DebugMarker tonemappingMarker("Tone mapping");
-    glBindTextureUnit(1, color); // HDR buffer
+    glBindTextureUnit(1, hdrColorTex); // HDR buffer
 
-    const float logLowLum = glm::log(targetLuminance / maxExposure);
-    const float logMaxLum = glm::log(targetLuminance / minExposure);
+    const float logLowLum = glm::log(tonemap.targetLuminance / tonemap.maxExposure);
+    const float logMaxLum = glm::log(tonemap.targetLuminance / tonemap.minExposure);
     const int computePixelsX = fboWidth / 4;
     const int computePixelsY = fboHeight / 4;
 
@@ -544,7 +541,7 @@ void Renderer::EndFrame(float dt)
       const int Y_SIZE = 8;
       int xgroups = (computePixelsX + X_SIZE - 1) / X_SIZE;
       int ygroups = (computePixelsY + Y_SIZE - 1) / Y_SIZE;
-      histogramBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(0);
+      tonemap.histogramBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(0);
       glDispatchCompute(xgroups, ygroups, 1);
       glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
     }
@@ -556,17 +553,17 @@ void Renderer::EndFrame(float dt)
     {
       GFX::DebugMarker marker("Compute camera exposure");
       //glGenerateTextureMipmap(color);
-      exposureBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(0);
-      histogramBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(1);
+      tonemap.exposureBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(0);
+      tonemap.histogramBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(1);
       //floatBufferOut->Bind<GFX::Target::SSBO>(1);
       auto cshdr = GFX::ShaderManager::Get()->GetShader("calc_exposure");
       cshdr->Bind();
       //cshdr->setFloat("u_targetLuminance", targetLuminance);
       cshdr->SetFloat("u_dt", glm::clamp(dt, 0.001f, 1.0f));
-      cshdr->SetFloat("u_adjustmentSpeed", adjustmentSpeed);
+      cshdr->SetFloat("u_adjustmentSpeed", tonemap.adjustmentSpeed);
       cshdr->SetFloat("u_logLowLum", logLowLum);
       cshdr->SetFloat("u_logMaxLum", logMaxLum);
-      cshdr->SetFloat("u_targetLuminance", targetLuminance);
+      cshdr->SetFloat("u_targetLuminance", tonemap.targetLuminance);
       cshdr->SetInt("u_numPixels", computePixelsX * computePixelsY);
       glDispatchCompute(1, 1, 1);
       glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
@@ -579,15 +576,15 @@ void Renderer::EndFrame(float dt)
     glDepthMask(GL_FALSE);
     glDisable(GL_CULL_FACE);
     shdr->Bind();
-    shdr->SetFloat("u_exposureFactor", exposure);
-    shdr->SetBool("u_useDithering", tonemapDither);
-    shdr->SetBool("u_encodeSRGB", gammaCorrection);
-    blueNoiseView->Bind(2, *blueNoiseSampler);
+    shdr->SetFloat("u_exposureFactor", tonemap.exposure);
+    shdr->SetBool("u_useDithering", tonemap.tonemapDither);
+    shdr->SetBool("u_encodeSRGB", tonemap.gammaCorrection);
+    tonemap.blueNoiseView->Bind(2, *tonemap.blueNoiseSampler);
     glBindVertexArray(emptyVao);
     glDrawArrays(GL_TRIANGLES, 0, 3);
     glDepthMask(GL_TRUE);
     glEnable(GL_CULL_FACE);
-    blueNoiseView->Unbind(2);
+    tonemap.blueNoiseView->Unbind(2);
   }
 
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -595,7 +592,7 @@ void Renderer::EndFrame(float dt)
   if (fxaa.enabled)
   {
     glBindSampler(0, 0);
-    glBindTextureUnit(0, ldrColor);
+    glBindTextureUnit(0, ldrColorTex);
     GFX::DebugMarker marker("FXAA");
     auto shdr = GFX::ShaderManager::Get()->GetShader("fxaa");
     shdr->Bind();
