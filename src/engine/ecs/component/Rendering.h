@@ -12,6 +12,6 @@ namespace Component
 
   struct Material
   {
-    MaterialID handle;
+    GFX::MaterialID handle;
   };
 }

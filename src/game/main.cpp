@@ -76,12 +76,16 @@ void OnStart(Scene* scene)
   GFX::TextureManager::Get()->AddTexture("error", *GFX::LoadTexture2D("error.png"));
   auto view = *GFX::TextureView::Create(*GFX::TextureManager::Get()->GetTexture("error"), "batched material view");
   auto sampler = *GFX::TextureSampler::Create(GFX::SamplerState{}, "batched material sampler");
-  MaterialInfo info
+  GFX::PerMaterialUniformData uniformData;
+  uniformData.id = "u_time";
+  uniformData.Setter = [](GFX::GenericUniform& uniform) { uniform = (float)ProgramTimer::TimeSeconds(); };
+  GFX::MaterialCreateInfo info
   {
     .shaderID = "batched",
     .viewSamplers = {{std::move(view), std::move(sampler)}},
+    .materialUniforms = {std::move(uniformData)},
   };
-  MaterialID batchMaterial = MaterialManager::Get()->AddMaterial("batchMaterial", info);
+  GFX::MaterialID batchMaterial = GFX::MaterialManager::Get()->AddMaterial("batchMaterial", info);
 
   // add game manager entity
   {
@@ -183,7 +187,7 @@ void OnStart(Scene* scene)
       //parent.AddComponent<Components::Mesh>().meshHandle = bunny;
       //parent.AddComponent<Components::Material>(userMaterial);
       parent.AddComponent<Component::BatchedMesh>().handle = MeshManager::GetMeshBatched("big_cube");
-      parent.AddComponent<Component::Material>(MaterialManager::Get()->GetMaterial("batchMaterial"));
+      parent.AddComponent<Component::Material>(GFX::MaterialManager::Get()->GetMaterial("batchMaterial"));
 
       for (int i = 0; i < 1000; i++)
       {
@@ -241,7 +245,7 @@ void OnStart(Scene* scene)
         glm::vec3 scale{ 1, .4f, glm::clamp(1 + i * (.02f), .1f, 10.f) };
         entity.GetComponent<Component::Transform>().SetScale(scale);
         entity.AddComponent<Component::BatchedMesh>().handle = MeshManager::GetMeshBatched("big_cube");
-        entity.AddComponent<Component::Material>().handle = MaterialManager::Get()->GetMaterial("batchMaterial");
+        entity.AddComponent<Component::Material>().handle = GFX::MaterialManager::Get()->GetMaterial("batchMaterial");
         auto collider = Physics::BoxCollider(scale * .5f);
         Component::DynamicPhysics phys(entity, Physics::MaterialType::TERRAIN, collider);
         entity.AddComponent<Component::DynamicPhysics>(std::move(phys));
@@ -371,7 +375,7 @@ void OnUpdate([[maybe_unused]] Timestep timestep)
 void OnDraw([[maybe_unused]] Timestep timestep)
 {
   voxelManager->Draw();
-  Renderer::DrawAxisIndicator();
+  GFX::Renderer::DrawAxisIndicator();
 }
 
 int main()

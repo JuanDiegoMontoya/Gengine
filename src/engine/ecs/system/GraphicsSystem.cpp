@@ -25,7 +25,7 @@ void GraphicsSystem::Init()
   glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
   CameraSystem::Init();
-  Renderer::Init();
+  GFX::Renderer::Init();
 }
 
 void GraphicsSystem::Shutdown()
@@ -35,7 +35,7 @@ void GraphicsSystem::Shutdown()
 
 void GraphicsSystem::StartFrame()
 {
-  Renderer::StartFrame();
+  GFX::Renderer::StartFrame();
 
   ImGui::Begin("Graphics");
   ImGui::Text("Loaded Meshes");
@@ -45,7 +45,7 @@ void GraphicsSystem::StartFrame()
   }
   ImGui::Separator();
   ImGui::Text("Loaded Materials");
-  for (const auto& [id, info] : MaterialManager::Get()->materials_)
+  for (const auto& [id, info] : GFX::MaterialManager::Get()->materials_)
   {
     ImGui::Text("ID: %u", id);
   }
@@ -60,7 +60,7 @@ void GraphicsSystem::StartFrame()
     }
     CameraSystem::ActiveCamera = camera;
     CameraSystem::Update();
-    Renderer::DrawSkybox();
+    GFX::Renderer::DrawSkybox();
   }
 }
 
@@ -75,18 +75,18 @@ void GraphicsSystem::DrawOpaque(Scene& scene)
     // draw batched objects in the scene
     using namespace Component;
     auto group = scene.GetRegistry().group<BatchedMesh>(entt::get<Transform, Material>);
-    Renderer::BeginBatch(group.size());
+    GFX::Renderer::BeginBatch(group.size());
     std::for_each(std::execution::par, group.begin(), group.end(),
       [&group](entt::entity entity)
       {
         auto [mesh, transform, material] = group.get<BatchedMesh, Transform, Material>(entity);
         if ((CameraSystem::ActiveCamera->cullingMask & mesh.renderFlag) != mesh.renderFlag) // Mesh not set to be culled
         {
-          Renderer::Submit(transform, mesh, material);
+          GFX::Renderer::Submit(transform, mesh, material);
         }
       });
 
-    Renderer::RenderBatch();
+    GFX::Renderer::RenderBatch();
   }
 }
 
@@ -123,17 +123,17 @@ void GraphicsSystem::DrawTransparent(Scene& scene)
       }
     }
     std::sort(emitters.begin(), emitters.end(), compare);
-    Renderer::BeginRenderParticleEmitter();
+    GFX::Renderer::BeginRenderParticleEmitter();
     for (const auto& [emitter, transform] : emitters)
     {
-      Renderer::RenderParticleEmitter(*emitter, *transform);
+      GFX::Renderer::RenderParticleEmitter(*emitter, *transform);
     }
   }
 }
 
 void GraphicsSystem::EndFrame(Timestep timestep)
 {
-  Renderer::EndFrame(timestep.dt_effective);
+  GFX::Renderer::EndFrame(timestep.dt_effective);
 }
 
 void GraphicsSystem::SwapBuffers()

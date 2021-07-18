@@ -1,6 +1,7 @@
 #pragma once
 #include <utility/HashedString.h>
 #include <optional>
+#include <variant>
 #include "Shader.h"
 
 namespace GFX

@@ -85,6 +85,35 @@ namespace GFX
     ASSERT(uniformIDs_.contains(uniform));
     glProgramUniformMatrix4fv(id_, uniformIDs_[uniform], 1, GL_FALSE, glm::value_ptr(mat));
   }
+
+  void Shader::SetDynamic(hashed_string uniform, const GenericUniform& value)
+  {
+    ASSERT(uniformIDs_.contains(uniform));
+
+    if (auto* pa = std::get_if<bool>(&value))
+      SetBool(uniform, *pa);
+    else if (auto* pb = std::get_if<int32_t>(&value))
+      SetInt(uniform, *pb);
+    else if (auto* pc = std::get_if<uint32_t>(&value))
+      SetUInt(uniform, *pc);
+    else if (auto* pd = std::get_if<float>(&value))
+      SetFloat(uniform, *pd);
+    else if (auto* pe = std::get_if<glm::vec2>(&value))
+      SetVec2(uniform, *pe);
+    else if (auto* pf = std::get_if<glm::vec3>(&value))
+      SetVec3(uniform, *pf);
+    else if (auto* pg = std::get_if<glm::vec4>(&value))
+      SetVec4(uniform, *pg);
+    else if (auto* ph = std::get_if<glm::mat3x3>(&value))
+      SetMat3(uniform, *ph);
+    else if (auto* pi = std::get_if<glm::mat4x4>(&value))
+      SetMat4(uniform, *pi);
+    else
+    {
+      UNREACHABLE;
+    }
+  }
+
   //void SetHandle(hashed_string uniform, const uint64_t handle)
   //{
   //  assert(Uniforms.find(uniform) != Uniforms.end());

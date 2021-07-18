@@ -10,6 +10,7 @@ namespace GFX
 {
   class StaticBuffer;
   class Texture2D;
+  class Renderer;
 }
 
 class ParticleManager
@@ -22,7 +23,7 @@ public:
 
 private:
   friend class ParticleSystem;
-  friend class Renderer;
+  friend class GFX::Renderer;
 
   ParticleManager();
   void BindEmitter(uint64_t handle);

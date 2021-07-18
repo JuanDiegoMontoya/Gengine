@@ -1,10 +1,18 @@
 #pragma once
 #include <unordered_map>
 #include <span>
+#include <glm/mat4x4.hpp>
+#include <glm/vec2.hpp>
+#include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
 #include <utility/HashedString.h>
 
 namespace GFX
 {
+  using GenericUniform = std::variant<bool, int32_t, uint32_t, float,
+    glm::vec2, glm::vec3, glm::vec4,
+    glm::mat3x3, glm::mat4x4>;
+
   // simple shader interface
   class Shader
   {
@@ -26,6 +34,7 @@ namespace GFX
     void SetVec4(hashed_string uniform, const glm::vec4& value);
     void SetMat3(hashed_string uniform, const glm::mat3& mat);
     void SetMat4(hashed_string uniform, const glm::mat4& mat);
+    void SetDynamic(hashed_string uniform, const GenericUniform& value);
 
     Shader(const Shader&) = default;
     Shader(Shader&&) = default;

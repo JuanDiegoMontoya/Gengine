@@ -2,7 +2,7 @@
 #include <chrono>
 #include <new>
 
-using second_t = std::chrono::duration<double, std::ratio<1> >;
+using second_t = std::chrono::duration<double, std::ratio<1>>;
 using myclock_t = std::chrono::high_resolution_clock;
 using timepoint_t = std::chrono::time_point<myclock_t>;
 
@@ -22,4 +22,23 @@ double Timer::Elapsed() const
   // beg to your god
   timepoint_t beg_ = *std::launder(reinterpret_cast<const timepoint_t*>(mem_));
   return std::chrono::duration_cast<second_t>(myclock_t::now() - beg_).count();
+}
+
+Timer::Timer(const Timer& other)
+{
+  *this = other;
+}
+
+Timer& Timer::operator=(const Timer& other)
+{
+  if (&other == this) return *this;
+  timepoint_t beg_ = *std::launder(reinterpret_cast<const timepoint_t*>(other.mem_));
+  new(mem_) timepoint_t(beg_);
+  return *this;
+}
+
+static timepoint_t programBegin = myclock_t::now();
+double ProgramTimer::TimeSeconds()
+{
+  return std::chrono::duration_cast<second_t>(myclock_t::now() - programBegin).count();
 }
