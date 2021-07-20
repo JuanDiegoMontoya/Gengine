@@ -14,6 +14,7 @@ namespace Component
   struct BatchedMesh;
   struct Material;
   struct ParticleEmitter;
+  struct Model;
 }
 
 namespace GFX
@@ -25,7 +26,7 @@ namespace GFX
     static void CompileShaders();
 
     static void BeginBatch(size_t size);
-    static void Submit(const Component::Transform& model, const Component::BatchedMesh& mesh, const Component::Material& mat);
+    static void Submit(const Component::Model& model, const Component::BatchedMesh& mesh, const Component::Material& mat);
     static void RenderBatch();
     static void BeginRenderParticleEmitter();
     static void RenderParticleEmitter(const Component::ParticleEmitter& emitter, const Component::Transform& model);

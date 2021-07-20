@@ -2,6 +2,7 @@
 #include "PhysicsSystem.h"
 #include <entt/core/algorithm.hpp>
 #include <engine/Physics.h>
+#include <glm/gtx/compatibility.hpp>
 
 #include "../Entity.h"
 #include "../component/Physics.h"
@@ -33,12 +34,12 @@ static void OnCharacterControllerDelete(entt::basic_registry<entt::entity>& regi
 
 PhysicsSystem::PhysicsSystem()
 {
-	Physics::PhysicsManager::Init();
+  Physics::PhysicsManager::Init();
 }
 
 PhysicsSystem::~PhysicsSystem()
 {
-	Physics::PhysicsManager::Shutdown();
+  Physics::PhysicsManager::Shutdown();
 }
 
 void PhysicsSystem::InitScene(Scene& scene)
@@ -53,55 +54,83 @@ void PhysicsSystem::InitScene(Scene& scene)
 
 void PhysicsSystem::Update(Scene& scene, Timestep timestep)
 {
-	// update local transforms
-	{
-		using namespace Component;
-		// create a PARTIALLY OWNING group, OWNING TRANSFORM
-		auto group = scene.GetRegistry().group<Transform>(entt::get<LocalTransform, Parent>);
-		group.sort(
-			[&scene](const entt::entity lhs, const entt::entity rhs)
-		{
-			return Entity(lhs, &scene).GetHierarchyHeight() > Entity(rhs, &scene).GetHierarchyHeight();
-		}, entt::insertion_sort()); // insertion sort optimal for nearly-sorted containers
+  // update local transforms
+  {
+    using namespace Component;
+    // create a PARTIALLY OWNING group, OWNING TRANSFORM
+    auto group = scene.GetRegistry().group<Transform>(entt::get<LocalTransform, Parent>);
+    group.sort(
+      [&scene](const entt::entity lhs, const entt::entity rhs)
+      {
+        return Entity(lhs, &scene).GetHierarchyHeight() > Entity(rhs, &scene).GetHierarchyHeight();
+      }, entt::insertion_sort()); // insertion sort optimal for nearly-sorted containers
 
-		for (auto entity : group)
-		{
-			auto [worldTransform, localTransform, parent] = group.get<Transform, LocalTransform, Parent>(entity);
-			auto& ltransform = localTransform.transform;
-			bool localDirty = ltransform.IsDirty();
-			if (ltransform.IsDirty())
-			{
-				ltransform.SetModel();
-			}
+    for (auto entity : group)
+    {
+      auto [worldTransform, localTransform, parent] = group.get<Transform, LocalTransform, Parent>(entity);
+      auto& ltransform = localTransform.transform;
+      bool localDirty = ltransform.IsDirty();
+      if (ltransform.IsDirty())
+      {
+        //model.matrix = worldTransform.GetModel();
+        ltransform.SetModel();
+      }
 
-			const auto& parentTransform = scene.GetRegistry().get<Component::Transform>(parent.entity);
-			if (parentTransform.IsDirty() || localDirty)
-			{
-				worldTransform.SetTranslation(parentTransform.GetTranslation() + ltransform.GetTranslation() * parentTransform.GetScale());
+      const auto& parentTransform = parent.entity.GetComponent<Transform>();
+      if (parentTransform.IsDirty() || localDirty)
+      {
+        worldTransform.SetTranslation(parentTransform.GetTranslation() + ltransform.GetTranslation() * parentTransform.GetScale());
 
-				worldTransform.SetScale(ltransform.GetScale() * parentTransform.GetScale());
+        worldTransform.SetScale(ltransform.GetScale() * parentTransform.GetScale());
 
-				worldTransform.SetTranslation(worldTransform.GetTranslation() - parentTransform.GetTranslation());
-				worldTransform.SetTranslation(glm::mat3(glm::mat4_cast(parentTransform.GetRotation())) * worldTransform.GetTranslation());
-				worldTransform.SetTranslation(worldTransform.GetTranslation() + parentTransform.GetTranslation());
+        worldTransform.SetTranslation(worldTransform.GetTranslation() - parentTransform.GetTranslation());
+        worldTransform.SetTranslation(glm::mat3(glm::mat4_cast(parentTransform.GetRotation())) * worldTransform.GetTranslation());
+        worldTransform.SetTranslation(worldTransform.GetTranslation() + parentTransform.GetTranslation());
 
-				worldTransform.SetRotation(ltransform.GetRotation() * parentTransform.GetRotation());
-			}
-		}
-	}
+        worldTransform.SetRotation(ltransform.GetRotation() * parentTransform.GetRotation());
+      }
+    }
+  }
 
-	// update model matrices after potential changes
-	{
-		auto view = scene.GetRegistry().view<Component::Transform>();
-		for (auto entity : view)
-		{
-			auto& transform = view.get<Component::Transform>(entity);
-			if (transform.IsDirty())
-			{
-				transform.SetModel();
-			}
-		}
-	}
+  // update model matrices after potential changes
+  {
+    auto view = scene.GetRegistry().view<Component::Transform, Component::Model>(entt::exclude<Component::InterpolatedPhysics>);
+    std::for_each(std::execution::par_unseq, view.begin(), view.end(), [&view](auto entity)
+      //for (auto entity : view)
+      {
+        auto [transform, model] = view.get<Component::Transform, Component::Model>(entity);
+        if (transform.IsDirty())
+        {
+          model.matrix = transform.GetModel();
+          transform.SetModel();
+        }
+      });
+  }
 
-	Physics::PhysicsManager::Simulate(timestep.dt_effective);
+  {
+    using namespace Component;
+    auto view = scene.GetRegistry().view<Model, Transform, InterpolatedPhysics>();
+    std::for_each(std::execution::par_unseq, view.begin(), view.end(), [timestep, &view](auto entity)
+      //for (auto entity : view)
+      {
+        auto [model, transform, interp] = view.get<Model, Transform, InterpolatedPhysics>(entity);
+        transform.SetModel();
+        if (interp.timeSinceUpdate < 0)
+        {
+          if (interp.timeSinceUpdate == -1)
+            model.matrix = transform.GetModel();
+          //continue;
+          return;
+        }
+        float lerpAmt = interp.timeSinceUpdate / (float)::Physics::PhysicsManager::GetStep();
+        Transform trinterp;
+        trinterp.SetTranslation(glm::lerp(interp.prevPos, transform.GetTranslation(), lerpAmt));
+        trinterp.SetRotation(glm::slerp(interp.prevRot, transform.GetRotation(), lerpAmt));
+        trinterp.SetScale(transform.GetScale());
+        model.matrix = trinterp.GetModel();
+        interp.timeSinceUpdate += timestep.dt_effective;
+      });
+  }
+
+  Physics::PhysicsManager::Simulate(timestep);
 }

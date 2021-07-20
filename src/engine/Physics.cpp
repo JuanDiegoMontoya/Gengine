@@ -2,6 +2,7 @@
 #include "Physics.h"
 #include <engine/ecs/Entity.h>
 #include <engine/ecs/component/Transform.h>
+#include <engine/ecs/component/Physics.h>
 
 #include <glm/gtx/quaternion.hpp>
 
@@ -19,6 +20,7 @@
 #define FIXED_STEP 1
 #define ENABLE_GPU 1 // PhysX will automatically disable GPU simulation for non CUDA-compatible devices; this is just for debugging
 
+constexpr double STEP = 1.0f / 50.0f;
 
 using namespace physx;
 namespace
@@ -95,7 +97,7 @@ namespace
     PX_UNUSED(filterData1);
     PX_UNUSED(constantBlockSize);
     PX_UNUSED(constantBlock);
-    
+
     // all initial and persisting reports for everything, with per-point data
     pairFlags = PxPairFlag::eSOLVE_CONTACT
       | PxPairFlag::eDETECT_DISCRETE_CONTACT
@@ -222,33 +224,34 @@ void Physics::PhysicsManager::Shutdown()
   delete gContactReportCallback;
 }
 
-void Physics::PhysicsManager::Simulate(float dt)
+void Physics::PhysicsManager::Simulate(Timestep timestep)
 {
   // update character controllers every frame
-  for (auto [controller, entity] : gEntityControllers)
+  for (auto& [controller, entity] : gEntityControllers)
   {
     const auto& p = controller->getPosition();
     entity.GetComponent<Component::Transform>().SetTranslation({ p.x, p.y, p.z });
   }
 
   static bool resultsReady = true;
+  bool asdf = false;
 #if FIXED_STEP
-  static float accumulator = 0;
-  static const float step = 1.0f / 60.0f;
-  accumulator += dt;
-  accumulator = glm::min(accumulator, step * 20); // accumulate 20 steps of backlog
-  if (accumulator > step) // NOTE: not while loop, because we want to avoid the Well of Despair
+  static double accumulator = 0;
+  accumulator += timestep.dt_effective;
+  accumulator = glm::min(accumulator, STEP * 20); // accumulate 20 steps of backlog
+  if (accumulator > STEP) // NOTE: not while loop, because we want to avoid the Well of Despair
   {
     PxLockWrite lkw(gScene);
     if (resultsReady)
     {
-      gScene->simulate(step);
+      gScene->simulate(STEP);
       resultsReady = false;
     }
     if (gScene->fetchResults(false))
     {
       resultsReady = true;
-      accumulator -= step;
+      accumulator -= STEP;
+      asdf = true;
     }
   }
 #else
@@ -256,7 +259,7 @@ void Physics::PhysicsManager::Simulate(float dt)
   gScene->fetchResults(true);
   resultsReady = true;
 #endif
-  if (!resultsReady)
+  if (!asdf)
     return;
 
   gScene->lockRead();
@@ -280,8 +283,19 @@ void Physics::PhysicsManager::Simulate(float dt)
       auto entityit = gEntityActors.find(actor);
       if (entityit != gEntityActors.end())
       {
-        // an entity with physics must have a transform
         auto& tr = entityit->second.GetComponent<Component::Transform>();
+        auto* interp = entityit->second.TryGetComponent<Component::InterpolatedPhysics>();
+        auto* dynamic = actor->is<PxRigidDynamic>();
+        if (interp && dynamic)
+        {
+          interp->timeSinceUpdate = 0;
+          //interp->linearVelocity = toGlmVec3(dynamic->getLinearVelocity());
+          //interp->angularVelocity = toGlmVec3(dynamic->getAngularVelocity());
+          interp->prevPos = tr.GetTranslation();
+          interp->prevRot = tr.GetRotation();
+        }
+
+        // an entity with physics must have a transform
         tr.SetTranslation(toGlmVec3(pose.p));
         glm::quat q(toGlmQuat(pose.q));
         tr.SetRotation(q);
@@ -289,6 +303,11 @@ void Physics::PhysicsManager::Simulate(float dt)
     }
   }
   gScene->unlockRead();
+}
+
+double Physics::PhysicsManager::GetStep()
+{
+  return STEP;
 }
 
 physx::PxRigidDynamic* Physics::PhysicsManager::AddDynamicActorEntity(Entity entity, MaterialType material, BoxCollider collider, DynamicActorFlags flags)
@@ -379,7 +398,7 @@ physx::PxRigidStatic* Physics::PhysicsManager::AddStaticActorGeneric(MaterialTyp
   params.meshWeldTolerance = .1f;
   // lower hierarchy for internal mesh
   //params.meshCookingHint = PxMeshCookingHint::eCOOKING_PERFORMANCE;
-  
+
   gCooking->setParams(params);
 
   PxTriangleMeshDesc meshDesc;
@@ -430,7 +449,7 @@ physx::PxController* Physics::PhysicsManager::AddCharacterControllerEntity(Entit
   desc.height = 2.f * collider.halfHeight;
   desc.radius = collider.radius;
   desc.contactOffset = .01f;
-  
+
   PxLockWrite lkw(&gCManager->getScene());
   PxController* controller = gCManager->createController(desc);
   auto p = entity.GetComponent<Component::Transform>().GetTranslation();

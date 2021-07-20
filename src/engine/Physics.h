@@ -3,6 +3,7 @@
 #include <engine/ecs/Entity.h>
 #include <memory>
 #include <utility/Flags.h>
+#include <engine/Timestep.h>
 
 namespace physx
 {
@@ -136,8 +137,9 @@ namespace Physics
   public:
     static void Init();
     static void Shutdown();
-    static void Simulate(float dt);
+    static void Simulate(Timestep timestep);
 
+    static double GetStep();
     static physx::PxRigidDynamic* AddDynamicActorEntity(Entity entity, MaterialType material, BoxCollider collider, DynamicActorFlags flags);
     static physx::PxRigidDynamic* AddDynamicActorEntity(Entity entity, MaterialType material, CapsuleCollider collider, DynamicActorFlags flags);
     static physx::PxRigidStatic* AddStaticActorEntity(Entity entity, MaterialType material, BoxCollider collider);

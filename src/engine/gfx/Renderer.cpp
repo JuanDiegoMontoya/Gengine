@@ -127,10 +127,10 @@ namespace GFX
     userCommands.resize(size);
   }
 
-  void Renderer::Submit(const Component::Transform& model, const Component::BatchedMesh& mesh, const Component::Material& mat)
+  void Renderer::Submit(const Component::Model& model, const Component::BatchedMesh& mesh, const Component::Material& mat)
   {
     auto index = cmdIndex.fetch_add(1, std::memory_order::memory_order_acq_rel);
-    userCommands[index] = BatchDrawCommand{ .mesh = mesh.handle, .material = mat.handle, .modelUniform = model.GetModel() };
+    userCommands[index] = BatchDrawCommand{ .mesh = mesh.handle, .material = mat.handle, .modelUniform = model.matrix };
   }
 
   void Renderer::RenderBatch()

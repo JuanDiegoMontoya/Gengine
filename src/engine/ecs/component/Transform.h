@@ -7,6 +7,7 @@
 
 namespace Component
 {
+  // Transform: the persistent transformation for an entity.
   struct Transform
   {
   public:
@@ -31,11 +32,18 @@ namespace Component
     glm::quat rotation{ 1, 0, 0, 0 };
     glm::vec3	scale{ 1, 1, 1 };
 
-    glm::vec3 forward{ 0, 0, 1 };
-    glm::vec3 up{ 0, 0, 1 };
-    glm::vec3 right{ 0, 0, 1 };
+    //glm::vec3 forward{ 0, 0, 1 };
+    //glm::vec3 up{ 0, 0, 1 };
+    //glm::vec3 right{ 0, 0, 1 };
 
-    bool isDirty = false;
+    bool isDirty = true;
+  };
+
+  // Model: the visible transform for an entity.
+  // Its state is not persistent. Modifying this will not change an object's transform.
+  struct Model
+  {
+    glm::mat4 matrix{};
   };
 
   struct Parent

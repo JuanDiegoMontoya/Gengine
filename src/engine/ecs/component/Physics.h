@@ -1,5 +1,5 @@
 #pragma once
-#include <engine/ecs/component/Physics.h>
+#include <engine/Physics.h>
 
 namespace Component
 {
@@ -54,5 +54,12 @@ namespace Component
     }
 
     physx::PxController* internalController;
+  };
+
+  struct InterpolatedPhysics
+  {
+    float timeSinceUpdate{-1};
+    glm::vec3 prevPos;
+    glm::quat prevRot;
   };
 }

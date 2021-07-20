@@ -52,8 +52,10 @@ void PlayerActions::OnUpdate(Timestep timestep)
 
     Entity ent = CreateEntity("Arrow");
     ent.AddComponent<Component::Transform>().SetTranslation(cam.GetWorldPos() + (cam.GetForward() * 1.5f));
+    ent.AddComponent<Component::Model>();
     ent.AddComponent<Component::BatchedMesh>().handle = MeshManager::GetMeshBatched("big_cube");
     ent.AddComponent<Component::Material>().handle = GFX::MaterialManager::Get()->GetMaterial("batchMaterial");
+    ent.AddComponent<Component::InterpolatedPhysics>();
     auto collider = Physics::BoxCollider(glm::vec3(.5f));
     Component::DynamicPhysics phys(ent, Physics::MaterialType::TERRAIN, collider);
     auto& physics = ent.AddComponent<Component::DynamicPhysics>(std::move(phys));
@@ -77,8 +79,8 @@ void PlayerActions::OnUpdate(Timestep timestep)
       emitter.data.maxParticleScale = { .3, .3 };
       //emitter.minParticleColor = { .75, .75, 0, .4 };
       //emitter.maxParticleColor = { 1, .75, 0, .8 };
-      emitter.data.minParticleColor = { .75, .40, 0, .4 };
-      emitter.data.maxParticleColor = { 1, .60, .2, .8 };
+      emitter.data.minParticleColor = { .75, .40, 0, .1 };
+      emitter.data.maxParticleColor = { 1, .60, .2, .2 };
       ent.AddComponent<Component::ParticleEmitter>(std::move(emitter));
     }
 
@@ -98,8 +100,8 @@ void PlayerActions::OnUpdate(Timestep timestep)
       emitter2.data.maxParticleScale = { .3, .3 };
       emitter2.data.minParticleOffset = { -1, -1, -1 };
       emitter2.data.maxParticleOffset = { 1, 2, 1 };
-      emitter2.data.minParticleColor = { .4, .4, .4, .4 };
-      emitter2.data.maxParticleColor = { .5, .5, .5, .8 };
+      emitter2.data.minParticleColor = { .4, .4, .4, .1 };
+      emitter2.data.maxParticleColor = { .5, .5, .5, .2 };
       child.AddComponent<Component::ParticleEmitter>(std::move(emitter2));
     }
   }

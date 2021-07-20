@@ -74,15 +74,15 @@ void GraphicsSystem::DrawOpaque(Scene& scene)
 
     // draw batched objects in the scene
     using namespace Component;
-    auto group = scene.GetRegistry().group<BatchedMesh>(entt::get<Transform, Material>);
+    auto group = scene.GetRegistry().group<BatchedMesh>(entt::get<Model, Material>);
     GFX::Renderer::BeginBatch(group.size());
     std::for_each(std::execution::par, group.begin(), group.end(),
       [&group](entt::entity entity)
       {
-        auto [mesh, transform, material] = group.get<BatchedMesh, Transform, Material>(entity);
+        auto [mesh, model, material] = group.get<BatchedMesh, Model, Material>(entity);
         if ((CameraSystem::ActiveCamera->cullingMask & mesh.renderFlag) != mesh.renderFlag) // Mesh not set to be culled
         {
-          GFX::Renderer::Submit(transform, mesh, material);
+          GFX::Renderer::Submit(model, mesh, material);
         }
       });
 
