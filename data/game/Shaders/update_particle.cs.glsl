@@ -1,6 +1,6 @@
 #version 460 core
 #include "particle.h"
-#include "DrawArraysCommand.h"
+#include "indirect.h.glsl"
 
 layout (std430, binding = 0) buffer data
 {

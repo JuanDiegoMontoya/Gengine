@@ -19,6 +19,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="data\game\Shaders\indirect.h.glsl" />
+    <ClInclude Include="data\game\Shaders\noise.h" />
+    <ClInclude Include="data\game\Shaders\particle.h" />
     <ClInclude Include="src\engine\Application.h" />
     <ClInclude Include="src\engine\Camera.h" />
     <ClInclude Include="src\engine\Console.h" />
@@ -442,6 +445,41 @@
     <ClCompile Include="third_party\imgui\imgui_widgets.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="data\game\Shaders\axis.fs.glsl" />
+    <None Include="data\game\Shaders\axis.vs.glsl" />
+    <None Include="data\game\Shaders\buffer_vis.fs.glsl" />
+    <None Include="data\game\Shaders\buffer_vis.vs.glsl" />
+    <None Include="data\game\Shaders\calc_exposure.cs.glsl" />
+    <None Include="data\game\Shaders\chunk_optimized.fs.glsl" />
+    <None Include="data\game\Shaders\chunk_optimized.vs.glsl" />
+    <None Include="data\game\Shaders\chunk_render_cull.fs.glsl" />
+    <None Include="data\game\Shaders\chunk_render_cull.vs.glsl" />
+    <None Include="data\game\Shaders\compact_batch.cs.glsl" />
+    <None Include="data\game\Shaders\flat_color.fs.glsl" />
+    <None Include="data\game\Shaders\flat_color.vs.glsl" />
+    <None Include="data\game\Shaders\flat_color_instanced.fs.glsl" />
+    <None Include="data\game\Shaders\flat_color_instanced.vs.glsl" />
+    <None Include="data\game\Shaders\flat_sun.fs.glsl" />
+    <None Include="data\game\Shaders\flat_sun.vs.glsl" />
+    <None Include="data\game\Shaders\fullscreen_tri.vs.glsl" />
+    <None Include="data\game\Shaders\fxaa.fs.glsl" />
+    <None Include="data\game\Shaders\generate_histogram.cs.glsl" />
+    <None Include="data\game\Shaders\linearize_tex.cs.glsl" />
+    <None Include="data\game\Shaders\particle.fs.glsl" />
+    <None Include="data\game\Shaders\particle.vs.glsl" />
+    <None Include="data\game\Shaders\reduce_sum.cs.glsl" />
+    <None Include="data\game\Shaders\skybox.fs.glsl" />
+    <None Include="data\game\Shaders\skybox.vs.glsl" />
+    <None Include="data\game\Shaders\texture.fs.glsl" />
+    <None Include="data\game\Shaders\texture.vs.glsl" />
+    <None Include="data\game\Shaders\TexturedMesh.fs.glsl" />
+    <None Include="data\game\Shaders\TexturedMesh.vs.glsl" />
+    <None Include="data\game\Shaders\TexturedMeshBatched.vs.glsl" />
+    <None Include="data\game\Shaders\textured_array.fs.glsl" />
+    <None Include="data\game\Shaders\textured_array.vs.glsl" />
+    <None Include="data\game\Shaders\tonemap.fs.glsl" />
+    <None Include="data\game\Shaders\update_particle.cs.glsl" />
+    <None Include="data\game\Shaders\update_particle_emitter.cs.glsl" />
     <None Include="src\engine\gfx\DynamicBuffer.inl" />
     <None Include="src\utility\Palette.inl" />
     <None Include="src\voxel\BlockStorage.inl" />

@@ -7,12 +7,12 @@
 #include <voxel/ChunkRenderer.h>
 #include <voxel/VoxelManager.h>
 #include <glm/gtc/matrix_transform.hpp>
+#include <engine/CVar.h>
 
 #include <iomanip>
 #include <mutex>
 #include <shared_mutex>
-#include <chrono>
-using namespace std::chrono;
+
 
 namespace Voxels
 {
@@ -114,7 +114,7 @@ namespace Voxels
 
   ChunkMesh::~ChunkMesh()
   {
-    voxelManager_.chunkRenderer_->allocator->Free(bufferHandle);
+    voxelManager_.chunkRenderer_->verticesAllocator->Free(vertexBufferHandle);
     if (tActor)
     {
       Physics::PhysicsManager::RemoveActorGeneric(tActor);
@@ -133,7 +133,8 @@ namespace Voxels
     }
     needsBuffering_ = false;
 
-    voxelManager_.chunkRenderer_->allocator->Free(bufferHandle);
+    voxelManager_.chunkRenderer_->verticesAllocator->Free(vertexBufferHandle);
+    voxelManager_.chunkRenderer_->indicesAllocator->Free(indexBufferHandle);
 
     // nothing emitted, don't try to make buffers
     //if (pointCount_ == 0)
@@ -143,29 +144,37 @@ namespace Voxels
     }
 
     // free oldest allocations until there is enough space to allocate this buffer
-    while ((bufferHandle = voxelManager_.chunkRenderer_->allocator->Allocate(
+    while ((vertexBufferHandle = voxelManager_.chunkRenderer_->verticesAllocator->Allocate(
       interleavedArr.data(),
       interleavedArr.size() * sizeof(GLint),
       this->parentChunk->GetAABB())) == NULL)
     {
-      voxelManager_.chunkRenderer_->allocator->FreeOldest();
+      voxelManager_.chunkRenderer_->verticesAllocator->FreeOldest();
+    }
+
+    while ((indexBufferHandle = voxelManager_.chunkRenderer_->indicesAllocator->Allocate(
+      indices.data(),
+      indices.size() * sizeof(uint32_t))) == NULL)
+    {
+      voxelManager_.chunkRenderer_->verticesAllocator->FreeOldest();
     }
 
     interleavedArr.clear();
-
     tCollider.vertices.clear();
     tCollider.indices.clear();
+    indices.clear();
 
     interleavedArr.shrink_to_fit();
     tCollider.vertices.shrink_to_fit();
     tCollider.indices.shrink_to_fit();
+    indices.shrink_to_fit();
+
+    curIndex = 0;
   }
 
 
   void ChunkMesh::BuildMesh()
   {
-    high_resolution_clock::time_point benchmark_clock_ = high_resolution_clock::now();
-
     {
       std::lock_guard lk(mtx);
       needsBuffering_ = true;
@@ -207,7 +216,6 @@ namespace Voxels
           continue;
         }
 
-        voxelReady_ = true;
         glm::vec3 pos
         {
           i % Chunk::CHUNK_SIZE,
@@ -236,20 +244,6 @@ namespace Voxels
       delete parentCopy;
       parentCopy = nullptr;
     }
-
-    duration<double> benchmark_duration_ = duration_cast<duration<double>>(high_resolution_clock::now() - benchmark_clock_);
-    double milliseconds = benchmark_duration_.count() * 1000;
-    if (accumcount > 1000)
-    {
-      accumcount = 0;
-      accumtime = 0;
-    }
-    accumtime = accumtime + milliseconds;
-    accumcount = accumcount + 1;
-    //std::cout 
-    //  << std::setw(-2) << std::showpoint << std::setprecision(4) << accumtime / accumcount << " ms "
-    //  << "(" << milliseconds << ")"
-    //  << std::endl;
   }
 
 
@@ -310,12 +304,6 @@ namespace Voxels
 
   inline void ChunkMesh::addQuad(const glm::ivec3& lpos, BlockType block, int face, [[maybe_unused]] const Chunk* nearChunk, Light light)
   {
-    if (voxelReady_)
-    {
-      //pointCount_++;
-      voxelReady_ = false;
-    }
-
     int normalIdx = face;
     int texIdx = (int)block; // temp value
     uint16_t lighting = light.Raw();
@@ -348,28 +336,32 @@ namespace Voxels
       }
 
       aoValues[cindex] = invOcclusion;
-      auto tLight = light;
-      lighting = tLight.Raw();
+      lighting = light.Raw();
       glm::ivec3 dirCent = glm::vec3(lpos) - glm::vec3(finalVert);
       lightdeds[cindex] = detail::EncodeLight(lighting, dirCent, invOcclusion);
     }
 
-    constexpr GLuint indicesA[6] = { 0, 1, 3, 3, 1, 2 }; // normal indices
-    constexpr GLuint indicesB[6] = { 0, 1, 2, 2, 3, 0 }; // anisotropy fix (flip tris)
-    const GLuint* indices = indicesA;
+    constexpr uint32_t indicesA[6] = { 0, 1, 3, 3, 1, 2 }; // normal indices
+    constexpr uint32_t indicesB[6] = { 0, 1, 2, 2, 3, 0 }; // anisotropy fix (flip tris)
+    const uint32_t* indicesC = indicesA;
     // partially solve anisotropy issue
     if (aoValues[0] + aoValues[2] > aoValues[1] + aoValues[3])
     {
-      indices = indicesB;
+      indicesC = indicesB;
+    }
+    for (int i = 0; i < 4; i++)
+    {
+      vertexCount_++;
+      interleavedArr.push_back(encodeds[i]);
+      interleavedArr.push_back(lightdeds[i]);
     }
     for (int i = 0; i < 6; i++)
     {
-      vertexCount_++;
-      interleavedArr.push_back(encodeds[indices[i]]);
-      interleavedArr.push_back(lightdeds[indices[i]]);
-
-      tCollider.indices.push_back(indicesA[i] + tCollider.vertices.size() - (tCollider.vertices.size() % 4) - 4);
+      tCollider.indices.push_back(curIndex + indicesA[i]);
+      indices.push_back(curIndex + indicesA[i]);
+      //tCollider.indices.push_back(indicesA[i] + tCollider.vertices.size() - (tCollider.vertices.size() % 4) - 4);
     }
+    curIndex += 4;
   }
 
 

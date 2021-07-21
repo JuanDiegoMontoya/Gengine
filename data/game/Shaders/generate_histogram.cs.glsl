@@ -19,7 +19,7 @@ float map(float val, float r1s, float r1e, float r2s, float r2e)
   return (val - r1s) / (r1e - r1s) * (r2e - r2s) + r2s;
 }
 
-shared int shbuckets[NUM_BUCKETS];
+//shared int shbuckets[NUM_BUCKETS];
 
 layout (local_size_x = LOCAL_X, local_size_y = LOCAL_Y, local_size_z = LOCAL_Z) in;
 void main()

@@ -19,12 +19,6 @@ namespace Voxels
     void BuildMesh();
 
     int64_t GetVertexCount() { return vertexCount_; }
-    int64_t GetPointCount() { return pointCount_; }
-
-    // debug
-    static inline bool debug_ignore_light_level = false;
-    static inline std::atomic<double> accumtime = 0;
-    static inline std::atomic<unsigned> accumcount = 0;
 
     std::atomic_bool needsBuffering_ = false;
 
@@ -73,15 +67,15 @@ namespace Voxels
 
     // vertex data (held until buffers are sent to GPU)
     std::vector<int> interleavedArr;
+    std::vector<uint32_t> indices;
+    uint32_t curIndex{};
 
     Physics::MeshCollider tCollider{};
     physx::PxRigidActor* tActor = nullptr;
 
     int64_t vertexCount_ = 0;
-    uint64_t bufferHandle = NULL;
-
-    int64_t pointCount_ = 0;
-    bool voxelReady_ = true; // hack to prevent same voxel from being added multiple times for splatting (I think)
+    uint64_t vertexBufferHandle = 0;
+    uint64_t indexBufferHandle = 0;
 
     std::shared_mutex mtx;
   };

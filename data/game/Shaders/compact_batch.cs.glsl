@@ -4,7 +4,7 @@
 #define VISIBILITY_PARTIAL 1
 #define VISIBILITY_FULL    2
 
-#include "DrawArraysCommand.h"
+#include "indirect.h.glsl"
 
 // only first 5 of 6 planes used- don't set 6th plane uniform
 struct Frustum
@@ -19,8 +19,7 @@ struct AABB16
   // renderdoc thinks 8 xints of padding is here- that is not the case
 };
 
-// 
-struct InDrawInfo
+struct VerticesDrawInfo
 {
   uvec2 data01; // handle
   double data02;// allocation time
@@ -30,18 +29,32 @@ struct InDrawInfo
   AABB16 box;
 };
 
-layout(std430, binding = 0) readonly buffer inData
+struct IndicesDrawInfo
 {
-  InDrawInfo inDrawData[];
+  uvec2 data01; // handle
+  double data02;// allocation time
+  uvec2 _pad01;
+  uint offset;
+  uint size;
 };
 
-layout(std430, binding = 1) writeonly buffer outCmds
+layout(std430, binding = 0) readonly buffer inData
 {
-  DrawArraysCommand outDrawCommands[];
+  VerticesDrawInfo inDrawData[];
+};
+
+layout(std430, binding = 1) readonly buffer inIndicesData
+{
+  IndicesDrawInfo indicesInfos[];
+};
+
+layout(std430, binding = 2) writeonly buffer outCmds
+{
+  DrawElementsCommand outDrawCommands[];
 };
 
 // parameter buffer style
-layout(std430, binding = 2) buffer parameterBuffer
+layout(std430, binding = 3) buffer parameterBuffer
 {
   uint nextIdx;
 };
@@ -51,7 +64,8 @@ layout(std430, binding = 2) buffer parameterBuffer
 
 uniform vec3 u_viewpos;
 uniform Frustum u_viewfrustum;
-uniform uint u_vertexSize; // size of vertex in bytes
+uniform uint u_vertexSize = 8; // size of vertex in bytes
+uniform uint u_indexSize = 4; // size of index in bytes
 uniform float u_cullMinDist;
 uniform float u_cullMaxDist;
 uniform uint u_reservedVertices; // amt of reserved space (in vertices) before vertices for instanced attributes 
@@ -64,34 +78,36 @@ layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
 void main()
 {
   uint index = gl_GlobalInvocationID.x;
-  uint stride = gl_NumWorkGroups.x * gl_WorkGroupSize.x;
 
-  for (uint i = index; i < inDrawData.length(); i += stride)
-  {
-    InDrawInfo alloc = inDrawData[i];
+  if (index >= inDrawData.length())
+    return;
+
+  VerticesDrawInfo verticesAlloc = inDrawData[index];
+  IndicesDrawInfo indicesAlloc = indicesInfos[index];
 #if 0
-    bool condition = alloc.data01.xy != uvec2(0);
+  bool condition = verticesAlloc.data01.xy != uvec2(0);
 #else
-    float dist = GetDistance(alloc.box, u_viewpos);
-    bool condition = // all conditions must be true to draw chunk
-      alloc.data01.xy != uvec2(0) &&
-      CullDistance(dist, u_cullMinDist, u_cullMaxDist) &&
-      CullFrustum(alloc.box, u_viewfrustum) >= VISIBILITY_PARTIAL &&
-      alloc.size > u_vertexSize * u_reservedVertices;
+  float dist = GetDistance(verticesAlloc.box, u_viewpos);
+  bool condition = // all conditions must be true to draw chunk
+    verticesAlloc.data01.xy != uvec2(0) &&
+    CullDistance(dist, u_cullMinDist, u_cullMaxDist) &&
+    CullFrustum(verticesAlloc.box, u_viewfrustum) >= VISIBILITY_PARTIAL &&
+    verticesAlloc.size > u_vertexSize * u_reservedVertices;
 #endif
-    if (condition == true)
-    {
-      DrawArraysCommand cmd;
-      cmd.count = (alloc.size / u_vertexSize) - u_reservedVertices;
-      cmd.instanceCount = 0;
-      if (dist < 32)
-        cmd.instanceCount = 1;
-      cmd.first = alloc.offset / u_vertexSize;
-      cmd.baseInstance = cmd.first;
+  if (condition)
+  {
+    DrawElementsCommand cmd;
+    //cmd.count = (verticesAlloc.size / u_vertexSize) - u_reservedVertices;
+    cmd.count = indicesAlloc.size / u_indexSize; // sizeof(uint)
+    cmd.instanceCount = 0;
+    if (dist < 32)
+      cmd.instanceCount = 1;
+    cmd.firstIndex = indicesAlloc.offset / u_indexSize; // sizeof(uint)
+    cmd.baseVertex = verticesAlloc.offset / u_vertexSize;
+    cmd.baseInstance = cmd.baseVertex;
 
-      uint insert = atomicAdd(nextIdx, 1);
-      outDrawCommands[insert] = cmd;
-    }
+    uint insert = atomicAdd(nextIdx, 1);
+    outDrawCommands[insert] = cmd;
   }
 }
 
@@ -112,7 +128,7 @@ bool CullDistance(float dist, float minDist, float maxDist)
 
 vec4 GetPlane(int plane, in Frustum frustum)
 {
-  return vec4(frustum.data_[plane][0], frustum.data_[plane][1], 
+  return vec4(frustum.data_[plane][0], frustum.data_[plane][1],
     frustum.data_[plane][2], frustum.data_[plane][3]);
 }
 

@@ -53,7 +53,8 @@ namespace Voxels
     void RenderRest();      // phase 4
     void Update();
 
-    std::unique_ptr<GFX::DynamicBuffer<AABB16>> allocator;
+    std::unique_ptr<GFX::DynamicBuffer<AABB16>> verticesAllocator;
+    std::unique_ptr<GFX::DynamicBuffer<>> indicesAllocator;
     GLuint vao{};
     std::unique_ptr<GFX::StaticBuffer> dib;
 
@@ -62,15 +63,13 @@ namespace Voxels
     // size of compute block  for the compute shader
     const int groupSize = 64; // defined in compact_batch.cs
 
-    // resets each frame BEFORE the culling phase
-    //GLuint allocDataBuffer = 0;
     GLuint vaoCull{};
-    //std::unique_ptr<GFX::StaticBuffer> vboCull; // stores only cube vertices
     std::unique_ptr<GFX::StaticBuffer> dibCull;
     GLsizei activeAllocs{};
     std::pair<uint64_t, GLuint> stateInfo{ 0, 0 };
     bool dirtyAlloc = true;
-    std::unique_ptr<GFX::StaticBuffer> allocBuffer;
+    std::unique_ptr<GFX::StaticBuffer> vertexAllocBuffer;
+    std::unique_ptr<GFX::StaticBuffer> indexAllocBuffer;
 
     // resources
     std::optional<GFX::Texture> blockTextures;

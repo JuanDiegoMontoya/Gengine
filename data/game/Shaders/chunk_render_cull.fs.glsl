@@ -1,13 +1,13 @@
 #version 460 core
 #define DEBUG_VIEW 1
 
-#include "DrawArraysCommand.h"
+#include "indirect.h.glsl"
 
 layout (early_fragment_tests) in;
 
 layout(std430, binding = 1) writeonly buffer cmds
 {
-  DrawArraysCommand drawCommands[];
+  DrawElementsCommand drawCommands[];
 };
 
 layout(location = 0) in flat int vID;
