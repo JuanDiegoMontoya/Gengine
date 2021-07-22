@@ -9,7 +9,7 @@ layout (std430, binding = 0) buffer exposures
 
 layout (std430, binding = 1) buffer histogram
 {
-  coherent int buckets[NUM_BUCKETS];
+  int buckets[NUM_BUCKETS];
 };
 
 layout (location = 0) uniform float u_dt;

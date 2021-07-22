@@ -40,7 +40,7 @@ namespace GFX
     glDeleteQueries(2, queries);
   }
 
-  uint64_t TimerQuery::Elapsed()
+  uint64_t TimerQuery::Elapsed_ns()
   {
     int complete = 0;
     glQueryCounter(queries[1], GL_TIMESTAMP);

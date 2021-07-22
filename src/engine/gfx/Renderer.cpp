@@ -16,6 +16,7 @@
 #include <engine/ecs/component/ParticleEmitter.h>
 #include "TextureManager.h"
 #include "TextureLoader.h"
+#include "Fence.h"
 
 #include <execution>
 #include <iostream>
@@ -544,19 +545,21 @@ namespace GFX
       const int computePixelsY = fboHeight / 4;
 
       {
+        //GFX::TimerQuery timerQuery;
         GFX::DebugMarker marker("Generate luminance histogram");
         auto hshdr = GFX::ShaderManager::Get()->GetShader("generate_histogram");
         hshdr->Bind();
         hshdr->SetInt("u_hdrBuffer", 1);
         hshdr->SetFloat("u_logLowLum", logLowLum);
         hshdr->SetFloat("u_logMaxLum", logMaxLum);
-        const int X_SIZE = 8;
+        const int X_SIZE = 16;
         const int Y_SIZE = 8;
         int xgroups = (computePixelsX + X_SIZE - 1) / X_SIZE;
         int ygroups = (computePixelsY + Y_SIZE - 1) / Y_SIZE;
         tonemap.histogramBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(0);
         glDispatchCompute(xgroups, ygroups, 1);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+        //printf("Histogram time: %f ms\n", (double)timerQuery.Elapsed_ns() / 1000000.0);
       }
 
       //float expo{};

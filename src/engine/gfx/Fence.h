@@ -47,8 +47,8 @@ namespace GFX
     TimerQuery(const TimerQuery&) = delete;
     TimerQuery& operator=(const TimerQuery&) = delete;
 
-    // returns how (in ns) we blocked for (invalidates this object) (BLOCKS)
-    uint64_t Elapsed();
+    // returns how (in ns) we blocked for (BLOCKS)
+    uint64_t Elapsed_ns();
 
   private:
     uint32_t queries[2];

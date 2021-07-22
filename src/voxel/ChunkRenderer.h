@@ -1,5 +1,4 @@
 #pragma once
-#include <engine/gfx/DynamicBuffer.h>
 #include <engine/Shapes.h>
 #include <memory>
 #include <string>
@@ -18,14 +17,14 @@ namespace Voxels
   public:
     ChunkRenderer();
     ~ChunkRenderer();
-    void InitAllocator();
-    void GenerateDrawCommandsGPU();
-    void RenderNorm();
+    //void InitAllocator();
 
     // for debug
     void DrawBuffers();
     void Draw();
 
+    uint64_t AllocChunk(std::span<int> vertices, std::span<uint32_t> indices, const AABB& aabb);
+    void FreeChunk(uint64_t allocHandle);
 
     /* $$$$$$$$$$$$$$$   Culling pipeline stuff   $$$$$$$$$$$$$$$$
 
@@ -44,40 +43,13 @@ namespace Voxels
     $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$*/
 
   private:
-    friend class ChunkMesh;
-    friend class VoxelManager;
-
     void RenderVisible();   // phase 1
     void GenerateDIB();     // phase 2
     void RenderOcclusion(); // phase 3
     void RenderRest();      // phase 4
-    void Update();
 
-    std::unique_ptr<GFX::DynamicBuffer<AABB16>> verticesAllocator;
-    std::unique_ptr<GFX::DynamicBuffer<>> indicesAllocator;
-    GLuint vao{};
-    std::unique_ptr<GFX::StaticBuffer> dib;
+    std::vector<glm::uvec2> GetAllocIndices();
 
-    std::unique_ptr<GFX::StaticBuffer> drawCountGPU;
-
-    // size of compute block  for the compute shader
-    const int groupSize = 64; // defined in compact_batch.cs
-
-    GLuint vaoCull{};
-    std::unique_ptr<GFX::StaticBuffer> dibCull;
-    GLsizei activeAllocs{};
-    std::pair<uint64_t, GLuint> stateInfo{ 0, 0 };
-    bool dirtyAlloc = true;
-    std::unique_ptr<GFX::StaticBuffer> vertexAllocBuffer;
-    std::unique_ptr<GFX::StaticBuffer> indexAllocBuffer;
-
-    // resources
-    std::optional<GFX::Texture> blockTextures;
-    std::optional<GFX::TextureView> blockTexturesView;
-    std::optional<GFX::TextureSampler> blockTexturesSampler;
-
-    std::optional<GFX::Texture> blueNoiseTexture;
-    std::optional<GFX::TextureView> blueNoiseView;
-    std::optional<GFX::TextureSampler> blueNoiseSampler;
+    struct ChunkRendererStorage* data{};
   };
 }

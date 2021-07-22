@@ -38,23 +38,28 @@ struct IndicesDrawInfo
   uint size;
 };
 
-layout(std430, binding = 0) readonly buffer inData
+layout(std430, binding = 0) readonly buffer ssbo_0
 {
   VerticesDrawInfo inDrawData[];
 };
 
-layout(std430, binding = 1) readonly buffer inIndicesData
+layout(std430, binding = 1) readonly buffer ssbo_1
 {
   IndicesDrawInfo indicesInfos[];
 };
 
-layout(std430, binding = 2) writeonly buffer outCmds
+layout(std430, binding = 2) readonly buffer ssbo_2
+{
+  uvec2 allocsIndices[];
+};
+
+layout(std430, binding = 3) writeonly buffer dib_3
 {
   DrawElementsCommand outDrawCommands[];
 };
 
 // parameter buffer style
-layout(std430, binding = 3) buffer parameterBuffer
+layout(std430, binding = 4) buffer parameterBuffer_4
 {
   uint nextIdx;
 };
@@ -77,13 +82,15 @@ int CullFrustum(in AABB16 box, in Frustum frustum);
 layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
 void main()
 {
-  uint index = gl_GlobalInvocationID.x;
+  uvec2 allocIndices = allocsIndices[gl_GlobalInvocationID.x];
+  uint vertindex = allocIndices[0];
+  uint indindex = allocIndices[1];
 
-  if (index >= inDrawData.length())
+  if (gl_GlobalInvocationID.x >= allocsIndices.length())
     return;
 
-  VerticesDrawInfo verticesAlloc = inDrawData[index];
-  IndicesDrawInfo indicesAlloc = indicesInfos[index];
+  VerticesDrawInfo verticesAlloc = inDrawData[vertindex];
+  IndicesDrawInfo indicesAlloc = indicesInfos[indindex];
 #if 0
   bool condition = verticesAlloc.data01.xy != uvec2(0);
 #else

@@ -37,6 +37,7 @@ namespace GFX
     const auto& GetAllocs() { return allocs_; }
     uint32_t ActiveAllocs() { return numActiveAllocs_; }
     uint32_t GetGPUHandle() { return buffer->GetID(); }
+    uint32_t GetAllocOffset(uint64_t handle) { for (uint32_t i = 0; i < allocs_.size(); i++) if (handle == allocs_[i].handle) return i; UNREACHABLE; }
 
     // compare return values of this func to see if the state has change
     std::pair<uint64_t, uint32_t> GetStateInfo() { return { nextHandle, numActiveAllocs_ }; }

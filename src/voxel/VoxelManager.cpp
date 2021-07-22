@@ -22,7 +22,6 @@ namespace Voxels
   void VoxelManager::Update()
   {
     chunkManager_->Update();
-    chunkRenderer_->Update();
   }
 
   void VoxelManager::Draw()

@@ -74,8 +74,7 @@ namespace Voxels
     physx::PxRigidActor* tActor = nullptr;
 
     int64_t vertexCount_ = 0;
-    uint64_t vertexBufferHandle = 0;
-    uint64_t indexBufferHandle = 0;
+    uint64_t bufferHandle = 0;
 
     std::shared_mutex mtx;
   };

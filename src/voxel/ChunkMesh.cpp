@@ -114,7 +114,7 @@ namespace Voxels
 
   ChunkMesh::~ChunkMesh()
   {
-    voxelManager_.chunkRenderer_->verticesAllocator->Free(vertexBufferHandle);
+    voxelManager_.chunkRenderer_->FreeChunk(bufferHandle);
     if (tActor)
     {
       Physics::PhysicsManager::RemoveActorGeneric(tActor);
@@ -133,31 +133,16 @@ namespace Voxels
     }
     needsBuffering_ = false;
 
-    voxelManager_.chunkRenderer_->verticesAllocator->Free(vertexBufferHandle);
-    voxelManager_.chunkRenderer_->indicesAllocator->Free(indexBufferHandle);
+    voxelManager_.chunkRenderer_->FreeChunk(bufferHandle);
+    bufferHandle = 0;
 
     // nothing emitted, don't try to make buffers
-    //if (pointCount_ == 0)
     if (vertexCount_ == 0)
     {
       return;
     }
 
-    // free oldest allocations until there is enough space to allocate this buffer
-    while ((vertexBufferHandle = voxelManager_.chunkRenderer_->verticesAllocator->Allocate(
-      interleavedArr.data(),
-      interleavedArr.size() * sizeof(GLint),
-      this->parentChunk->GetAABB())) == NULL)
-    {
-      voxelManager_.chunkRenderer_->verticesAllocator->FreeOldest();
-    }
-
-    while ((indexBufferHandle = voxelManager_.chunkRenderer_->indicesAllocator->Allocate(
-      indices.data(),
-      indices.size() * sizeof(uint32_t))) == NULL)
-    {
-      voxelManager_.chunkRenderer_->verticesAllocator->FreeOldest();
-    }
+    bufferHandle = voxelManager_.chunkRenderer_->AllocChunk(interleavedArr, indices, parentChunk->GetAABB());
 
     interleavedArr.clear();
     tCollider.vertices.clear();
@@ -168,7 +153,6 @@ namespace Voxels
     tCollider.vertices.shrink_to_fit();
     tCollider.indices.shrink_to_fit();
     indices.shrink_to_fit();
-
     curIndex = 0;
   }
 
@@ -181,6 +165,7 @@ namespace Voxels
 
       // clear everything in case this function is called twice in a row
       vertexCount_ = 0;
+      curIndex = 0;
       interleavedArr.clear();
       tCollider.vertices.clear();
       tCollider.indices.clear();
@@ -247,7 +232,7 @@ namespace Voxels
   }
 
 
-  inline void ChunkMesh::buildBlockFace(
+  void ChunkMesh::buildBlockFace(
     int face,
     const glm::ivec3& blockPos,  // position of current block
     BlockType block)            // block-specific information)
@@ -302,7 +287,7 @@ namespace Voxels
     addQuad(blockPos, block, face, nearChunk, light);
   }
 
-  inline void ChunkMesh::addQuad(const glm::ivec3& lpos, BlockType block, int face, [[maybe_unused]] const Chunk* nearChunk, Light light)
+  void ChunkMesh::addQuad(const glm::ivec3& lpos, BlockType block, int face, [[maybe_unused]] const Chunk* nearChunk, Light light)
   {
     int normalIdx = face;
     int texIdx = (int)block; // temp value
@@ -365,7 +350,7 @@ namespace Voxels
   }
 
 
-  inline int ChunkMesh::vertexFaceAO(const glm::vec3& lpos, const glm::vec3& cornerDir, const glm::vec3& norm)
+  int ChunkMesh::vertexFaceAO(const glm::vec3& lpos, const glm::vec3& cornerDir, const glm::vec3& norm)
   {
     // TODO: make it work over chunk boundaries
     using namespace glm;
