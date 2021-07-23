@@ -553,7 +553,7 @@
     <CustomBuildBeforeTargets>
     </CustomBuildBeforeTargets>
     <CustomBuildAfterTargets>PreBuildEvent</CustomBuildAfterTargets>
-    <LibraryPath>$(ProjectDir)third_party\assimp-3.3.1\lib\x64;$(ProjectDir)third_party\glfw-3.3-win64\lib-vc2019;$(ProjectDir)third_party\shaderc\lib;$(ProjectDir)third_party\zlib\zlib123dllx64\static_x64;$(ProjectDir)third_party\PhysX\bin\x64\debug;$(ProjectDir)third_party\FastNoise2\bin\Debug;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(ProjectDir)third_party\assimp-3.3.1\lib\x64;$(ProjectDir)third_party\glfw-3.3-win64\lib-vc2019;$(ProjectDir)third_party\shaderc\lib;$(ProjectDir)third_party\zlib\zlib123dllx64\static_x64;$(ProjectDir)third_party\PhysX\bin\x64\debug;$(ProjectDir)third_party\FastNoise2\bin\Release;$(LibraryPath)</LibraryPath>
     <RunCodeAnalysis>true</RunCodeAnalysis>
     <ExternalIncludePath>$(ProjectDir)/third_party;$(ProjectDir)/third_party/FastNoise2/include;$(ProjectDir)/third_party/assimp-3.3.1/include;$(ProjectDir)/third_party/cereal-1.2.2/include;$(ProjectDir)/third_party/entt;$(ProjectDir)/third_party/glad/include;$(ProjectDir)/third_party/glfw-3.3-win64/include;$(ProjectDir)/third_party/shaderc/include;$(ProjectDir)/third_party/PhysX/pxshared/include;$(ExternalIncludePath)</ExternalIncludePath>
     <OutDir>$(ProjectDir)\build\$(Platform)\$(Configuration)\</OutDir>
@@ -646,14 +646,14 @@
       </Command>
     </CustomBuildStep>
     <PostBuildEvent>
-      <Command>copy "$(ProjectDir)third_party\glfw-3.3-win64\lib-vc2019\glfw3.dll" "$(TargetDir)glfw3.dll" /Y
-copy "$(ProjectDir)third_party\assimp-3.3.1\bin\x64\assimp-vc142-mtd.dll" "$(TargetDir)assimp-vc142-mtd.dll" /Y
-copy "$(ProjectDir)third_party\PhysX\bin\x64\debug\PhysX_64.dll" "$(TargetDir)PhysX_64.dll" /Y
-copy "$(ProjectDir)third_party\PhysX\bin\x64\debug\PhysXCommon_64.dll" "$(TargetDir)PhysXCommon_64.dll" /Y
-copy "$(ProjectDir)third_party\PhysX\bin\x64\debug\PhysXCooking_64.dll" "$(TargetDir)PhysXCooking_64.dll" /Y
-copy "$(ProjectDir)third_party\PhysX\bin\x64\debug\PhysXFoundation_64.dll" "$(TargetDir)PhysXFoundation_64.dll" /Y
-copy "$(ProjectDir)third_party\PhysX\bin\x64\debug\PhysXGpu_64.dll" "$(TargetDir)PhysXGpu_64.dll" /Y
-copy "$(ProjectDir)third_party\PhysX\bin\x64\debug\PhysXDevice64.dll" "$(TargetDir)PhysXDevice64.dll" /Y</Command>
+      <Command>xcopy "$(ProjectDir)third_party\glfw-3.3-win64\lib-vc2019\glfw3.dll" "$(TargetDir)glfw3.dll" /Y /D
+xcopy "$(ProjectDir)third_party\assimp-3.3.1\bin\x64\assimp-vc142-mtd.dll" "$(TargetDir)assimp-vc142-mtd.dll" /Y /D
+xcopy "$(ProjectDir)third_party\PhysX\bin\x64\debug\PhysX_64.dll" "$(TargetDir)PhysX_64.dll" /Y /D
+xcopy "$(ProjectDir)third_party\PhysX\bin\x64\debug\PhysXCommon_64.dll" "$(TargetDir)PhysXCommon_64.dll" /Y /D
+xcopy "$(ProjectDir)third_party\PhysX\bin\x64\debug\PhysXCooking_64.dll" "$(TargetDir)PhysXCooking_64.dll" /Y /D
+xcopy "$(ProjectDir)third_party\PhysX\bin\x64\debug\PhysXFoundation_64.dll" "$(TargetDir)PhysXFoundation_64.dll" /Y /D
+xcopy "$(ProjectDir)third_party\PhysX\bin\x64\debug\PhysXGpu_64.dll" "$(TargetDir)PhysXGpu_64.dll" /Y /D
+xcopy "$(ProjectDir)third_party\PhysX\bin\x64\debug\PhysXDevice64.dll" "$(TargetDir)PhysXDevice64.dll" /Y /D</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -731,14 +731,14 @@ copy "$(ProjectDir)third_party\PhysX\bin\x64\debug\PhysXDevice64.dll" "$(TargetD
       </Command>
     </CustomBuildStep>
     <PostBuildEvent>
-      <Command>copy "$(ProjectDir)third_party\glfw-3.3-win64\lib-vc2019\glfw3.dll" "$(TargetDir)glfw3.dll" /Y
-copy "$(ProjectDir)third_party\assimp-3.3.1\bin\x64\assimp-vc142-mtd.dll" "$(TargetDir)assimp-vc142-mtd.dll" /Y
-copy "$(ProjectDir)third_party\PhysX\bin\x64\debug\PhysX_64.dll" "$(TargetDir)PhysX_64.dll" /Y
-copy "$(ProjectDir)third_party\PhysX\bin\x64\debug\PhysXCommon_64.dll" "$(TargetDir)PhysXCommon_64.dll" /Y
-copy "$(ProjectDir)third_party\PhysX\bin\x64\debug\PhysXCooking_64.dll" "$(TargetDir)PhysXCooking_64.dll" /Y
-copy "$(ProjectDir)third_party\PhysX\bin\x64\debug\PhysXFoundation_64.dll" "$(TargetDir)PhysXFoundation_64.dll" /Y
-copy "$(ProjectDir)third_party\PhysX\bin\x64\debug\PhysXGpu_64.dll" "$(TargetDir)PhysXGpu_64.dll" /Y
-copy "$(ProjectDir)third_party\PhysX\bin\x64\debug\PhysXDevice64.dll" "$(TargetDir)PhysXDevice64.dll" /Y</Command>
+      <Command>xcopy "$(ProjectDir)third_party\glfw-3.3-win64\lib-vc2019\glfw3.dll" "$(TargetDir)glfw3.dll" /Y /D
+xcopy "$(ProjectDir)third_party\assimp-3.3.1\bin\x64\assimp-vc142-mtd.dll" "$(TargetDir)assimp-vc142-mtd.dll" /Y /D
+xcopy "$(ProjectDir)third_party\PhysX\bin\x64\debug\PhysX_64.dll" "$(TargetDir)PhysX_64.dll" /Y /D
+xcopy "$(ProjectDir)third_party\PhysX\bin\x64\debug\PhysXCommon_64.dll" "$(TargetDir)PhysXCommon_64.dll" /Y /D
+xcopy "$(ProjectDir)third_party\PhysX\bin\x64\debug\PhysXCooking_64.dll" "$(TargetDir)PhysXCooking_64.dll" /Y /D
+xcopy "$(ProjectDir)third_party\PhysX\bin\x64\debug\PhysXFoundation_64.dll" "$(TargetDir)PhysXFoundation_64.dll" /Y /D
+xcopy "$(ProjectDir)third_party\PhysX\bin\x64\debug\PhysXGpu_64.dll" "$(TargetDir)PhysXGpu_64.dll" /Y /D
+xcopy "$(ProjectDir)third_party\PhysX\bin\x64\debug\PhysXDevice64.dll" "$(TargetDir)PhysXDevice64.dll" /Y /D</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

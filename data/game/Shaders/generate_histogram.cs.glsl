@@ -32,18 +32,10 @@ uint colorToBucket(vec3 color)
 layout (local_size_x = LOCAL_X, local_size_y = LOCAL_Y, local_size_z = LOCAL_Z) in;
 void main()
 {
-
-  //vec2 uv = vec2(gl_GlobalInvocationID.xy) / (gl_NumWorkGroups.xy * gl_WorkGroupSize.xy);
-  //vec3 color = texture(u_hdrBuffer, uv).rgb;
-
-  //atomicAdd(buckets[bucket], 1);
-
-  //const uint numWrites = NUM_BUCKETS / WORKGROUPSIZE;
-  //const uint start = gl_LocalInvocationIndex * numWrites;
-
   shbuckets[gl_LocalInvocationIndex] = 0;
+  
   barrier();
-  //memoryBarrierShared();
+  memoryBarrierShared();
 
   uvec2 texSize = textureSize(u_hdrBuffer, 0);
   uvec2 upscaleFactor = texSize / (gl_NumWorkGroups.xy * gl_WorkGroupSize.xy);
@@ -55,7 +47,8 @@ void main()
     atomicAdd(shbuckets[bucket], 1);
   }
 
-  //memoryBarrierShared();
   barrier();
+  memoryBarrierShared();
+
   atomicAdd(buckets[gl_LocalInvocationIndex], shbuckets[gl_LocalInvocationIndex]);
 }
