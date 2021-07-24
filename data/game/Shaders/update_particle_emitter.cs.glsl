@@ -85,22 +85,20 @@ Particle MakeParticle()
   return particle;
 }
 
-layout(local_size_x = 128, local_size_y = 1, local_size_z = 1) in;
+layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
 void main()
 {
-  uint start = gl_GlobalInvocationID.x;
-  uint stride = gl_NumWorkGroups.x * gl_WorkGroupSize.x;
+  uint index = gl_GlobalInvocationID.x;
+  if (index >= u_particlesToSpawn)
+    return;
 
-  for (uint i = start; i < u_particlesToSpawn; i += stride)
+  // undo decrement and return if nothing in freelist
+  int indexIndex = atomicAdd(freeCount, -1) - 1;
+  if (indexIndex < 0)
   {
-    // undo decrement and return if nothing in freelist
-    int indexIndex = atomicAdd(freeCount, -1) - 1;
-    if (indexIndex < 0)
-    {
-      atomicAdd(freeCount, 1);
-      return;
-    }
-
-    particles[indices[indexIndex]] = MakeParticle();
+    atomicAdd(freeCount, 1);
+    return;
   }
+
+  particles[indices[indexIndex]] = MakeParticle();
 }

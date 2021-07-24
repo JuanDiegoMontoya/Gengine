@@ -1,6 +1,9 @@
 #pragma once
 #include <entt/entt.hpp>
 #include <string>
+#include <string_view>
+#include <optional>
+
 
 class Entity;
 class Engine;
@@ -16,7 +19,7 @@ public:
   // Returns an entity whose tag matches the given name.
   // A null entity is returned if no matches are found.
   // If there are multiple matches, the first match is returned.
-  Entity GetEntity(std::string_view name);
+  std::optional<Entity> GetEntity(std::string_view name);
 
   Engine& GetEngine() { return engine_; }
   std::string_view GetName() { return name_; }

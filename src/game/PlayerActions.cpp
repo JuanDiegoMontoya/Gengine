@@ -44,10 +44,10 @@ void PlayerActions::OnUpdate(Timestep timestep)
 
   if (Input::IsKeyPressed(GLFW_KEY_V))
   {
-    Entity arrow = GetScene()->GetEntity("Arrow");
+    std::optional<Entity> arrow = GetScene()->GetEntity("Arrow");
     if (arrow)
     {
-      arrow.Destroy();
+      arrow->Destroy();
     }
 
     Entity ent = CreateEntity("Arrow");

@@ -2,59 +2,96 @@
 #include "particle.h"
 #include "indirect.h.glsl"
 
-layout (std430, binding = 0) buffer data
+layout(std430, binding = 0) buffer Particles
 {
   Particle particles[];
 };
 
-layout (std430, binding = 1) buffer stack
+layout(std430, binding = 1) buffer Stack
 {
   coherent int freeCount;
   int indices[];
 };
 
-layout (std430, binding = 2) coherent buffer indirectCommand
+layout(std430, binding = 2) coherent buffer IndirectCommand
 {
-  DrawArraysCommand cmd;
+  DrawArraysCommand indirectCommand;
 };
 
-layout (std430, binding = 3) buffer drawindices
+layout(std430, binding = 3) buffer Drawindices
 {
   uint drawIndices[];
 };
 
-layout (location = 0) uniform float u_dt;
+layout(location = 0) uniform float u_dt;
 
-void UpdateParticle(inout Particle particle, int i)
-{
-  if (particle.alive != 0)
-  {
-    particle.velocity += particle.accel * u_dt;
-    particle.pos += particle.velocity * u_dt;
-    if (particle.life <= 0.0)
-    {
-      particle.color.a = 0.0;
-      particle.alive = 0;
-      int index = atomicAdd(freeCount, 1);
-      indices[index] = i;
-    }
-    else // particle is alive, so we will render it (add its index to drawIndices)
-    {
-      uint indexIndex = atomicAdd(cmd.instanceCount, 1);
-      drawIndices[indexIndex] = i;
-    }
-    particle.life -= u_dt;
-  }
-}
+shared int sh_freeIndex;
+shared int sh_requestedFreeIndices;
+shared uint sh_drawIndex;
+shared uint sh_requestedDrawIndices;
 
-layout(local_size_x = 128, local_size_y = 1, local_size_z = 1) in;
+layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
 void main()
 {
-  uint start = gl_GlobalInvocationID.x;
-  uint stride = gl_NumWorkGroups.x * gl_WorkGroupSize.x;
+  // strategy: record how many elements we actually need, request it at once, then write to buffers
 
-  for (int i = int(start); i < particles.length(); i += int(stride))
+  if (gl_LocalInvocationIndex == 0)
   {
-    UpdateParticle(particles[i], int(i));
+    sh_requestedFreeIndices = 0;
+    sh_requestedDrawIndices = 0;
+  }
+
+  barrier();
+  memoryBarrierShared();
+
+  int index = int(gl_GlobalInvocationID.x);
+  bool needFreeIndex = false;
+  bool needDrawIndex = false;
+  if (index < particles.length())
+  {
+    Particle particle = particles[index];
+    if (particle.alive != 0)
+    {
+      particle.velocity += particle.accel * u_dt;
+      particle.pos += particle.velocity * u_dt;
+      if (particle.life <= 0.0) // particle just died
+      {
+        particle.alive = 0;
+
+        needFreeIndex = true;
+        atomicAdd(sh_requestedFreeIndices, 1);
+      }
+      else // particle is alive, so we will render it (add its index to drawIndices)
+      {
+        needDrawIndex = true;
+        atomicAdd(sh_requestedDrawIndices, 1);
+      }
+      particle.life -= u_dt;
+    }
+    particles[index] = particle;
+  }
+
+  barrier();
+  memoryBarrierShared();
+
+  if (gl_LocalInvocationIndex == 0)
+  {
+    sh_freeIndex = atomicAdd(freeCount, sh_requestedFreeIndices);
+    sh_drawIndex = atomicAdd(indirectCommand.instanceCount, sh_requestedDrawIndices);
+  }
+
+  barrier();
+  memoryBarrierShared();
+
+  if (needFreeIndex)
+  {
+    int freeIndex = atomicAdd(sh_freeIndex, 1);
+    indices[freeIndex] = index;
+  }
+
+  if (needDrawIndex)
+  {
+    uint drawIndex = atomicAdd(sh_drawIndex, 1);
+    drawIndices[drawIndex] = index;
   }
 }

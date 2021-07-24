@@ -19,6 +19,7 @@
 #include <engine/gfx/DebugMarker.h>
 #include <engine/gfx/TextureManager.h>
 #include <engine/gfx/Indirect.h>
+#include <engine/gfx/Fence.h>
 
 namespace
 {
@@ -106,12 +107,13 @@ void ParticleSystem::Update(Scene& scene, Timestep timestep)
 {
   GFX::DebugMarker marker("Particle system update");
   static Timer timer;
-  const int localSize = 128; // maybe should query shader for this value
+  const int localSize = 64; // maybe should query shader for this value
 
   using namespace Component;
   auto view = scene.GetRegistry().view<ParticleEmitter, Transform>();
 
   {
+    //GFX::TimerQuery timerQuery;
     GFX::DebugMarker emitterMarker("Update emitters");
     auto emitter_shader = GFX::ShaderManager::Get()->GetShader("update_particle_emitter");
     emitter_shader->Bind();
@@ -164,10 +166,12 @@ void ParticleSystem::Update(Scene& scene, Timestep timestep)
       }
     }
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+    //printf("Emitter update time: %f ms\n", (double)timerQuery.Elapsed_ns() / 1000000.0);
   }
 
   // update particles in the emitter
   {
+    GFX::TimerQuery timerQuery;
     GFX::DebugMarker particleMarker("Update particle dynamic state");
     auto particle_shader = GFX::ShaderManager::Get()->GetShader("update_particle");
     particle_shader->Bind();
@@ -192,6 +196,7 @@ void ParticleSystem::Update(Scene& scene, Timestep timestep)
       glDispatchCompute(numGroups, 1, 1);
     }
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+    printf("Particle update time: %f ms\n", (double)timerQuery.Elapsed_ns() / 1000000.0);
   }
 
   // reset timer every 10 seconds to avoid precision issues

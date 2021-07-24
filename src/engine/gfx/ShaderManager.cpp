@@ -110,7 +110,12 @@ namespace GFX
       return {};
     }
 
-    return std::string(PreprocessResult.begin());
+    std::string preprocessed = PreprocessResult.begin();
+    // TODO: uncomment when extension capabilities can be queried effectively
+    //preprocessed = std::regex_replace(preprocessed,
+    //  std::regex("#((extension[\n\t ]+(GL_GOOGLE_include_directive))|(line[\n\t ]+\"))[a - zA - Z0 - 9\"_:. ]+"), "// line removed for combatibility");
+
+    return preprocessed;
   }
 
   // returns compiled SPIR-V

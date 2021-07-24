@@ -22,7 +22,7 @@ Entity Scene::CreateEntity(std::string_view name)
   return entity;
 }
 
-Entity Scene::GetEntity(std::string_view name)
+std::optional<Entity> Scene::GetEntity(std::string_view name)
 {
   auto view = registry_.view<Component::Tag>();
   for (entt::entity entity : view)
@@ -35,6 +35,7 @@ Entity Scene::GetEntity(std::string_view name)
     }
   }
 
-  return Entity(entt::null, this);
+  return std::nullopt;
+  //return Entity(entt::null, this);
   // Log("No entity called "%s" exists to return", name.c_str());
 }
