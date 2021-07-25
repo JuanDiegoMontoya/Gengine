@@ -125,7 +125,6 @@ void ParticleSystem::Update(Scene& scene, Timestep timestep)
 {
   GFX::DebugMarker marker("Particle system update");
   static Timer timer;
-  const int localSize = 64; // maybe should query shader for this value
 
   using namespace Component;
   auto view = scene.GetRegistry().view<ParticleEmitter, Transform>();
@@ -181,7 +180,8 @@ void ParticleSystem::Update(Scene& scene, Timestep timestep)
         emitter_shader->SetVec4("u_emitter.maxParticleColor", emitter.data.maxParticleColor);
 #pragma endregion
 
-        int numGroups = (particlesToSpawn + localSize - 1) / localSize;
+        const int emitterUpdateGroupSize = 64; // maybe should query shader for this value
+        int numGroups = (particlesToSpawn + emitterUpdateGroupSize - 1) / emitterUpdateGroupSize;
         glDispatchCompute(numGroups, 1, 1);
       }
     }
@@ -191,7 +191,7 @@ void ParticleSystem::Update(Scene& scene, Timestep timestep)
 
   // update particles in the emitter
   {
-    //GFX::TimerQuery timerQuery;
+    GFX::TimerQuery timerQuery;
     GFX::DebugMarker particleMarker("Update particle dynamic state");
     auto particle_shader = GFX::ShaderManager::Get()->GetShader("update_particle");
     particle_shader->Bind();
@@ -214,11 +214,12 @@ void ParticleSystem::Update(Scene& scene, Timestep timestep)
       emitterData->indirectDrawBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(4);
       emitterData->indicesBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(5);
 
-      int numGroups = (emitterData->maxParticles + localSize - 1) / localSize;
+      int particleUpdateGroupSize = 1 * 128;
+      int numGroups = (emitterData->maxParticles + particleUpdateGroupSize - 1) / particleUpdateGroupSize;
       glDispatchCompute(numGroups, 1, 1);
     }
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-    //printf("Particle update time: %f ms\n", (double)timerQuery.Elapsed_ns() / 1000000.0);
+    printf("Particle update time: %f ms\n", (double)timerQuery.Elapsed_ns() / 1000000.0);
   }
 
   // reset timer every 10 seconds to avoid precision issues
