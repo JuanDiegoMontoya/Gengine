@@ -91,6 +91,8 @@ void MakeParticle(
 
   vec2 scale = rng(u_emitter.minParticleScale.xy, u_emitter.maxParticleScale.xy);
   vec4 color = rng(u_emitter.minParticleColor.rgba, u_emitter.maxParticleColor.rgba);
+  //prd.scale.xy = scale;
+  //prd.color = color;
   prd.packedScaleX_packedColorY.x = packHalf2x16(scale);
   prd.packedScaleX_packedColorY.y = packUnorm4x8(color);
 

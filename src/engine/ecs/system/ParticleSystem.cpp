@@ -64,13 +64,13 @@ namespace
 
   struct ParticleSharedData
   {
-    glm::vec4 pos{ -1 };
+    glm::vec4 position_A{ 0 }; // .w = alive
   };
 
   struct ParticleUpdateData
   {
-    glm::vec4 velocity_L{ 1, 1, 1, 0 };     // .w = life
-    glm::vec4 acceleration_A{ 1, 1, 1, 0 }; // .w = alive
+    glm::vec4 velocity_L{ 0 }; // .w = life
+    glm::vec4 acceleration{ 0 };
   };
 
   struct ParticleRenderData
@@ -192,7 +192,7 @@ void ParticleSystem::Update(Scene& scene, Timestep timestep)
 
   // update particles in the emitter
   {
-    //GFX::TimerQuery timerQuery;
+    GFX::TimerQuery timerQuery;
     GFX::DebugMarker particleMarker("Update particle dynamic state");
     auto particle_shader = GFX::ShaderManager::Get()->GetShader("update_particle");
     particle_shader->Bind();
@@ -220,7 +220,7 @@ void ParticleSystem::Update(Scene& scene, Timestep timestep)
       glDispatchCompute(numGroups, 1, 1);
     }
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-    //printf("Particle update time: %f ms\n", (double)timerQuery.Elapsed_ns() / 1000000.0);
+    printf("Particle update time: %f ms\n", (double)timerQuery.Elapsed_ns() / 1000000.0);
   }
 
   // reset timer every 10 seconds to avoid precision issues

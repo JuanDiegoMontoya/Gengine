@@ -67,7 +67,7 @@ void main()
     {
       ParticleSharedData psd = particlesShared[index];
       ParticleUpdateData pud = particlesUpdate[index];
-      if (psd.position_A.w != 0)
+      if (psd.position_A.w != 0.0)
       {
         pud.velocity_L.xyz += pud.acceleration.xyz * u_dt;
         psd.position_A.xyz += pud.velocity_L.xyz * u_dt;

@@ -54,6 +54,8 @@ void main()
 
   vec2 scale = unpackHalf2x16(prd.packedScaleX_packedColorY.x);
   vColor = unpackUnorm4x8(prd.packedScaleX_packedColorY.y);
+  //vec2 scale = prd.scale.xy;
+  //vColor = prd.color;
 
   vec3 vertexPosition_worldspace =
     psd.position_A.xyz +
