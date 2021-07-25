@@ -85,9 +85,13 @@ void MakeParticle(
   out ParticleUpdateData pud,
   out ParticleRenderData prd)
 {
-  pud.acceleration.xyz = rng(u_emitter.minParticleAccel.xyz, u_emitter.maxParticleAccel.xyz);
-  pud.velocity_L.xyz = rng(u_emitter.minParticleVelocity.xyz, u_emitter.maxParticleVelocity.xyz);
-  pud.velocity_L.w = rng(u_emitter.minLife, u_emitter.maxLife);
+  vec3 velocity = rng(u_emitter.minParticleVelocity.xyz, u_emitter.maxParticleVelocity.xyz);
+  vec3 acceleration = rng(u_emitter.minParticleAccel.xyz, u_emitter.maxParticleAccel.xyz);
+  float life = rng(u_emitter.minLife, u_emitter.maxLife);
+  pud.velocity_acceleration_L.x = packHalf2x16(velocity.xy);
+  pud.velocity_acceleration_L.y = packHalf2x16(vec2(velocity.z, acceleration.x));
+  pud.velocity_acceleration_L.z = packHalf2x16(acceleration.yz);
+  pud.velocity_acceleration_L.w = floatBitsToUint(life);
 
   vec2 scale = rng(u_emitter.minParticleScale.xy, u_emitter.maxParticleScale.xy);
   vec4 color = rng(u_emitter.minParticleColor.rgba, u_emitter.maxParticleColor.rgba);

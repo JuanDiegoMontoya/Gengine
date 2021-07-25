@@ -67,11 +67,16 @@ void main()
     {
       ParticleSharedData psd = particlesShared[index];
       ParticleUpdateData pud = particlesUpdate[index];
+      vec2 unpackMiddle = unpackHalf2x16(pud.velocity_acceleration_L.y);
+      vec3 velocity = vec3(unpackHalf2x16(pud.velocity_acceleration_L.x), unpackMiddle.x);
+      vec3 acceleration = vec3(unpackMiddle.y, unpackHalf2x16(pud.velocity_acceleration_L.z));
+      float life = uintBitsToFloat(pud.velocity_acceleration_L.w);
+
       if (psd.position_A.w != 0.0)
       {
-        pud.velocity_L.xyz += pud.acceleration.xyz * u_dt;
-        psd.position_A.xyz += pud.velocity_L.xyz * u_dt;
-        if (pud.velocity_L.w <= 0.0) // particle just died
+        velocity += acceleration * u_dt;
+        psd.position_A.xyz += velocity * u_dt;
+        if (life <= 0.0) // particle just died
         {
           psd.position_A.w = 0.0;
 
@@ -83,9 +88,14 @@ void main()
           needDrawIndex = true;
           atomicAdd(sh_requestedDrawIndices, 1);
         }
-        pud.velocity_L.w -= u_dt;
+        life -= u_dt;
       }
       particlesShared[index] = psd;
+
+      pud.velocity_acceleration_L.x = packHalf2x16(velocity.xy);
+      pud.velocity_acceleration_L.y = packHalf2x16(vec2(velocity.z, acceleration.x));
+      pud.velocity_acceleration_L.z = packHalf2x16(acceleration.yz);
+      pud.velocity_acceleration_L.w = floatBitsToUint(life);
       particlesUpdate[index] = pud;
     }
 

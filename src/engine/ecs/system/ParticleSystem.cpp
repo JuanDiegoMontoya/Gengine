@@ -69,15 +69,18 @@ namespace
 
   struct ParticleUpdateData
   {
-    glm::vec4 velocity_L{ 0 }; // .w = life
-    glm::vec4 acceleration{ 0 };
+    //glm::vec4 velocity_L{ 0 }; // .w = life
+    //glm::vec4 acceleration{ 0 };
+
+    // unpackHalf2x16 x 3 to access vel/accel, uintBitsToFloat(.w) to access L
+    glm::uvec4 velocity_acceleration_L{ 0 };
   };
 
   struct ParticleRenderData
   {
     //glm::vec4 color{ 0 };
     //glm::vec4 scale{ 1 };
-    glm::uvec2 packedScaleX_packedColorY = { glm::packHalf2x16({1, 1}), glm::packUnorm4x8(glm::vec4(0)) };
+    glm::uvec2 packedScaleX_packedColorY = { glm::packHalf2x16({ 1, 1 }), glm::packUnorm4x8(glm::vec4(0)) };
   };
 }
 
@@ -192,7 +195,7 @@ void ParticleSystem::Update(Scene& scene, Timestep timestep)
 
   // update particles in the emitter
   {
-    GFX::TimerQuery timerQuery;
+    //GFX::TimerQuery timerQuery;
     GFX::DebugMarker particleMarker("Update particle dynamic state");
     auto particle_shader = GFX::ShaderManager::Get()->GetShader("update_particle");
     particle_shader->Bind();
@@ -220,7 +223,7 @@ void ParticleSystem::Update(Scene& scene, Timestep timestep)
       glDispatchCompute(numGroups, 1, 1);
     }
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-    printf("Particle update time: %f ms\n", (double)timerQuery.Elapsed_ns() / 1000000.0);
+    //printf("Particle update time: %f ms\n", (double)timerQuery.Elapsed_ns() / 1000000.0);
   }
 
   // reset timer every 10 seconds to avoid precision issues

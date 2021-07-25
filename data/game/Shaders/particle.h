@@ -19,8 +19,11 @@ struct ParticleSharedData
 
 struct ParticleUpdateData
 {
-  vec4 velocity_L; // .w = life
-  vec4 acceleration;
+  //vec4 velocity_L; // .w = life
+  //vec4 acceleration;
+
+  // unpackHalf2x16 x 3 to access vel/accel, uintBitsToFloat(.w) to access L
+  uvec4 velocity_acceleration_L;
 };
 
 struct ParticleRenderData
