@@ -85,16 +85,18 @@ void MakeParticle(
   out ParticleUpdateData pud,
   out ParticleRenderData prd)
 {
-  pud.acceleration_A.xyz = rng(u_emitter.minParticleAccel.xyz, u_emitter.maxParticleAccel.xyz);
-  pud.acceleration_A.w = 1.0;
+  pud.acceleration.xyz = rng(u_emitter.minParticleAccel.xyz, u_emitter.maxParticleAccel.xyz);
   pud.velocity_L.xyz = rng(u_emitter.minParticleVelocity.xyz, u_emitter.maxParticleVelocity.xyz);
   pud.velocity_L.w = rng(u_emitter.minLife, u_emitter.maxLife);
 
-  prd.color.rgba = rng(u_emitter.minParticleColor.rgba, u_emitter.maxParticleColor.rgba);
-  prd.scale.xy = rng(u_emitter.minParticleScale.xy, u_emitter.maxParticleScale.xy);
+  vec2 scale = rng(u_emitter.minParticleScale.xy, u_emitter.maxParticleScale.xy);
+  vec4 color = rng(u_emitter.minParticleColor.rgba, u_emitter.maxParticleColor.rgba);
+  prd.packedScaleX_packedColorY.x = packHalf2x16(scale);
+  prd.packedScaleX_packedColorY.y = packUnorm4x8(color);
 
   vec3 pos = rng(u_emitter.minParticleOffset.xyz, u_emitter.maxParticleOffset.xyz);
-  psd.position = u_model * vec4(pos, 1.0);
+  psd.position_A.xyz = (u_model * vec4(pos, 1.0)).xyz;
+  psd.position_A.w = 1.0;
 }
 
 layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;

@@ -261,6 +261,7 @@ namespace GFX
 
   void Renderer::RenderParticleEmitter(const Component::ParticleEmitter& emitter, [[maybe_unused]] const Component::Transform& model)
   {
+    //GFX::TimerQuery timerQuery;
     auto shader = GFX::ShaderManager::Get()->GetShader("particle");
 
     const auto& v = CameraSystem::GetView();
@@ -272,6 +273,7 @@ namespace GFX
     ParticleManager::Get().BindEmitter(emitter.handle);
     //glDrawArraysInstanced(GL_TRIANGLE_FAN, 0, 4, emitter.maxParticles);
     glDrawArraysIndirect(GL_TRIANGLE_FAN, 0);
+    //printf("Emitter render time: %f ms\n", (double)timerQuery.Elapsed_ns() / 1000000.0);
   }
 
   void Renderer::Init()

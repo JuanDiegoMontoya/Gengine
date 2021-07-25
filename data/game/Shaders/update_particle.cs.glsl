@@ -1,4 +1,5 @@
 #version 460 core
+
 #include "particle.h"
 #include "indirect.h.glsl"
 
@@ -66,13 +67,13 @@ void main()
     {
       ParticleSharedData psd = particlesShared[index];
       ParticleUpdateData pud = particlesUpdate[index];
-      if (pud.acceleration_A.w != 0)
+      if (psd.position_A.w != 0)
       {
-        pud.velocity_L.xyz += pud.acceleration_A.xyz * u_dt;
-        psd.position.xyz += pud.velocity_L.xyz * u_dt;
+        pud.velocity_L.xyz += pud.acceleration.xyz * u_dt;
+        psd.position_A.xyz += pud.velocity_L.xyz * u_dt;
         if (pud.velocity_L.w <= 0.0) // particle just died
         {
-          pud.acceleration_A.w = 0.0;
+          psd.position_A.w = 0.0;
 
           needFreeIndex = true;
           atomicAdd(sh_requestedFreeIndices, 1);

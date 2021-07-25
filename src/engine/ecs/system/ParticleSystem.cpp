@@ -75,8 +75,9 @@ namespace
 
   struct ParticleRenderData
   {
-    glm::vec4 color{ 0 };
-    glm::vec4 scale{ 1 };
+    //glm::vec4 color{ 0 };
+    //glm::vec4 scale{ 1 };
+    glm::uvec2 packedScaleX_packedColorY = { glm::packHalf2x16({1, 1}), glm::packUnorm4x8(glm::vec4(0)) };
   };
 }
 
@@ -191,7 +192,7 @@ void ParticleSystem::Update(Scene& scene, Timestep timestep)
 
   // update particles in the emitter
   {
-    GFX::TimerQuery timerQuery;
+    //GFX::TimerQuery timerQuery;
     GFX::DebugMarker particleMarker("Update particle dynamic state");
     auto particle_shader = GFX::ShaderManager::Get()->GetShader("update_particle");
     particle_shader->Bind();
@@ -203,7 +204,7 @@ void ParticleSystem::Update(Scene& scene, Timestep timestep)
       auto& emitterData = ParticleManager::Get().data->handleToGPUParticleData_[emitter.handle];
       ASSERT(emitterData);
 
-      GLuint zero{ 0 };
+      uint32_t zero{ 0 };
       glClearNamedBufferSubData(emitterData->indirectDrawBuffer->GetID(), GL_R32UI, offsetof(DrawArraysIndirectCommand, instanceCount),
         sizeof(GLuint), GL_RED, GL_UNSIGNED_INT, &zero);
 
@@ -219,7 +220,7 @@ void ParticleSystem::Update(Scene& scene, Timestep timestep)
       glDispatchCompute(numGroups, 1, 1);
     }
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-    printf("Particle update time: %f ms\n", (double)timerQuery.Elapsed_ns() / 1000000.0);
+    //printf("Particle update time: %f ms\n", (double)timerQuery.Elapsed_ns() / 1000000.0);
   }
 
   // reset timer every 10 seconds to avoid precision issues

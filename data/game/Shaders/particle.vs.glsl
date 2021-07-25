@@ -41,17 +41,24 @@ void main()
   vTexCoord = CreateQuad(gl_VertexID);
   vec2 aPos = vTexCoord - 0.5;
 
-  int index = gl_InstanceID;
+  int index = int(drawIndices[gl_InstanceID]);
+  //int index = gl_InstanceID;
 
-  ParticleSharedData psd = particlesShared[drawIndices[index]];
-  ParticleRenderData prd = particlesRender[drawIndices[index]];
+  ParticleSharedData psd = particlesShared[index];
+  //if (psd.position_A.w != 1.0)
+  //{
+  //  gl_Position = vec4(0.0);
+  //  return;
+  //}
+  ParticleRenderData prd = particlesRender[index];
 
-  vColor = prd.color;
+  vec2 scale = unpackHalf2x16(prd.packedScaleX_packedColorY.x);
+  vColor = unpackUnorm4x8(prd.packedScaleX_packedColorY.y);
 
   vec3 vertexPosition_worldspace =
-    psd.position.xyz +
-    u_cameraRight * aPos.x * prd.scale.x +
-    u_cameraUp * aPos.y * prd.scale.y;
+    psd.position_A.xyz +
+    u_cameraRight * aPos.x * scale.x +
+    u_cameraUp * aPos.y * scale.y;
 
   gl_Position = u_viewProj * vec4(vertexPosition_worldspace, 1.0);
   //gl_Position = u_viewProj * u_model * vec4((vec3(aPos, 0.0) * vec3(particle.scale.xy, 0.0)) + particle.pos.xyz, 1.0);
