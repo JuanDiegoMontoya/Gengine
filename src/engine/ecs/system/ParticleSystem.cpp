@@ -51,22 +51,40 @@ namespace
   }
 
   // TODO: split into different structs based on usage (SoA style)
-  struct Particle // std430 layout
+  //struct Particle // std430 layout
+  //{
+  //  glm::vec4 pos{ -1 };
+  //  glm::vec4 velocity{ 1 };
+  //  glm::vec4 accel{ 1 };
+  //  glm::vec4 color{ 0 };
+  //  float life{ 0 };
+  //  int alive{ 0 };
+  //  glm::vec2 scale{ 1 };
+  //};
+
+  struct ParticleSharedData
   {
     glm::vec4 pos{ -1 };
-    glm::vec4 velocity{ 1 };
-    glm::vec4 accel{ 1 };
-    glm::vec4 color{ 0 };
-    float life{ 0 };
-    int alive{ 0 };
-    glm::vec2 scale{ 1 };
   };
 
+  struct ParticleUpdateData
+  {
+    glm::vec4 velocity_L{ 1, 1, 1, 0 };     // .w = life
+    glm::vec4 acceleration_A{ 1, 1, 1, 0 }; // .w = alive
+  };
+
+  struct ParticleRenderData
+  {
+    glm::vec4 color{ 0 };
+    glm::vec4 scale{ 1 };
+  };
 }
 
 struct InternalEmitterData
 {
-  std::unique_ptr<GFX::StaticBuffer> particleBuffer{};
+  std::unique_ptr<GFX::StaticBuffer> particleSharedDataBuffer{};
+  std::unique_ptr<GFX::StaticBuffer> particleUpdateDataBuffer{};
+  std::unique_ptr<GFX::StaticBuffer> particleRenderDataBuffer{};
   std::unique_ptr<GFX::StaticBuffer> freeStackBuffer{};
   std::unique_ptr<GFX::StaticBuffer> indirectDrawBuffer{};
   std::unique_ptr<GFX::StaticBuffer> indicesBuffer{};
@@ -124,8 +142,10 @@ void ParticleSystem::Update(Scene& scene, Timestep timestep)
       ASSERT(emitterData);
 
       // set a few variables in a few buffers... (emitter and particle updates can be swapped, probably)
-      emitterData->particleBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(0);
-      emitterData->freeStackBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(1);
+      emitterData->particleSharedDataBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(0);
+      emitterData->particleUpdateDataBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(1);
+      emitterData->particleRenderDataBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(2);
+      emitterData->freeStackBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(3);
 
       emitterData->timer += timestep.dt_effective;
       unsigned particlesToSpawn = 0;
@@ -171,7 +191,7 @@ void ParticleSystem::Update(Scene& scene, Timestep timestep)
 
   // update particles in the emitter
   {
-    GFX::TimerQuery timerQuery;
+    //GFX::TimerQuery timerQuery;
     GFX::DebugMarker particleMarker("Update particle dynamic state");
     auto particle_shader = GFX::ShaderManager::Get()->GetShader("update_particle");
     particle_shader->Bind();
@@ -187,16 +207,18 @@ void ParticleSystem::Update(Scene& scene, Timestep timestep)
       glClearNamedBufferSubData(emitterData->indirectDrawBuffer->GetID(), GL_R32UI, offsetof(DrawArraysIndirectCommand, instanceCount),
         sizeof(GLuint), GL_RED, GL_UNSIGNED_INT, &zero);
 
-      emitterData->particleBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(0);
-      emitterData->freeStackBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(1);
-      emitterData->indirectDrawBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(2);
-      emitterData->indicesBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(3);
+      emitterData->particleSharedDataBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(0);
+      emitterData->particleUpdateDataBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(1);
+      emitterData->particleRenderDataBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(2);
+      emitterData->freeStackBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(3);
+      emitterData->indirectDrawBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(4);
+      emitterData->indicesBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(5);
 
       int numGroups = (emitterData->maxParticles + localSize - 1) / localSize;
       glDispatchCompute(numGroups, 1, 1);
     }
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-    printf("Particle update time: %f ms\n", (double)timerQuery.Elapsed_ns() / 1000000.0);
+    //printf("Particle update time: %f ms\n", (double)timerQuery.Elapsed_ns() / 1000000.0);
   }
 
   // reset timer every 10 seconds to avoid precision issues
@@ -222,8 +244,10 @@ void ParticleManager::BindEmitter(uint64_t handle)
   auto& emitterData = data->handleToGPUParticleData_[handle];
 
   emitterData->textureView->Bind(0, *emitterData->textureSampler);
-  emitterData->particleBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(0);
-  emitterData->indicesBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(1);
+  emitterData->particleSharedDataBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(0);
+  emitterData->particleUpdateDataBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(1);
+  emitterData->particleRenderDataBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(2);
+  emitterData->indicesBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(3);
   emitterData->indirectDrawBuffer->Bind<GFX::Target::DRAW_INDIRECT_BUFFER>();
 }
 
@@ -234,8 +258,12 @@ uint64_t ParticleManager::MakeParticleEmitter(uint32_t maxp, const GFX::TextureV
   auto& newEmitter = (data->handleToGPUParticleData_[newHandle] = std::make_unique<InternalEmitterData>());
   newEmitter->maxParticles = maxp;
 
-  auto tp = std::make_unique<Particle[]>(maxp);
-  newEmitter->particleBuffer = std::make_unique<GFX::StaticBuffer>(tp.get(), sizeof(Particle) * maxp, GFX::BufferFlag::NONE);
+  auto tps = std::make_unique<ParticleSharedData[]>(maxp);
+  auto tpu = std::make_unique<ParticleUpdateData[]>(maxp);
+  auto tpr = std::make_unique<ParticleRenderData[]>(maxp);
+  newEmitter->particleSharedDataBuffer = std::make_unique<GFX::StaticBuffer>(tps.get(), sizeof(ParticleSharedData) * maxp, GFX::BufferFlag::NONE);
+  newEmitter->particleUpdateDataBuffer = std::make_unique<GFX::StaticBuffer>(tpu.get(), sizeof(ParticleUpdateData) * maxp, GFX::BufferFlag::NONE);
+  newEmitter->particleRenderDataBuffer = std::make_unique<GFX::StaticBuffer>(tpr.get(), sizeof(ParticleRenderData) * maxp, GFX::BufferFlag::NONE);
 
   const size_t bytes = sizeof(int32_t) + maxp * sizeof(int32_t);
   uint8_t* mem = new uint8_t[bytes];

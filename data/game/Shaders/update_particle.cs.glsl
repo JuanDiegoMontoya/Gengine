@@ -2,23 +2,33 @@
 #include "particle.h"
 #include "indirect.h.glsl"
 
-layout(std430, binding = 0) buffer Particles
+layout(std430, binding = 0) buffer ParticlesShared
 {
-  Particle particles[];
+  ParticleSharedData particlesShared[];
 };
 
-layout(std430, binding = 1) buffer Stack
+layout(std430, binding = 1) buffer ParticlesUpdate
+{
+  ParticleUpdateData particlesUpdate[];
+};
+
+layout(std430, binding = 2) buffer ParticlesRender
+{
+  ParticleRenderData particlesRender[];
+};
+
+layout(std430, binding = 3) buffer Stack
 {
   coherent int freeCount;
   int indices[];
 };
 
-layout(std430, binding = 2) coherent buffer IndirectCommand
+layout(std430, binding = 4) coherent buffer IndirectCommand
 {
   DrawArraysCommand indirectCommand;
 };
 
-layout(std430, binding = 3) buffer Drawindices
+layout(std430, binding = 5) buffer Drawindices
 {
   uint drawIndices[];
 };
@@ -47,16 +57,17 @@ void main()
   int index = int(gl_GlobalInvocationID.x);
   bool needFreeIndex = false;
   bool needDrawIndex = false;
-  if (index < particles.length())
+  if (index < particlesShared.length())
   {
-    Particle particle = particles[index];
-    if (particle.alive != 0)
+    ParticleSharedData psd = particlesShared[index];
+    ParticleUpdateData pud = particlesUpdate[index];
+    if (pud.acceleration_A.w != 0)
     {
-      particle.velocity += particle.accel * u_dt;
-      particle.pos += particle.velocity * u_dt;
-      if (particle.life <= 0.0) // particle just died
+      pud.velocity_L.xyz += pud.acceleration_A.xyz * u_dt;
+      psd.position.xyz += pud.velocity_L.xyz * u_dt;
+      if (pud.velocity_L.w <= 0.0) // particle just died
       {
-        particle.alive = 0;
+        pud.acceleration_A.w = 0.0;
 
         needFreeIndex = true;
         atomicAdd(sh_requestedFreeIndices, 1);
@@ -66,9 +77,10 @@ void main()
         needDrawIndex = true;
         atomicAdd(sh_requestedDrawIndices, 1);
       }
-      particle.life -= u_dt;
+      pud.velocity_L.w -= u_dt;
     }
-    particles[index] = particle;
+    particlesShared[index] = psd;
+    particlesUpdate[index] = pud;
   }
 
   barrier();

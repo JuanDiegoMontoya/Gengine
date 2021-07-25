@@ -19,12 +19,22 @@ struct EmitterSettings
   vec4 maxParticleColor;
 };
 
-layout (std430, binding = 0) buffer data
+layout (std430, binding = 0) buffer ParticlesShared
 {
-  Particle particles[];
+  ParticleSharedData particlesShared[];
 };
 
-layout (std430, binding = 1) coherent buffer stack
+layout(std430, binding = 1) buffer ParticlesUpdate
+{
+  ParticleUpdateData particlesUpdate[];
+};
+
+layout(std430, binding = 2) buffer ParticlesRender
+{
+  ParticleRenderData particlesRender[];
+};
+
+layout (std430, binding = 3) coherent buffer stack
 {
   int freeCount;
   int indices[];
@@ -70,19 +80,21 @@ vec4 rng(vec4 low, vec4 high)
   return vec4(rng(low.xyz, high.xyz), rng(low.w, high.w));
 }
 
-Particle MakeParticle()
+void MakeParticle(
+  out ParticleSharedData psd,
+  out ParticleUpdateData pud,
+  out ParticleRenderData prd)
 {
-  Particle particle;
-  particle.alive = 1;
-  particle.life = rng(u_emitter.minLife, u_emitter.maxLife);
-  particle.velocity.xyz = rng(u_emitter.minParticleVelocity.xyz, u_emitter.maxParticleVelocity.xyz);
-  particle.accel.xyz = rng(u_emitter.minParticleAccel.xyz, u_emitter.maxParticleAccel.xyz);
-  particle.scale.xy = rng(u_emitter.minParticleScale.xy, u_emitter.maxParticleScale.xy);
-  particle.color.rgba = rng(u_emitter.minParticleColor.rgba, u_emitter.maxParticleColor.rgba);
-  vec3 pos = rng(u_emitter.minParticleOffset.xyz, u_emitter.maxParticleOffset.xyz);
-  particle.pos = u_model * vec4(pos, 1.0);
+  pud.acceleration_A.xyz = rng(u_emitter.minParticleAccel.xyz, u_emitter.maxParticleAccel.xyz);
+  pud.acceleration_A.w = 1.0;
+  pud.velocity_L.xyz = rng(u_emitter.minParticleVelocity.xyz, u_emitter.maxParticleVelocity.xyz);
+  pud.velocity_L.w = rng(u_emitter.minLife, u_emitter.maxLife);
 
-  return particle;
+  prd.color.rgba = rng(u_emitter.minParticleColor.rgba, u_emitter.maxParticleColor.rgba);
+  prd.scale.xy = rng(u_emitter.minParticleScale.xy, u_emitter.maxParticleScale.xy);
+
+  vec3 pos = rng(u_emitter.minParticleOffset.xyz, u_emitter.maxParticleOffset.xyz);
+  psd.position = u_model * vec4(pos, 1.0);
 }
 
 layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
@@ -100,5 +112,9 @@ void main()
     return;
   }
 
-  particles[indices[indexIndex]] = MakeParticle();
+  MakeParticle(
+    particlesShared[indices[indexIndex]],
+    particlesUpdate[indices[indexIndex]],
+    particlesRender[indices[indexIndex]]
+  );
 }

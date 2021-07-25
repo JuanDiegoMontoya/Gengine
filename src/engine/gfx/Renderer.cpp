@@ -537,7 +537,6 @@ namespace GFX
 
     {
       GFX::DebugMarker tonemappingMarker("Tone mapping");
-      glBindTextureUnit(1, hdrColorTex); // HDR buffer
 
       const float logLowLum = glm::log(tonemap.targetLuminance / tonemap.maxExposure);
       const float logMaxLum = glm::log(tonemap.targetLuminance / tonemap.minExposure);
@@ -557,6 +556,7 @@ namespace GFX
         int xgroups = (computePixelsX + X_SIZE - 1) / X_SIZE;
         int ygroups = (computePixelsY + Y_SIZE - 1) / Y_SIZE;
         tonemap.histogramBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(0);
+        glBindTextureUnit(1, hdrColorTex);
         glDispatchCompute(xgroups, ygroups, 1);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
         //printf("Histogram time: %f ms\n", (double)timerQuery.Elapsed_ns() / 1000000.0);
@@ -597,6 +597,7 @@ namespace GFX
       shdr->SetBool("u_encodeSRGB", tonemap.gammaCorrection);
       tonemap.blueNoiseView->Bind(2, *tonemap.blueNoiseSampler);
       glBindVertexArray(emptyVao);
+      glBindTextureUnit(1, hdrColorTex); // rebind because AMD drivers
       glDrawArrays(GL_TRIANGLES, 0, 3);
       glDepthMask(GL_TRUE);
       glEnable(GL_CULL_FACE);
