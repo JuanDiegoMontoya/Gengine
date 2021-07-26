@@ -147,11 +147,11 @@ void OnStart(Scene* scene)
     //cam.skybox = std::make_unique<GFX::TextureCube>(std::span<const std::string, 6>(faces.data(), faces.size()));
     GFX::TextureManager::Get()->AddTexture("skycube", *GFX::LoadTextureCube(std::span<const std::string_view, 6>(facesView)));
     cam.skyboxTexture = GFX::TextureView::Create(*GFX::TextureManager::Get()->GetTexture("skycube"), "skycube view");
-    GFX::SamplerState cubesampler{};
-    cubesampler.asBitField.addressModeU = GFX::AddressMode::MIRRORED_REPEAT;
-    cubesampler.asBitField.addressModeV = GFX::AddressMode::MIRRORED_REPEAT;
-    cubesampler.asBitField.addressModeW = GFX::AddressMode::MIRRORED_REPEAT;
-    cam.skyboxSampler = GFX::TextureSampler::Create(cubesampler, "skycube sampler");
+    GFX::SamplerState cubesamplerState{};
+    cubesamplerState.asBitField.addressModeU = GFX::AddressMode::MIRRORED_REPEAT;
+    cubesamplerState.asBitField.addressModeV = GFX::AddressMode::MIRRORED_REPEAT;
+    cubesamplerState.asBitField.addressModeW = GFX::AddressMode::MIRRORED_REPEAT;
+    cam.skyboxSampler = GFX::TextureSampler::Create(cubesamplerState, "skycube sampler");
     cam.SetPos({ 0, .65, 0 });
     Physics::CapsuleCollider collider(0.3, 0.5);
     //Physics::BoxCollider collider({ 1, 1, 1 });
@@ -356,21 +356,35 @@ void OnStart(Scene* scene)
       entity.AddComponent<Component::LocalTransform>();
       scene->GetEntity("player")->AddChild(entity);
       Component::ParticleEmitter emitter;
-      emitter.handle = ParticleManager::Get().MakeParticleEmitter(1000000, "smoke");
+      emitter.handle = ParticleManager::Get().MakeParticleEmitter(100000, "smoke");
 
       emitter.data.minLife = 0.5f;
       emitter.data.maxLife = 1.5f;
-      emitter.data.interval = .000001f;
+      emitter.data.interval = .00001f;
       emitter.data.minParticleAccel = { 0, 0, 0 };
       emitter.data.maxParticleAccel = { 0, 0, 0 };
       emitter.data.minParticleVelocity = { -1, -10, -1 };
-      emitter.data.maxParticleVelocity = { 1, -9, 0 };
-      emitter.data.minParticleOffset = { -20, -10, -20 };
+      emitter.data.maxParticleVelocity = { 1, -9, 1 };
+      emitter.data.minParticleOffset = { -20, 3, -20 };
       emitter.data.maxParticleOffset = { 20, 20, 20 };
       emitter.data.minParticleScale = { .005, .02 };
       emitter.data.maxParticleScale = { .01, .03 };
       emitter.data.minParticleColor = { .4, .4, 1, .2 };
       emitter.data.maxParticleColor = { .7, .7, 1, .4 };
+
+      //emitter.data.minLife = 0.5f;
+      //emitter.data.maxLife = 1.5f;
+      //emitter.data.interval = .01f;
+      //emitter.data.minParticleAccel = { 0, 0, 0 };
+      //emitter.data.maxParticleAccel = { 0, 0, 0 };
+      //emitter.data.minParticleVelocity = { 0, 0, 0 };
+      //emitter.data.maxParticleVelocity = { 0, 0, 0 };
+      //emitter.data.minParticleOffset = { 0, 0, 0 };
+      //emitter.data.maxParticleOffset = { 2, 2, 2 };
+      //emitter.data.minParticleScale = { .1, .1 };
+      //emitter.data.maxParticleScale = { .1, .1 };
+      //emitter.data.minParticleColor = { .4, .4, 1, 1 };
+      //emitter.data.maxParticleColor = { .7, .7, 1, 1 };
 
       entity.AddComponent<Component::ParticleEmitter>(std::move(emitter));
     }

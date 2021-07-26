@@ -19,7 +19,7 @@ struct EmitterSettings
   vec4 maxParticleColor;
 };
 
-layout (std430, binding = 0) buffer ParticlesShared
+layout(std430, binding = 0) buffer ParticlesShared
 {
   ParticleSharedData particlesShared[];
 };
@@ -34,20 +34,25 @@ layout(std430, binding = 2) buffer ParticlesRender
   ParticleRenderData particlesRender[];
 };
 
-layout (std430, binding = 3) coherent buffer stack
+layout(std430, binding = 3) coherent buffer stack
 {
   int freeCount;
   int indices[];
 };
 
-layout (location = 0) uniform int u_particlesToSpawn;
-layout (location = 1) uniform float u_time;
-layout (location = 2) uniform mat4 u_model;
-layout (location = 3) uniform EmitterSettings u_emitter; // also uses the next 11 uniform locations (12 total)
+layout(location = 0) uniform int u_particlesToSpawn;
+layout(location = 1) uniform vec3 u_seed;
+layout(location = 2) uniform vec3 u_pos;
+layout(location = 3) uniform EmitterSettings u_emitter; // also uses the next 11 uniform locations (12 total)
+
 
 float map(float val, float r1s, float r1e, float r2s, float r2e)
 {
   return (val - r1s) / (r1e - r1s) * (r2e - r2s) + r2s;
+}
+float umap(float val, float rs, float re) // [0, 1] -> [rs, re]
+{
+  return val * (re - rs) + rs;
 }
 vec2 map(vec2 val, vec2 r1s, vec2 r1e, vec2 r2s, vec2 r2e)
 {
@@ -64,8 +69,15 @@ vec4 map(vec4 val, vec4 r1s, vec4 r1e, vec4 r2s, vec4 r2e)
 float tseed = 0.0;
 float rng(float low, float high)
 {
-  tseed += 1.0;
-  return clamp(map(gold_noise(gl_GlobalInvocationID.xy + u_time, u_time + tseed), 0.0, 1.0, low, high), low, high);
+  tseed += 1.61803399;
+  return clamp(map(gold_noise(gl_GlobalInvocationID.xy, cos(u_seed.y * tseed)), 0.0, 1.0, low, high), low, high);
+}
+float rng_s(float low, float high, float seed)
+{
+  //tseed += rng(0.0, 1.0);
+  tseed += 1.61803399;
+  //return umap(gold_noise(gl_GlobalInvocationID.xy * u_seed.xy, u_seed.z * tseed * seed), low, high);
+  return umap(rand(gl_GlobalInvocationID.xy * u_seed.xy + u_seed.z * tseed * seed), low, high);
 }
 vec2 rng(vec2 low, vec2 high)
 {
@@ -73,7 +85,12 @@ vec2 rng(vec2 low, vec2 high)
 }
 vec3 rng(vec3 low, vec3 high)
 {
-  return vec3(rng(low.xy, high.xy), rng(low.z, high.z));
+  //return vec3(rng(low.xy, high.xy), rng(low.z, high.z));
+  return vec3(
+    rng_s(low.x, high.x, 1.989),
+    rng_s(low.y, high.y, 20.233),
+    rng_s(low.z, high.z, 3.719)
+  );
 }
 vec4 rng(vec4 low, vec4 high)
 {
@@ -100,8 +117,9 @@ void MakeParticle(
   prd.packedScaleX_packedColorY.x = packHalf2x16(scale);
   prd.packedScaleX_packedColorY.y = packUnorm4x8(color);
 
-  vec3 pos = rng(u_emitter.minParticleOffset.xyz, u_emitter.maxParticleOffset.xyz);
-  psd.position_A.xyz = (u_model * vec4(pos, 1.0)).xyz;
+  vec3 pos = rng(u_emitter.minParticleOffset, u_emitter.maxParticleOffset);
+  //psd.position_A.xyz = (u_model * vec4(pos, 1.0)).xyz;
+  psd.position_A.xyz = u_pos + pos;
   psd.position_A.w = 1.0;
 }
 

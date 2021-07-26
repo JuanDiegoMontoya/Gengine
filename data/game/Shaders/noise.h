@@ -4,8 +4,20 @@
 // random
 float gold_noise(in vec2 xy, in float seed)
 {
-  const float PHI = 1.61803398874989484820459;  // Golden Ratio   
+  const float PHI = 1.61803398874989484820459;
   return fract(tan(distance(xy * PHI, xy) * seed) * xy.x);
+}
+
+float silver_noise(in vec2 xy, in float seed)
+{
+  const float PHI = 1.61803398874989484820459;
+  return fract(sin(distance(xy * PHI, xy) * seed) * xy.x);
+}
+
+// classic noise
+float rand(vec2 co)
+{
+  return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
 }
 
 // noise from https://gist.github.com/patriciogonzalezvivo/670c22f3966e662d2f83

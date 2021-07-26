@@ -399,7 +399,7 @@ namespace GFX
         filter = state.asBitField.mipmapFilter == Filter::LINEAR ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR_MIPMAP_NEAREST;
       else
         filter = state.asBitField.mipmapFilter == Filter::LINEAR ? GL_NEAREST_MIPMAP_LINEAR : GL_NEAREST_MIPMAP_NEAREST;
-      glSamplerParameteri(id_, GL_TEXTURE_MAG_FILTER, filter);
+      glSamplerParameteri(id_, GL_TEXTURE_MIN_FILTER, filter);
     }
 
     if (state.asBitField.addressModeU != samplerState_.asBitField.addressModeU || force)

@@ -3,6 +3,9 @@
 #include "particle.h"
 #include "indirect.h.glsl"
 
+#define PARTICLES_PER_THREAD 1
+#define CULLING_MIN_ANGLE 0.4 // Lower = more lenient culling. Should not reduce below zero unless huge particles are expected
+
 layout(std430, binding = 0) buffer ParticlesShared
 {
   ParticleSharedData particlesShared[];
@@ -35,13 +38,13 @@ layout(std430, binding = 5) buffer Drawindices
 };
 
 layout(location = 0) uniform float u_dt;
+layout(location = 1) uniform vec3 u_viewPos;
+layout(location = 2) uniform vec3 u_forwardDir;
 
 shared int sh_freeIndex;
 shared int sh_requestedFreeIndices;
 shared uint sh_drawIndex;
 shared uint sh_requestedDrawIndices;
-
-#define PARTICLES_PER_THREAD 1
 
 layout(local_size_x = 128, local_size_y = 1, local_size_z = 1) in;
 void main()
@@ -83,8 +86,9 @@ void main()
           needFreeIndex = true;
           atomicAdd(sh_requestedFreeIndices, 1);
         }
-        else // particle is alive, so we will render it (add its index to drawIndices)
+        else if (dot(u_forwardDir, normalize(psd.position_A.xyz - u_viewPos)) > CULLING_MIN_ANGLE)
         {
+          // particle is alive, so we will render it (add its index to drawIndices)
           needDrawIndex = true;
           atomicAdd(sh_requestedDrawIndices, 1);
         }

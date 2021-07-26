@@ -152,6 +152,11 @@ void PlayerActions::OnUpdate(Timestep timestep)
   ImGui::DragFloat3("Max accel", glm::value_ptr(maxParticleAccel), .03f, -5.f, 5.f);
   ImGui::DragFloat2("Min scale", glm::value_ptr(minParticleScale), .025f, 0.f, 5.f);
   ImGui::DragFloat2("Max scale", glm::value_ptr(maxParticleScale), .025f, 0.f, 5.f);
+
+  std::optional<Entity> rain = GetScene()->GetEntity("rainmaker");
+  auto& meme = rain->GetComponent<Component::ParticleEmitter>();
+  ImGui::DragFloat3("Min pos2", glm::value_ptr(meme.data.minParticleOffset), .03f, -5.f, 5.f);
+  ImGui::DragFloat3("Max pos2", glm::value_ptr(meme.data.maxParticleOffset), .03f, -5.f, 5.f);
   ImGui::End();
 
   checkTestButton();

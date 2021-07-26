@@ -20,6 +20,10 @@
 #include <engine/gfx/TextureManager.h>
 #include <engine/gfx/Indirect.h>
 #include <engine/gfx/Fence.h>
+#include <engine/Camera.h>
+
+#define LOG_EMITTER_UPDATE_TIME 0
+#define LOG_PARTICLE_UPDATE_TIME 0
 
 namespace
 {
@@ -134,7 +138,9 @@ void ParticleSystem::Update(Scene& scene, Timestep timestep)
   auto view = scene.GetRegistry().view<ParticleEmitter, Transform>();
 
   {
-    //GFX::TimerQuery timerQuery;
+#if LOG_EMITTER_UPDATE_TIME
+    GFX::TimerQuery timerQuery;
+#endif
     GFX::DebugMarker emitterMarker("Update emitters");
     auto emitter_shader = GFX::ShaderManager::Get()->GetShader("update_particle_emitter");
     emitter_shader->Bind();
@@ -168,8 +174,10 @@ void ParticleSystem::Update(Scene& scene, Timestep timestep)
       {
 #pragma region uniforms
         emitter_shader->SetInt("u_particlesToSpawn", particlesToSpawn);
-        emitter_shader->SetFloat("u_time", static_cast<float>(timer.Elapsed()) + 1.61803f);
-        emitter_shader->SetMat4("u_model", transform.GetModel());
+        //emitter_shader->SetFloat("u_time", static_cast<float>(timer.Elapsed()) + 1.61803f);
+        emitter_shader->SetVec3("u_seed", { rng(.1, .9), rng(.1, .9), rng(.1, .9) });
+        //emitter_shader->SetMat4("u_model", transform.GetModel());
+        emitter_shader->SetVec3("u_pos", transform.GetTranslation());
         emitter_shader->SetFloat("u_emitter.minLife", emitter.data.minLife);
         emitter_shader->SetFloat("u_emitter.maxLife", emitter.data.maxLife);
         emitter_shader->SetVec3("u_emitter.minParticleOffset", emitter.data.minParticleOffset);
@@ -190,16 +198,22 @@ void ParticleSystem::Update(Scene& scene, Timestep timestep)
       }
     }
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-    //printf("Emitter update time: %f ms\n", (double)timerQuery.Elapsed_ns() / 1000000.0);
+#if LOG_EMITTER_UPDATE_TIME
+    printf("Emitter update time: %f ms\n", (double)timerQuery.Elapsed_ns() / 1000000.0);
+#endif
   }
 
   // update particles in the emitter
   {
-    //GFX::TimerQuery timerQuery;
+#if LOG_PARTICLE_UPDATE_TIME
+    GFX::TimerQuery timerQuery;
+#endif
     GFX::DebugMarker particleMarker("Update particle dynamic state");
     auto particle_shader = GFX::ShaderManager::Get()->GetShader("update_particle");
     particle_shader->Bind();
     particle_shader->SetFloat("u_dt", timestep.dt_effective);
+    particle_shader->SetVec3("u_viewPos", CameraSystem::GetPos());
+    particle_shader->SetVec3("u_forwardDir", CameraSystem::GetFront());
 
     for (entt::entity entity : view)
     {
@@ -223,7 +237,9 @@ void ParticleSystem::Update(Scene& scene, Timestep timestep)
       glDispatchCompute(numGroups, 1, 1);
     }
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-    //printf("Particle update time: %f ms\n", (double)timerQuery.Elapsed_ns() / 1000000.0);
+#if LOG_PARTICLE_UPDATE_TIME
+    printf("Particle update time: %f ms\n", (double)timerQuery.Elapsed_ns() / 1000000.0);
+#endif
   }
 
   // reset timer every 10 seconds to avoid precision issues
@@ -305,9 +321,12 @@ uint64_t ParticleManager::MakeParticleEmitter(uint32_t maxp, hashed_string textu
     return 0;
   }
 
+  GFX::SamplerState defaultSamplerState{};
+  defaultSamplerState.asBitField.magFilter = GFX::Filter::NEAREST;
+  defaultSamplerState.asBitField.minFilter = GFX::Filter::NEAREST;
   return MakeParticleEmitter(maxp,
     *GFX::TextureView::Create(*texture),
-    *GFX::TextureSampler::Create(GFX::SamplerState{}));
+    *GFX::TextureSampler::Create(defaultSamplerState));
 }
 
 void ParticleManager::DestroyParticleEmitter(uint64_t handle)
