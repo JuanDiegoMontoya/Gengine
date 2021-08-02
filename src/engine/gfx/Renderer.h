@@ -79,13 +79,22 @@ namespace GFX
     static inline uint32_t ldrFbo{};
     static inline uint32_t ldrColorTex{};
     static inline int windowWidth = 1920, windowHeight = 1017;
-    static inline int fboWidth = 1920, fboHeight = 1017;
-    //static inline int windowWidth = 10, windowHeight = 10;
-    //static inline int fboWidth = 10, fboHeight = 10;
+    static inline int renderWidth = 1920, renderHeight = 1017;
     static inline uint32_t hdrColorTex;
     static inline uint32_t hdrDepthTex;
 
-    struct
+    struct FogParams
+    {
+      uint32_t fbo{};
+      uint32_t tex{};
+      glm::vec3 albedo{ 1.0 };
+      float u_a = 0.003f;
+      float u_b = 10000.0f;
+      float u_heightOffset = -40.0f;
+      float u_fog2Density = 0.003f;
+    }static inline fog;
+
+    struct TonemapperParams
     {
       float exposure = 1.0f;
       float minExposure = 0.1f;
@@ -101,7 +110,7 @@ namespace GFX
       bool tonemapDither = true;
     }static inline tonemap;
 
-    struct
+    struct FXAAParams
     {
       bool enabled{ true };
       float contrastThreshold = 0.0312;

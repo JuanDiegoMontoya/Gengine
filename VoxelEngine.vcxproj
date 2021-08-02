@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="data\game\Shaders\common.h" />
     <ClInclude Include="data\game\Shaders\indirect.h.glsl" />
     <ClInclude Include="data\game\Shaders\noise.h" />
     <ClInclude Include="data\game\Shaders\particle.h" />
@@ -187,12 +188,6 @@
     <ClCompile Include="src\engine\CVar.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="src\engine\ecs\component\ParticleEmitter.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../../PCH.h</PrecompiledHeaderFile>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">../../PCH.h</PrecompiledHeaderFile>
     </ClCompile>
     <ClCompile Include="src\engine\ecs\Entity.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -461,6 +456,7 @@
     <None Include="data\game\Shaders\flat_color_instanced.vs.glsl" />
     <None Include="data\game\Shaders\flat_sun.fs.glsl" />
     <None Include="data\game\Shaders\flat_sun.vs.glsl" />
+    <None Include="data\game\Shaders\fog.fs.glsl" />
     <None Include="data\game\Shaders\fullscreen_tri.vs.glsl" />
     <None Include="data\game\Shaders\fxaa.fs.glsl" />
     <None Include="data\game\Shaders\generate_histogram.cs.glsl" />

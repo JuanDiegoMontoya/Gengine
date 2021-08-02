@@ -148,9 +148,9 @@
     <ClInclude Include="data\game\Shaders\indirect.h.glsl" />
     <ClInclude Include="data\game\Shaders\noise.h" />
     <ClInclude Include="data\game\Shaders\particle.h" />
+    <ClInclude Include="data\game\Shaders\common.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\engine\ecs\component\ParticleEmitter.cpp" />
     <ClCompile Include="src\engine\ecs\system\DebugSystem.cpp" />
     <ClCompile Include="src\engine\ecs\system\GraphicsSystem.cpp" />
     <ClCompile Include="src\engine\ecs\system\LifetimeSystem.cpp" />
@@ -250,5 +250,6 @@
     <None Include="data\game\Shaders\tonemap.fs.glsl" />
     <None Include="data\game\Shaders\update_particle.cs.glsl" />
     <None Include="data\game\Shaders\update_particle_emitter.cs.glsl" />
+    <None Include="data\game\Shaders\fog.fs.glsl" />
   </ItemGroup>
 </Project>

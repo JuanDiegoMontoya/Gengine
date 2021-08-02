@@ -225,7 +225,7 @@ namespace GFX
     auto shader = GFX::ShaderManager::Get()->GetShader(material.shaderID);
     shader->Bind();
     
-    for (auto customUniform : material.materialUniforms)
+    for (auto& customUniform : material.materialUniforms)
     {
       if (customUniform.Setter)
         customUniform.Setter(customUniform.value);
@@ -282,10 +282,10 @@ namespace GFX
 
     //const int levels = glm::floor(glm::log2(glm::max(fboWidth, fboHeight))) + 1;
     glCreateTextures(GL_TEXTURE_2D, 1, &hdrColorTex);
-    glTextureStorage2D(hdrColorTex, 1, GL_RGBA16F, fboWidth, fboHeight);
+    glTextureStorage2D(hdrColorTex, 1, GL_RGBA16F, renderWidth, renderHeight);
 
     glCreateTextures(GL_TEXTURE_2D, 1, &hdrDepthTex);
-    glTextureStorage2D(hdrDepthTex, 1, GL_DEPTH_COMPONENT32F, fboWidth, fboHeight);
+    glTextureStorage2D(hdrDepthTex, 1, GL_DEPTH_COMPONENT32F, renderWidth, renderHeight);
 
     glCreateFramebuffers(1, &hdrFbo);
     glNamedFramebufferTexture(hdrFbo, GL_COLOR_ATTACHMENT0, hdrColorTex, 0);
@@ -296,9 +296,18 @@ namespace GFX
     }
 
     glCreateTextures(GL_TEXTURE_2D, 1, &ldrColorTex);
-    glTextureStorage2D(ldrColorTex, 1, GL_RGBA16, fboWidth, fboHeight);
+    glTextureStorage2D(ldrColorTex, 1, GL_RGBA16, renderWidth, renderHeight);
     glCreateFramebuffers(1, &ldrFbo);
     glNamedFramebufferTexture(ldrFbo, GL_COLOR_ATTACHMENT0, ldrColorTex, 0);
+    if (GLenum status = glCheckNamedFramebufferStatus(ldrFbo, GL_FRAMEBUFFER); status != GL_FRAMEBUFFER_COMPLETE)
+    {
+      fprintf(stderr, "glCheckNamedFramebufferStatus: %x\n", status);
+    }
+
+    glCreateTextures(GL_TEXTURE_2D, 1, &fog.tex);
+    glTextureStorage2D(fog.tex, 1, GL_RGBA16F, renderWidth, renderHeight);
+    glCreateFramebuffers(1, &fog.fbo);
+    glNamedFramebufferTexture(fog.fbo, GL_COLOR_ATTACHMENT0, fog.tex, 0);
     if (GLenum status = glCheckNamedFramebufferStatus(ldrFbo, GL_FRAMEBUFFER); status != GL_FRAMEBUFFER_COMPLETE)
     {
       fprintf(stderr, "glCheckNamedFramebufferStatus: %x\n", status);
@@ -410,6 +419,11 @@ namespace GFX
         { "fullscreen_tri.vs.glsl", GFX::ShaderType::VERTEX },
         { "tonemap.fs.glsl", GFX::ShaderType::FRAGMENT }
       });
+    GFX::ShaderManager::Get()->AddShader("fog",
+      {
+        { "fullscreen_tri.vs.glsl", GFX::ShaderType::VERTEX },
+        { "fog.fs.glsl", GFX::ShaderType::FRAGMENT }
+      });
     GFX::ShaderManager::Get()->AddShader("calc_exposure",
       { { "calc_exposure.cs.glsl", GFX::ShaderType::COMPUTE } });
     GFX::ShaderManager::Get()->AddShader("linearize_log_lum_tex",
@@ -503,8 +517,7 @@ namespace GFX
   {
     glBindFramebuffer(GL_FRAMEBUFFER, hdrFbo);
     glClearDepth(0.0f);
-    auto cc = glm::vec3(.529f, .808f, .922f);
-    glClearColor(cc.r, cc.g, cc.b, 1.f);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glDepthMask(GL_TRUE);
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_GEQUAL);
@@ -519,6 +532,13 @@ namespace GFX
     ImGui::SliderFloat("Max Exposure", &tonemap.maxExposure, .01f, 30.0f, "%.2f", ImGuiSliderFlags_Logarithmic);
     ImGui::SliderFloat("Target Luminance", &tonemap.targetLuminance, .1f, 10.0f, "%.2f", ImGuiSliderFlags_Logarithmic);
     ImGui::SliderFloat("Adjustment Speed", &tonemap.adjustmentSpeed, .1f, 10.0f, "%.2f");
+
+    ImGui::Separator();
+    ImGui::Text("Fog");
+    ImGui::SliderFloat("u_a", &fog.u_a, 0, 1.0f, "%.5f", ImGuiSliderFlags_Logarithmic);
+    ImGui::SliderFloat("u_b", &fog.u_b, 1.0f, 30000.0f, "%.3f", ImGuiSliderFlags_Logarithmic);
+    ImGui::SliderFloat("u_heightOffset", &fog.u_heightOffset, -100.0f, 0);
+    ImGui::SliderFloat("u_fog2Density", &fog.u_fog2Density, 0, 1.0, "%.5f", ImGuiSliderFlags_Logarithmic);
     if (ImGui::Button("Recompile"))
     {
       GFX::ShaderManager::Get()->AddShader("tonemap",
@@ -534,6 +554,29 @@ namespace GFX
 
   void Renderer::EndFrame(float dt)
   {
+    // fog
+    {
+      GFX::DebugMarker fogMarker("Fog");
+      glBindFramebuffer(GL_FRAMEBUFFER, fog.fbo);
+
+      Shader shader = *ShaderManager::Get()->GetShader("fog");
+      shader.Bind();
+      shader.SetMat4("u_invViewProj", glm::inverse(CameraSystem::GetViewProj()));
+      shader.SetIVec2("u_viewportSize", { renderWidth, renderHeight });
+      shader.SetFloat("u_a", fog.u_a);
+      shader.SetFloat("u_b", fog.u_b);
+      shader.SetFloat("u_heightOffset", fog.u_heightOffset);
+      shader.SetFloat("u_fog2Density", fog.u_fog2Density);
+      //shader.SetVec3("u_envColor", fog.albedo * 1.0f);
+
+      glBindTextureUnit(0, hdrColorTex);
+      glBindTextureUnit(1, hdrDepthTex);
+      glBindVertexArray(emptyVao);
+      glDepthMask(GL_FALSE);
+      glDisable(GL_CULL_FACE);
+      glDrawArrays(GL_TRIANGLES, 0, 3);
+    }
+
     GFX::DebugMarker endframeMarker("Postprocessing");
     glBindFramebuffer(GL_FRAMEBUFFER, ldrFbo);
 
@@ -542,8 +585,8 @@ namespace GFX
 
       const float logLowLum = glm::log(tonemap.targetLuminance / tonemap.maxExposure);
       const float logMaxLum = glm::log(tonemap.targetLuminance / tonemap.minExposure);
-      const int computePixelsX = fboWidth / 4;
-      const int computePixelsY = fboHeight / 4;
+      const int computePixelsX = renderWidth / 4;
+      const int computePixelsY = renderHeight / 4;
 
       {
         //GFX::TimerQuery timerQuery;
@@ -558,7 +601,7 @@ namespace GFX
         int xgroups = (computePixelsX + X_SIZE - 1) / X_SIZE;
         int ygroups = (computePixelsY + Y_SIZE - 1) / Y_SIZE;
         tonemap.histogramBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(0);
-        glBindTextureUnit(1, hdrColorTex);
+        glBindTextureUnit(1, fog.tex);
         glDispatchCompute(xgroups, ygroups, 1);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
         //printf("Histogram time: %f ms\n", (double)timerQuery.Elapsed_ns() / 1000000.0);
@@ -589,7 +632,7 @@ namespace GFX
 
       GFX::DebugMarker marker("Apply tone mapping");
       glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-      glViewport(0, 0, fboWidth, fboHeight);
+      glViewport(0, 0, renderWidth, renderHeight);
       auto shdr = GFX::ShaderManager::Get()->GetShader("tonemap");
       glDepthMask(GL_FALSE);
       glDisable(GL_CULL_FACE);
@@ -599,7 +642,7 @@ namespace GFX
       shdr->SetBool("u_encodeSRGB", tonemap.gammaCorrection);
       tonemap.blueNoiseView->Bind(2, *tonemap.blueNoiseSampler);
       glBindVertexArray(emptyVao);
-      glBindTextureUnit(1, hdrColorTex); // rebind because AMD drivers
+      glBindTextureUnit(1, fog.tex); // rebind because AMD drivers sus
       glDrawArrays(GL_TRIANGLES, 0, 3);
       glDepthMask(GL_TRUE);
       glEnable(GL_CULL_FACE);
@@ -615,7 +658,7 @@ namespace GFX
       GFX::DebugMarker marker("FXAA");
       auto shdr = GFX::ShaderManager::Get()->GetShader("fxaa");
       shdr->Bind();
-      shdr->SetVec2("u_invScreenSize", { 1.0f / fboWidth, 1.0f / fboHeight });
+      shdr->SetVec2("u_invScreenSize", { 1.0f / renderWidth, 1.0f / renderHeight });
       shdr->SetFloat("u_contrastThreshold", fxaa.contrastThreshold);
       shdr->SetFloat("u_relativeThreshold", fxaa.relativeThreshold);
       shdr->SetFloat("u_pixelBlendStrength", fxaa.pixelBlendStrength);
@@ -631,7 +674,7 @@ namespace GFX
     else
     {
       glBlitNamedFramebuffer(ldrFbo, 0,
-        0, 0, fboWidth, fboHeight,
+        0, 0, renderWidth, renderHeight,
         0, 0, windowWidth, windowHeight,
         GL_COLOR_BUFFER_BIT, GL_LINEAR);
     }

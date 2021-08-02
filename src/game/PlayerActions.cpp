@@ -109,10 +109,11 @@ void PlayerActions::OnUpdate(Timestep timestep)
   ImGui::Begin("Particle Emitter Settings");
   if (ImGui::Button("Spawn Emitter"))
   {
-    Entity ent = CreateEntity("Arrow");
+    Entity ent = CreateEntity("SpawnedEmitter");
     ent.AddComponent<Component::Transform>().SetTranslation(cam.GetWorldPos() + (cam.GetForward() * 1.5f));
     ent.AddComponent<Component::BatchedMesh>().handle = MeshManager::GetMeshBatched("big_cube");
     ent.AddComponent<Component::Material>().handle = GFX::MaterialManager::Get()->GetMaterial("batchMaterial");
+    ent.AddComponent<Component::Model>();
     auto collider = Physics::BoxCollider(glm::vec3(.5f));
     Component::DynamicPhysics phys(ent, Physics::MaterialType::TERRAIN, collider);
     ent.AddComponent<Component::DynamicPhysics>(std::move(phys));

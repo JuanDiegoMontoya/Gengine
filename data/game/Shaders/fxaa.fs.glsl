@@ -132,7 +132,7 @@ vec3 ComputeFXAA()
   vec2 posUV = uvEdge + edgeStep * edgeSteps[0];
   float posLumDelta = ColorToLum(texture(colorTex, posUV).rgb) - edgeLum;
   bool posAtEnd = abs(posLumDelta) >= gradientThreshold;
-  for (uint i = 1; i < EDGE_STEP_COUNT && !posAtEnd; i++)
+  for (uint i = 0; i < EDGE_STEP_COUNT && !posAtEnd; i++)
   {
     posUV += edgeStep * edgeSteps[i];
     posLumDelta = ColorToLum(texture(colorTex, posUV).rgb) - edgeLum;
@@ -147,7 +147,7 @@ vec3 ComputeFXAA()
   vec2 negUV = uvEdge - edgeStep * edgeSteps[0];
   float negLumDelta = ColorToLum(texture(colorTex, negUV).rgb) - edgeLum;
   bool negAtEnd = abs(negLumDelta) >= gradientThreshold;
-  for (uint i = 1; i < EDGE_STEP_COUNT && !negAtEnd; i++)
+  for (uint i = 0; i < EDGE_STEP_COUNT && !negAtEnd; i++)
   {
     negUV -= edgeStep * edgeSteps[i];
     negLumDelta = ColorToLum(texture(colorTex, negUV).rgb) - edgeLum;

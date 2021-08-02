@@ -3,6 +3,8 @@
 #include "particle.h"
 #include "noise.h"
 
+#define USE_SHARED_MEMORY_OPTIMIZATION 0
+
 struct EmitterSettings
 {
   float minLife;
@@ -19,26 +21,26 @@ struct EmitterSettings
   vec4 maxParticleColor;
 };
 
-layout(std430, binding = 0) buffer ParticlesShared
+layout(std430, binding = 0) writeonly buffer ParticlesShared
 {
   ParticleSharedData particlesShared[];
 };
 
-layout(std430, binding = 1) buffer ParticlesUpdate
+layout(std430, binding = 1) writeonly buffer ParticlesUpdate
 {
   ParticleUpdateData particlesUpdate[];
 };
 
-layout(std430, binding = 2) buffer ParticlesRender
+layout(std430, binding = 2) writeonly buffer ParticlesRender
 {
   ParticleRenderData particlesRender[];
 };
 
-layout(std430, binding = 3) coherent buffer stack
+layout(std430, binding = 3) coherent buffer Stack
 {
   int freeCount;
   int indices[];
-};
+}stack;
 
 layout(location = 0) uniform int u_particlesToSpawn;
 layout(location = 1) uniform vec3 u_seed;
@@ -123,24 +125,72 @@ void MakeParticle(
   psd.position_A.w = 1.0;
 }
 
+#if USE_SHARED_MEMORY_OPTIMIZATION
+shared int sh_requested;
+shared int sh_freeCount;
+#endif
+
 layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
 void main()
 {
+#if USE_SHARED_MEMORY_OPTIMIZATION
+  if (gl_LocalInvocationIndex == 0)
+  {
+    sh_requested = 0;
+  }
+
+  barrier();
+  memoryBarrierShared();
+
+  if (gl_GlobalInvocationID.x < u_particlesToSpawn) // this thread wants a particle
+  {
+    atomicAdd(sh_requested, 1);
+  }
+
+  barrier();
+  memoryBarrierShared();
+
+  if (gl_LocalInvocationIndex == 0)
+  {
+    sh_freeCount = atomicAdd(stack.freeCount, -sh_requested) - sh_requested;
+    if (sh_freeCount < 0)
+    {
+      atomicAdd(stack.freeCount, -sh_freeCount);
+    }
+  }
+
+  barrier();
+  memoryBarrierShared();
+
+  // undo decrement and return if nothing in freelist
+  int indexIndex = atomicAdd(sh_freeCount, 1);
+  if (indexIndex >= 0)
+  {
+    int particleIndex = stack.indices[indexIndex];
+    MakeParticle(
+      particlesShared[particleIndex],
+      particlesUpdate[particleIndex],
+      particlesRender[particleIndex]
+    );
+  }
+#else
   uint index = gl_GlobalInvocationID.x;
   if (index >= u_particlesToSpawn)
     return;
 
   // undo decrement and return if nothing in freelist
-  int indexIndex = atomicAdd(freeCount, -1) - 1;
+  int indexIndex = atomicAdd(stack.freeCount, -1) - 1;
   if (indexIndex < 0)
   {
-    atomicAdd(freeCount, 1);
+    atomicAdd(stack.freeCount, 1);
     return;
   }
 
+  int particleIndex = stack.indices[indexIndex];
   MakeParticle(
-    particlesShared[indices[indexIndex]],
-    particlesUpdate[indices[indexIndex]],
-    particlesRender[indices[indexIndex]]
+    particlesShared[particleIndex],
+    particlesUpdate[particleIndex],
+    particlesRender[particleIndex]
   );
+#endif
 }

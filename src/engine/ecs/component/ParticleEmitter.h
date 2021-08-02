@@ -7,13 +7,6 @@ namespace Component
 {
   struct ParticleEmitter
   {
-    ParticleEmitter() {};
-    ParticleEmitter(const ParticleEmitter&) = delete;
-    ParticleEmitter& operator=(const ParticleEmitter&) = delete;
-    ParticleEmitter(ParticleEmitter&& other) noexcept;
-    ParticleEmitter& operator=(ParticleEmitter&& other) noexcept;
-    ~ParticleEmitter();
-
     uint64_t renderFlag = (uint64_t)RenderFlags::Default;
     uint64_t handle{};
 

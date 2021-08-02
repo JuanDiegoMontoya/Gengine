@@ -17,7 +17,7 @@ namespace
 #if 0
   glm::ivec3 worldDim{ 70, 4, 70 };
 #else
-  glm::ivec3 worldDim{ 5, 2, 5 };
+  glm::ivec3 worldDim{ 15, 3, 15 };
 #endif
 }
 
@@ -71,7 +71,7 @@ void WorldGen::GenerateWorld()
       {
         for (pos.x = 0; pos.x < Voxels::Chunk::CHUNK_SIZE; pos.x++)
         {
-          int height = (int)((noiseSet[idx++] + .1f) * 10) + 33;
+          int height = (int)((noiseSet[idx++] + .1f) * 30) + 33;
           for (pos.y = 0; pos.y < Voxels::Chunk::CHUNK_SIZE; pos.y++)
           {
             wpos = ChunkHelpers::LocalPosToWorldPos(pos, cpos);

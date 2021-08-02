@@ -347,7 +347,7 @@ void OnStart(Scene* scene)
       emitter.data.maxParticleColor = { 1, .75, 0, .8 };
 #endif
       //emitter.renderFlag = (uint64_t)RenderFlags::NoRender;
-      entity.AddComponent<Component::ParticleEmitter>(std::move(emitter));
+      entity.AddComponent<Component::ParticleEmitter>(emitter);
     }
     if (1) // rain particle test
     {
@@ -356,7 +356,7 @@ void OnStart(Scene* scene)
       entity.AddComponent<Component::LocalTransform>();
       scene->GetEntity("player")->AddChild(entity);
       Component::ParticleEmitter emitter;
-      emitter.handle = ParticleManager::Get().MakeParticleEmitter(100000, "smoke");
+      emitter.handle = ParticleManager::Get().MakeParticleEmitter(1'00'000, "smoke");
 
       emitter.data.minLife = 0.5f;
       emitter.data.maxLife = 1.5f;
@@ -365,7 +365,7 @@ void OnStart(Scene* scene)
       emitter.data.maxParticleAccel = { 0, 0, 0 };
       emitter.data.minParticleVelocity = { -1, -10, -1 };
       emitter.data.maxParticleVelocity = { 1, -9, 1 };
-      emitter.data.minParticleOffset = { -20, 3, -20 };
+      emitter.data.minParticleOffset = { -20, 0, -20 };
       emitter.data.maxParticleOffset = { 20, 20, 20 };
       emitter.data.minParticleScale = { .005, .02 };
       emitter.data.maxParticleScale = { .01, .03 };
@@ -386,7 +386,7 @@ void OnStart(Scene* scene)
       //emitter.data.minParticleColor = { .4, .4, 1, 1 };
       //emitter.data.maxParticleColor = { .7, .7, 1, 1 };
 
-      entity.AddComponent<Component::ParticleEmitter>(std::move(emitter));
+      entity.AddComponent<Component::ParticleEmitter>(emitter);
     }
   }
 
