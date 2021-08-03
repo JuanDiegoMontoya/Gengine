@@ -567,7 +567,7 @@ namespace GFX
       shader.SetFloat("u_b", fog.u_b);
       shader.SetFloat("u_heightOffset", fog.u_heightOffset);
       shader.SetFloat("u_fog2Density", fog.u_fog2Density);
-      //shader.SetVec3("u_envColor", fog.albedo * 1.0f);
+      shader.SetVec3("u_envColor", fog.albedo);
 
       glBindTextureUnit(0, hdrColorTex);
       glBindTextureUnit(1, hdrDepthTex);
