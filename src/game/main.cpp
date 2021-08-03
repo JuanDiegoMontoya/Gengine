@@ -425,8 +425,11 @@ void OnDraw([[maybe_unused]] Timestep timestep)
   GFX::Renderer::DrawAxisIndicator();
 }
 
+#include <spdlog/spdlog.h>
+
 int main()
 {
+  spdlog::info("test");
   Application::SetStartCallback(OnStart);
   Application::SetUpdateCallback(OnUpdate);
   Application::SetDrawCallback(OnDraw);
