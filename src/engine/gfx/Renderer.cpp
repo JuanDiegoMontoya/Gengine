@@ -538,7 +538,9 @@ namespace GFX
     ImGui::SliderFloat("u_a", &fog.u_a, 0, 1.0f, "%.5f", ImGuiSliderFlags_Logarithmic);
     ImGui::SliderFloat("u_b", &fog.u_b, 1.0f, 30000.0f, "%.3f", ImGuiSliderFlags_Logarithmic);
     ImGui::SliderFloat("u_heightOffset", &fog.u_heightOffset, -100.0f, 0);
-    ImGui::SliderFloat("u_fog2Density", &fog.u_fog2Density, 0, 1.0, "%.5f", ImGuiSliderFlags_Logarithmic);
+    ImGui::SliderFloat("u_fog2Density", &fog.u_fog2Density, 0, 1.0f, "%.5f", ImGuiSliderFlags_Logarithmic);
+    ImGui::SliderFloat("u_beer", &fog.u_beer, 0, 5.0f);
+    ImGui::SliderFloat("u_powder", &fog.u_powder, 0, 5.0f);
     if (ImGui::Button("Recompile"))
     {
       GFX::ShaderManager::Get()->AddShader("tonemap",
@@ -568,6 +570,8 @@ namespace GFX
       shader.SetFloat("u_heightOffset", fog.u_heightOffset);
       shader.SetFloat("u_fog2Density", fog.u_fog2Density);
       shader.SetVec3("u_envColor", fog.albedo);
+      shader.SetFloat("u_beer", fog.u_beer);
+      shader.SetFloat("u_powder", fog.u_powder);
 
       glBindTextureUnit(0, hdrColorTex);
       glBindTextureUnit(1, hdrDepthTex);

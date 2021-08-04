@@ -88,10 +88,12 @@ namespace GFX
       uint32_t fbo{};
       uint32_t tex{};
       glm::vec3 albedo{ 1.0 };
-      float u_a = 0.003f;
+      float u_a = 0.005f;
       float u_b = 10000.0f;
       float u_heightOffset = -40.0f;
-      float u_fog2Density = 0.003f;
+      float u_fog2Density = 0.005f;
+      float u_beer = 1.0f;
+      float u_powder = 1.0f;
     }static inline fog;
 
     struct TonemapperParams
