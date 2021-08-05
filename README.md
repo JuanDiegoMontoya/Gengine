@@ -11,7 +11,7 @@ A code-oriented game engine designed to be efficient, extensible, and simple to 
 - Dynamic physics and collision API leveraging PhysX
 
 ## Graphics
-- OpenGL 4.6-based renderer for minimal driver overhead
+- OpenGL 4.6-based renderer using modern overhead-reducing techniques
 - Arbitrarily many animated and GPU-accelerated particles
 - Flood fill voxel lighting with four color channels (red, green, blue, sunlight)
 - HDR lighting, tonemapping, and automatic exposure adjustment
