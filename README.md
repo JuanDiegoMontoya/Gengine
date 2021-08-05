@@ -15,6 +15,8 @@ A code-oriented game engine designed to be efficient, extensible, and simple to 
 - Arbitrarily many animated and GPU-accelerated particles
 - Flood fill voxel lighting with four color channels (red, green, blue, sunlight)
 - HDR lighting, tonemapping, and automatic exposure adjustment
+- FXAA
+- Analytical heterogenous global fog
 
 ## To Do
 - Extend physics API with collision callbacks, filtering, etc.
@@ -41,19 +43,23 @@ A suitable license is yet to be chosen.
 
 ## Gallery
 ### Animated (click to view videos)
+10 million snow particles at 95 FPS. Many small moving things does not compress well!  
+[<img src="https://i.imgur.com/htkPK3F.jpeg" width="100%">](https://gfycat.com/AptNiceEgg)  
 Lighting transition  
-[<img src="https://i.imgur.com/bWX7zkQ.png" width="50%">](https://gfycat.com/quarrelsomepeskyankole)  
+[<img src="https://i.imgur.com/bWX7zkQ.png" width="100%">](https://gfycat.com/quarrelsomepeskyankole)  
 10k individually animated objects  
-[<img src="https://i.imgur.com/o3pqRLt.jpg" width="50%">](https://gfycat.com/vigilantmildflee)  
+[<img src="https://i.imgur.com/o3pqRLt.jpg" width="100%">](https://gfycat.com/vigilantmildflee)  
 Physics + particles  
-[<img src="https://i.imgur.com/UQarRWT.jpeg" width="50%">](https://gfycat.com/thesedishonestichthyostega)  
-2 million snow particles  
-[<img src="https://i.imgur.com/cmT1t02.jpeg" width="50%">](https://gfycat.com/perfectpersonalarthropods)  
+[<img src="https://i.imgur.com/UQarRWT.jpeg" width="100%">](https://gfycat.com/thesedishonestichthyostega)  
 
 
 ### Non-animated (click to see full resolution)
+Foggy day  
+[<img src="https://i.imgur.com/dabcd7d.jpeg" width="100%">](https://i.imgur.com/dabcd7d.jpeg)
+Really foggy day  
+[<img src="https://i.imgur.com/rblaEHo.jpeg" width="100%">](https://i.imgur.com/rblaEHo.jpeg)
 Big render 1  
-[<img src="https://i.imgur.com/u1rw3W8.jpg" width="50%">](https://i.imgur.com/u1rw3W8.jpg)  
+[<img src="https://i.imgur.com/u1rw3W8.jpg" width="100%">](https://i.imgur.com/u1rw3W8.jpg)  
 Big render 2  
-[<img src="https://i.imgur.com/UPmzarG.jpg" width="50%">](https://i.imgur.com/UPmzarG.jpg)  
+[<img src="https://i.imgur.com/UPmzarG.jpg" width="100%">](https://i.imgur.com/UPmzarG.jpg)  
 
