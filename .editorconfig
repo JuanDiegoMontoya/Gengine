@@ -1,4 +1,4 @@
-[*.{cpp, h, fs, vs, cs}]
+[*.{cpp, h, cc, hpp, fs, vs, cs, glsl}]
 indent_style = space
 indent_size = 2
 end_of_line = crlf
