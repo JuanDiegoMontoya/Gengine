@@ -1,20 +1,27 @@
 #ifndef PARTICLE_H
 #define PARTICLE_H
 
-//struct Particle
-//{
-//  vec4 pos;
+// struct Particle
+// {
+//  vec4 position;
 //  vec4 velocity;
-//  vec4 accel;
+//  vec4 acceleration;
 //  vec4 color;
+//  vec2 scale;
 //  float life;
 //  int alive;
-//  vec2 scale;
-//};
+// };
+
+// struct Particle2
+// {
+//   vec4 position;
+//   uvec4 velocity_acceleration_life;
+//   uvec2 packedScale_packedColor;
+// };
 
 struct ParticleSharedData
 {
-  vec4 position_A; // .w = alive
+  vec4 position;
 };
 
 struct ParticleUpdateData

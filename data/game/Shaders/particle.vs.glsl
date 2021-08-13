@@ -2,22 +2,22 @@
 
 #include "particle.h"
 
-layout(std430, binding = 0) readonly buffer ParticlesShareds
+layout(std430, binding = 0) readonly restrict buffer ParticlesShareds
 {
   ParticleSharedData particlesShared[];
 };
 
-layout(std430, binding = 1) readonly buffer ParticlesUpdate
+layout(std430, binding = 1) readonly restrict buffer ParticlesUpdate
 {
   ParticleUpdateData particlesUpdate[];
 };
 
-layout(std430, binding = 2) readonly buffer ParticlesRender
+layout(std430, binding = 2) readonly restrict buffer ParticlesRender
 {
   ParticleRenderData particlesRender[];
 };
 
-layout(std430, binding = 3) readonly buffer Drawindices
+layout(std430, binding = 3) readonly restrict buffer Drawindices
 {
   uint drawIndices[];
 };
@@ -45,11 +45,6 @@ void main()
   //int index = gl_InstanceID;
 
   ParticleSharedData psd = particlesShared[index];
-  //if (psd.position_A.w != 1.0)
-  //{
-  //  gl_Position = vec4(0.0);
-  //  return;
-  //}
   ParticleRenderData prd = particlesRender[index];
 
   vec2 scale = unpackHalf2x16(prd.packedScaleX_packedColorY.x);
@@ -58,10 +53,9 @@ void main()
   //vColor = prd.color;
 
   vec3 vertexPosition_worldspace =
-    psd.position_A.xyz +
+    psd.position.xyz +
     u_cameraRight * aPos.x * scale.x +
     u_cameraUp * aPos.y * scale.y;
 
   gl_Position = u_viewProj * vec4(vertexPosition_worldspace, 1.0);
-  //gl_Position = u_viewProj * u_model * vec4((vec3(aPos, 0.0) * vec3(particle.scale.xy, 0.0)) + particle.pos.xyz, 1.0);
 }

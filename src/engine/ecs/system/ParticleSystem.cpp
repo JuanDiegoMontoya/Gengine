@@ -68,7 +68,7 @@ namespace
 
   struct ParticleSharedData
   {
-    glm::vec4 position_A{ 0 }; // .w = alive
+    glm::vec4 position{ 0 };
   };
 
   struct ParticleUpdateData

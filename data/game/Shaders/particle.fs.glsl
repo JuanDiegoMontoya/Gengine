@@ -2,7 +2,7 @@
 layout (location = 0) in vec2 vTexCoord;
 layout (location = 1) in vec4 vColor;
 
-layout (location = 3) uniform sampler2D u_sprite;
+layout (location = 3, binding = 0) uniform sampler2D u_sprite;
 
 layout (location = 0) out vec4 fragColor;
 

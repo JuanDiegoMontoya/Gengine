@@ -47,7 +47,7 @@ void PlayerActions::OnUpdate(Timestep timestep)
     std::optional<Entity> arrow = GetScene()->GetEntity("Arrow");
     if (arrow)
     {
-      arrow->Destroy();
+      //arrow->Destroy();
     }
 
     Entity ent = CreateEntity("Arrow");

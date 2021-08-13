@@ -356,21 +356,38 @@ void OnStart(Scene* scene)
       entity.AddComponent<Component::LocalTransform>();
       scene->GetEntity("player")->AddChild(entity);
       Component::ParticleEmitter emitter;
-      emitter.handle = ParticleManager::Get().MakeParticleEmitter(1'00'000, "smoke");
 
-      emitter.data.minLife = 0.5f;
-      emitter.data.maxLife = 1.5f;
-      emitter.data.interval = .00001f;
+      // rain
+      //emitter.handle = ParticleManager::Get().MakeParticleEmitter(1'000'000, "smoke");
+      //emitter.data.minLife = 0.5f;
+      //emitter.data.maxLife = 1.5f;
+      //emitter.data.interval = .000001f;
+      //emitter.data.minParticleAccel = { 0, 0, 0 };
+      //emitter.data.maxParticleAccel = { 0, 0, 0 };
+      //emitter.data.minParticleVelocity = { -1, -10, -1 };
+      //emitter.data.maxParticleVelocity = { 1, -9, 1 };
+      //emitter.data.minParticleOffset = { -20, 0, -20 };
+      //emitter.data.maxParticleOffset = { 20, 20, 20 };
+      //emitter.data.minParticleScale = { .005, .02 };
+      //emitter.data.maxParticleScale = { .01, .03 };
+      //emitter.data.minParticleColor = { .4, .4, 1, .2 };
+      //emitter.data.maxParticleColor = { .7, .7, 1, .4 };
+
+      // snow
+      emitter.handle = ParticleManager::Get().MakeParticleEmitter(1'000'000, "smoke");
+      emitter.data.minLife = 1;
+      emitter.data.maxLife = 2;
+      emitter.data.interval = .000002f;
       emitter.data.minParticleAccel = { 0, 0, 0 };
       emitter.data.maxParticleAccel = { 0, 0, 0 };
-      emitter.data.minParticleVelocity = { -1, -10, -1 };
-      emitter.data.maxParticleVelocity = { 1, -9, 1 };
+      emitter.data.minParticleVelocity = { -.5, -1, -.5 };
+      emitter.data.maxParticleVelocity = { .1, -.5, .1 };
       emitter.data.minParticleOffset = { -20, 0, -20 };
       emitter.data.maxParticleOffset = { 20, 20, 20 };
-      emitter.data.minParticleScale = { .005, .02 };
-      emitter.data.maxParticleScale = { .01, .03 };
-      emitter.data.minParticleColor = { .4, .4, 1, .2 };
-      emitter.data.maxParticleColor = { .7, .7, 1, .4 };
+      emitter.data.minParticleScale = { .02, .02 };
+      emitter.data.maxParticleScale = { .03, .03 };
+      emitter.data.minParticleColor = { .6, .6, .6, .6 };
+      emitter.data.maxParticleColor = { .7, .7, .7, .8 };
 
       //emitter.data.minLife = 0.5f;
       //emitter.data.maxLife = 1.5f;

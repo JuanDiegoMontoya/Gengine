@@ -10,7 +10,7 @@ namespace Component
     uint64_t renderFlag = (uint64_t)RenderFlags::Default;
     uint64_t handle{};
 
-    struct ParticleEmitterData
+    struct ParticleEmitterParams
     {
       glm::vec3 minParticleOffset{ -1 };
       glm::vec3 maxParticleOffset{ 1 };
@@ -18,7 +18,7 @@ namespace Component
       glm::vec3 maxParticleVelocity{ 1 };
       glm::vec3 minParticleAccel{ -1 };
       glm::vec3 maxParticleAccel{ 1 };
-      glm::vec2 minParticleScale{ .1f };
+      glm::vec2 minParticleScale{ 1 };
       glm::vec2 maxParticleScale{ 1 };
       glm::vec4 minParticleColor{ 1 };
       glm::vec4 maxParticleColor{ 1 };

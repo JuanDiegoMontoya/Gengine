@@ -6,33 +6,33 @@
 #define PARTICLES_PER_THREAD 1
 #define CULLING_MIN_ANGLE 0.4 // Lower = more lenient culling. Should not reduce below zero unless huge particles are expected
 
-layout(std430, binding = 0) buffer ParticlesShared
+layout(std430, binding = 0) restrict buffer ParticlesShared
 {
   ParticleSharedData particlesShared[];
 };
 
-layout(std430, binding = 1) buffer ParticlesUpdate
+layout(std430, binding = 1) restrict buffer ParticlesUpdate
 {
   ParticleUpdateData particlesUpdate[];
 };
 
-layout(std430, binding = 2) buffer ParticlesRender
+layout(std430, binding = 2) readonly writeonly restrict buffer ParticlesRender_UNSUED
 {
   ParticleRenderData particlesRender[];
 };
 
-layout(std430, binding = 3) buffer Stack
+layout(std430, binding = 3) restrict buffer Stack
 {
   coherent int freeCount;
   int indices[];
-};
+}stack;
 
-layout(std430, binding = 4) coherent buffer IndirectCommand
+layout(std430, binding = 4) coherent restrict buffer IndirectCommand
 {
   DrawArraysCommand indirectCommand;
 };
 
-layout(std430, binding = 5) buffer Drawindices
+layout(std430, binding = 5) restrict buffer Drawindices
 {
   uint drawIndices[];
 };
@@ -75,24 +75,23 @@ void main()
       vec3 acceleration = vec3(unpackMiddle.y, unpackHalf2x16(pud.velocity_acceleration_L.z));
       float life = uintBitsToFloat(pud.velocity_acceleration_L.w);
 
-      if (psd.position_A.w != 0.0)
+      if (life > 0.0)
       {
         velocity += acceleration * u_dt;
-        psd.position_A.xyz += velocity * u_dt;
+        psd.position.xyz += velocity * u_dt;
+
+        life -= u_dt;
         if (life <= 0.0) // particle just died
         {
-          psd.position_A.w = 0.0;
-
           needFreeIndex = true;
           atomicAdd(sh_requestedFreeIndices, 1);
         }
-        else if (dot(u_forwardDir, normalize(psd.position_A.xyz - u_viewPos)) > CULLING_MIN_ANGLE)
+        else if (dot(u_forwardDir, normalize(psd.position.xyz - u_viewPos)) > CULLING_MIN_ANGLE)
         {
           // particle is alive, so we will render it (add its index to drawIndices)
           needDrawIndex = true;
           atomicAdd(sh_requestedDrawIndices, 1);
         }
-        life -= u_dt;
       }
       particlesShared[index] = psd;
 
@@ -108,7 +107,7 @@ void main()
 
     if (gl_LocalInvocationIndex == 0)
     {
-      sh_freeIndex = atomicAdd(freeCount, sh_requestedFreeIndices);
+      sh_freeIndex = atomicAdd(stack.freeCount, sh_requestedFreeIndices);
       sh_drawIndex = atomicAdd(indirectCommand.instanceCount, sh_requestedDrawIndices);
     }
 
@@ -118,7 +117,7 @@ void main()
     if (needFreeIndex)
     {
       int freeIndex = atomicAdd(sh_freeIndex, 1);
-      indices[freeIndex] = index;
+      stack.indices[freeIndex] = index;
     }
 
     if (needDrawIndex)

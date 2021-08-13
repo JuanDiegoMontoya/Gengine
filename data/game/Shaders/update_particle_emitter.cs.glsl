@@ -21,22 +21,22 @@ struct EmitterSettings
   vec4 maxParticleColor;
 };
 
-layout(std430, binding = 0) writeonly buffer ParticlesShared
+layout(std430, binding = 0) writeonly restrict buffer ParticlesShared
 {
   ParticleSharedData particlesShared[];
 };
 
-layout(std430, binding = 1) writeonly buffer ParticlesUpdate
+layout(std430, binding = 1) writeonly restrict buffer ParticlesUpdate
 {
   ParticleUpdateData particlesUpdate[];
 };
 
-layout(std430, binding = 2) writeonly buffer ParticlesRender
+layout(std430, binding = 2) writeonly restrict buffer ParticlesRender
 {
   ParticleRenderData particlesRender[];
 };
 
-layout(std430, binding = 3) coherent buffer Stack
+layout(std430, binding = 3) coherent restrict buffer Stack
 {
   int freeCount;
   int indices[];
@@ -121,8 +121,7 @@ void MakeParticle(
 
   vec3 pos = rng(u_emitter.minParticleOffset, u_emitter.maxParticleOffset);
   //psd.position_A.xyz = (u_model * vec4(pos, 1.0)).xyz;
-  psd.position_A.xyz = u_pos + pos;
-  psd.position_A.w = 1.0;
+  psd.position.xyz = u_pos + pos;
 }
 
 #if USE_SHARED_MEMORY_OPTIMIZATION

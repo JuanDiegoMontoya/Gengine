@@ -253,22 +253,19 @@ namespace GFX
   {
     glDepthMask(GL_FALSE);
     glDisable(GL_CULL_FACE);
+    glBindVertexArray(emptyVao);
     auto shader = GFX::ShaderManager::Get()->GetShader("particle");
     shader->Bind();
-    glBindVertexArray(emptyVao);
+    const auto& v = CameraSystem::GetView();
+    shader->SetMat4("u_viewProj", CameraSystem::GetViewProj());
+    shader->SetVec3("u_cameraRight", { v[0][0], v[1][0], v[2][0] });
+    shader->SetVec3("u_cameraUp", { v[0][1], v[1][1], v[2][1] });
     //glBlendFunc(GL_SRC_ALPHA, GL_ONE);
   }
 
   void Renderer::RenderParticleEmitter(const Component::ParticleEmitter& emitter, [[maybe_unused]] const Component::Transform& model)
   {
     //GFX::TimerQuery timerQuery;
-    auto shader = GFX::ShaderManager::Get()->GetShader("particle");
-
-    const auto& v = CameraSystem::GetView();
-    shader->SetMat4("u_viewProj", CameraSystem::GetViewProj());
-    shader->SetInt("u_sprite", 0);
-    shader->SetVec3("u_cameraRight", { v[0][0], v[1][0], v[2][0] });
-    shader->SetVec3("u_cameraUp", { v[0][1], v[1][1], v[2][1] });
 
     ParticleManager::Get().BindEmitter(emitter.handle);
     //glDrawArraysInstanced(GL_TRIANGLE_FAN, 0, 4, emitter.maxParticles);
