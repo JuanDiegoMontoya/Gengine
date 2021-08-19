@@ -374,10 +374,10 @@ void OnStart(Scene* scene)
       //emitter.data.maxParticleColor = { .7, .7, 1, .4 };
 
       // snow
-      emitter.handle = ParticleManager::Get().MakeParticleEmitter(1'000'000, "smoke");
+      emitter.handle = ParticleManager::Get().MakeParticleEmitter(10'000'000, "smoke");
       emitter.data.minLife = 1;
       emitter.data.maxLife = 2;
-      emitter.data.interval = .000002f;
+      emitter.data.interval = .0000002f;
       emitter.data.minParticleAccel = { 0, 0, 0 };
       emitter.data.maxParticleAccel = { 0, 0, 0 };
       emitter.data.minParticleVelocity = { -.5, -1, -.5 };

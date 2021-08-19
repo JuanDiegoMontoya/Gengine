@@ -260,17 +260,17 @@ namespace GFX
     shader->SetMat4("u_viewProj", CameraSystem::GetViewProj());
     shader->SetVec3("u_cameraRight", { v[0][0], v[1][0], v[2][0] });
     shader->SetVec3("u_cameraUp", { v[0][1], v[1][1], v[2][1] });
-    //glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
   }
 
   void Renderer::RenderParticleEmitter(const Component::ParticleEmitter& emitter, [[maybe_unused]] const Component::Transform& model)
   {
-    //GFX::TimerQuery timerQuery;
+    GFX::TimerQuery timerQuery;
 
     ParticleManager::Get().BindEmitter(emitter.handle);
     //glDrawArraysInstanced(GL_TRIANGLE_FAN, 0, 4, emitter.maxParticles);
     glDrawArraysIndirect(GL_TRIANGLE_FAN, 0);
-    //printf("Emitter render time: %f ms\n", (double)timerQuery.Elapsed_ns() / 1000000.0);
+    printf("Emitter render time: %f ms\n", (double)timerQuery.Elapsed_ns() / 1000000.0);
   }
 
   void Renderer::Init()
@@ -484,6 +484,7 @@ namespace GFX
     currShader->SetMat4("u_view", CameraSystem::GetView());
     currShader->SetMat4("u_proj", CameraSystem::GetProj());
     glDepthFunc(GL_ALWAYS); // allows indicator to always be rendered
+    glBlendFunc(GL_ONE, GL_ZERO);
     glBindVertexArray(axisVAO);
     glLineWidth(2.f);
     glDrawArrays(GL_LINES, 0, 6);
@@ -553,6 +554,8 @@ namespace GFX
 
   void Renderer::EndFrame(float dt)
   {
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     // fog
     {
       GFX::DebugMarker fogMarker("Fog");
