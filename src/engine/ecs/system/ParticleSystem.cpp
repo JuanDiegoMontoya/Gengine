@@ -238,7 +238,9 @@ void ParticleSystem::Update(Scene& scene, Timestep timestep)
     }
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 #if LOG_PARTICLE_UPDATE_TIME
-    printf("Particle update time: %f ms\n", (double)timerQuery.Elapsed_ns() / 1000000.0);
+    static double asdf = 0;
+    asdf = (double)timerQuery.Elapsed_ns() / 1000000.0 * .01 + .99 * asdf;
+    printf("Particle update time: %f ms\n", asdf);
 #endif
   }
 

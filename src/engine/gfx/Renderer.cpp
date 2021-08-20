@@ -26,6 +26,8 @@
 
 #include <imgui/imgui.h>
 
+#define LOG_PARTICLE_RENDER_TIME 0
+
 namespace GFX
 {
   void vsyncCallback([[maybe_unused]] const char* cvar, cvar_float val)
@@ -265,12 +267,17 @@ namespace GFX
 
   void Renderer::RenderParticleEmitter(const Component::ParticleEmitter& emitter, [[maybe_unused]] const Component::Transform& model)
   {
+#if LOG_PARTICLE_RENDER_TIME
     GFX::TimerQuery timerQuery;
+#endif
 
     ParticleManager::Get().BindEmitter(emitter.handle);
     //glDrawArraysInstanced(GL_TRIANGLE_FAN, 0, 4, emitter.maxParticles);
     glDrawArraysIndirect(GL_TRIANGLE_FAN, 0);
+
+#if LOG_PARTICLE_RENDER_TIME
     printf("Emitter render time: %f ms\n", (double)timerQuery.Elapsed_ns() / 1000000.0);
+#endif
   }
 
   void Renderer::Init()
