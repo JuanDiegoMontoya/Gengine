@@ -27,6 +27,7 @@
     <ClInclude Include="src\engine\Camera.h" />
     <ClInclude Include="src\engine\Console.h" />
     <ClInclude Include="src\engine\Context.h" />
+    <ClInclude Include="src\engine\core\Logging.h" />
     <ClInclude Include="src\engine\CVar.h" />
     <ClInclude Include="src\engine\CVarInternal.h" />
     <ClInclude Include="src\engine\ecs\component\Camera.h" />
@@ -184,6 +185,12 @@
     <ClCompile Include="src\engine\Context.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="src\engine\core\Logging.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../PCH.h</PrecompiledHeaderFile>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">../PCH.h</PrecompiledHeaderFile>
     </ClCompile>
     <ClCompile Include="src\engine\CVar.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>

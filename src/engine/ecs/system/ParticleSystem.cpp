@@ -23,7 +23,7 @@
 #include <engine/Camera.h>
 
 #define LOG_EMITTER_UPDATE_TIME 0
-#define LOG_PARTICLE_UPDATE_TIME 1
+#define LOG_PARTICLE_UPDATE_TIME 0
 
 namespace
 {
