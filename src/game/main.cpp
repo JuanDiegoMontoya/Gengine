@@ -449,6 +449,7 @@ int main()
 {
   engine::Core::InitLogging();
   spdlog::warn("hello");
+  spdlog::warn("hello2");
 
   Application::SetStartCallback(OnStart);
   Application::SetUpdateCallback(OnUpdate);
