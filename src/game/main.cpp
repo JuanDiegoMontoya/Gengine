@@ -448,6 +448,7 @@ void OnDraw([[maybe_unused]] Timestep timestep)
 int main()
 {
   engine::Core::InitLogging();
+  spdlog::warn("hello");
 
   Application::SetStartCallback(OnStart);
   Application::SetUpdateCallback(OnUpdate);
