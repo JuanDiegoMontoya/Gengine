@@ -128,8 +128,8 @@ namespace Compression
 /******************************************************************************
 ************************** Delta encoding *************************************
 ******************************************************************************/
-  //template<std::signed_integral T>
-  template<typename T>
+  template<std::signed_integral T>
+  //template<typename T>
   std::vector<T> EncodeDelta(std::span<T> array)
   {
     std::vector<T> encoded;
@@ -143,8 +143,8 @@ namespace Compression
     return encoded;
   }
 
-  //template<std::signed_integral T>
-  template<typename T>
+  template<std::signed_integral T>
+  //template<typename T>
   std::vector<T> DecodeDelta(std::span<T> encoded)
   {
     std::vector<T> decoded;

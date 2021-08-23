@@ -22,7 +22,7 @@ namespace Voxels
     {
     }
 
-    std::vector<uint16_t> indices;
+    std::vector<int16_t> indices;
     std::vector<uint8_t> bitmasks;
     Palette<T, Voxels::Chunk::CHUNK_SIZE_CUBED> palette;
 
@@ -72,22 +72,22 @@ namespace Voxels
     lightData.RemoveEmptyPaletteData(Light{});
     auto bytesA = blockData.palette.GetData().ByteRepresentation();
 
-    auto deltaA = Compression::EncodeDelta<uint16_t>(blockData.indices);
-    auto deltaB = Compression::EncodeDelta<uint16_t>(lightData.indices);
+    auto deltaA = Compression::EncodeDelta<int16_t>(blockData.indices);
+    auto deltaB = Compression::EncodeDelta<int16_t>(lightData.indices);
 
-    auto rleA = Compression::EncodeRLE<uint16_t>(deltaA);
-    auto rleB = Compression::EncodeRLE<uint16_t>(deltaB);
-
-    auto compressedA = Compression::Compress<Compression::RLEelement<uint16_t>>(rleA);
-    auto compressedB = Compression::Compress<Compression::RLEelement<uint16_t>>(rleB);
+    auto rleA = Compression::EncodeRLE<int16_t>(deltaA);
+    auto rleB = Compression::EncodeRLE<int16_t>(deltaB);
+    
+    auto compressedA = Compression::Compress<Compression::RLEelement<int16_t>>(rleA);
+    auto compressedB = Compression::Compress<Compression::RLEelement<int16_t>>(rleB);
 
 #if 1
     // tests
     auto bitsA = BitArray(bytesA);
     ASSERT(bitsA == blockData.palette.GetData());
-    auto ddataA = Compression::DecodeDelta<uint16_t>(deltaA);
+    auto ddataA = Compression::DecodeDelta<int16_t>(deltaA);
     ASSERT(ddataA == blockData.indices);
-    auto rdataA = Compression::DecodeRLE<uint16_t>(rleA);
+    auto rdataA = Compression::DecodeRLE<int16_t>(rleA);
     ASSERT(deltaA == rdataA);
     auto uncompressA = Compression::Uncompress(compressedA);
     ASSERT(uncompressA == rleA);

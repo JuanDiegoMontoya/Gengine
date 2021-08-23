@@ -26,7 +26,7 @@ void WorldGen::Init()
 {
   Timer timer;
   voxels.SetDim(worldDim);
-  printf("Allocating chunks took %f seconds\n", timer.Elapsed());
+  spdlog::info("Allocating chunks took {} seconds", timer.Elapsed());
 }
 
 // does the thing
@@ -178,7 +178,7 @@ void WorldGen::GenerateWorld()
     //voxels.chunkManager_->lightPropagateAdd(lightBlocks[i], .GetLightRef());
   }
 
-  printf("Generating chunks took %f seconds\n", timer.Elapsed());
+  spdlog::info("Generating chunks took {} seconds", timer.Elapsed());
 }
 
 
@@ -194,7 +194,8 @@ void WorldGen::InitMeshes()
         p->BuildMesh();
       }
     });
-  printf("Generating meshes took %f seconds\n", timer.Elapsed());
+
+  spdlog::info("Generating meshes took {} seconds", timer.Elapsed());
 }
 
 
@@ -208,7 +209,8 @@ void WorldGen::InitBuffers()
     if (p)
       p->BuildBuffers();
   });
-  printf("Buffering meshes took %f seconds\n", timer.Elapsed());
+
+  spdlog::info("Buffering meshes took {} seconds", timer.Elapsed());
 }
 
 
@@ -286,7 +288,7 @@ void WorldGen::InitializeSunlight()
     sunlightPropagateOnce(wpos);
   }
 
-  printf("Sunlight propagation took %f seconds\n", timer.Elapsed());
+  spdlog::info("Sunlight propagation took {} seconds", timer.Elapsed());
 }
 
 // updates the sunlight of a block at a given location

@@ -25,6 +25,7 @@
 
 #include <utility/HashedString.h>
 #include "GAssert.h"
+#include "core/Logging.h"
 
 constexpr inline std::string_view AssetDir = "../../../data/game/";
 constexpr inline std::string_view TextureDir = "../../../data/game/Textures/";

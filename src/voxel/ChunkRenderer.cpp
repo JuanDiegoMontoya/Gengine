@@ -131,7 +131,7 @@ namespace Voxels
       bool hasTex = std::filesystem::exists(realPath);
       if (!hasTex)
       {
-        printf("Texture %s does not exist, using fallback.\n", path.c_str());
+        spdlog::warn("Texture {} does not exist, using fallback.", path);
         path = "error.png";
       }
       texs.push_back(path);
