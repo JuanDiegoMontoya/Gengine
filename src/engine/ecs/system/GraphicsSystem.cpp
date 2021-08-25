@@ -7,6 +7,7 @@
 #include <engine/Camera.h>
 #include <engine/gfx/Renderer.h>
 #include <engine/gfx/Mesh.h>
+#include <engine/gfx/Fence.h>
 #include <execution>
 #include <glm/gtx/norm.hpp>
 
@@ -92,6 +93,18 @@ void GraphicsSystem::DrawOpaque(Scene& scene)
 
 void GraphicsSystem::DrawTransparent(Scene& scene)
 {
+  static GFX::TimerQueryAsync timerr(5);
+  GFX::TimerScoped tz(timerr);
+  auto result = timerr.Elapsed_ns();
+  if (result)
+  {
+    //printf("Emitter render time: %f ms\n", (double)*result / 1000000.0);
+  }
+  else
+  {
+    //printf("No emitter render time stats\n");
+  }
+
   const auto& camList = CameraSystem::GetCameraList();
   for (Component::Camera* camera : camList)
   {

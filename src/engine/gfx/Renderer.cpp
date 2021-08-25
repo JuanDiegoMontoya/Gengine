@@ -272,7 +272,6 @@ namespace GFX
 #endif
 
     ParticleManager::Get().BindEmitter(emitter.handle);
-    //glDrawArraysInstanced(GL_TRIANGLE_FAN, 0, 4, emitter.maxParticles);
     glDrawArraysIndirect(GL_TRIANGLE_FAN, 0);
 
 #if LOG_PARTICLE_RENDER_TIME
@@ -372,6 +371,8 @@ namespace GFX
     samplerState.asBitField.addressModeU = GFX::AddressMode::REPEAT;
     samplerState.asBitField.addressModeV = GFX::AddressMode::REPEAT;
     tonemap.blueNoiseSampler = GFX::TextureSampler::Create(samplerState, "BlueNoiseRGBSampler");
+
+    vsync.Set(0);
   }
 
   void Renderer::CompileShaders()
