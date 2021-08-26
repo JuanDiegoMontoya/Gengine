@@ -324,3 +324,37 @@ bool Input::GetCursorVisible()
 {
   return glfwGetInputMode(window_, GLFW_CURSOR) == GLFW_CURSOR_NORMAL;
 }
+
+
+
+
+struct InputSpace
+{
+  Input::KeyState keyStates[BUTTON_COUNT]{};
+  Input::KeyState mouseButtonStates[MOUSE_BUTTON_STATES]{};
+
+  // an action can be mapped to multiple keys
+  std::unordered_multimap<uint32_t, InputActionType> inputActions;
+  std::unordered_multimap<uint32_t, InputAxisType> inputAxes;
+};
+
+struct InputManagerData
+{
+  std::unordered_map<std::string, InputSpace> spaces;
+};
+
+InputManager* InputManager::Get()
+{
+  static InputManager instance{};
+  return &instance;
+}
+
+InputManager::InputManager()
+{
+  data = new InputManagerData;
+}
+
+InputManager::~InputManager()
+{
+  delete data;
+}

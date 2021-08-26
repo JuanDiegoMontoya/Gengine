@@ -96,3 +96,75 @@ private:
   static inline std::unordered_multimap<uint32_t, InputActionType> inputActions;
   static inline std::unordered_multimap<uint32_t, InputAxisType> inputAxes;
 };
+
+// AKA domain
+class InputSpaceProxy
+{
+public:
+
+private:
+  
+};
+
+// holds input spaces
+class InputManager
+{
+public:
+  static InputManager* Get();
+
+  const InputSpaceProxy& GetSpace(std::string_view name);
+
+  InputManager(const InputManager&) = delete;
+  InputManager(InputManager&&) = delete;
+  InputManager& operator=(const InputManager&) = delete;
+  InputManager& operator=(InputManager&&) = delete;
+
+private:
+  InputManager();
+  ~InputManager();
+
+  struct InputManagerData* data{};
+};
+
+//enum class Key
+//{
+//  A,
+//  B,
+//  C,
+//  D,
+//  E,
+//  F,
+//  G,
+//  H,
+//  I,
+//  J,
+//  K,
+//  L,
+//  M,
+//  N,
+//  O,
+//  P,
+//  Q,
+//  R,
+//  S,
+//  T,
+//  U,
+//  V,
+//  W,
+//  X,
+//  Y,
+//  Z,
+//
+//  One,
+//  Two,
+//  Three,
+//  Four,
+//  Five,
+//  Six,
+//  Seven,
+//  Eight,
+//  Nine,
+//  Zero,
+//
+//  
+//};

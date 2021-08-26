@@ -230,8 +230,9 @@ namespace GFX
     for (auto& customUniform : material.materialUniforms)
     {
       if (customUniform.Setter)
-        customUniform.Setter(customUniform.value);
-      shader->SetDynamic(customUniform.id, customUniform.value);
+      {
+        customUniform.Setter(customUniform.id, *shader);
+      }
     }
 
     for (int i = 0; auto & [view, sampler] : material.viewSamplers)

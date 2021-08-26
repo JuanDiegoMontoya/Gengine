@@ -4,19 +4,14 @@
 #include <voxel/Chunk.h>
 #include <engine/Camera.h>
 #include <engine/gfx/Frustum.h>
-#include <execution>
 #include <engine/gfx/ShaderManager.h>
-#include <engine/gfx/Vertices.h>
-#include <engine/gfx/MeshUtils.h>
 #include <engine/gfx/TextureLoader.h>
 #include <engine/gfx/DebugMarker.h>
 #include <engine/gfx/Indirect.h>
 #include <engine/CVar.h>
-#include <engine/gfx/DynamicBuffer.h>
-
 #include <filesystem>
-
 #include <imgui/imgui.h>
+
 #include "ChunkRenderer.h"
 
 AutoCVar<cvar_float> cullDistanceMinCVar("v.cullDistanceMin", "- Minimum distance at which chunks should render", 0);
@@ -419,3 +414,22 @@ namespace Voxels
     return vec;
   }
 }
+
+
+/*
+* Idea:
+*   per-face data: normal (0 bits), texture ID (14 bits?), position [0, 32] (18 bits), lighting (16 bits)
+*   per-vertex data: ambient occlusion (2 bits)
+*
+* Strategy:
+*   SSBO face data:
+*     u32: position (18), textureID (10 bits)           -> 4 unused bits
+*     u32: lighting (16), AO (for all four vertices, 8) -> 8 unused bits
+*
+*   "code":
+*     reconstruct vertex position on quad by gl_VertexID
+*     reconstruct normal in fragment shader with partial derivatives
+*
+*   Result will be 8 bytes per quad. Upside: easy anisotropic ambient occlusion (bilinear filter).
+*   No index buffer necessary.
+*/

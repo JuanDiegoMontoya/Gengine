@@ -1,7 +1,6 @@
 #include "vPCH.h"
 #include <voxel/Chunk.h>
 #include <voxel/block.h>
-//#include "World.h"
 #include "ChunkManager.h"
 #include "ChunkHelpers.h"
 #include <engine/utilities.h>

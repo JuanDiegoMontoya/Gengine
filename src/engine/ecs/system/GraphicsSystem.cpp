@@ -98,6 +98,7 @@ void GraphicsSystem::DrawTransparent(Scene& scene)
   auto result = timerr.Elapsed_ns();
   if (result)
   {
+    0xFFu;
     //printf("Emitter render time: %f ms\n", (double)*result / 1000000.0);
   }
   else

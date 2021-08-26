@@ -13,9 +13,9 @@ static void error_cb([[maybe_unused]] int error, char const* description)
   std::cerr << "GLFW error: " << description << std::endl;
 }
 
-// glfw: whenever the window size changed (by OS or user resize) this callback function executes
 static void framebuffer_size_callback([[maybe_unused]] GLFWwindow* window, int width, int height)
 {
+  // TODO: move to renderer
   glViewport(0, 0, width, height);
 }
 
@@ -73,7 +73,7 @@ GLFWwindow* init_glfw_context()
   bool fullscreen = false;
   GLFWwindow* window;
   if (fullscreen)
-    window = glfwCreateWindow(window_width, window_height, "Graphics Engine", glfwGetPrimaryMonitor(), NULL);
+    window = glfwCreateWindow(window_width, window_height, "Engine", glfwGetPrimaryMonitor(), NULL);
   else
     window = glfwCreateWindow(window_width, window_height, "Engine", NULL, NULL);
 

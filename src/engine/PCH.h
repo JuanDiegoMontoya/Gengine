@@ -3,31 +3,30 @@
 
 // std lib
 #include <vector>
+#include <variant>
 #include <string>
 #include <string_view>
 #include <unordered_map>
 #include <memory>
 #include <optional>
-#include <functional>
-#include <execution>
-#include <type_traits>
-#include <variant>
 #include <span>
 
 #include <cstdlib>
 #include <cstdio>
 
 // vendor
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/gtc/integer.hpp>
+#include <glm/fwd.hpp>
+#include <glm/vec2.hpp>
+#include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
+#include <glm/mat3x3.hpp>
+#include <glm/mat4x4.hpp>
+#include <glm/trigonometric.hpp>
+#include <glm/exponential.hpp>
+#include <glm/common.hpp>
+#include <glm/geometric.hpp>
 
 #include <utility/HashedString.h>
 #include "GAssert.h"
 #include "core/Logging.h"
-
-constexpr inline std::string_view AssetDir = "../../../data/game/";
-constexpr inline std::string_view TextureDir = "../../../data/game/Textures/";
-constexpr inline std::string_view ShaderDir = "../../../data/game/Shaders/";
-constexpr inline std::string_view ModelDir = "../../../data/game/Models/";
+#include "Directories.h"

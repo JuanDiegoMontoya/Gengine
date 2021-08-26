@@ -78,7 +78,7 @@ void OnStart(Scene* scene)
   auto sampler = *GFX::TextureSampler::Create(GFX::SamplerState{}, "batched material sampler");
   GFX::PerMaterialUniformData uniformData;
   uniformData.id = "u_time";
-  uniformData.Setter = [](GFX::GenericUniform& uniform) { uniform = (float)ProgramTimer::TimeSeconds(); };
+  uniformData.Setter = [](hashed_string id, GFX::Shader& shader) { shader.SetFloat(id, (float)ProgramTimer::TimeSeconds()); };
   GFX::MaterialCreateInfo info
   {
     .shaderID = "batched",
@@ -441,9 +441,6 @@ void OnDraw([[maybe_unused]] Timestep timestep)
   voxelManager->Draw();
   GFX::Renderer::DrawAxisIndicator();
 }
-
-#include <spdlog/spdlog.h>
-#include <engine/core/Logging.h>
 
 int main()
 {

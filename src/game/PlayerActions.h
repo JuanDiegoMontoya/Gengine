@@ -1,6 +1,5 @@
 #pragma once
 #include <voxel/VoxelManager.h>
-#include <engine/Input.h>
 #include <engine/ecs/ScriptableEntity.h>
 #include <voxel/prefab.h>
 

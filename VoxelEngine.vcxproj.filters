@@ -150,6 +150,7 @@
     <ClInclude Include="data\game\Shaders\particle.h" />
     <ClInclude Include="data\game\Shaders\common.h" />
     <ClInclude Include="src\engine\core\Logging.h" />
+    <ClInclude Include="src\engine\Directories.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\engine\ecs\system\DebugSystem.cpp" />

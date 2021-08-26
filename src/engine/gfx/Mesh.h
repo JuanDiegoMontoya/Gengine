@@ -24,10 +24,10 @@ public:
 private:
 	friend class GraphicsSystem;
 
-	static void GenBatchedHandle_GL(hashed_string handle, const std::vector<GLuint>& indices, const std::vector<Vertex>& vertices);
+	static void GenBatchedHandle_GL(hashed_string handle, const std::vector<uint32_t>& indices, const std::vector<Vertex>& vertices);
 
-	static void LoadMesh(const aiScene* scene, aiMesh* mesh, std::vector<GLuint>& indices, std::vector<Vertex>& vertices);
-	static void LoadMesh(const aiScene* scene, aiMesh* mesh, std::vector<GLuint>& indices, std::vector<VertexAnim>& vertices);
+	static void LoadMesh(const aiScene* scene, aiMesh* mesh, std::vector<uint32_t>& indices, std::vector<Vertex>& vertices);
+	static void LoadMesh(const aiScene* scene, aiMesh* mesh, std::vector<uint32_t>& indices, std::vector<VertexAnim>& vertices);
 
 	static inline std::unordered_map<hashed_string, std::pair<uint64_t, uint64_t>> IDMap_;
 	static inline std::unordered_map<hashed_string, MeshID> handleMap_;

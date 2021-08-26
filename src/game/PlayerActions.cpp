@@ -3,6 +3,7 @@
 #include <imgui/imgui.h>
 #include <engine/gfx/Mesh.h>
 #include <engine/Camera.h>
+#include <engine/Input.h>
 #include <game/FlyingPlayerController.h>
 #include <game/KinematicPlayerController.h>
 #include <engine/Engine.h>

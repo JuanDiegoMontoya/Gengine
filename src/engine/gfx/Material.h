@@ -13,8 +13,7 @@ namespace GFX
   struct PerMaterialUniformData
   {
     hashed_string id;
-    GenericUniform value;
-    std::function<void(GenericUniform&)> Setter;
+    std::function<void(hashed_string id, Shader& shader)> Setter;
   };
 
   // the user can use this struct to query and set material data

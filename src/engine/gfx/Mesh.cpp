@@ -41,7 +41,7 @@ MeshID MeshManager::CreateMeshBatched(const std::string& filename, hashed_string
 	}
 
 	std::vector<Vertex> vertices;
-	std::vector<GLuint> indices;
+	std::vector<uint32_t> indices;
 	LoadMesh(scene, scene->mMeshes[0], indices, vertices);
 
 	GenBatchedHandle_GL(name, indices, vertices);
@@ -54,11 +54,11 @@ MeshID MeshManager::GetMeshBatched(hashed_string name)
 	return handleMap_[name];
 }
 
-void MeshManager::GenBatchedHandle_GL(hashed_string handle, const std::vector<GLuint>& indices, const std::vector<Vertex>& vertices)
+void MeshManager::GenBatchedHandle_GL(hashed_string handle, const std::vector<uint32_t>& indices, const std::vector<Vertex>& vertices)
 {
 	// never freed
 	auto vh = GFX::Renderer::vertexBuffer->Allocate(vertices.data(), vertices.size() * sizeof(Vertex));
-	auto ih = GFX::Renderer::indexBuffer->Allocate(indices.data(), indices.size() * sizeof(GLuint));
+	auto ih = GFX::Renderer::indexBuffer->Allocate(indices.data(), indices.size() * sizeof(uint32_t));
 	const auto& vinfo = GFX::Renderer::vertexBuffer->GetAlloc(vh);
 	const auto& iinfo = GFX::Renderer::indexBuffer->GetAlloc(ih);
 	IDMap_[handle] = { vh, ih };
@@ -67,7 +67,7 @@ void MeshManager::GenBatchedHandle_GL(hashed_string handle, const std::vector<GL
 	DrawElementsIndirectCommand cmd{};
 	cmd.baseVertex = vinfo.offset / GFX::Renderer::vertexBuffer->align_;
 	cmd.instanceCount = 0;
-	cmd.count = static_cast<GLuint>(indices.size());
+	cmd.count = static_cast<uint32_t>(indices.size());
 	cmd.firstIndex = iinfo.offset / GFX::Renderer::indexBuffer->align_;
 	//cmd.baseInstance = ?; // only knowable after all user draw calls are submitted
   GFX::Renderer::meshBufferInfo[handle] = cmd;
@@ -86,7 +86,7 @@ void MeshManager::GenBatchedHandle_GL(hashed_string handle, const std::vector<GL
 //	//handleMap_.erase(handle);
 //}
 
-void MeshManager::LoadMesh([[maybe_unused]] const aiScene* scene, aiMesh* mesh, std::vector<GLuint>& indices, std::vector<Vertex>& vertices)
+void MeshManager::LoadMesh([[maybe_unused]] const aiScene* scene, aiMesh* mesh, std::vector<uint32_t>& indices, std::vector<Vertex>& vertices)
 {
 	for (unsigned i = 0; i < mesh->mNumVertices; i++)
 	{

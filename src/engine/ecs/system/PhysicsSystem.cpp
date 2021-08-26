@@ -3,6 +3,7 @@
 #include <entt/core/algorithm.hpp>
 #include <engine/Physics.h>
 #include <glm/gtx/compatibility.hpp>
+#include <execution>
 
 #include "../Entity.h"
 #include "../component/Physics.h"
