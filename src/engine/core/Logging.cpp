@@ -96,6 +96,7 @@ OFF: %d)";
 
     defaultLogger = MakeUniversalLogger("default");
     defaultLogger->set_pattern("[%H:%M:%S:%e] [%n] [%^%l%$] %v");
+    defaultLogger->set_level(spdlog::level::debug);
     spdlog::set_default_logger(defaultLogger);
 
     Console::Get()->RegisterCommand("SetFileSinkLevel", "- Sets the warning level of the file sink.", SetFileSinkLevel);

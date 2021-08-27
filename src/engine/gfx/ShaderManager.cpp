@@ -87,6 +87,29 @@ namespace GFX
     return shader;
   }
 
+  //std::string HandleIncludes([[maybe_unused]] std::string_view path, std::string_view rawSource)
+  //{
+  //  std::stringstream in{ std::string(rawSource) };
+  //  std::stringstream out;
+
+  //  enum class CommentType { None, CStyle, CppStyle };
+  //  CommentType inComment = CommentType::None;
+  //  for (std::string line; std::getline(in, line, '\n');)
+  //  {
+  //    if (inComment == CommentType::None)
+  //    {
+  //      auto findRes = line.find("#include ", 0);
+  //      if (findRes != std::string::npos)
+  //      {
+  //        auto includePath = line.substr(line.find_first_of, line.size() - 2);
+  //        return includePath;
+  //      }
+  //    }
+  //  }
+
+  //  return out.str();
+  //}
+
   std::string PreprocessShader(
     shaderc::Compiler& compiler,
     const shaderc::CompileOptions options,
@@ -99,16 +122,21 @@ namespace GFX
     {
       rawSrc = std::regex_replace(rawSrc, std::regex(search), replacement);
     }
-
+    
     auto PreprocessResult = compiler.PreprocessGlsl(
       rawSrc, shaderType, path.c_str(), options);
     if (auto numErr = PreprocessResult.GetNumErrors(); numErr > 0)
     {
       PreprocessResult.GetCompilationStatus();
-      printf("%llu errors preprocessing %s!\n", numErr, path.c_str());
-      printf("%s", PreprocessResult.GetErrorMessage().c_str());
+      spdlog::error("{} errors preprocessing {}!\n", numErr, path);
+      spdlog::error("{}", PreprocessResult.GetErrorMessage());
       return {};
     }
+
+    //if (auto str = HandleIncludes(path, rawSrc); !str.empty())
+    //{
+    //  spdlog::debug("Include: {}", str);
+    //}
 
     std::string preprocessed = PreprocessResult.begin();
     // TODO: uncomment when extension capabilities can be queried effectively
