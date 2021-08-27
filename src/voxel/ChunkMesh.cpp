@@ -1,13 +1,17 @@
 #include "vPCH.h"
 #include <voxel/ChunkMesh.h>
 #include <voxel/Chunk.h>
+#include <voxel/block.h>
 #include <voxel/ChunkHelpers.h>
-#include <engine/gfx/Vertices.h>
-#include <engine/gfx/DynamicBuffer.h>
 #include <voxel/ChunkRenderer.h>
 #include <voxel/VoxelManager.h>
-#include <glm/gtc/matrix_transform.hpp>
+
+#include <engine/gfx/Vertices.h>
+#include <engine/gfx/DynamicBuffer.h>
+#include <engine/Physics.h>
 #include <engine/CVar.h>
+
+#include <glm/gtc/matrix_transform.hpp>
 
 #include <iomanip>
 #include <mutex>
@@ -18,6 +22,61 @@ namespace Voxels
 {
   namespace detail
   {
+    struct ChunkMeshData
+    {
+      const VoxelManager* voxelManager_;
+      const Chunk* parentChunk = nullptr;
+      Chunk* parentCopy = nullptr;
+      const Chunk* nearChunks[6]{};
+      std::atomic_bool needsBuffering_ = false;
+
+      // vertex data (held until buffers are sent to GPU)
+      std::vector<int> interleavedArr;
+      std::vector<uint32_t> indices;
+      uint32_t curIndex{};
+
+      Physics::MeshCollider tCollider{};
+      physx::PxRigidActor* tActor = nullptr;
+
+      int64_t vertexCount_ = 0;
+      uint64_t bufferHandle = 0;
+
+      std::shared_mutex mtx;
+
+      void BuildBuffers();
+      void BuildMesh();
+
+      void buildBlockFace(
+        int face,
+        const glm::ivec3& blockPos,
+        BlockType block);
+      void addQuad(const glm::ivec3& lpos, BlockType block, int face, const Chunk* nearChunk, Light light);
+      int vertexFaceAO(const glm::vec3& lpos, const glm::vec3& cornerDir, const glm::vec3& norm);
+    };
+
+    enum
+    {
+      Far,
+      Near,
+      Left,
+      Right,
+      Top,
+      Bottom,
+
+      fCount
+    };
+
+    enum AOStrength
+    {
+      AO_0,
+      AO_1,
+      AO_2,
+      AO_3,
+
+      AO_MIN = AO_0,
+      AO_MAX = AO_3,
+    };
+
     // counterclockwise from bottom right texture coordinates
     inline const glm::vec2 tex_corners[] =
     {
@@ -99,7 +158,7 @@ namespace Voxels
       using namespace glm;
       ASSERT(all(greaterThanEqual(dirCent, ivec3(0, 0, 0))) &&
         all(lessThanEqual(dirCent, ivec3(1, 1, 1))) &&
-        ao <= ChunkMesh::AO_MAX);
+        ao <= detail::AO_MAX);
 
       encoded |= ao << 19;
 
@@ -112,17 +171,8 @@ namespace Voxels
   }
 
 
-  ChunkMesh::~ChunkMesh()
-  {
-    voxelManager_.chunkRenderer_->FreeChunk(bufferHandle);
-    if (tActor)
-    {
-      Physics::PhysicsManager::RemoveActorGeneric(tActor);
-    }
-  }
 
-
-  void ChunkMesh::BuildBuffers()
+  void detail::ChunkMeshData::BuildBuffers()
   {
     std::lock_guard lk(mtx);
 
@@ -133,7 +183,7 @@ namespace Voxels
     }
     needsBuffering_ = false;
 
-    voxelManager_.chunkRenderer_->FreeChunk(bufferHandle);
+    voxelManager_->chunkRenderer_->FreeChunk(bufferHandle);
     bufferHandle = 0;
 
     // nothing emitted, don't try to make buffers
@@ -142,7 +192,7 @@ namespace Voxels
       return;
     }
 
-    bufferHandle = voxelManager_.chunkRenderer_->AllocChunk(interleavedArr, indices, parentChunk->GetAABB());
+    bufferHandle = voxelManager_->chunkRenderer_->AllocChunk(interleavedArr, indices, parentChunk->GetAABB());
 
     interleavedArr.clear();
     tCollider.vertices.clear();
@@ -156,83 +206,80 @@ namespace Voxels
     curIndex = 0;
   }
 
-
-  void ChunkMesh::BuildMesh()
+  void detail::ChunkMeshData::BuildMesh()
   {
+    std::lock_guard lk(mtx);
+    needsBuffering_ = true;
+
+    // clear everything in case this function is called twice in a row
+    vertexCount_ = 0;
+    curIndex = 0;
+    interleavedArr.clear();
+    tCollider.vertices.clear();
+    tCollider.indices.clear();
+
+    // make a copy of each of the parent and neighboring chunks so that they can be read without being updating while we mesh
+    parentChunk->Lock();
+    parentCopy = new Chunk(*parentChunk);
+    parentChunk->Unlock();
+
+    for (int i = 0; i < fCount; i++)
     {
-      std::lock_guard lk(mtx);
-      needsBuffering_ = true;
-
-      // clear everything in case this function is called twice in a row
-      vertexCount_ = 0;
-      curIndex = 0;
-      interleavedArr.clear();
-      tCollider.vertices.clear();
-      tCollider.indices.clear();
-
-      // make a copy of each of the parent and neighboring chunks so that they can be read without being updating while we mesh
-      parentChunk->Lock();
-      parentCopy = new Chunk(*parentChunk);
-      parentChunk->Unlock();
-
-      for (int i = 0; i < fCount; i++)
+      const Chunk* near = voxelManager_->GetChunk(parentCopy->GetPos() + detail::faces[i]);
+      if (near)
       {
-        const Chunk* near = voxelManager_.GetChunk(parentCopy->GetPos() + detail::faces[i]);
-        if (near)
-        {
-          near->Lock();
-          nearChunks[i] = new Chunk(*near);
-          near->Unlock();
-        }
+        near->Lock();
+        nearChunks[i] = new Chunk(*near);
+        near->Unlock();
       }
-
-      glm::ivec3 ap = parentCopy->GetPos() * Chunk::CHUNK_SIZE;
-      interleavedArr.push_back(ap.x);
-      interleavedArr.push_back(ap.y);
-      interleavedArr.push_back(ap.z);
-      interleavedArr.push_back(0xDEADBEEF); // necessary padding
-
-      for (size_t i = 0; i < Chunk::CHUNK_SIZE_CUBED; i++)
-      {
-        // skip fully transparent blocks
-        BlockType block = parentCopy->BlockTypeAt(i);
-        if (Block::PropertiesTable[uint16_t(block)].visibility == Visibility::Invisible)
-        {
-          continue;
-        }
-
-        glm::vec3 pos
-        {
-          i % Chunk::CHUNK_SIZE,
-          (i / Chunk::CHUNK_SIZE) % Chunk::CHUNK_SIZE,
-          i / (Chunk::CHUNK_SIZE_SQRED)
-        };
-        for (int f = 0; f < fCount; f++)
-        {
-          buildBlockFace(f, pos, block);
-        }
-      }
-
-
-      Physics::PhysicsManager::RemoveActorGeneric(tActor);
-
-      tActor = reinterpret_cast<physx::PxRigidActor*>(
-        Physics::PhysicsManager::AddStaticActorGeneric(
-          Physics::MaterialType::TERRAIN, tCollider,
-          glm::translate(glm::mat4(1), glm::vec3(parentCopy->GetPos() * Chunk::CHUNK_SIZE))));
-
-      for (int i = 0; i < fCount; i++)
-      {
-        delete nearChunks[i];
-        nearChunks[i] = nullptr;
-      }
-      delete parentCopy;
-      parentCopy = nullptr;
     }
+
+    glm::ivec3 ap = parentCopy->GetPos() * Chunk::CHUNK_SIZE;
+    interleavedArr.push_back(ap.x);
+    interleavedArr.push_back(ap.y);
+    interleavedArr.push_back(ap.z);
+    interleavedArr.push_back(0xDEADBEEF); // necessary padding
+
+    for (size_t i = 0; i < Chunk::CHUNK_SIZE_CUBED; i++)
+    {
+      // skip fully transparent blocks
+      BlockType block = parentCopy->BlockTypeAt(i);
+      if (Block::PropertiesTable[uint16_t(block)].visibility == Visibility::Invisible)
+      {
+        continue;
+      }
+
+      glm::vec3 pos
+      {
+        i % Chunk::CHUNK_SIZE,
+        (i / Chunk::CHUNK_SIZE) % Chunk::CHUNK_SIZE,
+        i / (Chunk::CHUNK_SIZE_SQRED)
+      };
+      for (int f = 0; f < fCount; f++)
+      {
+        buildBlockFace(f, pos, block);
+      }
+    }
+
+
+    Physics::PhysicsManager::RemoveActorGeneric(tActor);
+
+    tActor = reinterpret_cast<physx::PxRigidActor*>(
+      Physics::PhysicsManager::AddStaticActorGeneric(
+        Physics::MaterialType::TERRAIN, tCollider,
+        glm::translate(glm::mat4(1), glm::vec3(parentCopy->GetPos() * Chunk::CHUNK_SIZE))));
+
+    for (int i = 0; i < fCount; i++)
+    {
+      delete nearChunks[i];
+      nearChunks[i] = nullptr;
+    }
+    delete parentCopy;
+    parentCopy = nullptr;
   }
 
 
-  void ChunkMesh::buildBlockFace(
+  void detail::ChunkMeshData::buildBlockFace(
     int face,
     const glm::ivec3& blockPos,  // position of current block
     BlockType block)            // block-specific information)
@@ -287,7 +334,7 @@ namespace Voxels
     addQuad(blockPos, block, face, nearChunk, light);
   }
 
-  void ChunkMesh::addQuad(const glm::ivec3& lpos, BlockType block, int face, [[maybe_unused]] const Chunk* nearChunk, Light light)
+  void detail::ChunkMeshData::addQuad(const glm::ivec3& lpos, BlockType block, int face, [[maybe_unused]] const Chunk* nearChunk, Light light)
   {
     int normalIdx = face;
     int texIdx = (int)block; // temp value
@@ -350,7 +397,7 @@ namespace Voxels
   }
 
 
-  int ChunkMesh::vertexFaceAO(const glm::vec3& lpos, const glm::vec3& cornerDir, const glm::vec3& norm)
+  int detail::ChunkMeshData::vertexFaceAO(const glm::vec3& lpos, const glm::vec3& cornerDir, const glm::vec3& norm)
   {
     // TODO: make it work over chunk boundaries
     using namespace glm;
@@ -382,5 +429,38 @@ namespace Voxels
         occluded++;
 
     return AO_MAX - occluded;
+  }
+
+  ChunkMesh::ChunkMesh(const Chunk* parent, const VoxelManager* vm)
+  {
+    data = new detail::ChunkMeshData;
+    data->parentChunk = parent;
+    data->voxelManager_ = vm;
+  }
+
+  ChunkMesh::~ChunkMesh()
+  {
+    data->voxelManager_->chunkRenderer_->FreeChunk(data->bufferHandle);
+    if (data->tActor)
+    {
+      Physics::PhysicsManager::RemoveActorGeneric(data->tActor);
+    }
+    delete data;
+  }
+
+  void ChunkMesh::BuildBuffers()
+  {
+    data->BuildBuffers();
+  }
+
+
+  void ChunkMesh::BuildMesh()
+  {
+    data->BuildMesh();
+  }
+
+  const VoxelManager* ChunkMesh::GetVoxelManager() const
+  {
+    return data->voxelManager_;
   }
 }

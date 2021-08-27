@@ -1,5 +1,6 @@
 #pragma once
-#include <glm/glm.hpp>
+#include <glm/vec3.hpp>
+#include <glm/mat4x4.hpp>
 #include <engine/ecs/Entity.h>
 #include <memory>
 #include <utility/Flags.h>

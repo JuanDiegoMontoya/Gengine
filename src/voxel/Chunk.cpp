@@ -1,9 +1,11 @@
 #include "vPCH.h"
 #include <voxel/Chunk.h>
+#include <voxel/VoxelManager.h>
 
 namespace Voxels
 {
-  Chunk::Chunk(const Chunk& other) : mesh(this, other.mesh.voxelManager_)
+  Chunk::Chunk(const Chunk& other)
+    : mesh(this, other.mesh.GetVoxelManager())
   {
     *this = other;
   }

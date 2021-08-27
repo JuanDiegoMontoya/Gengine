@@ -17,8 +17,8 @@ namespace Voxels
   struct Chunk
   {
   public:
-    Chunk(const VoxelManager& vm) : pos_(0), mesh(this, vm) { ASSERT(0); }
-    Chunk(const glm::ivec3& p, const VoxelManager& vm) : pos_(p), mesh(this, vm) {}
+    Chunk(const VoxelManager& vm) : pos_(0), mesh(this, &vm) { ASSERT(0); }
+    Chunk(const glm::ivec3& p, const VoxelManager& vm) : pos_(p), mesh(this, &vm) {}
     ~Chunk() {};
     Chunk(const Chunk& other);
     Chunk& operator=(const Chunk& rhs);
