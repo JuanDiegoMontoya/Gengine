@@ -137,7 +137,7 @@ namespace Voxels
 
   void ChunkRenderer::DrawBuffers()
   {
-    glDisable(GL_DEPTH_TEST);
+    //glDisable(GL_DEPTH_TEST);
 
     auto sdr = GFX::ShaderManager::Get()->GetShader("buffer_vis");
     sdr->Bind();
@@ -147,10 +147,11 @@ namespace Voxels
     sdr->SetMat4("u_model", model);
 
     glLineWidth(50);
+    glDepthFunc(GL_ALWAYS);
     data->verticesAllocator->Draw();
     glLineWidth(2);
 
-    glEnable(GL_DEPTH_TEST);
+    //glEnable(GL_DEPTH_TEST);
   }
 
   void ChunkRenderer::Draw()
