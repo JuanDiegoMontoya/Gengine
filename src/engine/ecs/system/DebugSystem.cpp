@@ -2,6 +2,7 @@
 #include "../../Scene.h"
 #include "../../Console.h"
 #include "../../Engine.h"
+#include "../../core/Statistics.h"
 #include "DebugSystem.h"
 #include <imgui/imgui.h>
 #include <imgui/imgui_impl_glfw.h>
@@ -79,6 +80,7 @@ void DebugSystem::EndFrame([[maybe_unused]] Scene& scene)
     ting = !ting;
   if (Input::GetCursorVisible())
   {
+    engine::Core::StatisticsManager::Get()->DrawUI();
     Console::Get()->Draw();
     if (ting)
     {

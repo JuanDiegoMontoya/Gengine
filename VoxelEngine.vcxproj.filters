@@ -151,6 +151,7 @@
     <ClInclude Include="data\game\Shaders\common.h" />
     <ClInclude Include="src\engine\core\Logging.h" />
     <ClInclude Include="src\engine\Directories.h" />
+    <ClInclude Include="src\engine\core\Statistics.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\engine\ecs\system\DebugSystem.cpp" />
@@ -212,6 +213,7 @@
     <ClCompile Include="src\engine\gfx\MeshManager.cpp" />
     <ClCompile Include="src\utility\Timer.cpp" />
     <ClCompile Include="src\engine\core\Logging.cpp" />
+    <ClCompile Include="src\engine\core\Statistics.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="src\engine\gfx\DynamicBuffer.inl" />

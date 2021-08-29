@@ -8,15 +8,28 @@
 #include <engine/gfx/TextureLoader.h>
 #include <engine/gfx/DebugMarker.h>
 #include <engine/gfx/Indirect.h>
+#include <engine/gfx/Fence.h>
 #include <engine/CVar.h>
 #include <engine/gfx/DynamicBuffer.h>
 #include <engine/Shapes.h>
+#include <engine/core/Statistics.h>
 
 #include <filesystem>
 #include <imgui/imgui.h>
 #include <glm/gtc/type_ptr.hpp>
 
 #include "ChunkRenderer.h"
+
+#define CONCAT(a, b) CONCAT_INNER(a, b)
+#define CONCAT_INNER(a, b) a ## b
+#define STAT_FUNC(name)                                                             \
+  static GFX::TimerQueryAsync CONCAT(name, __LINE__) (5);                           \
+  GFX::TimerScoped scopedTimer(CONCAT(name, __LINE__));                             \
+  if (auto result = CONCAT(name, __LINE__).Elapsed_ns(); result)                    \
+  {                                                                                 \
+    double time = double(*result) / 1'000'000'000.0;                                \
+    engine::Core::StatisticsManager::Get()->PushFloatStatValue(#name, time);        \
+  }
 
 AutoCVar<cvar_float> cullDistanceMinCVar("v.cullDistanceMin", "- Minimum distance at which chunks should render", 0);
 AutoCVar<cvar_float> cullDistanceMaxCVar("v.cullDistanceMax", "- Maximum distance at which chunks should render", 2000);
@@ -128,6 +141,10 @@ namespace Voxels
     ss.asBitField.mipmapFilter = GFX::Filter::LINEAR;
     ss.asBitField.anisotropy = GFX::Anisotropy::SAMPLES_16;
     data->blockTexturesSampler = GFX::TextureSampler::Create(ss);
+
+    engine::Core::StatisticsManager::Get()->RegisterFloatStat("DrawVoxelsAll", "GPU");
+    engine::Core::StatisticsManager::Get()->RegisterFloatStat("DrawVisibleChunks", "GPU");
+    engine::Core::StatisticsManager::Get()->RegisterFloatStat("GenerateDIB", "GPU");
   }
 
   ChunkRenderer::~ChunkRenderer()
@@ -157,6 +174,7 @@ namespace Voxels
   void ChunkRenderer::Draw()
   {
     GFX::DebugMarker marker("Draw voxels");
+    STAT_FUNC(DrawVoxelsAll);
 
     RenderVisible();
     GenerateDIB();
@@ -171,6 +189,7 @@ namespace Voxels
     // TODO: rendering is glitchy when modifying chunks rapidly
     // this is probably due to how the previous frame's visible chunks will be drawn
     GFX::DebugMarker marker("Draw visible chunks");
+    STAT_FUNC(DrawVisibleChunks);
     if (!data->dib)
       return;
 
@@ -213,6 +232,7 @@ namespace Voxels
   void ChunkRenderer::GenerateDIB()
   {
     GFX::DebugMarker marker("Generate draw commands");
+    STAT_FUNC(GenerateDIB);
 
     if (freezeCullingCVar.Get())
       return;
