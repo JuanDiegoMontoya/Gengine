@@ -1,4 +1,4 @@
-#version 460 core
+#version 450 core
 
 #define VISIBILITY_NONE    0
 #define VISIBILITY_PARTIAL 1
@@ -29,51 +29,28 @@ struct VerticesDrawInfo
   AABB16 box;
 };
 
-struct IndicesDrawInfo
-{
-  uvec2 data01; // handle
-  double data02;// allocation time
-  uvec2 _pad01;
-  uint offset;
-  uint size;
-};
-
-layout(std430, binding = 0) readonly buffer ssbo_0
+layout(std430, binding = 0) readonly restrict buffer ssbo_0
 {
   VerticesDrawInfo inDrawData[];
 };
 
-layout(std430, binding = 1) readonly buffer ssbo_1
+layout(std430, binding = 1) writeonly restrict buffer dib_3
 {
-  IndicesDrawInfo indicesInfos[];
-};
-
-layout(std430, binding = 2) readonly buffer ssbo_2
-{
-  uvec2 allocsIndices[];
-};
-
-layout(std430, binding = 3) writeonly buffer dib_3
-{
-  DrawElementsCommand outDrawCommands[];
+  DrawArraysCommand outDrawCommands[];
 };
 
 // parameter buffer style
-layout(std430, binding = 4) buffer parameterBuffer_4
+layout(std430, binding = 2) coherent restrict buffer parameterBuffer_4
 {
   uint nextIdx;
 };
 
-// atomic style
-//layout(binding = 0, offset = 0) uniform atomic_uint nextIdx;
-
-uniform vec3 u_viewpos;
-uniform Frustum u_viewfrustum;
-uniform uint u_vertexSize = 8; // size of vertex in bytes
-uniform uint u_indexSize = 4; // size of index in bytes
-uniform float u_cullMinDist;
-uniform float u_cullMaxDist;
-uniform uint u_reservedVertices; // amt of reserved space (in vertices) before vertices for instanced attributes 
+layout(location = 0) uniform vec3 u_viewpos;
+layout(location = 6) uniform Frustum u_viewfrustum;
+layout(location = 2) uniform uint u_quadSize = 8; // size of vertex in bytes
+layout(location = 3) uniform float u_cullMinDist;
+layout(location = 4) uniform float u_cullMaxDist;
+layout(location = 5) uniform uint u_reservedBytes; // amt of reserved space (in vertices) before vertices for instanced attributes 
 
 float GetDistance(in AABB16 box, in vec3 pos);
 bool CullDistance(float dist, float minDist, float maxDist);
@@ -82,36 +59,40 @@ int CullFrustum(in AABB16 box, in Frustum frustum);
 layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
 void main()
 {
-  uvec2 allocIndices = allocsIndices[gl_GlobalInvocationID.x];
-  uint vertindex = allocIndices[0];
-  uint indindex = allocIndices[1];
-
-  if (gl_GlobalInvocationID.x >= allocsIndices.length())
+  if (gl_GlobalInvocationID.x >= inDrawData.length())
     return;
 
-  VerticesDrawInfo verticesAlloc = inDrawData[vertindex];
-  IndicesDrawInfo indicesAlloc = indicesInfos[indindex];
+  VerticesDrawInfo verticesAlloc = inDrawData[gl_GlobalInvocationID.x];
 #if 0
   bool condition = verticesAlloc.data01.xy != uvec2(0);
 #else
   float dist = GetDistance(verticesAlloc.box, u_viewpos);
-  bool condition = // all conditions must be true to draw chunk
+  bool shouldDrawChunk = 
     verticesAlloc.data01.xy != uvec2(0) &&
     CullDistance(dist, u_cullMinDist, u_cullMaxDist) &&
     CullFrustum(verticesAlloc.box, u_viewfrustum) >= VISIBILITY_PARTIAL &&
-    verticesAlloc.size > u_vertexSize * u_reservedVertices;
+    verticesAlloc.size > u_quadSize * u_reservedBytes;
 #endif
-  if (condition)
+
+  if (shouldDrawChunk)
   {
-    DrawElementsCommand cmd;
-    //cmd.count = (verticesAlloc.size / u_vertexSize) - u_reservedVertices;
-    cmd.count = indicesAlloc.size / u_indexSize; // sizeof(uint)
+    // start of chunk data, in quads (8 bytes each)
+    uint startChunkAlloc = verticesAlloc.offset / u_quadSize;
+    DrawArraysCommand cmd;
+
+    // number of quads times 6
+    cmd.count = 6 * ((verticesAlloc.size - u_reservedBytes) / u_quadSize);
+
+    // the instance count will be set to 1 if not culled by occlusion culling, or if too close for occlusion culling to work
     cmd.instanceCount = 0;
     if (dist < 32)
       cmd.instanceCount = 1;
-    cmd.firstIndex = indicesAlloc.offset / u_indexSize; // sizeof(uint)
-    cmd.baseVertex = verticesAlloc.offset / u_vertexSize;
-    cmd.baseInstance = cmd.baseVertex;
+
+    // beginning of actual quad data, past the reserved bytes
+    cmd.first = 6 * (u_reservedBytes / u_quadSize + startChunkAlloc);
+
+    // used to increment the chunk position instance attribute index
+    cmd.baseInstance = startChunkAlloc;
 
     uint insert = atomicAdd(nextIdx, 1);
     outDrawCommands[insert] = cmd;

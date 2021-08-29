@@ -357,8 +357,8 @@ namespace GFX
     glVertexArrayAttribBinding(batchVAO, 1, 0);
     glVertexArrayAttribBinding(batchVAO, 2, 0);
 
-    glVertexArrayVertexBuffer(batchVAO, 0, vertexBuffer->GetGPUHandle(), 0, sizeof(Vertex));
-    glVertexArrayElementBuffer(batchVAO, indexBuffer->GetGPUHandle());
+    glVertexArrayVertexBuffer(batchVAO, 0, vertexBuffer->GetID(), 0, sizeof(Vertex));
+    glVertexArrayElementBuffer(batchVAO, indexBuffer->GetID());
 
     glCreateVertexArrays(1, &emptyVao);
 

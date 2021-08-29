@@ -5,14 +5,14 @@
 // normal vertex buffer containing vertices for a cube
 //layout(location = 0) in vec3 aPos;
 
-layout(std430, binding = 0) readonly buffer vertexBufferData
+layout(std430, binding = 0) restrict readonly buffer vertexBufferData
 {
   int vbo[];
 };
 
-layout(std430, binding = 1) readonly buffer cmds
+layout(std430, binding = 1) restrict readonly buffer cmds
 {
-  DrawElementsCommand drawCommands[];
+  DrawArraysCommand drawCommands[];
 };
 
 // global info
@@ -33,7 +33,7 @@ void main()
   vec3 aPos = CreateCube(gl_VertexID) - .5; // gl_VertexIndex for Vulkan
 
   vID = gl_InstanceID; // index of chunk being drawn
-  uint aOffset = drawCommands[vID].baseVertex * 2; // ratio between vertex size and int
+  uint aOffset = drawCommands[vID].baseInstance * 2; // ratio between vertex size and int
   vec3 cPos = { vbo[aOffset], vbo[aOffset+1], vbo[aOffset+2] };
   vec3 vPos = cPos + (aPos * 1.001 + .5) * (u_chunk_size); // add tiny constant to ensure occlusion volume exceeds that of the chunk
   gl_Position = u_viewProj * vec4(vPos, 1.0);

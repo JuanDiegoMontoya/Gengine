@@ -1,14 +1,14 @@
 #pragma once
-#include <engine/Shapes.h>
-#include <memory>
-#include <string>
-#include <engine/gfx/Texture.h>
+#include <cstdint>
+#include <span>
 
 namespace GFX
 {
   class TextureArray;
   class Texture2D;
 }
+
+struct AABB;
 
 namespace Voxels
 {
@@ -23,7 +23,7 @@ namespace Voxels
     void DrawBuffers();
     void Draw();
 
-    uint64_t AllocChunk(std::span<int> vertices, std::span<uint32_t> indices, const AABB& aabb);
+    uint64_t AllocChunk(std::span<uint32_t> vertices, const AABB& aabb);
     void FreeChunk(uint64_t allocHandle);
 
     /* $$$$$$$$$$$$$$$   Culling pipeline stuff   $$$$$$$$$$$$$$$$
@@ -47,8 +47,6 @@ namespace Voxels
     void GenerateDIB();     // phase 2
     void RenderOcclusion(); // phase 3
     void RenderRest();      // phase 4
-
-    std::vector<glm::uvec2> GetAllocIndices();
 
     struct ChunkRendererStorage* data{};
   };

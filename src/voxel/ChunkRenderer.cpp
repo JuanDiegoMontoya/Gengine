@@ -1,7 +1,7 @@
 #include "vPCH.h"
 #include <voxel/ChunkRenderer.h>
-#include <engine/gfx/DynamicBuffer.h>
 #include <voxel/Chunk.h>
+
 #include <engine/Camera.h>
 #include <engine/gfx/Frustum.h>
 #include <engine/gfx/ShaderManager.h>
@@ -9,8 +9,12 @@
 #include <engine/gfx/DebugMarker.h>
 #include <engine/gfx/Indirect.h>
 #include <engine/CVar.h>
+#include <engine/gfx/DynamicBuffer.h>
+#include <engine/Shapes.h>
+
 #include <filesystem>
 #include <imgui/imgui.h>
+#include <glm/gtc/type_ptr.hpp>
 
 #include "ChunkRenderer.h"
 
@@ -33,18 +37,16 @@ namespace Voxels
 {
   struct ChunkRendererStorage
   {
-    std::unique_ptr<GFX::DynamicBuffer<AABB16>> verticesAllocator;
-    std::unique_ptr<GFX::DynamicBuffer<>> indicesAllocator;
-    std::unordered_map<uint64_t, glm::u64vec2> allocHandles;
-    uint64_t currentAllocHandle{ 1 };
+    std::unique_ptr<GFX::DebugDrawableBuffer<AABB16>> verticesAllocator;
+    std::unordered_set<uint64_t> vertexAllocHandles;
 
     GLuint vao{};
     std::unique_ptr<GFX::StaticBuffer> dib;
 
     std::unique_ptr<GFX::StaticBuffer> drawCountGPU;
 
-    // size of compute block  for the compute shader
-    const int groupSize = 64; // defined in compact_batch.cs
+    // size of compute shader workgroup
+    const int workGroupSize = 64; // defined in compact_batch.cs
 
     GLuint vaoCull{};
     std::unique_ptr<GFX::StaticBuffer> dibCull;
@@ -52,17 +54,11 @@ namespace Voxels
     std::pair<uint64_t, GLuint> stateInfo{ 0, 0 };
     bool dirtyAlloc = true;
     std::unique_ptr<GFX::StaticBuffer> vertexAllocBuffer;
-    std::unique_ptr<GFX::StaticBuffer> indexAllocBuffer;
-    std::unique_ptr<GFX::StaticBuffer> allocsIndices; // holds list of indices that point into the above two buffers
 
     // resources
     std::optional<GFX::Texture> blockTextures;
     std::optional<GFX::TextureView> blockTexturesView;
     std::optional<GFX::TextureSampler> blockTexturesSampler;
-
-    std::optional<GFX::Texture> blueNoiseTexture;
-    std::optional<GFX::TextureView> blueNoiseView;
-    std::optional<GFX::TextureSampler> blueNoiseSampler;
   };
 
   // call after all chunks are initialized
@@ -70,12 +66,11 @@ namespace Voxels
   {
     data = new ChunkRendererStorage;
 
-    data->drawCountGPU = std::make_unique<GFX::StaticBuffer>(nullptr, sizeof(GLint));
+    data->drawCountGPU = std::make_unique<GFX::StaticBuffer>(nullptr, sizeof(uint32_t));
 
     // allocate big buffers
     // TODO: vary the allocation size based on some user setting
-    data->verticesAllocator = std::make_unique<GFX::DynamicBuffer<AABB16>>(100'000'000, 2 * sizeof(GLint));
-    data->indicesAllocator = std::make_unique<GFX::DynamicBuffer<>>(100'000'000, sizeof(uint32_t));
+    data->verticesAllocator = std::make_unique<GFX::DebugDrawableBuffer<AABB16>>(250'000'000, 2 * sizeof(uint32_t));
 
     /* :::::::::::BUFFER FORMAT:::::::::::
                             CHUNK 1                                    CHUNK 2                   NULL                   CHUNK 3
@@ -85,37 +80,28 @@ namespace Voxels
     
         :::::::::::BUFFER FORMAT:::::::::::*/
     glCreateVertexArrays(1, &data->vao);
-    glEnableVertexArrayAttrib(data->vao, 0); // lighting
-    glEnableVertexArrayAttrib(data->vao, 1); // encoded data
-    glEnableVertexArrayAttrib(data->vao, 2); // chunk position (one per instance)
+    glEnableVertexArrayAttrib(data->vao, 0); // chunk position (one per instance)
     
     // stride is sizeof(vertex) so baseinstance can be set to cmd.first and work (hopefully)
-    glVertexArrayAttribIFormat(data->vao, 2, 3, GL_INT, 0);
-
-    // move forward by TWO vertex sizes (vertex aligned)
-    glVertexArrayAttribIFormat(data->vao, 0, 1, GL_UNSIGNED_INT, 4 * sizeof(uint32_t));
-    
-    glVertexArrayAttribIFormat(data->vao, 1, 1, GL_UNSIGNED_INT, 5 * sizeof(uint32_t));
+    glVertexArrayAttribIFormat(data->vao, 0, 3, GL_INT, 0);
 
     glVertexArrayAttribBinding(data->vao, 0, 0);
-    glVertexArrayAttribBinding(data->vao, 1, 0);
-    glVertexArrayAttribBinding(data->vao, 2, 1);
-    glVertexArrayBindingDivisor(data->vao, 1, 1);
+    glVertexArrayBindingDivisor(data->vao, 0, 1);
 
-    glVertexArrayVertexBuffer(data->vao, 0, data->verticesAllocator->GetGPUHandle(), 0, 2 * sizeof(uint32_t));
-    glVertexArrayVertexBuffer(data->vao, 1, data->verticesAllocator->GetGPUHandle(), 0, 2 * sizeof(uint32_t));
-    glVertexArrayElementBuffer(data->vao, data->indicesAllocator->GetGPUHandle());
+    glVertexArrayVertexBuffer(data->vao, 0, data->verticesAllocator->GetID(), 0, 2 * sizeof(uint32_t));
 
     // setup vertex buffer for cube that will be used for culling
     glCreateVertexArrays(1, &data->vaoCull);
 
-    DrawElementsIndirectCommand cmd;
-    cmd.count = 14; // vertices on cube
-    cmd.instanceCount = 0; // will be incremented - reset every frame
-    cmd.baseVertex = 0;
-    cmd.firstIndex = 0;
-    cmd.baseInstance = 0;
-    data->dibCull = std::make_unique<GFX::StaticBuffer>(&cmd, sizeof(cmd), GFX::BufferFlag::CLIENT_STORAGE);
+    DrawElementsIndirectCommand occlusionCullingCmd
+    {
+      .count = 14, // vertices on cube
+      .instanceCount = 0, // will be incremented - reset every frame
+      .firstIndex = 0,
+      .baseVertex = 0,
+      .baseInstance = 0
+    };
+    data->dibCull = std::make_unique<GFX::StaticBuffer>(&occlusionCullingCmd, sizeof(occlusionCullingCmd), GFX::BufferFlag::CLIENT_STORAGE);
 
     // assets
     std::vector<std::string> texs;
@@ -142,10 +128,6 @@ namespace Voxels
     ss.asBitField.mipmapFilter = GFX::Filter::LINEAR;
     ss.asBitField.anisotropy = GFX::Anisotropy::SAMPLES_16;
     data->blockTexturesSampler = GFX::TextureSampler::Create(ss);
-
-    data->blueNoiseTexture = GFX::LoadTexture2D("BlueNoise/64_64/LDR_LLL1_0.png", GFX::Format::R8G8B8A8_UNORM);
-    data->blueNoiseView = GFX::TextureView::Create(*data->blueNoiseTexture);
-    data->blueNoiseSampler = GFX::TextureSampler::Create(GFX::SamplerState{});
   }
 
   ChunkRenderer::~ChunkRenderer()
@@ -165,7 +147,7 @@ namespace Voxels
     sdr->SetMat4("u_model", model);
 
     glLineWidth(50);
-    //allocator->Draw();
+    data->verticesAllocator->Draw();
     glLineWidth(2);
 
     glEnable(GL_DEPTH_TEST);
@@ -179,6 +161,8 @@ namespace Voxels
     GenerateDIB();
     RenderOcclusion();
     //RenderRest();
+
+    DrawBuffers();
   }
 
   void ChunkRenderer::RenderVisible()
@@ -189,10 +173,6 @@ namespace Voxels
     if (!data->dib)
       return;
 
-#ifdef TRACY_ENABLE
-    TracyGpuZone("Normal Render");
-#endif
-
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK); // don't forget to reset original culling face
 
@@ -201,44 +181,40 @@ namespace Voxels
     currShader->Bind();
 
     //float angle = glm::max(glm::dot(-glm::normalize(NuRenderer::activeSun_->GetDir()), glm::vec3(0, 1, 0)), 0.f);
-    static float angle = 2.0f;
-    ImGui::SliderFloat("Sunlight strength", &angle, 0.f, 5.f);
-    currShader->SetFloat("sunAngle", angle);
+    static float u_minBrightness = 0.01f;
+    static glm::vec3 u_envColor = glm::vec3(1);
+    ImGui::SliderFloat("Min Brightness", &u_minBrightness, 0.0f, 0.1f);
+    ImGui::SliderFloat3("Env Color", glm::value_ptr(u_envColor), 0.0f, 0.1f);
+    currShader->SetFloat("u_minBrightness", u_minBrightness);
+    currShader->SetVec3("u_envColor", u_envColor);
 
     // undo gamma correction for sky color
     static const glm::vec3 skyColor(
       glm::pow(.529f, 2.2f),
       glm::pow(.808f, 2.2f),
       glm::pow(.922f, 2.2f));
-    currShader->SetVec3("viewPos", CameraSystem::GetPos());
-    currShader->SetFloat("fogStart", 400.0f);
-    currShader->SetFloat("fogEnd", 2000.0f);
-    currShader->SetVec3("fogColor", skyColor);
     currShader->SetMat4("u_viewProj", CameraSystem::GetProj() * CameraSystem::GetView());
 
     glBindVertexArray(data->vao);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, data->verticesAllocator->GetID());
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, data->verticesAllocator->GetID());
     data->dib->Bind<GFX::Target::DRAW_INDIRECT_BUFFER>();
     data->drawCountGPU->Bind<GFX::Target::PARAMETER_BUFFER>();
-    auto state = data->blockTexturesSampler->GetState();
+    GFX::SamplerState state = data->blockTexturesSampler->GetState();
     state.asBitField.anisotropy = getAnisotropy(anisotropyCVar.Get());
     data->blockTexturesSampler->SetState(state);
     data->blockTexturesView->Bind(0, *data->blockTexturesSampler);
-    data->blueNoiseView->Bind(1, *data->blueNoiseSampler);
-    //glMultiDrawArraysIndirectCount(GL_TRIANGLES, (void*)0, (GLintptr)0, activeAllocs, 0);
-    glMultiDrawElementsIndirectCount(GL_TRIANGLES, GL_UNSIGNED_INT, 0, 0, data->activeAllocs, 0);
-    data->blueNoiseView->Unbind(1);
+    glMultiDrawArraysIndirectCount(GL_TRIANGLES, 0, 0, data->activeAllocs, 0);
+    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
     data->blockTexturesView->Unbind(0);
   }
 
   void ChunkRenderer::GenerateDIB()
   {
+    GFX::DebugMarker marker("Generate draw commands");
+
     if (freezeCullingCVar.Get())
       return;
-
-    GFX::DebugMarker marker("Generate draw commands");
-#ifdef TRACY_ENABLE
-    TracyGpuZone("Gen draw commands norm");
-#endif
 
     auto sdr = GFX::ShaderManager::Get()->GetShader("compact_batch");
     sdr->Bind();
@@ -253,38 +229,30 @@ namespace Voxels
     }
     sdr->SetFloat("u_cullMinDist", cullDistanceMinCVar.Get());
     sdr->SetFloat("u_cullMaxDist", cullDistanceMaxCVar.Get());
-    sdr->SetUInt("u_reservedVertices", 2);
-    sdr->SetUInt("u_vertexSize", sizeof(uint32_t) * 2);
-    sdr->SetUInt("u_indexSize", sizeof(uint32_t));
+    sdr->SetUInt("u_reservedBytes", 16);
+    sdr->SetUInt("u_quadSize", sizeof(uint32_t) * 2);
 
     constexpr uint32_t zero = 0;
     data->drawCountGPU->SubData(&zero, sizeof(uint32_t));
 
     const auto& vertexAllocs = data->verticesAllocator->GetAllocs();
-    const auto& indexAllocs = data->indicesAllocator->GetAllocs();
 
     // only re-construct if allocator has been modified
     if (data->dirtyAlloc)
     {
       data->vertexAllocBuffer = std::make_unique<GFX::StaticBuffer>(vertexAllocs.data(), data->verticesAllocator->AllocSize() * vertexAllocs.size());
-      data->indexAllocBuffer = std::make_unique<GFX::StaticBuffer>(indexAllocs.data(), data->indicesAllocator->AllocSize() * indexAllocs.size());
-      auto indicesVec = GetAllocIndices();
-      data->allocsIndices = std::make_unique<GFX::StaticBuffer>(indicesVec.data(), indicesVec.size() * sizeof(glm::uvec2));
-      data->dib = std::make_unique<GFX::StaticBuffer>(nullptr, data->verticesAllocator->ActiveAllocs() * sizeof(DrawElementsIndirectCommand));
+      data->dib = std::make_unique<GFX::StaticBuffer>(nullptr, data->verticesAllocator->ActiveAllocs() * sizeof(DrawArraysIndirectCommand));
       data->dirtyAlloc = false;
+      data->verticesAllocator->GenDrawData();
     }
 
     data->vertexAllocBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(0);
-    data->indexAllocBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(1);
-    data->allocsIndices->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(2);
-    data->dib->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(3);
-    data->drawCountGPU->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(4);
+    data->dib->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(1);
+    data->drawCountGPU->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(2);
 
-    {
-      int numBlocks = (vertexAllocs.size() + data->groupSize - 1) / data->groupSize;
-      glDispatchCompute(numBlocks, 1, 1);
-      glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT); // make SSBO writes visible to subsequent execution
-    }
+    int numWorkGroups = (vertexAllocs.size() + data->workGroupSize - 1) / data->workGroupSize;
+    glDispatchCompute(numWorkGroups, 1, 1);
+    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
     data->activeAllocs = data->verticesAllocator->ActiveAllocs();
   }
@@ -294,10 +262,6 @@ namespace Voxels
     GFX::DebugMarker marker("Draw occlusion volumes");
     if (freezeCullingCVar.Get())
       return;
-
-#ifdef TRACY_ENABLE
-    TracyGpuZone("Occlusion Render");
-#endif
 
     if (drawOcclusionVolumesCVar.Get() == 0.0)
     {
@@ -316,18 +280,18 @@ namespace Voxels
     sr->SetUInt("u_chunk_size", Chunk::CHUNK_SIZE);
     sr->SetBool("u_debugDraw", drawOcclusionVolumesCVar.Get() != 0.0);
 
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, data->verticesAllocator->GetGPUHandle());
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, data->verticesAllocator->GetGPUHandle());
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, data->verticesAllocator->GetID());
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, data->verticesAllocator->GetID());
 
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, data->dib->GetID());
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, data->dib->GetID());
+    data->dib->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(1);
 
     // copy # of chunks being drawn (parameter buffer) to instance count (DIB)
     data->dibCull->Bind<GFX::Target::DRAW_INDIRECT_BUFFER>();
     glBindVertexArray(data->vaoCull);
     constexpr GLint offset = offsetof(DrawArraysIndirectCommand, instanceCount);
-    glCopyNamedBufferSubData(data->drawCountGPU->GetID(), data->dibCull->GetID(), 0, offset, sizeof(GLuint));
-    glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, (void*)0, 1, 0);
+    glCopyNamedBufferSubData(data->drawCountGPU->GetID(), data->dibCull->GetID(), 0, offset, sizeof(uint32_t));
+    //glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, (void*)0, 1, 0);
+    glDrawArraysIndirect(GL_TRIANGLE_STRIP, 0);
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
     glEnable(GL_CULL_FACE);
@@ -353,10 +317,9 @@ namespace Voxels
     ASSERT(0); // not implemented
   }
 
-  uint64_t ChunkRenderer::AllocChunk(std::span<int> vertices, std::span<uint32_t> indices, const AABB& aabb)
+  uint64_t ChunkRenderer::AllocChunk(std::span<uint32_t> vertices, const AABB& aabb)
   {
     uint64_t vertexBufferHandle{};
-    uint64_t indexBufferHandle{};
 
     // free oldest allocations until there is enough space to allocate this buffer
     //while ((vertexBufferHandle = data->verticesAllocator->Allocate(
@@ -366,52 +329,28 @@ namespace Voxels
     //{
     //  data->verticesAllocator->FreeOldest();
     //}
-
-    //while ((indexBufferHandle = data->indicesAllocator->Allocate(
-    //  indices.data(),
-    //  indices.size() * sizeof(uint32_t))) == 0)
-    //{
-    //  data->indicesAllocator->FreeOldest();
-    //}
     vertexBufferHandle = data->verticesAllocator->Allocate(vertices.data(), vertices.size() * sizeof(GLint), aabb);
-    indexBufferHandle = data->indicesAllocator->Allocate(indices.data(), indices.size() * sizeof(uint32_t));
-    if (!vertexBufferHandle || !indexBufferHandle)
+    if (!vertexBufferHandle)
     {
       data->verticesAllocator->Free(vertexBufferHandle);
-      data->indicesAllocator->Free(indexBufferHandle);
       return 0;
     }
 
-    uint64_t allocIndexHandle = data->currentAllocHandle++;
-    data->allocHandles.emplace(allocIndexHandle, glm::u64vec2(vertexBufferHandle, indexBufferHandle));
+    data->vertexAllocHandles.emplace(vertexBufferHandle);
     data->dirtyAlloc = true;
 
-    return allocIndexHandle;
+    return vertexBufferHandle;
   }
 
   void ChunkRenderer::FreeChunk(uint64_t allocHandle)
   {
-    auto it = data->allocHandles.find(allocHandle);
-    if (it == data->allocHandles.end())
+    auto it = data->vertexAllocHandles.find(allocHandle);
+    if (it == data->vertexAllocHandles.end())
       return;
-    glm::u64vec2 handles = it->second;
-    data->verticesAllocator->Free(handles[0]);
-    data->indicesAllocator->Free(handles[1]);
-    data->allocHandles.erase(it);
+    uint64_t handle = *it;
+    data->verticesAllocator->Free(handle);
+    data->vertexAllocHandles.erase(it);
     data->dirtyAlloc = true;
-  }
-
-  std::vector<glm::uvec2> ChunkRenderer::GetAllocIndices()
-  {
-    std::vector<glm::uvec2> vec;
-    for (const auto& [key, val] : data->allocHandles)
-    {
-      glm::uvec2 offsets;
-      offsets[0] = data->verticesAllocator->GetAllocOffset(val[0]);
-      offsets[1] = data->indicesAllocator->GetAllocOffset(val[1]);
-      vec.push_back(offsets);
-    }
-    return vec;
   }
 }
 

@@ -16,7 +16,9 @@
 #include <iomanip>
 #include <mutex>
 #include <shared_mutex>
+#include <bit>
 
+#define DEBUG_ENCODING 1
 
 namespace Voxels
 {
@@ -31,14 +33,13 @@ namespace Voxels
       std::atomic_bool needsBuffering_ = false;
 
       // vertex data (held until buffers are sent to GPU)
-      std::vector<int> interleavedArr;
-      std::vector<uint32_t> indices;
+      std::vector<uint32_t> interleavedArr;
       uint32_t curIndex{};
 
       Physics::MeshCollider tCollider{};
       physx::PxRigidActor* tActor = nullptr;
 
-      int64_t vertexCount_ = 0;
+      int64_t quadCount_ = 0;
       uint64_t bufferHandle = 0;
 
       std::shared_mutex mtx;
@@ -96,75 +97,69 @@ namespace Voxels
       { 0,-1, 0 }, // 'bottom' face (-y direction)
     };
 
-    inline void Decode(GLuint encoded, glm::uvec3& modelPos, glm::vec3& normal, glm::vec3& texCoord)
+    void DecodeQuad(uint32_t encoded, glm::uvec3& blockPos, uint32_t& face, uint32_t& texIdx)
     {
       // decode vertex position
-      modelPos.x = encoded >> 26;
-      modelPos.y = (encoded >> 20) & 0x3F; // = 0b111111
-      modelPos.z = (encoded >> 14) & 0x3F; // = 0b111111
+      blockPos.x = encoded & 0x1F;        // = 0b11111
+      blockPos.y = (encoded >> 5) & 0x1F;
+      blockPos.z = (encoded >> 10) & 0x1F;
 
       // decode normal
-      GLuint normalIdx = (encoded >> 11) & 0x7; // = 0b111
-      ASSERT(normalIdx <= 5);
-      if (normalIdx <= 5)
-      {
-        normal = faces[normalIdx];
-      }
+      face = (encoded >> 15) & 0x7; // = 0b111
+
+      ASSERT(face <= 5);
 
       // decode texture index and UV
-      GLuint textureIdx = (encoded >> 2) & 0x1FF; // = 0b1111111111
-      GLuint cornerIdx = (encoded >> 0) & 0x3; // = 0b11
+      texIdx = (encoded >> 18) & 0x3FF; // = 0b1111111111 (10 bits)
+      //uint32_t cornerIdx = (encoded >> 0) & 0x3; // = 0b11
 
-      texCoord = glm::vec3(tex_corners[cornerIdx], textureIdx);
+      // NOTE: texCoord cannot be computed without VS built-in variables
+      //texCoord = glm::vec3(tex_corners[cornerIdx], textureIdx);
     }
 
 
-    inline GLuint EncodeVertex(const glm::uvec3& modelPos, GLuint normalIdx, GLuint texIdx, GLuint cornerIdx)
+    uint32_t EncodeQuad(const glm::uvec3& blockPos, uint32_t normalIdx, uint32_t texIdx)
     {
-      GLuint encoded = 0;
+      uint32_t encoded = 0;
 
       // encode vertex position
-      encoded |= modelPos.x << 26;
-      encoded |= modelPos.y << 20;
-      encoded |= modelPos.z << 14;
+      encoded |= blockPos.x;
+      encoded |= blockPos.y << 5;
+      encoded |= blockPos.z << 10;
 
       // encode normal
-      encoded |= normalIdx << 11;
+      encoded |= normalIdx << 15;
 
       // encode texture information
-      encoded |= texIdx << 2;
-      encoded |= cornerIdx << 0;
+      encoded |= texIdx << 18;
 
-#if 0 // debug
-      glm::uvec3 mdl;
-      glm::vec3 nml, txc;
-      Decode(encoded, mdl, nml, txc);
-      ASSERT(mdl == modelPos);
-      ASSERT(texIdx == txc.z);
-      ASSERT(faces[normalIdx] == nml)
+#if DEBUG_ENCODING
+      ASSERT(std::countl_zero(texIdx) >= 22); // only least significant 10 bits should be used
+      ASSERT(glm::all(glm::lessThanEqual(blockPos, glm::uvec3(31))));
+      glm::uvec3 mdl{};
+      uint32_t fce{};
+      uint32_t txi{};
+      DecodeQuad(encoded, mdl, fce, txi);
+      ASSERT(mdl == blockPos);
+      ASSERT(texIdx == txi);
+      ASSERT(normalIdx == fce);
 #endif
 
-        return encoded;
+      return encoded;
     }
 
 
     // packs direction to center of block with lighting information
-    inline uint32_t EncodeLight(uint32_t lightCoding, glm::ivec3 dirCent, uint32_t ao)
+    uint32_t EncodeQuadLight(uint32_t lightEncoding, uint32_t ao)
     {
-      uint32_t encoded = lightCoding;
-      dirCent = (dirCent + 1);
-      //printf("(%d, %d, %d)\n", dirCent.x, dirCent.y, dirCent.z);
+#if DEBUG_ENCODING
+      ASSERT(std::countl_zero(lightEncoding) >= 16); // only the least significant 16 bits should be used
+      ASSERT(std::countl_zero(ao) >= 24); // only the least significant 8 bits should be used
+#endif
 
-      using namespace glm;
-      ASSERT(all(greaterThanEqual(dirCent, ivec3(0, 0, 0))) &&
-        all(lessThanEqual(dirCent, ivec3(1, 1, 1))) &&
-        ao <= detail::AO_MAX);
+      uint32_t encoded = lightEncoding;
 
-      encoded |= ao << 19;
-
-      encoded |= dirCent.x << 18;
-      encoded |= dirCent.y << 17;
-      encoded |= dirCent.z << 16;
+      encoded |= ao << 16;
 
       return encoded;
     }
@@ -187,23 +182,20 @@ namespace Voxels
     bufferHandle = 0;
 
     // nothing emitted, don't try to make buffers
-    if (vertexCount_ == 0)
+    if (quadCount_ == 0)
     {
       return;
     }
 
-    bufferHandle = voxelManager_->chunkRenderer_->AllocChunk(interleavedArr, indices, parentChunk->GetAABB());
+    bufferHandle = voxelManager_->chunkRenderer_->AllocChunk(interleavedArr, parentChunk->GetAABB());
 
     interleavedArr.clear();
     tCollider.vertices.clear();
     tCollider.indices.clear();
-    indices.clear();
 
     interleavedArr.shrink_to_fit();
     tCollider.vertices.shrink_to_fit();
     tCollider.indices.shrink_to_fit();
-    indices.shrink_to_fit();
-    curIndex = 0;
   }
 
   void detail::ChunkMeshData::BuildMesh()
@@ -212,8 +204,7 @@ namespace Voxels
     needsBuffering_ = true;
 
     // clear everything in case this function is called twice in a row
-    vertexCount_ = 0;
-    curIndex = 0;
+    quadCount_ = 0;
     interleavedArr.clear();
     tCollider.vertices.clear();
     tCollider.indices.clear();
@@ -262,12 +253,12 @@ namespace Voxels
     }
 
 
-    Physics::PhysicsManager::RemoveActorGeneric(tActor);
+    //Physics::PhysicsManager::RemoveActorGeneric(tActor);
 
-    tActor = reinterpret_cast<physx::PxRigidActor*>(
-      Physics::PhysicsManager::AddStaticActorGeneric(
-        Physics::MaterialType::TERRAIN, tCollider,
-        glm::translate(glm::mat4(1), glm::vec3(parentCopy->GetPos() * Chunk::CHUNK_SIZE))));
+    //tActor = reinterpret_cast<physx::PxRigidActor*>(
+    //  Physics::PhysicsManager::AddStaticActorGeneric(
+    //    Physics::MaterialType::TERRAIN, tCollider,
+    //    glm::translate(glm::mat4(1), glm::vec3(parentCopy->GetPos() * Chunk::CHUNK_SIZE))));
 
     for (int i = 0; i < fCount; i++)
     {
@@ -336,64 +327,48 @@ namespace Voxels
 
   void detail::ChunkMeshData::addQuad(const glm::ivec3& lpos, BlockType block, int face, [[maybe_unused]] const Chunk* nearChunk, Light light)
   {
-    int normalIdx = face;
-    int texIdx = (int)block; // temp value
-    uint16_t lighting = light.Raw();
-    //light.SetS(15); // max sunlight for testing
+    quadCount_++;
+    uint32_t normalIdx = face;
+    uint32_t texIdx = static_cast<uint32_t>(block);
 
-    // add 4 vertices representing a quad
-    float aoValues[4] = { 0, 0, 0, 0 }; // AO for each quad
-    GLuint encodeds[4] = { 0 };
-    GLuint lightdeds[4] = { 0 };
-    //int aoValuesIndex = 0;
-    const GLfloat* data = Vertices::cube_light;
-    int endQuad = (face + 1) * 12;
-    for (int i = face * 12, cindex = 0; i < endQuad; i += 3, cindex++) // cindex = corner index
+    uint32_t aoValues = 0; // pack all 4 vertices' AO values into a u32 (2 bits each)
+    const float* data = Vertices::cube_light;
+    uint32_t endQuad = (face + 1) * 12;
+    for (uint32_t i = face * 12, vertexIndex = 0; i < endQuad; i += 3, vertexIndex++) // cindex = corner index
     {
-      using namespace ChunkHelpers;
       // transform vertices relative to chunk
       glm::vec3 vert(data[i + 0], data[i + 1], data[i + 2]);
       glm::uvec3 finalVert = glm::ceil(vert) + glm::vec3(lpos);// +0.5f;
 
       tCollider.vertices.push_back(glm::vec3(finalVert));
 
-      // compress attributes into 32 bits
-      GLuint encoded = detail::EncodeVertex(finalVert, normalIdx, texIdx, cindex);
-      encodeds[cindex] = encoded;
-
-      int invOcclusion = AO_MIN;
+      uint32_t vertexAO = AO_MIN;
       if (true) // TODO: make this an option in the future
       {
-        invOcclusion = vertexFaceAO(lpos, vert, detail::faces[face]);
+        vertexAO = vertexFaceAO(lpos, vert, detail::faces[face]);
       }
-
-      aoValues[cindex] = invOcclusion;
-      lighting = light.Raw();
-      glm::ivec3 dirCent = glm::vec3(lpos) - glm::vec3(finalVert);
-      lightdeds[cindex] = detail::EncodeLight(lighting, dirCent, invOcclusion);
+      aoValues |= vertexAO << (2 * vertexIndex);
     }
 
     constexpr uint32_t indicesA[6] = { 0, 1, 3, 3, 1, 2 }; // normal indices
-    constexpr uint32_t indicesB[6] = { 0, 1, 2, 2, 3, 0 }; // anisotropy fix (flip tris)
-    const uint32_t* indicesC = indicesA;
+    //constexpr uint32_t indicesB[6] = { 0, 1, 2, 2, 3, 0 }; // anisotropy fix (flip tris)
+    //const uint32_t* indicesC = indicesA;
     // partially solve anisotropy issue
-    if (aoValues[0] + aoValues[2] > aoValues[1] + aoValues[3])
-    {
-      indicesC = indicesB;
-    }
-    for (int i = 0; i < 4; i++)
-    {
-      vertexCount_++;
-      interleavedArr.push_back(encodeds[i]);
-      interleavedArr.push_back(lightdeds[i]);
-    }
+    // UPDATED: no need, as we now do bilinear interpolation
+    //if (aoValues[0] + aoValues[2] > aoValues[1] + aoValues[3])
+    //{
+    //  indicesC = indicesB;
+    //}
+    
+    // compress attributes into 32 bits
+    interleavedArr.push_back(detail::EncodeQuad(lpos, normalIdx, texIdx));
+    interleavedArr.push_back(detail::EncodeQuadLight(light.raw, aoValues));
     for (int i = 0; i < 6; i++)
     {
-      tCollider.indices.push_back(curIndex + indicesA[i]);
-      indices.push_back(curIndex + indicesA[i]);
-      //tCollider.indices.push_back(indicesA[i] + tCollider.vertices.size() - (tCollider.vertices.size() % 4) - 4);
+      //tCollider.indices.push_back(curIndex + indicesA[i]);
+      //indices.push_back(curIndex + indicesA[i]);
+      tCollider.indices.push_back(indicesA[i] + tCollider.vertices.size() - (tCollider.vertices.size() % 4) - 4);
     }
-    curIndex += 4;
   }
 
 

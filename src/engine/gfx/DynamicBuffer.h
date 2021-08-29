@@ -36,7 +36,7 @@ namespace GFX
     const auto& GetAlloc(uint64_t handle) { return *std::find_if(allocs_.begin(), allocs_.end(), [=](const auto& alloc) { return alloc.handle == handle; }); }
     const auto& GetAllocs() { return allocs_; }
     uint32_t ActiveAllocs() { return numActiveAllocs_; }
-    uint32_t GetGPUHandle() { return buffer->GetID(); }
+    uint32_t GetID() { return buffer->GetID(); }
     uint32_t GetAllocOffset(uint64_t handle) { for (uint32_t i = 0; i < allocs_.size(); i++) if (handle == allocs_[i].handle) return i; UNREACHABLE; }
 
     // compare return values of this func to see if the state has change
@@ -99,6 +99,11 @@ namespace GFX
   class DebugDrawableBuffer : public DynamicBuffer<UserT>
   {
   public:
+    DebugDrawableBuffer(uint32_t size, uint32_t alignment)
+      : DynamicBuffer<UserT>(size, alignment)
+    {
+    }
+
     void Draw();
     void GenDrawData();
 

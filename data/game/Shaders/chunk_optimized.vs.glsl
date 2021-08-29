@@ -1,4 +1,4 @@
-#version 450 core
+#version 460 core
 
 // aEncoded layout (left to right bits):
 // 0 - 17   18 - 20   21 - 31
@@ -6,28 +6,46 @@
 // vertex = x, y, z from 0-32 (supports up to 63)
 // normal = 0 - 5 index into "normals" table
 // texcoord = texture index (0 - 512), corner index (0 - 3)
-layout (location = 0) in uint aEncoded; // (per vertex)
+//layout (location = 0) in uint aEncoded; // (per vertex)
 
 // aLighting layout
 // 0 - 12   13 - 15   16 - 19   20 - 23   24 - 27   28 - 31
 // unused    dirCent     R         G         B         Sun
-layout (location = 1) in uint aLighting;// (per vertex)
+//layout (location = 1) in uint aLighting;// (per vertex)
 
 // per-chunk info
-layout (location = 2) in ivec3 u_pos; // (per instance)
+layout(location = 0) in ivec3 u_pos; // (per instance)
 
 // global info
 layout(location = 0) uniform mat4 u_viewProj;
 
+// How is this buffer laid out?
+//
+// uint 1 holds the following info per quad
+// 0 - 14              15 - 17      18 - 27        28 - 31
+// block position      face         material ID    unused(4)
+// block position = x, y, z in [0, 31] (15 bits)
+// face = face index in [0, 5] (3 bits)
+// material ID = currently, texture array index. Later, material array index (10 bits)
+//
+// Vertex position is derived from block position, face, and VS built-in inputs.
+// UV is derived from face and built-in inputs.
+// Normal is derived from face or reconstructed in fragment shader with partial derivatives.
+//
+// uint 2 holds the following info per quad
+// 0 - 15        16 - 23     24 - 31
+// lighting      quad AO     unused(8)
+// lighting = RGB+Sun values, each in [0, 15] (16 bits)
+// quad AO = the AO values for all four vertices of the tri, each in [0, 3] (2 bits each, 8 bits total)
+layout(std430, binding = 0) restrict readonly buffer VertexData
+{
+  uvec2 quads[];
+};
 
-layout (location = 0) out vec3 vPos;
-layout (location = 1) out vec3 vNormal;
-layout (location = 2) out vec3 vTexCoord;
-layout (location = 3) out vec4 vLighting; // RGBSun
-layout (location = 4) out flat vec3 vBlockPos;
-layout (location = 5) out float vAmbientOcclusion;
-
-//out vec4 vColor;
+layout(location = 0) out vec3 vPos;
+layout(location = 1) out vec3 vTexCoord;
+layout(location = 2) out vec4 vLighting; // RGBSun
+layout(location = 3) out float vAmbientOcclusion;
 
 const vec3 normals[] =
 {
@@ -50,62 +68,64 @@ const vec2 tex_corners[] =
 };
 
 
-// decodes vertex, normal, and texcoord info from encoded data
-// returns usable data (i.e. fully processed)
-void DecodeVertex(in uint encoded, out vec3 modelPos, out vec3 normal, out vec3 texCoord)
+const uint indices[6] = { 0, 1, 3, 3, 1, 2 };
+
+
+// decodes block position, face, and material from encoded data
+void DecodeQuad(in uint encoded, out vec3 blockPos, out uint face, out uint texIdx)
 {
-  // decode vertex position
-  modelPos.x = encoded >> 26;
-  modelPos.y = (encoded >> 20) & 0x3F; // = 0b111111
-  modelPos.z = (encoded >> 14) & 0x3F; // = 0b111111
+  // decode block position
+  blockPos.x = encoded & 0x1F;
+  blockPos.y = (encoded >> 5) & 0x1F;
+  blockPos.z = (encoded >> 10) & 0x1F;
   //modelPos += 0.5;
 
   // decode normal
-  uint normalIdx = (encoded >> 11) & 0x7; // = 0b111
-  normal = normals[normalIdx];
+  face = (encoded >> 15) & 0x7; // = 0b111
 
   // decode texture index and UV
-  uint textureIdx = (encoded >> 2) & 0x1FF; // = 0b1111111111
-  uint cornerIdx = (encoded >> 0) & 0x3; // = 0b11
-
-  texCoord = vec3(tex_corners[cornerIdx], textureIdx);
+  texIdx = (encoded >> 18) & 0x3FF; // = 0b1111111111 (10 bits)
 }
 
 
-// decodes lighting information into a usable vec4
-// also decodes dircent info
-void DecodeLight(in uint encoded, inout vec4 lighting, out vec3 dirCent, out uint ambientOcclusion)
+// decodes the quad's lighting information into a usable vec4
+void DecodeQuadLight(in uint encoded, out vec4 lighting, out uint quadAO)
 {
-  ambientOcclusion = (encoded >> 19) & 0x3;
-
-  dirCent.x = (encoded >> 18) & 0x1;
-  dirCent.y = (encoded >> 17) & 0x1;
-  dirCent.z = (encoded >> 16) & 0x1;
-  dirCent -= 0.5; // [0,1] -> [-.5,.5]
+  quadAO = (encoded >> 16) & 0xFF;
 
   lighting.r = (encoded >> 12) & 0xF;
   lighting.g = (encoded >> 8) & 0xF;
   lighting.b = (encoded >> 4) & 0xF;
   lighting.a = encoded & 0xF;
-  lighting = (0.0 + lighting) / 16.0;
+  lighting = lighting / 15.0;
 }
 
+vec3 ObjSpaceVertexPos(uint index, uint face)
+{
+  uint b = 1 << (index + (4 * face));
+  return vec3((b & 0xCCF0C3) != 0, (b & 0xF6666) != 0, (b & 0x96C30F) != 0) - 0.5;
+}
 
 void main()
 {
-  vec3 modelPos;
-  vec3 dirCent;
-  
+  uvec2 quadData = quads[gl_VertexID / 6];
+  uint vertexIndex = indices[gl_VertexID % 6];
+
   // decode general
-  DecodeVertex(aEncoded, modelPos, vNormal, vTexCoord);
-  vPos = modelPos + u_pos;
+  vec3 blockPos;
+  uint face;
+  uint texIdx;
+  DecodeQuad(quadData[0], blockPos, face, texIdx);
+  vec3 blockPosWorldSpace = blockPos + u_pos + 0.5;
+  vPos = blockPosWorldSpace + ObjSpaceVertexPos(vertexIndex, face);
+  vTexCoord = vec3(tex_corners[vertexIndex], texIdx);
 
-  // decode lighting + misc
-  uint ambientOcclusion;
-  DecodeLight(aLighting, vLighting, dirCent, ambientOcclusion);
+  // decode lighting + quad AO
+  uint quadAO;
+  DecodeQuadLight(quadData[1], vLighting, quadAO);
 
-  vAmbientOcclusion = float(ambientOcclusion) / 3.0;
-  vBlockPos = vPos + dirCent; // block position = vertex pos + direction to center of block
+  uint myAO = (quadAO >> (vertexIndex * 2)) & 0x3;
+  vAmbientOcclusion = float(myAO) / 3.0;
 
   gl_Position = u_viewProj * vec4(vPos, 1.0);
 }

@@ -14,8 +14,8 @@ using namespace Voxels;
 
 namespace
 {
-#if 0
-  glm::ivec3 worldDim{ 70, 4, 70 };
+#if 1
+  glm::ivec3 worldDim{ 70, 3, 70 };
 #else
   glm::ivec3 worldDim{ 3, 3, 3 };
 #endif
