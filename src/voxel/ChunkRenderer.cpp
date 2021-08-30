@@ -19,23 +19,16 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "ChunkRenderer.h"
-
-#define CONCAT(a, b) CONCAT_INNER(a, b)
-#define CONCAT_INNER(a, b) a ## b
-#define STAT_FUNC(name)                                                             \
-  static GFX::TimerQueryAsync CONCAT(name, __LINE__) (5);                           \
-  GFX::TimerScoped scopedTimer(CONCAT(name, __LINE__));                             \
-  if (auto result = CONCAT(name, __LINE__).Elapsed_ns(); result)                    \
-  {                                                                                 \
-    double time = double(*result) / 1'000'000'000.0;                                \
-    engine::Core::StatisticsManager::Get()->PushFloatStatValue(#name, time);        \
-  }
+#include <engine/core/StatMacros.h>
 
 AutoCVar<cvar_float> cullDistanceMinCVar("v.cullDistanceMin", "- Minimum distance at which chunks should render", 0);
 AutoCVar<cvar_float> cullDistanceMaxCVar("v.cullDistanceMax", "- Maximum distance at which chunks should render", 2000);
 AutoCVar<cvar_float> freezeCullingCVar("v.freezeCulling", "- If enabled, freezes chunk culling", 0, 0, 1, CVarFlag::CHEAT);
 AutoCVar<cvar_float> drawOcclusionVolumesCVar("v.drawOcclusionVolumes", "- If enabled, draws occlusion volumes", 0, 0, 1, CVarFlag::CHEAT);
 AutoCVar<cvar_float> anisotropyCVar("v.anisotropy", "- Level of anisotropic filtering to apply to voxels", 16, 1, 16);
+
+DECLARE_FLOAT_STAT(DrawVoxelsAll, GPU);
+DECLARE_FLOAT_STAT(Joe, CPU);
 
 static GFX::Anisotropy getAnisotropy(cvar_float val)
 {
@@ -142,9 +135,10 @@ namespace Voxels
     ss.asBitField.anisotropy = GFX::Anisotropy::SAMPLES_16;
     data->blockTexturesSampler = GFX::TextureSampler::Create(ss);
 
-    engine::Core::StatisticsManager::Get()->RegisterFloatStat("DrawVoxelsAll", "GPU");
+    //engine::Core::StatisticsManager::Get()->RegisterFloatStat("DrawVoxelsAll", "GPU");
     engine::Core::StatisticsManager::Get()->RegisterFloatStat("DrawVisibleChunks", "GPU");
     engine::Core::StatisticsManager::Get()->RegisterFloatStat("GenerateDIB", "GPU");
+    engine::Core::StatisticsManager::Get()->RegisterFloatStat("Stat4", "Test");
   }
 
   ChunkRenderer::~ChunkRenderer()
@@ -174,7 +168,10 @@ namespace Voxels
   void ChunkRenderer::Draw()
   {
     GFX::DebugMarker marker("Draw voxels");
-    STAT_FUNC(DrawVoxelsAll);
+    MEASURE_GPU_TIMER_STAT(DrawVoxelsAll);
+    MEASURE_CPU_TIMER_STAT(Joe);
+
+    engine::Core::StatisticsManager::Get()->PushFloatStatValue("Stat4", rand() % 3);
 
     RenderVisible();
     GenerateDIB();
@@ -189,7 +186,8 @@ namespace Voxels
     // TODO: rendering is glitchy when modifying chunks rapidly
     // this is probably due to how the previous frame's visible chunks will be drawn
     GFX::DebugMarker marker("Draw visible chunks");
-    STAT_FUNC(DrawVisibleChunks);
+    MEASURE_GPU_TIMER_STAT(DrawVisibleChunks);
+
     if (!data->dib)
       return;
 
@@ -232,7 +230,7 @@ namespace Voxels
   void ChunkRenderer::GenerateDIB()
   {
     GFX::DebugMarker marker("Generate draw commands");
-    STAT_FUNC(GenerateDIB);
+    MEASURE_GPU_TIMER_STAT(GenerateDIB);
 
     if (freezeCullingCVar.Get())
       return;

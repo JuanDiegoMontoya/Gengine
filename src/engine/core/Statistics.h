@@ -54,6 +54,22 @@ namespace engine::Core
       return sqrt(Variance());
     }
 
+    T Min() const
+    {
+      auto min = buffer_[0];
+      for (size_t i = 1; i < count_; i++)
+        if (buffer_[i] < min) min = buffer_[i];
+      return min;
+    }
+
+    T Max() const
+    {
+      auto max = buffer_[0];
+      for (size_t i = 1; i < count_; i++)
+        if (buffer_[i] > max) max = buffer_[i];
+      return max;
+    }
+
     auto operator<=>(const StatBuffer&) const = default;
 
   private:
@@ -63,7 +79,7 @@ namespace engine::Core
     double sum_{};
   };
 
-  constexpr size_t STATISTICS_BUFFER_SIZE = 1000;
+  constexpr size_t STATISTICS_BUFFER_SIZE = 500;
 
   class StatisticsManager
   {

@@ -152,6 +152,7 @@
     <ClInclude Include="src\engine\core\Logging.h" />
     <ClInclude Include="src\engine\Directories.h" />
     <ClInclude Include="src\engine\core\Statistics.h" />
+    <ClInclude Include="src\engine\core\StatMacros.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\engine\ecs\system\DebugSystem.cpp" />

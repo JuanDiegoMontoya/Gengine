@@ -83,45 +83,60 @@ namespace GFX
   {
     //return; // UNCOMMENT WHEN DEBUGGING GRAPHICS
 
-    // ignore non-significant error/warning codes
+    // ignore insignificant error/warning codes
     if (id == 131169 || id == 131185 || id == 131218 || id == 131204 || id == 0
       )//|| id == 131188 || id == 131186)
       return;
 
-    std::cout << "---------------" << std::endl;
-    std::cout << "Debug message (" << id << "): " << message << std::endl;
+    std::stringstream errStream;
+    errStream << "OpenGL Debug message (" << id << "): " << message << '\n';
 
     switch (source)
     {
-    case GL_DEBUG_SOURCE_API:             std::cout << "Source: API"; break;
-    case GL_DEBUG_SOURCE_WINDOW_SYSTEM:   std::cout << "Source: Window Manager"; break;
-    case GL_DEBUG_SOURCE_SHADER_COMPILER: std::cout << "Source: Shader Compiler"; break;
-    case GL_DEBUG_SOURCE_THIRD_PARTY:     std::cout << "Source: Third Party"; break;
-    case GL_DEBUG_SOURCE_APPLICATION:     std::cout << "Source: Application"; break;
-    case GL_DEBUG_SOURCE_OTHER:           std::cout << "Source: Other"; break;
-    } std::cout << std::endl;
+    case GL_DEBUG_SOURCE_API:             errStream << "Source: API"; break;
+    case GL_DEBUG_SOURCE_WINDOW_SYSTEM:   errStream << "Source: Window Manager"; break;
+    case GL_DEBUG_SOURCE_SHADER_COMPILER: errStream << "Source: Shader Compiler"; break;
+    case GL_DEBUG_SOURCE_THIRD_PARTY:     errStream << "Source: Third Party"; break;
+    case GL_DEBUG_SOURCE_APPLICATION:     errStream << "Source: Application"; break;
+    case GL_DEBUG_SOURCE_OTHER:           errStream << "Source: Other"; break;
+    }
+
+    errStream << '\n';
 
     switch (type)
     {
-    case GL_DEBUG_TYPE_ERROR:               std::cout << "Type: Error"; break;
-    case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: std::cout << "Type: Deprecated Behaviour"; break;
-    case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:  std::cout << "Type: Undefined Behaviour"; break;
-    case GL_DEBUG_TYPE_PORTABILITY:         std::cout << "Type: Portability"; break;
-    case GL_DEBUG_TYPE_PERFORMANCE:         std::cout << "Type: Performance"; break;
-    case GL_DEBUG_TYPE_MARKER:              std::cout << "Type: Marker"; break;
-    case GL_DEBUG_TYPE_PUSH_GROUP:          std::cout << "Type: Push Group"; break;
-    case GL_DEBUG_TYPE_POP_GROUP:           std::cout << "Type: Pop Group"; break;
-    case GL_DEBUG_TYPE_OTHER:               std::cout << "Type: Other"; break;
-    } std::cout << std::endl;
+    case GL_DEBUG_TYPE_ERROR:               errStream << "Type: Error"; break;
+    case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: errStream << "Type: Deprecated Behaviour"; break;
+    case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:  errStream << "Type: Undefined Behaviour"; break;
+    case GL_DEBUG_TYPE_PORTABILITY:         errStream << "Type: Portability"; break;
+    case GL_DEBUG_TYPE_PERFORMANCE:         errStream << "Type: Performance"; break;
+    case GL_DEBUG_TYPE_MARKER:              errStream << "Type: Marker"; break;
+    case GL_DEBUG_TYPE_PUSH_GROUP:          errStream << "Type: Push Group"; break;
+    case GL_DEBUG_TYPE_POP_GROUP:           errStream << "Type: Pop Group"; break;
+    case GL_DEBUG_TYPE_OTHER:               errStream << "Type: Other"; break;
+    }
+
+    errStream << '\n';
 
     switch (severity)
     {
-    case GL_DEBUG_SEVERITY_HIGH:         std::cout << "Severity: high"; break;
-    case GL_DEBUG_SEVERITY_MEDIUM:       std::cout << "Severity: medium"; break;
-    case GL_DEBUG_SEVERITY_LOW:          std::cout << "Severity: low"; break;
-    case GL_DEBUG_SEVERITY_NOTIFICATION: std::cout << "Severity: notification"; break;
-    } std::cout << std::endl;
-    std::cout << std::endl;
+    case GL_DEBUG_SEVERITY_HIGH:
+      errStream << "Severity: high";
+      spdlog::critical("{}", errStream.str());
+      break;
+    case GL_DEBUG_SEVERITY_MEDIUM:
+      errStream << "Severity: medium";
+      spdlog::error("{}", errStream.str());
+      break;
+    case GL_DEBUG_SEVERITY_LOW:
+      errStream << "Severity: low";
+      spdlog::warn("{}", errStream.str());
+      break;
+    case GL_DEBUG_SEVERITY_NOTIFICATION:
+      errStream << "Severity: notification";
+      spdlog::debug("{}", errStream.str());
+      break;
+    }
   }
 
   //glm::mat4 MVP = CameraSystem::GetViewProj() * modelMatrix;
@@ -226,7 +241,7 @@ namespace GFX
     // do the actual draw
     auto shader = GFX::ShaderManager::Get()->GetShader(material.shaderID);
     shader->Bind();
-    
+
     for (auto& customUniform : material.materialUniforms)
     {
       if (customUniform.Setter)
@@ -692,4 +707,4 @@ namespace GFX
         GL_COLOR_BUFFER_BIT, GL_LINEAR);
     }
   }
-}
+  }

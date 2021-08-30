@@ -71,16 +71,23 @@ namespace engine::Core
       groupNameToFloatStat[pair.first].emplace_back(statName, &pair.second);
     }
 
+    ImGui::Begin("Statistics");
+    ImGui::Indent();
+    ImGui::Text("%-20s: %-10s%-10s%-10s%-10s", "Stat Name", "Average", "Variance", "Min", "Max");
+    ImGui::Unindent();
     for (const auto& [groupName, vec] : groupNameToFloatStat)
     {
-      ImGui::Begin(groupName.data());
-      ImGui::Text("%-20s: %-10s%-10s", "Stat Name", "Average", "Variance");
-      for (const auto& [statName, statBuf] : vec)
+      if (ImGui::TreeNode(groupName.data()))
       {
-        ImGui::Text("%-20s: %-10f%-10f", statName.data(), statBuf->Mean(), statBuf->Variance());
-        ImGui::Separator();
+        for (const auto& [statName, statBuf] : vec)
+        {
+          ImGui::Text("%-20s: %-10f%-10f%-10f%-10f", statName.data(), statBuf->Mean(), statBuf->Variance(), statBuf->Min(), statBuf->Max());
+          ImGui::Separator();
+        }
+        ImGui::TreePop();
       }
-      ImGui::End();
+      
     }
+    ImGui::End();
   }
 }
