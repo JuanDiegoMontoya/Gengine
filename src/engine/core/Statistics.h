@@ -70,8 +70,6 @@ namespace engine::Core
       return max;
     }
 
-    auto operator<=>(const StatBuffer&) const = default;
-
   private:
     std::array<T, N> buffer_{};
     size_t next_{};

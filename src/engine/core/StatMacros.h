@@ -28,4 +28,5 @@
   Defer SM_CONCAT(sm_defer, __LINE__)([]() \
   { \
     engine::Core::StatisticsManager::Get()->PushFloatStatValue(#name, SM_CONCAT(sm_timer, __LINE__).Elapsed() / 1000.0); \
+    SM_CONCAT(sm_timer, __LINE__).Reset(); \
   })

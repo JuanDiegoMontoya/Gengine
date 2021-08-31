@@ -45,7 +45,7 @@ layout(std430, binding = 0) restrict readonly buffer VertexData
 layout(location = 0) out vec3 vPos;
 layout(location = 1) out vec3 vTexCoord;
 layout(location = 2) out vec4 vLighting; // RGBSun
-layout(location = 3) out float vAmbientOcclusion;
+layout(location = 3) out flat uint vQuadAO;
 
 const vec3 normals[] =
 {
@@ -124,8 +124,9 @@ void main()
   uint quadAO;
   DecodeQuadLight(quadData[1], vLighting, quadAO);
 
-  uint myAO = (quadAO >> (vertexIndex * 2)) & 0x3;
-  vAmbientOcclusion = float(myAO) / 3.0;
+  vQuadAO = quadAO;
+  //uint myAO = (quadAO >> (vertexIndex * 2)) & 0x3;
+  //vAmbientOcclusion = float(myAO) / 3.0;
 
   gl_Position = u_viewProj * vec4(vPos, 1.0);
 }

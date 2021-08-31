@@ -253,12 +253,12 @@ namespace Voxels
     }
 
 
-    //Physics::PhysicsManager::RemoveActorGeneric(tActor);
+    Physics::PhysicsManager::RemoveActorGeneric(tActor);
 
-    //tActor = reinterpret_cast<physx::PxRigidActor*>(
-    //  Physics::PhysicsManager::AddStaticActorGeneric(
-    //    Physics::MaterialType::TERRAIN, tCollider,
-    //    glm::translate(glm::mat4(1), glm::vec3(parentCopy->GetPos() * Chunk::CHUNK_SIZE))));
+    tActor = reinterpret_cast<physx::PxRigidActor*>(
+      Physics::PhysicsManager::AddStaticActorGeneric(
+        Physics::MaterialType::TERRAIN, tCollider,
+        glm::translate(glm::mat4(1), glm::vec3(parentCopy->GetPos() * Chunk::CHUNK_SIZE))));
 
     for (int i = 0; i < fCount; i++)
     {

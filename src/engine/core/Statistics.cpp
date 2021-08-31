@@ -65,28 +65,43 @@ namespace engine::Core
     // key: group name
     // value: pair containing <stat name, pointer to stat buffer>
     // IMPORTANT: the group name and stat names are swapped compared to that in `floatStats`
-    std::unordered_map<hashed_string, std::vector<std::pair<hashed_string, const StatBuffer<float, STATISTICS_BUFFER_SIZE>*>>, KeyHash> groupNameToFloatStat;
+    struct StatBufValues
+    {
+      double mean{};
+      double variance{};
+      double min{};
+      double max{};
+    };
+    std::unordered_map<hashed_string, std::vector<std::pair<hashed_string, StatBufValues>>, KeyHash> groupNameToFloatStat;
     for (auto& [statName, pair] : data->floatStats)
     {
-      groupNameToFloatStat[pair.first].emplace_back(statName, &pair.second);
+      StatBufValues vals
+      {
+        .mean = pair.second.Mean(),
+        .variance = pair.second.Variance(),
+        .min = pair.second.Min(),
+        .max = pair.second.Max()
+      };
+      groupNameToFloatStat[pair.first].emplace_back(statName, vals);
     }
 
     ImGui::Begin("Statistics");
     ImGui::Indent();
     ImGui::Text("%-20s: %-10s%-10s%-10s%-10s", "Stat Name", "Average", "Variance", "Min", "Max");
     ImGui::Unindent();
-    for (const auto& [groupName, vec] : groupNameToFloatStat)
+
+    for (auto& [groupName, vec] : groupNameToFloatStat)
     {
+      std::sort(vec.begin(), vec.end(), [](const auto& a, const auto& b) { return a.second.max > b.second.max; });
       if (ImGui::TreeNode(groupName.data()))
       {
-        for (const auto& [statName, statBuf] : vec)
+        for (const auto& [statName, statVals] : vec)
         {
-          ImGui::Text("%-20s: %-10f%-10f%-10f%-10f", statName.data(), statBuf->Mean(), statBuf->Variance(), statBuf->Min(), statBuf->Max());
+          ImGui::Text("%-20s: %-10f%-10f%-10f%-10f", statName.data(), statVals.mean, statVals.variance, statVals.min, statVals.max);
           ImGui::Separator();
         }
         ImGui::TreePop();
       }
-      
     }
     ImGui::End();
   }

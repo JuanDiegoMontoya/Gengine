@@ -563,16 +563,6 @@ namespace GFX
     ImGui::SliderFloat("u_fog2Density", &fog.u_fog2Density, 0, 1.0f, "%.5f", ImGuiSliderFlags_Logarithmic);
     ImGui::SliderFloat("u_beer", &fog.u_beer, 0, 5.0f);
     ImGui::SliderFloat("u_powder", &fog.u_powder, 0, 5.0f);
-    if (ImGui::Button("Recompile"))
-    {
-      GFX::ShaderManager::Get()->AddShader("tonemap",
-        {
-          { "fullscreen_tri.vs", GFX::ShaderType::VERTEX },
-          { "tonemap.fs", GFX::ShaderType::FRAGMENT }
-        });
-      GFX::ShaderManager::Get()->AddShader("calc_exposure",
-        { { "calc_exposure.cs", GFX::ShaderType::COMPUTE } });
-    }
     ImGui::End();
   }
 

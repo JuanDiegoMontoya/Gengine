@@ -45,7 +45,11 @@ vec3 sRGB(vec3 linearColor)
 void main()
 {
   vec3 hdrColor = texture(u_hdrBuffer, vTexCoord).rgb;
+#if 0
   vec3 ldr = ACESFitted(hdrColor) * u_exposureFactor * readExposure;
+#else
+  vec3 ldr = ACESFitted(hdrColor * u_exposureFactor * readExposure);
+#endif
 
   if (u_useDithering)
   {

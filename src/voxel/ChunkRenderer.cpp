@@ -331,8 +331,8 @@ namespace Voxels
 
     // IDEA: RenderOcclusion generates a mask to use for the NEXT frame's RenderRest pass
     // the mask will contain all the chunks that were to be drawn at the start of that frame's RenderVisible pass
-    // the current frame will 
-
+    // the current frame will ...
+    
     ASSERT(0); // not implemented
   }
 
