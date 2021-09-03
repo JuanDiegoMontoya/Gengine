@@ -36,9 +36,7 @@ bool clipTransparency(float alpha)
 
 vec3 GetNormal()
 {
-  vec3 dudx = dFdx(vPos);
-  vec3 dudy = dFdy(vPos);
-  return normalize(cross(dudx, dudy));
+  return normalize(cross(dFdx(vPos), dFdy(vPos)));
 }
 
 float CalculateAO()
@@ -65,7 +63,7 @@ void main()
   vec4 texColor = texture(textures, vTexCoord).rgba;
 
   // dithering
-  if ((texColor.a < 1 && clipTransparency(texColor.a) || texColor.a == 0))
+  if ((texColor.a < 1.0 && clipTransparency(texColor.a) || texColor.a == 0.0))
   {
     discard;
   }

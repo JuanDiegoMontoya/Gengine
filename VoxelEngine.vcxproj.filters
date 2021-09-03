@@ -153,6 +153,10 @@
     <ClInclude Include="src\engine\Directories.h" />
     <ClInclude Include="src\engine\core\Statistics.h" />
     <ClInclude Include="src\engine\core\StatMacros.h" />
+    <ClInclude Include="src\engine\gfx\CameraManager.h" />
+    <ClInclude Include="src\engine\core\CoreMacros.h" />
+    <ClInclude Include="src\engine\gfx\Framebuffer.h" />
+    <ClInclude Include="src\engine\gfx\BasicTypes.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\engine\ecs\system\DebugSystem.cpp" />
@@ -215,6 +219,7 @@
     <ClCompile Include="src\utility\Timer.cpp" />
     <ClCompile Include="src\engine\core\Logging.cpp" />
     <ClCompile Include="src\engine\core\Statistics.cpp" />
+    <ClCompile Include="src\engine\gfx\Framebuffer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="src\engine\gfx\DynamicBuffer.inl" />

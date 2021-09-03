@@ -27,6 +27,7 @@
     <ClInclude Include="src\engine\Camera.h" />
     <ClInclude Include="src\engine\Console.h" />
     <ClInclude Include="src\engine\Context.h" />
+    <ClInclude Include="src\engine\core\CoreMacros.h" />
     <ClInclude Include="src\engine\core\Logging.h" />
     <ClInclude Include="src\engine\core\Statistics.h" />
     <ClInclude Include="src\engine\core\StatMacros.h" />
@@ -49,6 +50,9 @@
     <ClInclude Include="src\engine\ecs\system\PhysicsSystem.h" />
     <ClInclude Include="src\engine\ecs\system\ScriptSystem.h" />
     <ClInclude Include="src\engine\Engine.h" />
+    <ClInclude Include="src\engine\gfx\CameraManager.h" />
+    <ClInclude Include="src\engine\gfx\Framebuffer.h" />
+    <ClInclude Include="src\engine\gfx\BasicTypes.h" />
     <ClInclude Include="src\engine\gfx\MeshManager.h" />
     <ClInclude Include="src\engine\Timestep.h" />
     <ClInclude Include="src\utility\Flags.h" />
@@ -262,6 +266,12 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">../PCH.h</PrecompiledHeaderFile>
     </ClCompile>
     <ClCompile Include="src\engine\gfx\Fence.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../PCH.h</PrecompiledHeaderFile>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">../PCH.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <ClCompile Include="src\engine\gfx\Framebuffer.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../PCH.h</PrecompiledHeaderFile>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>

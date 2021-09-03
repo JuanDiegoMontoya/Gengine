@@ -56,21 +56,24 @@ MeshID MeshManager::GetMeshBatched(hashed_string name)
 
 void MeshManager::GenBatchedHandle_GL(hashed_string handle, const std::vector<uint32_t>& indices, const std::vector<Vertex>& vertices)
 {
+  auto* vb = GFX::Renderer::Get()->GetVertexBuffer();
+  auto* ib = GFX::Renderer::Get()->GetIndexBuffer();
+
 	// never freed
-	auto vh = GFX::Renderer::vertexBuffer->Allocate(vertices.data(), vertices.size() * sizeof(Vertex));
-	auto ih = GFX::Renderer::indexBuffer->Allocate(indices.data(), indices.size() * sizeof(uint32_t));
-	const auto& vinfo = GFX::Renderer::vertexBuffer->GetAlloc(vh);
-	const auto& iinfo = GFX::Renderer::indexBuffer->GetAlloc(ih);
+	auto vh = vb->Allocate(vertices.data(), vertices.size() * sizeof(Vertex));
+	auto ih = ib->Allocate(indices.data(), indices.size() * sizeof(uint32_t));
+	const auto& vinfo = vb->GetAlloc(vh);
+	const auto& iinfo = ib->GetAlloc(ih);
 	IDMap_[handle] = { vh, ih };
 	
 	// generate an indirect draw command with most of the info needed to draw this mesh
 	DrawElementsIndirectCommand cmd{};
-	cmd.baseVertex = vinfo.offset / GFX::Renderer::vertexBuffer->align_;
+	cmd.baseVertex = vinfo.offset / vb->align_;
 	cmd.instanceCount = 0;
 	cmd.count = static_cast<uint32_t>(indices.size());
-	cmd.firstIndex = iinfo.offset / GFX::Renderer::indexBuffer->align_;
+	cmd.firstIndex = iinfo.offset / ib->align_;
 	//cmd.baseInstance = ?; // only knowable after all user draw calls are submitted
-  GFX::Renderer::meshBufferInfo[handle] = cmd;
+  GFX::Renderer::Get()->GetMeshBufferInfos()->operator[](handle) = cmd;
 }
 
 //void MeshManager::DestroyBatchedMesh(MeshID handle)

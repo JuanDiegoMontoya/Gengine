@@ -7,6 +7,7 @@
 #include <engine/gfx/DynamicBuffer.h>
 #include <engine/gfx/Indirect.h>
 #include "Texture.h"
+#include "Framebuffer.h"
 
 namespace Component
 {
@@ -22,46 +23,70 @@ namespace GFX
   class Renderer
   {
   public:
-    static void Init();
-    static void CompileShaders();
+    static [[nodiscard]] Renderer* Get();
 
-    static void BeginBatch(size_t size);
-    static void Submit(const Component::Model& model, const Component::BatchedMesh& mesh, const Component::Material& mat);
-    static void RenderBatch();
-    static void BeginRenderParticleEmitter();
-    static void RenderParticleEmitter(const Component::ParticleEmitter& emitter, const Component::Transform& model);
+    Renderer(const Renderer&) = delete;
+    Renderer(Renderer&&) = delete;
+    Renderer& operator=(const Renderer&) = delete;
+    Renderer& operator=(Renderer&&) = delete;
+
+    void Init();
+    void CompileShaders();
+
+    void BeginBatch(size_t size);
+    void Submit(const Component::Model& model, const Component::BatchedMesh& mesh, const Component::Material& mat);
+    void RenderBatch();
+    void BeginRenderParticleEmitter();
+    void RenderParticleEmitter(const Component::ParticleEmitter& emitter, const Component::Transform& model);
 
     // generic drawing functions (TODO: move)
-    static void DrawAxisIndicator();
+    void DrawAxisIndicator();
 
-    static void DrawSkybox();
+    void DrawSkybox();
 
-    static void StartFrame();
-    static void EndFrame(float dt);
+    void StartFrame();
+    void EndFrame(float dt);
+
+    [[nodiscard]] GFX::DynamicBuffer<>* GetVertexBuffer()
+    {
+      return vertexBuffer.get();
+    }
+
+    [[nodiscard]] GFX::DynamicBuffer<>* GetIndexBuffer()
+    {
+      return indexBuffer.get();
+    }
+
+    [[nodiscard]] auto* GetMeshBufferInfos()
+    {
+      return &meshBufferInfo;
+    }
 
   private:
-    friend class MeshManager;
     friend class ParticleSystem;
     friend class GraphicsSystem;
+
+    Renderer() {};
+    ~Renderer() {};
 
     // std140
     struct UniformData
     {
       glm::mat4 model;
     };
-    static void RenderBatchHelper(MaterialID material, const std::vector<UniformData>& uniformBuffer);
+    void RenderBatchHelper(MaterialID material, const std::vector<UniformData>& uniformBuffer);
 
     // batched+instanced rendering stuff (ONE MATERIAL SUPPORTED ATM)
-    static inline std::unique_ptr<GFX::DynamicBuffer<>> vertexBuffer;
-    static inline std::unique_ptr<GFX::DynamicBuffer<>> indexBuffer;
+    std::unique_ptr<GFX::DynamicBuffer<>> vertexBuffer;
+    std::unique_ptr<GFX::DynamicBuffer<>> indexBuffer;
 
     // per-vertex layout
-    static inline uint32_t batchVAO;
+    uint32_t batchVAO;
 
     // maps handles to VERTEX and INDEX information in the respective dynamic buffers
     // used to retrieve important offset and size info for meshes
-    using DBaT = GFX::DynamicBuffer<>::allocationData<>;
-    static inline std::map<uint32_t, DrawElementsIndirectCommand> meshBufferInfo;
+    //using DBaT = GFX::DynamicBuffer<>::allocationData<>;
+    std::map<uint32_t, DrawElementsIndirectCommand> meshBufferInfo;
 
     struct BatchDrawCommand
     {
@@ -69,19 +94,26 @@ namespace GFX
       MaterialID material;
       glm::mat4 modelUniform;
     };
-    static inline std::vector<BatchDrawCommand> userCommands;
-    static inline std::atomic_uint32_t cmdIndex{ 0 };
+    std::vector<BatchDrawCommand> userCommands;
+    std::atomic_uint32_t cmdIndex{ 0 };
 
-    static inline uint32_t emptyVao{};
+    uint32_t emptyVao{};
 
     // HDR inverse-z framebuffer stuff
-    static inline uint32_t hdrFbo{};
-    static inline uint32_t ldrFbo{};
-    static inline uint32_t ldrColorTex{};
-    static inline int windowWidth = 1920, windowHeight = 1017;
-    static inline int renderWidth = 1920, renderHeight = 1017;
-    static inline uint32_t hdrColorTex;
-    static inline uint32_t hdrDepthTex;
+    uint32_t ldrFbo{};
+    uint32_t ldrColorTex{};
+    uint32_t windowWidth = 1920, windowHeight = 1017;
+    uint32_t renderWidth = 1920, renderHeight = 1017;
+    //uint32_t hdrFbo{};
+    //uint32_t hdrColorTex;
+    //uint32_t hdrDepthTex;
+    std::optional<Framebuffer> hdrFbo;
+    std::optional<Texture> hdrColorTexMemory;
+    std::optional<Texture> hdrDepthTexMemory;
+    std::optional<TextureView> hdrColorTexView;
+    std::optional<TextureView> hdrDepthTexView;
+    std::optional<TextureSampler> hdrColorSampler;
+    std::optional<TextureSampler> hdrDepthSampler;
 
     struct FogParams
     {
@@ -94,7 +126,7 @@ namespace GFX
       float u_fog2Density = 0.005f;
       float u_beer = 1.0f;
       float u_powder = 1.0f;
-    }static inline fog;
+    }fog;
 
     struct TonemapperParams
     {
@@ -110,7 +142,7 @@ namespace GFX
       std::optional<GFX::TextureView> blueNoiseView;
       std::optional<GFX::TextureSampler> blueNoiseSampler;
       bool tonemapDither = true;
-    }static inline tonemap;
+    }tonemap;
 
     struct FXAAParams
     {
@@ -119,6 +151,6 @@ namespace GFX
       float relativeThreshold = 0.125;
       float pixelBlendStrength = 0.2;
       float edgeBlendStrength = 1.0;
-    }static inline fxaa;
+    }fxaa;
   };
 }

@@ -1,18 +1,5 @@
 #version 460 core
 
-// aEncoded layout (left to right bits):
-// 0 - 17   18 - 20   21 - 31
-// vertex   normal    texcoord
-// vertex = x, y, z from 0-32 (supports up to 63)
-// normal = 0 - 5 index into "normals" table
-// texcoord = texture index (0 - 512), corner index (0 - 3)
-//layout (location = 0) in uint aEncoded; // (per vertex)
-
-// aLighting layout
-// 0 - 12   13 - 15   16 - 19   20 - 23   24 - 27   28 - 31
-// unused    dirCent     R         G         B         Sun
-//layout (location = 1) in uint aLighting;// (per vertex)
-
 // per-chunk info
 layout(location = 0) in ivec3 u_pos; // (per instance)
 
@@ -47,6 +34,7 @@ layout(location = 1) out vec3 vTexCoord;
 layout(location = 2) out vec4 vLighting; // RGBSun
 layout(location = 3) out flat uint vQuadAO;
 
+// unused
 const vec3 normals[] =
 {
   { 0, 0, 1 }, // 'far' face    (+z direction)

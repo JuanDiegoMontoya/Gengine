@@ -295,24 +295,59 @@ namespace GFX
 #endif
   }
 
+  Renderer* Renderer::Get()
+  {
+    static Renderer renderer{};
+    return &renderer;
+  }
+
   void Renderer::Init()
   {
     glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
 
     //const int levels = glm::floor(glm::log2(glm::max(fboWidth, fboHeight))) + 1;
-    glCreateTextures(GL_TEXTURE_2D, 1, &hdrColorTex);
-    glTextureStorage2D(hdrColorTex, 1, GL_RGBA16F, renderWidth, renderHeight);
-
-    glCreateTextures(GL_TEXTURE_2D, 1, &hdrDepthTex);
-    glTextureStorage2D(hdrDepthTex, 1, GL_DEPTH_COMPONENT32F, renderWidth, renderHeight);
-
-    glCreateFramebuffers(1, &hdrFbo);
-    glNamedFramebufferTexture(hdrFbo, GL_COLOR_ATTACHMENT0, hdrColorTex, 0);
-    glNamedFramebufferTexture(hdrFbo, GL_DEPTH_ATTACHMENT, hdrDepthTex, 0);
-    if (GLenum status = glCheckNamedFramebufferStatus(hdrFbo, GL_FRAMEBUFFER); status != GL_FRAMEBUFFER_COMPLETE)
+    TextureCreateInfo hdrColorTexInfo
     {
-      fprintf(stderr, "glCheckNamedFramebufferStatus: %x\n", status);
-    }
+      .imageType = ImageType::TEX_2D,
+      .format = Format::R16G16B16A16_FLOAT,
+      .extent = Extent3D{.width = renderWidth, .height = renderHeight, .depth = 1 },
+      .mipLevels = 1,
+      .arrayLayers = 1
+    };
+    TextureCreateInfo hdrDepthTexInfo
+    {
+      .imageType = ImageType::TEX_2D,
+      .format = Format::D32_FLOAT,
+      .extent = Extent3D{.width = renderWidth, .height = renderHeight, .depth = 1 },
+      .mipLevels = 1,
+      .arrayLayers = 1
+    };
+    hdrColorTexMemory.emplace(*Texture::Create(hdrColorTexInfo, "HDR Color Texture"));
+    hdrDepthTexMemory.emplace(*Texture::Create(hdrDepthTexInfo, "HDR Depth Texture"));
+
+    hdrColorTexView.emplace(*TextureView::Create(*hdrColorTexMemory, "HDR Color View"));
+    hdrDepthTexView.emplace(*TextureView::Create(*hdrDepthTexMemory, "HDR Depth View"));
+
+    hdrColorSampler.emplace(*TextureSampler::Create({}, "HDR Color Sampler"));
+    hdrDepthSampler.emplace(*TextureSampler::Create({}, "HDR Depth Sampler"));
+
+    hdrFbo.emplace();
+    hdrFbo->SetAttachment(Attachment::COLOR_0, *hdrColorTexView, 0);
+    hdrFbo->SetAttachment(Attachment::DEPTH, *hdrDepthTexView, 0);
+    ASSERT(hdrFbo->IsValid());
+    //glCreateTextures(GL_TEXTURE_2D, 1, &hdrColorTex);
+    //glTextureStorage2D(hdrColorTex, 1, GL_RGBA16F, renderWidth, renderHeight);
+
+    //glCreateTextures(GL_TEXTURE_2D, 1, &hdrDepthTex);
+    //glTextureStorage2D(hdrDepthTex, 1, GL_DEPTH_COMPONENT32F, renderWidth, renderHeight);
+
+    //glCreateFramebuffers(1, &hdrFbo);
+    //glNamedFramebufferTexture(hdrFbo, GL_COLOR_ATTACHMENT0, hdrColorTex, 0);
+    //glNamedFramebufferTexture(hdrFbo, GL_DEPTH_ATTACHMENT, hdrDepthTex, 0);
+    //if (GLenum status = glCheckNamedFramebufferStatus(hdrFbo, GL_FRAMEBUFFER); status != GL_FRAMEBUFFER_COMPLETE)
+    //{
+    //  fprintf(stderr, "glCheckNamedFramebufferStatus: %x\n", status);
+    //}
 
     glCreateTextures(GL_TEXTURE_2D, 1, &ldrColorTex);
     glTextureStorage2D(ldrColorTex, 1, GL_RGBA16, renderWidth, renderHeight);
@@ -537,7 +572,8 @@ namespace GFX
 
   void Renderer::StartFrame()
   {
-    glBindFramebuffer(GL_FRAMEBUFFER, hdrFbo);
+    //glBindFramebuffer(GL_FRAMEBUFFER, hdrFbo);
+    hdrFbo->Bind();
     glClearDepth(0.0f);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glDepthMask(GL_TRUE);
@@ -587,8 +623,10 @@ namespace GFX
       shader.SetFloat("u_beer", fog.u_beer);
       shader.SetFloat("u_powder", fog.u_powder);
 
-      glBindTextureUnit(0, hdrColorTex);
-      glBindTextureUnit(1, hdrDepthTex);
+      //glBindTextureUnit(0, hdrColorTex);
+      //glBindTextureUnit(1, hdrDepthTex);
+      hdrColorTexView->Bind(0, *hdrColorSampler);
+      hdrDepthTexView->Bind(1, *hdrDepthSampler);
       glBindVertexArray(emptyVao);
       glDepthMask(GL_FALSE);
       glDisable(GL_CULL_FACE);

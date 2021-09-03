@@ -86,6 +86,13 @@ namespace GFX
       GL_RGBA16UI,
       GL_RGBA32I,
       GL_RGBA32UI,
+
+      GL_DEPTH_COMPONENT32F,
+      GL_DEPTH_COMPONENT32,
+      GL_DEPTH_COMPONENT24,
+      GL_DEPTH_COMPONENT16,
+      GL_DEPTH32F_STENCIL8,
+      GL_DEPTH24_STENCIL8,
     };
 
     static GLint sampleCounts[]{ 1, 2, 4, 8, 16 };
@@ -207,12 +214,14 @@ namespace GFX
 
   Texture::Texture(Texture&& old) noexcept
   {
-    *this = std::move(old);
+    id_ = std::exchange(old.id_, 0);
+    createInfo_ = old.createInfo_;
   }
 
   Texture& Texture::operator=(Texture&& old) noexcept
   {
     if (&old == this) return *this;
+    this->~Texture();
     id_ = std::exchange(old.id_, 0);
     createInfo_ = old.createInfo_;
     return *this;
@@ -285,7 +294,8 @@ namespace GFX
 
   TextureView::TextureView(TextureView&& old) noexcept
   {
-    *this = std::move(old);
+    id_ = std::exchange(old.id_, 0);
+    createInfo_ = old.createInfo_;
   }
 
   TextureView& TextureView::operator=(const TextureView& other)
@@ -298,6 +308,7 @@ namespace GFX
   TextureView& TextureView::operator=(TextureView&& old) noexcept
   {
     if (&old == this) return *this;
+    this->~TextureView();
     id_ = std::exchange(old.id_, 0);
     createInfo_ = old.createInfo_;
     return *this;
@@ -353,7 +364,8 @@ namespace GFX
 
   TextureSampler::TextureSampler(TextureSampler&& old) noexcept
   {
-    *this = std::move(old);
+    id_ = std::exchange(old.id_, 0);
+    samplerState_ = old.samplerState_;
   }
 
   TextureSampler& TextureSampler::operator=(const TextureSampler& other)
@@ -366,6 +378,7 @@ namespace GFX
   TextureSampler& TextureSampler::operator=(TextureSampler&& old) noexcept
   {
     if (&old == this) return *this;
+    this->~TextureSampler();
     id_ = std::exchange(old.id_, 0);
     samplerState_ = old.samplerState_;
     return *this;
