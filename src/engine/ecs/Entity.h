@@ -1,6 +1,7 @@
 #pragma once
 #include "../Scene.h"
 #include <entt/entity/entity.hpp>
+#include <entt/entity/registry.hpp>
 #include <engine/GAssert.h>
 
 // "lightweight object"
@@ -21,52 +22,52 @@ public:
   T& AddComponent(Args&&... args)
   {
     ASSERT_MSG(!HasComponent<T>(), "Entity already has component!");
-    return scene_->registry_.emplace<T>(entityHandle_, std::forward<Args>(args)...);
+    return scene_->GetRegistry().emplace<T>(entityHandle_, std::forward<Args>(args)...);
   }
 
   template<typename T, typename... Args>
   T& GetOrAddComponent(Args&&... args)
   {
-    return scene_->registry_.get_or_emplace<T>(entityHandle_, std::forward<Args>(args)...);
+    return scene_->GetRegistry().get_or_emplace<T>(entityHandle_, std::forward<Args>(args)...);
   }
 
   template<typename T>
   [[nodiscard]] T& GetComponent()
   {
     ASSERT_MSG(HasComponent<T>(), "Entity missing component!");
-    return scene_->registry_.get<T>(entityHandle_);
+    return scene_->GetRegistry().get<T>(entityHandle_);
   }
 
   template<typename T>
   [[nodiscard]] const T& GetComponent() const
   {
     ASSERT_MSG(HasComponent<T>(), "Entity missing component!");
-    return scene_->registry_.get<T>(entityHandle_);
+    return scene_->GetRegistry().get<T>(entityHandle_);
   }
 
   template<typename T>
   [[nodiscard]] T* TryGetComponent()
   {
-    return scene_->registry_.try_get<T>(entityHandle_);
+    return scene_->GetRegistry().try_get<T>(entityHandle_);
   }
 
   template<typename T>
   [[nodiscard]] T* TryGetComponent() const
   {
-    return scene_->registry_.try_get<T>(entityHandle_);
+    return scene_->GetRegistry().try_get<T>(entityHandle_);
   }
 
   template<typename T>
   [[nodiscard]] bool HasComponent() const
   {
-    return scene_->registry_.has<T>(entityHandle_);
+    return scene_->GetRegistry().has<T>(entityHandle_);
   }
 
   template<typename T>
   void RemoveComponent()
   {
     ASSERT_MSG(HasComponent<T>(), "Entity missing component!");
-    scene_->registry_.remove<T>(entityHandle_);
+    scene_->GetRegistry().remove<T>(entityHandle_);
   }
 
   operator bool() const { return entityHandle_ != entt::null; }

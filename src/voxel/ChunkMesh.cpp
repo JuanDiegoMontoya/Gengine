@@ -178,7 +178,7 @@ namespace Voxels
     }
     needsBuffering_ = false;
 
-    voxelManager_->chunkRenderer_->FreeChunk(bufferHandle);
+    voxelManager_->chunkRenderer_->FreeChunkMesh(bufferHandle);
     bufferHandle = 0;
 
     // nothing emitted, don't try to make buffers
@@ -187,7 +187,7 @@ namespace Voxels
       return;
     }
 
-    bufferHandle = voxelManager_->chunkRenderer_->AllocChunk(interleavedArr, parentChunk->GetAABB());
+    bufferHandle = voxelManager_->chunkRenderer_->AllocChunkMesh(interleavedArr, parentChunk->GetAABB());
 
     interleavedArr.clear();
     tCollider.vertices.clear();
@@ -415,7 +415,7 @@ namespace Voxels
 
   ChunkMesh::~ChunkMesh()
   {
-    data->voxelManager_->chunkRenderer_->FreeChunk(data->bufferHandle);
+    data->voxelManager_->chunkRenderer_->FreeChunkMesh(data->bufferHandle);
     if (data->tActor)
     {
       Physics::PhysicsManager::RemoveActorGeneric(data->tActor);

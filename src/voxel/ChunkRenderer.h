@@ -17,14 +17,13 @@ namespace Voxels
   public:
     ChunkRenderer();
     ~ChunkRenderer();
-    //void InitAllocator();
 
     // for debug
     void DrawBuffers();
     void Draw();
 
-    uint64_t AllocChunk(std::span<uint32_t> vertices, const AABB& aabb);
-    void FreeChunk(uint64_t allocHandle);
+    uint64_t AllocChunkMesh(std::span<uint32_t> vertices, const AABB& aabb);
+    void FreeChunkMesh(uint64_t allocHandle);
 
     /* $$$$$$$$$$$$$$$   Culling pipeline stuff   $$$$$$$$$$$$$$$$
 
@@ -37,7 +36,7 @@ namespace Voxels
             any chunk whose BB was drawn will be set to draw in next frame
             no color or depth is written in this phase
         phase 4 (maybe optional):
-          render chunks whose visibility changed to true
+          render chunks whose visibility changed to true this frame
           will lower FPS, but will prevent temporal occlusion holes
 
     $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$*/
@@ -48,6 +47,7 @@ namespace Voxels
     void RenderOcclusion(); // phase 3
     void RenderRest();      // phase 4
 
+    // PIMPL
     struct ChunkRendererStorage* data{};
   };
 }

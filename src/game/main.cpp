@@ -354,7 +354,7 @@ void OnStart(Scene* scene)
       Entity entity = scene->CreateEntity("rainmaker");
       entity.AddComponent<Component::Transform>();
       entity.AddComponent<Component::LocalTransform>();
-      scene->GetEntity("player")->AddChild(entity);
+      scene->GetEntity("player").AddChild(entity);
       Component::ParticleEmitter emitter;
 
       // rain
@@ -439,7 +439,7 @@ void OnUpdate([[maybe_unused]] Timestep timestep)
 void OnDraw([[maybe_unused]] Timestep timestep)
 {
   voxelManager->Draw();
-  GFX::Renderer::DrawAxisIndicator();
+  GFX::Renderer::Get()->DrawAxisIndicator();
 }
 
 int main()

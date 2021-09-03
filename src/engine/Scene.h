@@ -1,9 +1,7 @@
 #pragma once
-#include <entt/entt.hpp>
-#include <string>
 #include <string_view>
-#include <optional>
-
+#include <memory>
+#include <entt/fwd.hpp>
 
 class Entity;
 class Engine;
@@ -11,7 +9,7 @@ class Engine;
 class Scene
 {
 public:
-  Scene(std::string_view name, Engine& engine);
+  Scene(std::string_view name, Engine* engine);
   ~Scene();
 
   Entity CreateEntity(std::string_view name = "");
@@ -19,11 +17,11 @@ public:
   // Returns an entity whose tag matches the given name.
   // A null entity is returned if no matches are found.
   // If there are multiple matches, the first match is returned.
-  std::optional<Entity> GetEntity(std::string_view name);
+  Entity GetEntity(std::string_view name);
 
-  Engine& GetEngine() { return engine_; }
+  Engine& GetEngine() { return *engine_; }
   std::string_view GetName() { return name_; }
-  entt::registry& GetRegistry() { return registry_; }
+  entt::registry& GetRegistry() { return *registry_; }
 
   Scene(Scene&&) noexcept = delete;
   Scene(Scene&) = delete;
@@ -32,10 +30,7 @@ public:
   bool operator==(const Scene&) const = delete;
 
 private:
-  friend class Entity;
-  entt::registry registry_{};
-
-  Engine& engine_;
-
-  std::string name_;
+  entt::registry* registry_{}; // all the entities in this scene
+  Engine* engine_;                             // non-owning
+  std::string name_;                           // the name of this scene
 };

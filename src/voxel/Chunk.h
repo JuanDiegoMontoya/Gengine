@@ -1,9 +1,8 @@
 #pragma once
 #include <voxel/block.h>
 #include <voxel/light.h>
-#include <mutex>
+#include <shared_mutex>
 #include <engine/Shapes.h>
-#include <concurrent_vector.h>
 #include <voxel/ChunkHelpers.h>
 #include <voxel/BlockStorage.h>
 #include <voxel/ChunkMesh.h>

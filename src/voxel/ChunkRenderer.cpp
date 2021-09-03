@@ -27,8 +27,8 @@ AutoCVar<cvar_float> freezeCullingCVar("v.freezeCulling", "- If enabled, freezes
 AutoCVar<cvar_float> drawOcclusionVolumesCVar("v.drawOcclusionVolumes", "- If enabled, draws occlusion volumes", 0, 0, 1, CVarFlag::CHEAT);
 AutoCVar<cvar_float> anisotropyCVar("v.anisotropy", "- Level of anisotropic filtering to apply to voxels", 16, 1, 16);
 
-DECLARE_FLOAT_STAT(DrawVoxelsAll, GPU);
-DECLARE_FLOAT_STAT(Joe, CPU);
+DECLARE_FLOAT_STAT(DrawVoxelsAll, GPU)
+DECLARE_FLOAT_STAT(Joe, CPU)
 
 static GFX::Anisotropy getAnisotropy(cvar_float val)
 {
@@ -138,7 +138,6 @@ namespace Voxels
     //engine::Core::StatisticsManager::Get()->RegisterFloatStat("DrawVoxelsAll", "GPU");
     engine::Core::StatisticsManager::Get()->RegisterFloatStat("DrawVisibleChunks", "GPU");
     engine::Core::StatisticsManager::Get()->RegisterFloatStat("GenerateDIB", "GPU");
-    engine::Core::StatisticsManager::Get()->RegisterFloatStat("Stat4", "Test");
   }
 
   ChunkRenderer::~ChunkRenderer()
@@ -148,8 +147,6 @@ namespace Voxels
 
   void ChunkRenderer::DrawBuffers()
   {
-    //glDisable(GL_DEPTH_TEST);
-
     auto sdr = GFX::ShaderManager::Get()->GetShader("buffer_vis");
     sdr->Bind();
     glm::mat4 model(1);
@@ -161,8 +158,6 @@ namespace Voxels
     glDepthFunc(GL_ALWAYS);
     data->verticesAllocator->Draw();
     glLineWidth(2);
-
-    //glEnable(GL_DEPTH_TEST);
   }
 
   void ChunkRenderer::Draw()
@@ -171,14 +166,10 @@ namespace Voxels
     MEASURE_GPU_TIMER_STAT(DrawVoxelsAll);
     MEASURE_CPU_TIMER_STAT(Joe);
 
-    engine::Core::StatisticsManager::Get()->PushFloatStatValue("Stat4", rand() % 3);
-
     RenderVisible();
     GenerateDIB();
     RenderOcclusion();
     //RenderRest();
-
-    DrawBuffers();
   }
 
   void ChunkRenderer::RenderVisible()
@@ -336,7 +327,7 @@ namespace Voxels
     ASSERT(0); // not implemented
   }
 
-  uint64_t ChunkRenderer::AllocChunk(std::span<uint32_t> vertices, const AABB& aabb)
+  uint64_t ChunkRenderer::AllocChunkMesh(std::span<uint32_t> vertices, const AABB& aabb)
   {
     uint64_t vertexBufferHandle{};
 
@@ -361,7 +352,7 @@ namespace Voxels
     return vertexBufferHandle;
   }
 
-  void ChunkRenderer::FreeChunk(uint64_t allocHandle)
+  void ChunkRenderer::FreeChunkMesh(uint64_t allocHandle)
   {
     auto it = data->vertexAllocHandles.find(allocHandle);
     if (it == data->vertexAllocHandles.end())
