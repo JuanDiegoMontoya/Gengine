@@ -63,9 +63,6 @@ namespace GFX
     }
 
   private:
-    friend class ParticleSystem;
-    friend class GraphicsSystem;
-
     Renderer() {};
     ~Renderer() {};
 

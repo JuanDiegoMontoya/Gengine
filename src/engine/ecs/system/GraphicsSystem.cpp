@@ -97,17 +97,17 @@ void GraphicsSystem::DrawOpaque(Scene& scene)
 
 void GraphicsSystem::DrawTransparent(Scene& scene)
 {
-  static GFX::TimerQueryAsync timerr(5);
-  GFX::TimerScoped tz(timerr);
-  auto result = timerr.Elapsed_ns();
-  if (result)
-  {
-    //printf("Emitter render time: %f ms\n", (double)*result / 1000000.0);
-  }
-  else
-  {
-    //printf("No emitter render time stats\n");
-  }
+  //static GFX::TimerQueryAsync timerr(5);
+  //GFX::TimerScoped tz(timerr);
+  //auto result = timerr.Elapsed_ns();
+  //if (result)
+  //{
+  //  printf("DrawTransparentGeomA %f ms\n", (double)*result / 1000000.0);
+  //}
+  //else
+  //{
+  //  //printf("No emitter render time stats\n");
+  //}
 
   MEASURE_GPU_TIMER_STAT(DrawTransparentGeom);
 
@@ -141,6 +141,7 @@ void GraphicsSystem::DrawTransparent(Scene& scene)
         emitters.push_back(std::pair<ParticleEmitter*, Transform*>(&emitter, &transform));
       }
     }
+
     std::sort(emitters.begin(), emitters.end(), compare);
     GFX::Renderer::Get()->BeginRenderParticleEmitter();
     for (const auto& [emitter, transform] : emitters)

@@ -218,9 +218,9 @@ namespace GFX
 
   enum class AspectMaskBit
   {
-    COLOR_BUFFER_BIT,
-    DEPTH_BUFFER_BIT,
-    STENCIL_BUFFER_BIT,
+    COLOR_BUFFER_BIT    = 1 << 0,
+    DEPTH_BUFFER_BIT    = 1 << 1,
+    STENCIL_BUFFER_BIT  = 1 << 2,
   };
   DECLARE_FLAG_TYPE(AspectMaskBits, AspectMaskBit, uint32_t)
 }
