@@ -23,10 +23,16 @@
 #include "../CVar.h"
 #include "../Console.h"
 #include "../Parser.h"
+#include <engine/core/StatMacros.h>
 
 #include <imgui/imgui.h>
 
 #define LOG_PARTICLE_RENDER_TIME 0
+
+DECLARE_FLOAT_STAT(Postprocessing, GPU)
+DECLARE_FLOAT_STAT(LuminanceHistogram, GPU)
+DECLARE_FLOAT_STAT(CameraExposure, GPU)
+DECLARE_FLOAT_STAT(FXAA, GPU)
 
 namespace GFX
 {
@@ -604,6 +610,9 @@ namespace GFX
 
   void Renderer::EndFrame(float dt)
   {
+    GFX::DebugMarker endframeMarker("Postprocessing");
+    MEASURE_GPU_TIMER_STAT(Postprocessing);
+
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     // fog
@@ -633,7 +642,6 @@ namespace GFX
       glDrawArrays(GL_TRIANGLES, 0, 3);
     }
 
-    GFX::DebugMarker endframeMarker("Postprocessing");
     glBindFramebuffer(GL_FRAMEBUFFER, ldrFbo);
 
     {
@@ -647,6 +655,7 @@ namespace GFX
       {
         //GFX::TimerQuery timerQuery;
         GFX::DebugMarker marker("Generate luminance histogram");
+        MEASURE_GPU_TIMER_STAT(LuminanceHistogram);
         auto hshdr = GFX::ShaderManager::Get()->GetShader("generate_histogram");
         hshdr->Bind();
         hshdr->SetInt("u_hdrBuffer", 1);
@@ -669,6 +678,7 @@ namespace GFX
 
       {
         GFX::DebugMarker marker("Compute camera exposure");
+        MEASURE_GPU_TIMER_STAT(CameraExposure);
         //glGenerateTextureMipmap(color);
         tonemap.exposureBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(0);
         tonemap.histogramBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(1);
@@ -709,9 +719,10 @@ namespace GFX
 
     if (fxaa.enabled)
     {
+      GFX::DebugMarker marker("FXAA");
+      MEASURE_GPU_TIMER_STAT(FXAA);
       glBindSampler(0, 0);
       glBindTextureUnit(0, ldrColorTex);
-      GFX::DebugMarker marker("FXAA");
       auto shdr = GFX::ShaderManager::Get()->GetShader("fxaa");
       shdr->Bind();
       shdr->SetVec2("u_invScreenSize", { 1.0f / renderWidth, 1.0f / renderHeight });
@@ -735,4 +746,4 @@ namespace GFX
         GL_COLOR_BUFFER_BIT, GL_LINEAR);
     }
   }
-  }
+}

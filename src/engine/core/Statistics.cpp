@@ -1,7 +1,10 @@
 #include "../PCH.h"
 #include "Statistics.h"
+#include "StatMacros.h"
 #include <unordered_map>
 #include <imgui/imgui.h>
+
+DECLARE_FLOAT_STAT(DrawStatisticsUI, CPU)
 
 namespace engine::Core
 {
@@ -62,6 +65,8 @@ namespace engine::Core
 
   void StatisticsManager::DrawUI()
   {
+    MEASURE_CPU_TIMER_STAT(DrawStatisticsUI);
+
     // key: group name
     // value: pair containing <stat name, pointer to stat buffer>
     // IMPORTANT: the group name and stat names are swapped compared to that in `floatStats`

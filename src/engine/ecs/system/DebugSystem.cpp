@@ -12,6 +12,11 @@
 #include <chrono>
 #include <thread>
 
+#include <engine/core/StatMacros.h>
+
+DECLARE_FLOAT_STAT(DrawUI_CPU, CPU)
+DECLARE_FLOAT_STAT(DrawUI_GPU, GPU)
+
 static std::string imguiConfigDir = std::string(AssetDir) + "imgui.ini";
 
 void DebugSystem::Init(GLFWwindow* win)
@@ -75,6 +80,9 @@ void DebugSystem::Update([[maybe_unused]] Scene& scene, Timestep timestep)
 
 void DebugSystem::EndFrame([[maybe_unused]] Scene& scene)
 {
+  MEASURE_CPU_TIMER_STAT(DrawUI_CPU);
+  MEASURE_GPU_TIMER_STAT(DrawUI_GPU);
+
   static bool ting = false;
   if (Input::IsKeyPressed(GLFW_KEY_F1))
     ting = !ting;

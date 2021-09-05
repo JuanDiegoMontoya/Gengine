@@ -6,6 +6,7 @@ public:
   Timer();
   void Reset();
   double Elapsed() const;
+  double Elapsed_ms() const;
 
   Timer(const Timer& other);
   Timer& operator=(const Timer& other);

@@ -8,7 +8,7 @@
 #define SM_CONCAT_INNER(a, b) a ## b
 
 #define DECLARE_FLOAT_STAT(statID, statGroup) \
-  static void* SM_CONCAT(sm_helper, __LINE__) = []() \
+  static void* SM_CONCAT(sm_float_stat_helper, __LINE__) = []() \
   { \
     engine::Core::StatisticsManager::Get()->RegisterFloatStat(#statID, #statGroup); \
     return nullptr; \
@@ -39,8 +39,8 @@
 
 #define MEASURE_CPU_TIMER_STAT(name) \
   static Timer SM_CONCAT(sm_timer, __LINE__); \
+  SM_CONCAT(sm_timer, __LINE__).Reset(); \
   Defer SM_CONCAT(sm_defer, __LINE__)([]() \
   { \
-    engine::Core::StatisticsManager::Get()->PushFloatStatValue(#name, SM_CONCAT(sm_timer, __LINE__).Elapsed() / 1000.0); \
-    SM_CONCAT(sm_timer, __LINE__).Reset(); \
+    engine::Core::StatisticsManager::Get()->PushFloatStatValue(#name, SM_CONCAT(sm_timer, __LINE__).Elapsed_ms()); \
   })

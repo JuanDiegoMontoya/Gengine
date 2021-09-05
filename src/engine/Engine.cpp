@@ -4,6 +4,7 @@
 #include <utility/Timer.h>
 #include <engine/Input.h>
 #include <engine/GAssert.h>
+#include "core/StatMacros.h"
 
 #include "ecs/system/GraphicsSystem.h"
 #include "ecs/system/DebugSystem.h"
@@ -15,6 +16,8 @@
 #include "Console.h"
 #include "CVar.h"
 #include "Parser.h"
+
+DECLARE_FLOAT_STAT(MainLoop, CPU)
 
 Engine::Engine()
 {
@@ -93,6 +96,8 @@ void Engine::Run()
   Timestep timestep;
   while (running_)
   {
+    MEASURE_CPU_TIMER_STAT(MainLoop);
+
     double dt = static_cast<float>(timer.Elapsed());
     timer.Reset();
 

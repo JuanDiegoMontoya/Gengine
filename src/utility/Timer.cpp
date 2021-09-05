@@ -3,6 +3,9 @@
 #include <new>
 
 using second_t = std::chrono::duration<double, std::ratio<1>>;
+using millisecond_t = std::chrono::duration<double, std::milli>;
+using microsecond_t = std::chrono::duration<double, std::micro>;
+using nanosecond_t = std::chrono::nanoseconds;
 using myclock_t = std::chrono::high_resolution_clock;
 using timepoint_t = std::chrono::time_point<myclock_t>;
 
@@ -22,6 +25,12 @@ double Timer::Elapsed() const
   // beg to your god
   timepoint_t beg_ = *std::launder(reinterpret_cast<const timepoint_t*>(mem_));
   return std::chrono::duration_cast<second_t>(myclock_t::now() - beg_).count();
+}
+
+double Timer::Elapsed_ms() const
+{
+  timepoint_t beg_ = *std::launder(reinterpret_cast<const timepoint_t*>(mem_));
+  return std::chrono::duration_cast<millisecond_t>(myclock_t::now() - beg_).count();
 }
 
 Timer::Timer(const Timer& other)

@@ -238,7 +238,7 @@ void OnStart(Scene* scene)
         }
       }
     }
-    if (0) // boxes physics test
+    if (1) // boxes physics test
     {
       for (int i = 0; i < 500; i++)
       {

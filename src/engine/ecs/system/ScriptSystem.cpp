@@ -3,6 +3,10 @@
 #include "../component/Scripting.h"
 #include "ScriptSystem.h"
 
+#include <engine/core/StatMacros.h>
+
+DECLARE_FLOAT_STAT(ScriptUpdate, CPU)
+
 static void OnScriptDestroy(entt::basic_registry<entt::entity>& registry, entt::entity entity)
 {
   auto& script = registry.get<Component::NativeScriptComponent>(entity);
@@ -17,6 +21,8 @@ void ScriptSystem::InitScene(Scene& scene)
 
 void ScriptSystem::Update(Scene& scene, Timestep timestep)
 {
+  MEASURE_CPU_TIMER_STAT(ScriptUpdate);
+
   auto view = scene.GetRegistry().view<Component::NativeScriptComponent>();
   for (auto entity : view)
   {

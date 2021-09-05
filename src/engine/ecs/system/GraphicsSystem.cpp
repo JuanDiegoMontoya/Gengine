@@ -22,7 +22,11 @@
 #include "../component/Camera.h"
 #include "../component/ParticleEmitter.h"
 
-DECLARE_FLOAT_STAT(DrawTransparentGeom, GPU)
+DECLARE_FLOAT_STAT(DrawTransparent_GPU, GPU)
+DECLARE_FLOAT_STAT(DrawTransparent_CPU, CPU)
+DECLARE_FLOAT_STAT(DrawOpaque_GPU, GPU)
+DECLARE_FLOAT_STAT(DrawOpaque_CPU, CPU)
+DECLARE_FLOAT_STAT(SwapBuffers_CPU, CPU)
 
 void GraphicsSystem::Init()
 {
@@ -71,6 +75,9 @@ void GraphicsSystem::StartFrame()
 
 void GraphicsSystem::DrawOpaque(Scene& scene)
 {
+  MEASURE_GPU_TIMER_STAT(DrawOpaque_GPU);
+  MEASURE_CPU_TIMER_STAT(DrawOpaque_CPU);
+
   const auto& camList = CameraSystem::GetCameraList();
   for (Component::Camera* camera : camList)
   {
@@ -97,19 +104,8 @@ void GraphicsSystem::DrawOpaque(Scene& scene)
 
 void GraphicsSystem::DrawTransparent(Scene& scene)
 {
-  //static GFX::TimerQueryAsync timerr(5);
-  //GFX::TimerScoped tz(timerr);
-  //auto result = timerr.Elapsed_ns();
-  //if (result)
-  //{
-  //  printf("DrawTransparentGeomA %f ms\n", (double)*result / 1000000.0);
-  //}
-  //else
-  //{
-  //  //printf("No emitter render time stats\n");
-  //}
-
-  MEASURE_GPU_TIMER_STAT(DrawTransparentGeom);
+  MEASURE_GPU_TIMER_STAT(DrawTransparent_GPU);
+  MEASURE_CPU_TIMER_STAT(DrawTransparent_CPU);
 
   const auto& camList = CameraSystem::GetCameraList();
   for (Component::Camera* camera : camList)
@@ -158,5 +154,6 @@ void GraphicsSystem::EndFrame(Timestep timestep)
 
 void GraphicsSystem::SwapBuffers()
 {
+  MEASURE_CPU_TIMER_STAT(SwapBuffers_CPU);
   glfwSwapBuffers(window);
 }
