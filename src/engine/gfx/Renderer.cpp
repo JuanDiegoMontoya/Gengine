@@ -309,74 +309,19 @@ namespace GFX
 
   void Renderer::Init()
   {
-    glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
+    // TODO: use dynamically sized buffer
+    vertexBuffer = std::make_unique<GFX::DynamicBuffer<>>(100'000'000, sizeof(Vertex));
+    indexBuffer = std::make_unique<GFX::DynamicBuffer<>>(100'000'000, sizeof(GLuint));
 
-    //const int levels = glm::floor(glm::log2(glm::max(fboWidth, fboHeight))) + 1;
-    TextureCreateInfo hdrColorTexInfo
-    {
-      .imageType = ImageType::TEX_2D,
-      .format = Format::R16G16B16A16_FLOAT,
-      .extent = Extent3D{.width = renderWidth, .height = renderHeight, .depth = 1 },
-      .mipLevels = 1,
-      .arrayLayers = 1
-    };
-    TextureCreateInfo hdrDepthTexInfo
-    {
-      .imageType = ImageType::TEX_2D,
-      .format = Format::D32_FLOAT,
-      .extent = Extent3D{.width = renderWidth, .height = renderHeight, .depth = 1 },
-      .mipLevels = 1,
-      .arrayLayers = 1
-    };
-    hdrColorTexMemory.emplace(*Texture::Create(hdrColorTexInfo, "HDR Color Texture"));
-    hdrDepthTexMemory.emplace(*Texture::Create(hdrDepthTexInfo, "HDR Depth Texture"));
-
-    hdrColorTexView.emplace(*TextureView::Create(*hdrColorTexMemory, "HDR Color View"));
-    hdrDepthTexView.emplace(*TextureView::Create(*hdrDepthTexMemory, "HDR Depth View"));
-
-    hdrColorSampler.emplace(*TextureSampler::Create({}, "HDR Color Sampler"));
-    hdrDepthSampler.emplace(*TextureSampler::Create({}, "HDR Depth Sampler"));
-
-    hdrFbo.emplace();
-    hdrFbo->SetAttachment(Attachment::COLOR_0, *hdrColorTexView, 0);
-    hdrFbo->SetAttachment(Attachment::DEPTH, *hdrDepthTexView, 0);
-    ASSERT(hdrFbo->IsValid());
-    //glCreateTextures(GL_TEXTURE_2D, 1, &hdrColorTex);
-    //glTextureStorage2D(hdrColorTex, 1, GL_RGBA16F, renderWidth, renderHeight);
-
-    //glCreateTextures(GL_TEXTURE_2D, 1, &hdrDepthTex);
-    //glTextureStorage2D(hdrDepthTex, 1, GL_DEPTH_COMPONENT32F, renderWidth, renderHeight);
-
-    //glCreateFramebuffers(1, &hdrFbo);
-    //glNamedFramebufferTexture(hdrFbo, GL_COLOR_ATTACHMENT0, hdrColorTex, 0);
-    //glNamedFramebufferTexture(hdrFbo, GL_DEPTH_ATTACHMENT, hdrDepthTex, 0);
-    //if (GLenum status = glCheckNamedFramebufferStatus(hdrFbo, GL_FRAMEBUFFER); status != GL_FRAMEBUFFER_COMPLETE)
-    //{
-    //  fprintf(stderr, "glCheckNamedFramebufferStatus: %x\n", status);
-    //}
-
-    glCreateTextures(GL_TEXTURE_2D, 1, &ldrColorTex);
-    glTextureStorage2D(ldrColorTex, 1, GL_RGBA16, renderWidth, renderHeight);
-    glCreateFramebuffers(1, &ldrFbo);
-    glNamedFramebufferTexture(ldrFbo, GL_COLOR_ATTACHMENT0, ldrColorTex, 0);
-    if (GLenum status = glCheckNamedFramebufferStatus(ldrFbo, GL_FRAMEBUFFER); status != GL_FRAMEBUFFER_COMPLETE)
-    {
-      fprintf(stderr, "glCheckNamedFramebufferStatus: %x\n", status);
-    }
-
-    glCreateTextures(GL_TEXTURE_2D, 1, &fog.tex);
-    glTextureStorage2D(fog.tex, 1, GL_RGBA16F, renderWidth, renderHeight);
-    glCreateFramebuffers(1, &fog.fbo);
-    glNamedFramebufferTexture(fog.fbo, GL_COLOR_ATTACHMENT0, fog.tex, 0);
-    if (GLenum status = glCheckNamedFramebufferStatus(ldrFbo, GL_FRAMEBUFFER); status != GL_FRAMEBUFFER_COMPLETE)
-    {
-      fprintf(stderr, "glCheckNamedFramebufferStatus: %x\n", status);
-    }
+    InitFramebuffers();
+    CompileShaders();
+    InitVertexLayouts();
 
     std::vector<int> zeros(tonemap.NUM_BUCKETS, 0);
     tonemap.exposureBuffer = std::make_unique<GFX::StaticBuffer>(zeros.data(), 2 * sizeof(float));
     tonemap.histogramBuffer = std::make_unique<GFX::StaticBuffer>(zeros.data(), tonemap.NUM_BUCKETS * sizeof(int));
 
+    glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
     glEnable(GL_DEBUG_OUTPUT);
     glEnable(GL_DEPTH_TEST);
 
@@ -391,32 +336,6 @@ namespace GFX
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
-    glfwSwapInterval(0); // 0 == no vsync, 1 == vsync
-
-    CompileShaders();
-
-    // TODO: use dynamically sized buffer
-    vertexBuffer = std::make_unique<GFX::DynamicBuffer<>>(100'000'000, sizeof(Vertex));
-    indexBuffer = std::make_unique<GFX::DynamicBuffer<>>(100'000'000, sizeof(GLuint));
-
-    // setup VAO for batched drawing (ONE VERTEX LAYOUT ATM)
-    glCreateVertexArrays(1, &batchVAO);
-    glEnableVertexArrayAttrib(batchVAO, 0); // pos
-    glEnableVertexArrayAttrib(batchVAO, 1); // normal
-    glEnableVertexArrayAttrib(batchVAO, 2); // uv
-
-    glVertexArrayAttribFormat(batchVAO, 0, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex, position));
-    glVertexArrayAttribFormat(batchVAO, 1, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex, normal));
-    glVertexArrayAttribFormat(batchVAO, 2, 2, GL_FLOAT, GL_FALSE, offsetof(Vertex, texCoord));
-
-    glVertexArrayAttribBinding(batchVAO, 0, 0);
-    glVertexArrayAttribBinding(batchVAO, 1, 0);
-    glVertexArrayAttribBinding(batchVAO, 2, 0);
-
-    glVertexArrayVertexBuffer(batchVAO, 0, vertexBuffer->GetID(), 0, sizeof(Vertex));
-    glVertexArrayElementBuffer(batchVAO, indexBuffer->GetID());
-
-    glCreateVertexArrays(1, &emptyVao);
 
     Console::Get()->RegisterCommand("showShaders", "- Lists all shader names", logShaderNames);
     Console::Get()->RegisterCommand("recompile", "- Recompiles a named shader", recompileShader);
@@ -427,7 +346,7 @@ namespace GFX
     GFX::SamplerState samplerState{};
     samplerState.asBitField.addressModeU = GFX::AddressMode::REPEAT;
     samplerState.asBitField.addressModeV = GFX::AddressMode::REPEAT;
-    tonemap.blueNoiseSampler = GFX::TextureSampler::Create(samplerState, "BlueNoiseRGBSampler");
+    tonemap.blueNoiseSampler.emplace(*GFX::TextureSampler::Create(samplerState, "BlueNoiseRGBSampler"));
 
     vsync.Set(0);
   }
@@ -578,7 +497,6 @@ namespace GFX
 
   void Renderer::StartFrame()
   {
-    //glBindFramebuffer(GL_FRAMEBUFFER, hdrFbo);
     hdrFbo->Bind();
     glClearDepth(0.0f);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -618,7 +536,8 @@ namespace GFX
     // fog
     {
       GFX::DebugMarker fogMarker("Fog");
-      glBindFramebuffer(GL_FRAMEBUFFER, fog.fbo);
+
+      fog.framebuffer->Bind();
 
       Shader shader = *ShaderManager::Get()->GetShader("fog");
       shader.Bind();
@@ -634,15 +553,15 @@ namespace GFX
 
       //glBindTextureUnit(0, hdrColorTex);
       //glBindTextureUnit(1, hdrDepthTex);
-      hdrColorTexView->Bind(0, *hdrColorSampler);
-      hdrDepthTexView->Bind(1, *hdrDepthSampler);
+      hdrColorTexView->Bind(0, *defaultSampler);
+      hdrDepthTexView->Bind(1, *defaultSampler);
       glBindVertexArray(emptyVao);
       glDepthMask(GL_FALSE);
       glDisable(GL_CULL_FACE);
       glDrawArrays(GL_TRIANGLES, 0, 3);
     }
 
-    glBindFramebuffer(GL_FRAMEBUFFER, ldrFbo);
+    ldrFbo->Bind();
 
     {
       GFX::DebugMarker tonemappingMarker("Tone mapping");
@@ -666,7 +585,8 @@ namespace GFX
         int xgroups = (computePixelsX + X_SIZE - 1) / X_SIZE;
         int ygroups = (computePixelsY + Y_SIZE - 1) / Y_SIZE;
         tonemap.histogramBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(0);
-        glBindTextureUnit(1, fog.tex);
+        //glBindTextureUnit(1, fog.tex);
+        fog.texView->Bind(1, *defaultSampler);
         glDispatchCompute(xgroups, ygroups, 1);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
         //printf("Histogram time: %f ms\n", (double)timerQuery.Elapsed_ns() / 1000000.0);
@@ -706,13 +626,15 @@ namespace GFX
       shdr->SetFloat("u_exposureFactor", tonemap.exposure);
       shdr->SetBool("u_useDithering", tonemap.tonemapDither);
       shdr->SetBool("u_encodeSRGB", tonemap.gammaCorrection);
+      fog.texView->Bind(1, *defaultSampler);
       tonemap.blueNoiseView->Bind(2, *tonemap.blueNoiseSampler);
       glBindVertexArray(emptyVao);
-      glBindTextureUnit(1, fog.tex); // rebind because AMD drivers sus
+      //glBindTextureUnit(1, fog.tex); // rebind because AMD drivers sus
       glDrawArrays(GL_TRIANGLES, 0, 3);
       glDepthMask(GL_TRUE);
       glEnable(GL_CULL_FACE);
       tonemap.blueNoiseView->Unbind(2);
+      fog.texView->Unbind(1);
     }
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -721,8 +643,8 @@ namespace GFX
     {
       GFX::DebugMarker marker("FXAA");
       MEASURE_GPU_TIMER_STAT(FXAA);
-      glBindSampler(0, 0);
-      glBindTextureUnit(0, ldrColorTex);
+
+      ldrColorTexView->Bind(0, *defaultSampler);
       auto shdr = GFX::ShaderManager::Get()->GetShader("fxaa");
       shdr->Bind();
       shdr->SetVec2("u_invScreenSize", { 1.0f / renderWidth, 1.0f / renderHeight });
@@ -737,13 +659,141 @@ namespace GFX
       glDrawArrays(GL_TRIANGLES, 0, 3);
       glDepthMask(GL_TRUE);
       glEnable(GL_CULL_FACE);
+      glBindSampler(0, 0);
     }
     else
     {
-      glBlitNamedFramebuffer(ldrFbo, 0,
+      glBlitNamedFramebuffer(ldrFbo->GetAPIHandle(), 0,
         0, 0, renderWidth, renderHeight,
         0, 0, windowWidth, windowHeight,
         GL_COLOR_BUFFER_BIT, GL_LINEAR);
     }
+  }
+
+  void Renderer::InitFramebuffers()
+  {
+    //const int levels = glm::floor(glm::log2(glm::max(fboWidth, fboHeight))) + 1;
+    TextureCreateInfo hdrColorTexInfo
+    {
+      .imageType = ImageType::TEX_2D,
+      .format = Format::R16G16B16A16_FLOAT,
+      .extent = Extent3D{.width = renderWidth, .height = renderHeight, .depth = 1 },
+      .mipLevels = 1,
+      .arrayLayers = 1
+    };
+    TextureCreateInfo ldrColorTexInfo
+    {
+      .imageType = ImageType::TEX_2D,
+      .format = Format::R8G8B8A8_UNORM,
+      //.format = Format::R16G16B16A16_UNORM,
+      .extent {.width = renderWidth, .height = renderHeight, .depth = 1 },
+      .mipLevels = 1,
+      .arrayLayers = 1
+    };
+    TextureCreateInfo depthTexInfo
+    {
+      .imageType = ImageType::TEX_2D,
+      .format = Format::D32_FLOAT,
+      .extent = Extent3D{.width = renderWidth, .height = renderHeight, .depth = 1 },
+      .mipLevels = 1,
+      .arrayLayers = 1
+    };
+
+    hdrColorTexMemory.emplace(*Texture::Create(hdrColorTexInfo, "HDR Color Texture"));
+    hdrDepthTexMemory.emplace(*Texture::Create(depthTexInfo, "HDR Depth Texture"));
+    hdrColorTexView.emplace(*TextureView::Create(*hdrColorTexMemory, "HDR Color View"));
+    hdrDepthTexView.emplace(*TextureView::Create(*hdrDepthTexMemory, "HDR Depth View"));
+    hdrFbo.emplace();
+    hdrFbo->SetAttachment(Attachment::COLOR_0, *hdrColorTexView, 0);
+    hdrFbo->SetAttachment(Attachment::DEPTH, *hdrDepthTexView, 0);
+    ASSERT(hdrFbo->IsValid());
+
+    ldrColorTexMemory.emplace(*Texture::Create(ldrColorTexInfo, "LDR Color Texture"));
+    ldrColorTexView.emplace(*TextureView::Create(*ldrColorTexMemory, "LDR Color View"));
+    ldrFbo.emplace();
+    ldrFbo->SetAttachment(Attachment::COLOR_0, *ldrColorTexView, 0);
+    ASSERT(ldrFbo->IsValid());
+
+    fog.texMemory.emplace(*Texture::Create(hdrColorTexInfo, "Fog Color Texture"));
+    fog.texView.emplace(*TextureView::Create(*fog.texMemory, "Fog Texture View"));
+    fog.framebuffer.emplace();
+    fog.framebuffer->SetAttachment(Attachment::COLOR_0, *fog.texView, 0);
+    ASSERT(fog.framebuffer->IsValid());
+
+    defaultSampler.emplace(*TextureSampler::Create({}, "Plain Sampler"));
+  }
+
+  void Renderer::InitVertexLayouts()
+  {
+    // setup VAO for batched drawing (ONE VERTEX LAYOUT ATM)
+    glCreateVertexArrays(1, &batchVAO);
+    glEnableVertexArrayAttrib(batchVAO, 0); // pos
+    glEnableVertexArrayAttrib(batchVAO, 1); // normal
+    glEnableVertexArrayAttrib(batchVAO, 2); // uv
+
+    glVertexArrayAttribFormat(batchVAO, 0, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex, position));
+    glVertexArrayAttribFormat(batchVAO, 1, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex, normal));
+    glVertexArrayAttribFormat(batchVAO, 2, 2, GL_FLOAT, GL_FALSE, offsetof(Vertex, texCoord));
+
+    glVertexArrayAttribBinding(batchVAO, 0, 0);
+    glVertexArrayAttribBinding(batchVAO, 1, 0);
+    glVertexArrayAttribBinding(batchVAO, 2, 0);
+
+    glVertexArrayVertexBuffer(batchVAO, 0, vertexBuffer->GetID(), 0, sizeof(Vertex));
+    glVertexArrayElementBuffer(batchVAO, indexBuffer->GetID());
+
+    glCreateVertexArrays(1, &emptyVao);
+  }
+
+  void Renderer::GL_ResetState()
+  {
+    // texture unit and sampler bindings (first 8, hopefully more than we'll ever need)
+    for (int i = 0; i < 7; i++)
+    {
+      glBindSampler(i, 0);
+      glBindTextureUnit(i, 0);
+    }
+
+    // triangle winding
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CCW);
+
+    // depth test
+    glEnable(GL_DEPTH_TEST);
+    glDepthMask(GL_TRUE);
+    
+    // blending
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendEquation(GL_FUNC_ADD);
+
+    // buffer bindings
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, 0);
+    glBindBuffer(GL_DISPATCH_INDIRECT_BUFFER, 0);
+    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+    // vertex array binding
+    glBindVertexArray(0);
+
+    // shader program binding
+    glUseProgram(0);
+
+    // viewport+clipping
+    glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
+
+    // rasterizer
+    glLineWidth(1.0f);
+    glPointSize(1.0f);
+    glDisable(GL_SCISSOR_TEST);
+    glViewport(0, 0, renderWidth, renderHeight);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+    // framebuffer
+    hdrFbo->Bind();
   }
 }

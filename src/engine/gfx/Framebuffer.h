@@ -20,6 +20,7 @@ namespace GFX
     void SetAttachment(Attachment slot, TextureView& view, uint32_t level);
     [[nodiscard]] bool IsValid() const;
     void Bind();
+    [[nodiscard]] auto GetAPIHandle() const { return handle_; }
 
     static void Blit(const Framebuffer& source, Framebuffer& destination,
       Offset2D sourceStart, Offset2D sourceEnd,

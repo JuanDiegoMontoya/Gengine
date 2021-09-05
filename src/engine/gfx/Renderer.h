@@ -66,6 +66,12 @@ namespace GFX
     Renderer() {};
     ~Renderer() {};
 
+    void InitFramebuffers();
+    void InitVertexLayouts();
+
+    // resets the GL state to something predictable
+    void GL_ResetState();
+
     // std140
     struct UniformData
     {
@@ -96,9 +102,13 @@ namespace GFX
 
     uint32_t emptyVao{};
 
+    std::optional<TextureSampler> defaultSampler;
+
     // HDR inverse-z framebuffer stuff
-    uint32_t ldrFbo{};
-    uint32_t ldrColorTex{};
+    std::optional<Framebuffer> ldrFbo;
+    std::optional<Texture> ldrColorTexMemory;
+    std::optional<TextureView> ldrColorTexView;
+    //uint32_t ldrColorTex{};
     uint32_t windowWidth = 1920, windowHeight = 1017;
     uint32_t renderWidth = 1920, renderHeight = 1017;
     //uint32_t hdrFbo{};
@@ -109,13 +119,12 @@ namespace GFX
     std::optional<Texture> hdrDepthTexMemory;
     std::optional<TextureView> hdrColorTexView;
     std::optional<TextureView> hdrDepthTexView;
-    std::optional<TextureSampler> hdrColorSampler;
-    std::optional<TextureSampler> hdrDepthSampler;
 
     struct FogParams
     {
-      uint32_t fbo{};
-      uint32_t tex{};
+      std::optional<Framebuffer> framebuffer;
+      std::optional<Texture> texMemory;
+      std::optional<TextureView> texView;
       glm::vec3 albedo{ 1.0 };
       float u_a = 0.005f;
       float u_b = 10000.0f;

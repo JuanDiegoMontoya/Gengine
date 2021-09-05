@@ -109,11 +109,11 @@ namespace GFX
     R32G32B32A32_UINT,
 
     D32_FLOAT,
-    D32_NORM,
-    D24_NORM,
-    D16_NORM,
+    D32_UNORM,
+    D24_UNORM,
+    D16_UNORM,
     D32_FLOAT_S8_UINT,
-    D24_NORM_S8_UINT,
+    D24_UNORM_S8_UINT,
     // TODO: compressed formats
   };
 
