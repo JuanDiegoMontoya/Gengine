@@ -18,6 +18,8 @@ namespace Component
   struct Model;
 }
 
+struct GLFWwindow;
+
 namespace GFX
 {
   class Renderer
@@ -30,7 +32,7 @@ namespace GFX
     Renderer& operator=(const Renderer&) = delete;
     Renderer& operator=(Renderer&&) = delete;
 
-    void Init();
+    GLFWwindow* Init();
     void CompileShaders();
 
     void BeginBatch(size_t size);
@@ -62,12 +64,18 @@ namespace GFX
       return &meshBufferInfo;
     }
 
+    void SetFramebufferSize(uint32_t width, uint32_t height);
+    void SetRenderingScale(float scale);
+
   private:
     Renderer() {};
     ~Renderer() {};
 
     void InitFramebuffers();
     void InitVertexLayouts();
+    GLFWwindow* InitWindow();
+
+    GLFWwindow* window_{};
 
     // resets the GL state to something predictable
     void GL_ResetState();
@@ -84,11 +92,10 @@ namespace GFX
     std::unique_ptr<GFX::DynamicBuffer<>> indexBuffer;
 
     // per-vertex layout
-    uint32_t batchVAO;
+    uint32_t batchVAO{};
 
     // maps handles to VERTEX and INDEX information in the respective dynamic buffers
     // used to retrieve important offset and size info for meshes
-    //using DBaT = GFX::DynamicBuffer<>::allocationData<>;
     std::map<uint32_t, DrawElementsIndirectCommand> meshBufferInfo;
 
     struct BatchDrawCommand
@@ -110,7 +117,9 @@ namespace GFX
     std::optional<TextureView> ldrColorTexView;
     //uint32_t ldrColorTex{};
     uint32_t windowWidth = 1920, windowHeight = 1017;
-    uint32_t renderWidth = 1920, renderHeight = 1017;
+    uint32_t GetRenderWidth() const { return windowWidth * renderScale; }
+    uint32_t GetRenderHeight() const { return windowHeight * renderScale; }
+    float renderScale = 1.0f; // 1.0 = render at window resolution
     //uint32_t hdrFbo{};
     //uint32_t hdrColorTex;
     //uint32_t hdrDepthTex;

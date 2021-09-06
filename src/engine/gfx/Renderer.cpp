@@ -41,6 +41,11 @@ namespace GFX
     glfwSwapInterval(val != 0); // 0 == no vsync, 1 == vsync
   }
 
+  void setRenderScale([[maybe_unused]] const char* cvar, cvar_float scale)
+  {
+    Renderer::Get()->SetRenderingScale(static_cast<float>(scale));
+  }
+
   void logShaderNames(const char*)
   {
     auto shaderNames = GFX::ShaderManager::Get()->GetAllShaderNames();
@@ -77,6 +82,7 @@ namespace GFX
   }
 
   AutoCVar<cvar_float> vsync("r.vsync", "- Whether vertical sync is enabled", 0, 0, 1, CVarFlag::NONE, vsyncCallback);
+  AutoCVar<cvar_float> renderScale("r.scale", "- Internal rendering resolution scale", 1.0, 0.01, 4.0, CVarFlag::NONE, setRenderScale);
 
   static void GLAPIENTRY
     GLerrorCB(GLenum source,
@@ -307,8 +313,10 @@ namespace GFX
     return &renderer;
   }
 
-  void Renderer::Init()
+  GLFWwindow* Renderer::Init()
   {
+    window_ = InitWindow();
+
     // TODO: use dynamically sized buffer
     vertexBuffer = std::make_unique<GFX::DynamicBuffer<>>(100'000'000, sizeof(Vertex));
     indexBuffer = std::make_unique<GFX::DynamicBuffer<>>(100'000'000, sizeof(GLuint));
@@ -349,6 +357,8 @@ namespace GFX
     tonemap.blueNoiseSampler.emplace(*GFX::TextureSampler::Create(samplerState, "BlueNoiseRGBSampler"));
 
     vsync.Set(0);
+
+    return window_;
   }
 
   void Renderer::CompileShaders()
@@ -497,6 +507,8 @@ namespace GFX
 
   void Renderer::StartFrame()
   {
+    GL_ResetState();
+
     hdrFbo->Bind();
     glClearDepth(0.0f);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -542,7 +554,7 @@ namespace GFX
       Shader shader = *ShaderManager::Get()->GetShader("fog");
       shader.Bind();
       shader.SetMat4("u_invViewProj", glm::inverse(CameraSystem::GetViewProj()));
-      shader.SetIVec2("u_viewportSize", { renderWidth, renderHeight });
+      shader.SetIVec2("u_viewportSize", { GetRenderWidth(), GetRenderHeight() });
       shader.SetFloat("u_a", fog.u_a);
       shader.SetFloat("u_b", fog.u_b);
       shader.SetFloat("u_heightOffset", fog.u_heightOffset);
@@ -568,8 +580,8 @@ namespace GFX
 
       const float logLowLum = glm::log(tonemap.targetLuminance / tonemap.maxExposure);
       const float logMaxLum = glm::log(tonemap.targetLuminance / tonemap.minExposure);
-      const int computePixelsX = renderWidth / 4;
-      const int computePixelsY = renderHeight / 4;
+      const int computePixelsX = GetRenderWidth() / 4;
+      const int computePixelsY = GetRenderHeight() / 4;
 
       {
         //GFX::TimerQuery timerQuery;
@@ -618,7 +630,7 @@ namespace GFX
 
       GFX::DebugMarker marker("Apply tone mapping");
       glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-      glViewport(0, 0, renderWidth, renderHeight);
+      glViewport(0, 0, GetRenderWidth(), GetRenderHeight());
       auto shdr = GFX::ShaderManager::Get()->GetShader("tonemap");
       glDepthMask(GL_FALSE);
       glDisable(GL_CULL_FACE);
@@ -638,6 +650,7 @@ namespace GFX
     }
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glViewport(0, 0, windowWidth, windowHeight);
 
     if (fxaa.enabled)
     {
@@ -647,12 +660,11 @@ namespace GFX
       ldrColorTexView->Bind(0, *defaultSampler);
       auto shdr = GFX::ShaderManager::Get()->GetShader("fxaa");
       shdr->Bind();
-      shdr->SetVec2("u_invScreenSize", { 1.0f / renderWidth, 1.0f / renderHeight });
+      shdr->SetVec2("u_invScreenSize", { 1.0f / GetRenderWidth(), 1.0f / GetRenderHeight() });
       shdr->SetFloat("u_contrastThreshold", fxaa.contrastThreshold);
       shdr->SetFloat("u_relativeThreshold", fxaa.relativeThreshold);
       shdr->SetFloat("u_pixelBlendStrength", fxaa.pixelBlendStrength);
       shdr->SetFloat("u_edgeBlendStrength", fxaa.edgeBlendStrength);
-      glViewport(0, 0, windowWidth, windowHeight);
       glBindVertexArray(emptyVao);
       glDepthMask(GL_FALSE);
       glDisable(GL_CULL_FACE);
@@ -664,7 +676,7 @@ namespace GFX
     else
     {
       glBlitNamedFramebuffer(ldrFbo->GetAPIHandle(), 0,
-        0, 0, renderWidth, renderHeight,
+        0, 0, GetRenderWidth(), GetRenderHeight(),
         0, 0, windowWidth, windowHeight,
         GL_COLOR_BUFFER_BIT, GL_LINEAR);
     }
@@ -677,7 +689,7 @@ namespace GFX
     {
       .imageType = ImageType::TEX_2D,
       .format = Format::R16G16B16A16_FLOAT,
-      .extent = Extent3D{.width = renderWidth, .height = renderHeight, .depth = 1 },
+      .extent = Extent3D{.width = GetRenderWidth(), .height = GetRenderHeight(), .depth = 1 },
       .mipLevels = 1,
       .arrayLayers = 1
     };
@@ -686,7 +698,7 @@ namespace GFX
       .imageType = ImageType::TEX_2D,
       .format = Format::R8G8B8A8_UNORM,
       //.format = Format::R16G16B16A16_UNORM,
-      .extent {.width = renderWidth, .height = renderHeight, .depth = 1 },
+      .extent {.width = GetRenderWidth(), .height = GetRenderHeight(), .depth = 1 },
       .mipLevels = 1,
       .arrayLayers = 1
     };
@@ -694,7 +706,7 @@ namespace GFX
     {
       .imageType = ImageType::TEX_2D,
       .format = Format::D32_FLOAT,
-      .extent = Extent3D{.width = renderWidth, .height = renderHeight, .depth = 1 },
+      .extent = Extent3D{.width = GetRenderWidth(), .height = GetRenderHeight(), .depth = 1 },
       .mipLevels = 1,
       .arrayLayers = 1
     };
@@ -721,6 +733,8 @@ namespace GFX
     ASSERT(fog.framebuffer->IsValid());
 
     defaultSampler.emplace(*TextureSampler::Create({}, "Plain Sampler"));
+
+    glViewport(0, 0, GetRenderWidth(), GetRenderHeight());
   }
 
   void Renderer::InitVertexLayouts()
@@ -790,10 +804,64 @@ namespace GFX
     glLineWidth(1.0f);
     glPointSize(1.0f);
     glDisable(GL_SCISSOR_TEST);
-    glViewport(0, 0, renderWidth, renderHeight);
+    glViewport(0, 0, GetRenderWidth(), GetRenderHeight());
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
     // framebuffer
     hdrFbo->Bind();
+  }
+
+  GLFWwindow* Renderer::InitWindow()
+  {
+    if (!glfwInit())
+    {
+      return nullptr;
+    }
+
+    glfwSetErrorCallback([](int, const char* description)
+      {
+        spdlog::error("GLFW error: {}", description);
+      });
+
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
+    glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
+
+    const GLFWvidmode* videoMode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+    window_ = glfwCreateWindow(videoMode->width, videoMode->height, "Gengine", nullptr, nullptr);
+
+    if (!window_)
+    {
+      spdlog::critical("Failed to create GLFW window");
+    }
+
+    glfwMakeContextCurrent(window_);
+    glfwSetFramebufferSizeCallback(window_, [](GLFWwindow*, int width, int height)
+      {
+        Renderer::Get()->SetFramebufferSize(static_cast<uint32_t>(width), static_cast<uint32_t>(height));
+      });
+
+    //if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))
+    if (!gladLoadGL())
+    {
+      spdlog::critical("Failed to initialize GLAD");
+    }
+
+    return window_;
+  }
+
+  void Renderer::SetFramebufferSize(uint32_t width, uint32_t height)
+  {
+    windowWidth = glm::max(width, 1u);
+    windowHeight = glm::max(height, 1u);
+    InitFramebuffers();
+  }
+
+  void Renderer::SetRenderingScale(float scale)
+  {
+    renderScale = scale;
+    InitFramebuffers();
   }
 }

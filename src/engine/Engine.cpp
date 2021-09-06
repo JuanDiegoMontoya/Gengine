@@ -30,6 +30,7 @@ Engine::Engine()
 
   graphicsSystem->Init();
   debugSystem->Init(graphicsSystem->GetWindow());
+  Input::init_glfw_input_cbs(graphicsSystem->GetWindow());
 
   auto exitFunc = [this](const char*)
   {

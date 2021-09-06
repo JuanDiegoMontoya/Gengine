@@ -175,6 +175,8 @@ void Input::mouse_button_cb(GLFWwindow* window, int button, int action, int mods
 
 void Input::init_glfw_input_cbs(GLFWwindow* window)
 {
+  glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
   glfwSetKeyCallback(window, keypress_cb);
   glfwSetCursorPosCallback(window, mouse_pos_cb);
   glfwSetScrollCallback(window, mouse_scroll_cb);

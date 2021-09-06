@@ -30,11 +30,10 @@ DECLARE_FLOAT_STAT(SwapBuffers_CPU, CPU)
 
 void GraphicsSystem::Init()
 {
-  window = init_glfw_context();
+  window = GFX::Renderer::Get()->Init();
   glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
   CameraSystem::Init();
-  GFX::Renderer::Get()->Init();
 }
 
 void GraphicsSystem::Shutdown()
