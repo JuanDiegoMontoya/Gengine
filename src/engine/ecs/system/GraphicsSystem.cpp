@@ -15,9 +15,6 @@
 
 #include <imgui/imgui.h>
 
-// TODO: TEMP GARBAGE
-#include <engine/Context.h>
-
 #include "../component/Rendering.h"
 #include "../component/Camera.h"
 #include "../component/ParticleEmitter.h"

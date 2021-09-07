@@ -26,7 +26,6 @@
     <ClInclude Include="src\engine\Application.h" />
     <ClInclude Include="src\engine\Camera.h" />
     <ClInclude Include="src\engine\Console.h" />
-    <ClInclude Include="src\engine\Context.h" />
     <ClInclude Include="src\engine\core\CoreMacros.h" />
     <ClInclude Include="src\engine\core\Logging.h" />
     <ClInclude Include="src\engine\core\Statistics.h" />
@@ -186,10 +185,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="src\engine\Console.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="src\engine\Context.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
     </ClCompile>

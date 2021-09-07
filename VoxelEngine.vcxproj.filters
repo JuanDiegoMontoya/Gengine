@@ -35,7 +35,6 @@
     <ClInclude Include="src\engine\Application.h" />
     <ClInclude Include="src\engine\Camera.h" />
     <ClInclude Include="src\engine\Console.h" />
-    <ClInclude Include="src\engine\Context.h" />
     <ClInclude Include="src\engine\CVar.h" />
     <ClInclude Include="src\engine\CVarInternal.h" />
     <ClInclude Include="src\engine\Engine.h" />
@@ -181,7 +180,6 @@
     <ClCompile Include="src\engine\Application.cpp" />
     <ClCompile Include="src\engine\Camera.cpp" />
     <ClCompile Include="src\engine\Console.cpp" />
-    <ClCompile Include="src\engine\Context.cpp" />
     <ClCompile Include="src\engine\CVar.cpp" />
     <ClCompile Include="src\engine\Engine.cpp" />
     <ClCompile Include="src\engine\GAssert.cpp" />

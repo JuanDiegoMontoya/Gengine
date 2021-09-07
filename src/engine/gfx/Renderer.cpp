@@ -82,7 +82,7 @@ namespace GFX
   }
 
   AutoCVar<cvar_float> vsync("r.vsync", "- Whether vertical sync is enabled", 0, 0, 1, CVarFlag::NONE, vsyncCallback);
-  AutoCVar<cvar_float> renderScale("r.scale", "- Internal rendering resolution scale", 1.0, 0.01, 4.0, CVarFlag::NONE, setRenderScale);
+  AutoCVar<cvar_float> renderScale("r.scale", "- Internal rendering resolution scale", 1.0, 0.1, 2.0, CVarFlag::NONE, setRenderScale);
 
   static void GLAPIENTRY
     GLerrorCB(GLenum source,
@@ -580,8 +580,8 @@ namespace GFX
 
       const float logLowLum = glm::log(tonemap.targetLuminance / tonemap.maxExposure);
       const float logMaxLum = glm::log(tonemap.targetLuminance / tonemap.minExposure);
-      const int computePixelsX = GetRenderWidth() / 4;
-      const int computePixelsY = GetRenderHeight() / 4;
+      const int computePixelsX = glm::ceil(GetRenderWidth() / 4.0f);
+      const int computePixelsY = glm::ceil(GetRenderHeight() / 4.0f);
 
       {
         //GFX::TimerQuery timerQuery;

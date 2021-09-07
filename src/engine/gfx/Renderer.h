@@ -116,7 +116,8 @@ namespace GFX
     std::optional<Texture> ldrColorTexMemory;
     std::optional<TextureView> ldrColorTexView;
     //uint32_t ldrColorTex{};
-    uint32_t windowWidth = 1920, windowHeight = 1017;
+    uint32_t windowWidth{ 1 };
+    uint32_t windowHeight{ 1 };
     uint32_t GetRenderWidth() const { return windowWidth * renderScale; }
     uint32_t GetRenderHeight() const { return windowHeight * renderScale; }
     float renderScale = 1.0f; // 1.0 = render at window resolution
