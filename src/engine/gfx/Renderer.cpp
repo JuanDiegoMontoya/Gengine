@@ -41,6 +41,17 @@ namespace GFX
     glfwSwapInterval(val != 0); // 0 == no vsync, 1 == vsync
   }
 
+  // TODO: for proper fullscreen toggling, we need to re-init the other consumers of `window`
+  // idea: use callbacks that we call whenever the window is re-initialized
+  void fullscreenCallback(const char*, cvar_float val)
+  {
+    bool fullscreen{ val != 0 };
+    if (fullscreen == Renderer::Get()->GetIsFullscreen())
+      return;
+    Renderer::Get()->CreateWindow(fullscreen);
+    Renderer::Get()->InitFramebuffers();
+  }
+
   void setRenderScale([[maybe_unused]] const char* cvar, cvar_float scale)
   {
     Renderer::Get()->SetRenderingScale(static_cast<float>(scale));
@@ -70,31 +81,30 @@ namespace GFX
     auto id = hashed_string(str->c_str());
     if (!GFX::ShaderManager::Get()->GetShader(id))
     {
-      Console::Get()->Log("No shader found with name %s\n", str->c_str());
+      Console::Get()->Log("No shader found with name %s", str->c_str());
       return;
     }
 
     if (!GFX::ShaderManager::Get()->RecompileShader(id))
     {
-      Console::Get()->Log("Failed to recompile shader %s\n", str->c_str());
+      Console::Get()->Log("Failed to recompile shader %s", str->c_str());
       return;
     }
   }
 
-  AutoCVar<cvar_float> vsync("r.vsync", "- Whether vertical sync is enabled", 0, 0, 1, CVarFlag::NONE, vsyncCallback);
-  AutoCVar<cvar_float> renderScale("r.scale", "- Internal rendering resolution scale", 1.0, 0.1, 2.0, CVarFlag::NONE, setRenderScale);
+  AutoCVar<cvar_float> vsyncCvar("r.vsync", "- Whether vertical sync is enabled", 0, 0, 1, CVarFlag::NONE, vsyncCallback);
+  AutoCVar<cvar_float> renderScaleCvar("r.scale", "- Internal rendering resolution scale", 1.0, 0.1, 2.0, CVarFlag::NONE, setRenderScale);
+  //AutoCVar<cvar_float> fullscreenCvar("r.fullscreen", "- Whether the window is fullscreen", 0, 0, 1, CVarFlag::NONE, fullscreenCallback);
 
-  static void GLAPIENTRY
-    GLerrorCB(GLenum source,
-      GLenum type,
-      GLuint id,
-      GLenum severity,
-      [[maybe_unused]] GLsizei length,
-      const GLchar* message,
-      [[maybe_unused]] const void* userParam)
+  static void GLAPIENTRY GLerrorCB(
+    GLenum source,
+    GLenum type,
+    GLuint id,
+    GLenum severity,
+    [[maybe_unused]] GLsizei length,
+    const GLchar* message,
+    [[maybe_unused]] const void* userParam)
   {
-    //return; // UNCOMMENT WHEN DEBUGGING GRAPHICS
-
     // ignore insignificant error/warning codes
     if (id == 131169 || id == 131185 || id == 131218 || id == 131204 || id == 0
       )//|| id == 131188 || id == 131186)
@@ -216,7 +226,6 @@ namespace GFX
     userCommands.clear();
   }
 
-
   void Renderer::RenderBatchHelper(MaterialID mat, const std::vector<UniformData>& uniforms)
   {
     ASSERT(MaterialManager::Get()->materials_.contains(mat));
@@ -313,9 +322,9 @@ namespace GFX
     return &renderer;
   }
 
-  GLFWwindow* Renderer::Init()
+  GLFWwindow* const* Renderer::Init()
   {
-    window_ = InitWindow();
+    window_ = InitContext();
 
     // TODO: use dynamically sized buffer
     vertexBuffer = std::make_unique<GFX::DynamicBuffer<>>(100'000'000, sizeof(Vertex));
@@ -356,9 +365,9 @@ namespace GFX
     samplerState.asBitField.addressModeV = GFX::AddressMode::REPEAT;
     tonemap.blueNoiseSampler.emplace(*GFX::TextureSampler::Create(samplerState, "BlueNoiseRGBSampler"));
 
-    vsync.Set(0);
+    vsyncCvar.Set(0);
 
-    return window_;
+    return &window_;
   }
 
   void Renderer::CompileShaders()
@@ -776,7 +785,7 @@ namespace GFX
     // depth test
     glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_TRUE);
-    
+
     // blending
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -811,7 +820,7 @@ namespace GFX
     hdrFbo->Bind();
   }
 
-  GLFWwindow* Renderer::InitWindow()
+  GLFWwindow* Renderer::InitContext()
   {
     if (!glfwInit())
     {
@@ -830,7 +839,9 @@ namespace GFX
     glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
 
     const GLFWvidmode* videoMode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-    window_ = glfwCreateWindow(videoMode->width, videoMode->height, "Gengine", nullptr, nullptr);
+    windowWidth = videoMode->width;
+    windowHeight = videoMode->height;
+    CreateWindow(isFullscreen);
 
     if (!window_)
     {
@@ -843,12 +854,39 @@ namespace GFX
         Renderer::Get()->SetFramebufferSize(static_cast<uint32_t>(width), static_cast<uint32_t>(height));
       });
 
-    //if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))
     if (!gladLoadGL())
     {
       spdlog::critical("Failed to initialize GLAD");
     }
 
+    return window_;
+  }
+
+  // call when the window needs to be recreated, like when full screen mode is toggled
+  GLFWwindow* Renderer::CreateWindow(bool fullscreen)
+  {
+    if (window_)
+    {
+      glfwDestroyWindow(window_);
+    }
+
+    isFullscreen = fullscreen;
+
+    if (fullscreen)
+    {
+      GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
+      const GLFWvidmode* videoMode = glfwGetVideoMode(primaryMonitor);
+      window_ = glfwCreateWindow(videoMode->width, videoMode->height, "Gengine", primaryMonitor, nullptr);
+      windowWidth = videoMode->width;
+      windowHeight = videoMode->height;
+    }
+    else
+    {
+      window_ = glfwCreateWindow(windowWidth, windowHeight, "Gengine", nullptr, nullptr);
+    }
+
+    renderWidth = glm::max(static_cast<uint32_t>(windowWidth * renderScale), 1u);
+    renderHeight = glm::max(static_cast<uint32_t>(windowHeight * renderScale), 1u);
     return window_;
   }
 
@@ -862,6 +900,8 @@ namespace GFX
   void Renderer::SetRenderingScale(float scale)
   {
     renderScale = scale;
+    renderWidth = glm::max(static_cast<uint32_t>(windowWidth * renderScale), 1u);
+    renderHeight = glm::max(static_cast<uint32_t>(windowHeight * renderScale), 1u);
     InitFramebuffers();
   }
 }

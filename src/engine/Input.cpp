@@ -173,16 +173,17 @@ void Input::mouse_button_cb(GLFWwindow* window, int button, int action, int mods
 #endif
 }
 
-void Input::init_glfw_input_cbs(GLFWwindow* window)
+void Input::init_glfw_input_cbs(GLFWwindow* const* window)
 {
-  glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+  window_ = window;
+  glfwSetInputMode(*window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-  glfwSetKeyCallback(window, keypress_cb);
-  glfwSetCursorPosCallback(window, mouse_pos_cb);
-  glfwSetScrollCallback(window, mouse_scroll_cb);
-  glfwSetMouseButtonCallback(window, mouse_button_cb);
+  glfwSetKeyCallback(*window, keypress_cb);
+  glfwSetCursorPosCallback(*window, mouse_pos_cb);
+  glfwSetScrollCallback(*window, mouse_scroll_cb);
+  glfwSetMouseButtonCallback(*window, mouse_button_cb);
 
-  glfwSetCharCallback(window, ImGui_ImplGlfw_CharCallback);
+  glfwSetCharCallback(*window, ImGui_ImplGlfw_CharCallback);
 }
 
 void Input::AddInputAction(hashed_string action, std::span<InputActionType> keys)
@@ -317,14 +318,14 @@ float Input::GetInputAxis(hashed_string action)
 void Input::SetCursorVisible(bool state)
 {
   if (state)
-    glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    glfwSetInputMode(*window_, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
   else
-    glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetInputMode(*window_, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 }
 
 bool Input::GetCursorVisible()
 {
-  return glfwGetInputMode(window_, GLFW_CURSOR) == GLFW_CURSOR_NORMAL;
+  return glfwGetInputMode(*window_, GLFW_CURSOR) == GLFW_CURSOR_NORMAL;
 }
 
 

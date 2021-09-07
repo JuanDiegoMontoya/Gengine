@@ -61,7 +61,7 @@ public:
   static bool IsMousePressed(MouseButton key);
   static bool IsMouseReleased(MouseButton key);
 
-  static void init_glfw_input_cbs(GLFWwindow* window);
+  static void init_glfw_input_cbs(GLFWwindow* const* window);
 
   static inline float sensitivity = 0.05f;
 
@@ -76,7 +76,7 @@ public:
   static void SetCursorVisible(bool state);
   static bool GetCursorVisible();
 
-  static inline GLFWwindow* window_;
+  static inline GLFWwindow* const* window_;
 
 private:
   static inline glm::vec2 screenPos;

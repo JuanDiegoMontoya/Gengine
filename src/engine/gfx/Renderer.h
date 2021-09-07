@@ -32,7 +32,7 @@ namespace GFX
     Renderer& operator=(const Renderer&) = delete;
     Renderer& operator=(Renderer&&) = delete;
 
-    GLFWwindow* Init();
+    GLFWwindow* const* Init();
     void CompileShaders();
 
     void BeginBatch(size_t size);
@@ -64,18 +64,22 @@ namespace GFX
       return &meshBufferInfo;
     }
 
+    bool GetIsFullscreen() const { return isFullscreen; }
+
     void SetFramebufferSize(uint32_t width, uint32_t height);
     void SetRenderingScale(float scale);
+    GLFWwindow* CreateWindow(bool fullscreen);
+    void InitFramebuffers();
 
   private:
     Renderer() {};
     ~Renderer() {};
 
-    void InitFramebuffers();
     void InitVertexLayouts();
-    GLFWwindow* InitWindow();
+    GLFWwindow* InitContext();
 
     GLFWwindow* window_{};
+    bool isFullscreen{ false };
 
     // resets the GL state to something predictable
     void GL_ResetState();
@@ -118,12 +122,11 @@ namespace GFX
     //uint32_t ldrColorTex{};
     uint32_t windowWidth{ 1 };
     uint32_t windowHeight{ 1 };
-    uint32_t GetRenderWidth() const { return windowWidth * renderScale; }
-    uint32_t GetRenderHeight() const { return windowHeight * renderScale; }
-    float renderScale = 1.0f; // 1.0 = render at window resolution
-    //uint32_t hdrFbo{};
-    //uint32_t hdrColorTex;
-    //uint32_t hdrDepthTex;
+    uint32_t renderWidth{ 1 };
+    uint32_t renderHeight{ 1 };
+    float renderScale{ 1.0f }; // 1.0 means render resolution will match window
+    uint32_t GetRenderWidth() const { return renderWidth; }
+    uint32_t GetRenderHeight() const { return renderHeight; }
     std::optional<Framebuffer> hdrFbo;
     std::optional<Texture> hdrColorTexMemory;
     std::optional<Texture> hdrDepthTexMemory;

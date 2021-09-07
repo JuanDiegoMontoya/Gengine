@@ -16,8 +16,8 @@ public:
   void EndFrame(Timestep timestep);
   void SwapBuffers();
 
-  GLFWwindow* GetWindow() { return window; }
+  GLFWwindow* const* GetWindow() { return window; }
 private:
   // TODO: replace with window class
-  GLFWwindow* window;
+  GLFWwindow* const* window{};
 };

@@ -28,14 +28,13 @@ DECLARE_FLOAT_STAT(SwapBuffers_CPU, CPU)
 void GraphicsSystem::Init()
 {
   window = GFX::Renderer::Get()->Init();
-  glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
   CameraSystem::Init();
 }
 
 void GraphicsSystem::Shutdown()
 {
-  glfwDestroyWindow(window);
+  glfwTerminate();
 }
 
 void GraphicsSystem::StartFrame()
@@ -151,5 +150,5 @@ void GraphicsSystem::EndFrame(Timestep timestep)
 void GraphicsSystem::SwapBuffers()
 {
   MEASURE_CPU_TIMER_STAT(SwapBuffers_CPU);
-  glfwSwapBuffers(window);
+  glfwSwapBuffers(*window);
 }

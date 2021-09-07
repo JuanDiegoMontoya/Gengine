@@ -7,7 +7,7 @@ struct GLFWwindow;
 class DebugSystem
 {
 public:
-  void Init(GLFWwindow* win);
+  void Init(GLFWwindow* const* win);
   void End();
 
   void StartFrame(Scene& scene);
@@ -15,5 +15,5 @@ public:
   void EndFrame(Scene& scene);
 
 private:
-  GLFWwindow* window;
+  GLFWwindow* const* window{};
 };

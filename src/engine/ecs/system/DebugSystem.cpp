@@ -19,15 +19,14 @@ DECLARE_FLOAT_STAT(DrawUI_GPU, GPU)
 
 static std::string imguiConfigDir = std::string(AssetDir) + "imgui.ini";
 
-void DebugSystem::Init(GLFWwindow* win)
+void DebugSystem::Init(GLFWwindow* const* win)
 {
   window = win;
   ImGui::CreateContext();
-  ImGui_ImplGlfw_InitForOpenGL(window, false);
+  ImGui_ImplGlfw_InitForOpenGL(*window, false);
   ImGui_ImplOpenGL3_Init();
   ImGui::GetIO().IniFilename = imguiConfigDir.c_str();
   ImGui::StyleColorsDark();
-  Input::window_ = window;
 }
 
 void DebugSystem::End()
@@ -38,7 +37,7 @@ void DebugSystem::End()
 
 void DebugSystem::StartFrame(Scene& scene)
 {
-  if (glfwWindowShouldClose(window))
+  if (glfwWindowShouldClose(*window))
   {
     scene.GetEngine().Stop();
   }
