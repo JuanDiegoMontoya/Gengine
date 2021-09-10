@@ -1,13 +1,15 @@
 #pragma once
 #include <vector>
 #include <map>
+#include <span>
 
-#include <engine/gfx/MeshUtils.h>
-#include <engine/gfx/Material.h>
-#include <engine/gfx/DynamicBuffer.h>
-#include <engine/gfx/Indirect.h>
+#include "MeshUtils.h"
+#include "Material.h"
+#include "DynamicBuffer.h"
+#include "Indirect.h"
 #include "Texture.h"
 #include "Framebuffer.h"
+#include "RenderView.h"
 
 namespace Component
 {
@@ -33,21 +35,26 @@ namespace GFX
     Renderer& operator=(Renderer&&) = delete;
 
     GLFWwindow* const* Init();
-    void CompileShaders();
 
-    void BeginBatch(size_t size);
-    void Submit(const Component::Model& model, const Component::BatchedMesh& mesh, const Component::Material& mat);
-    void RenderBatch();
-    void BeginRenderParticleEmitter();
-    void RenderParticleEmitter(const Component::ParticleEmitter& emitter, const Component::Transform& model);
+    // big boy drawing functions
+    void BeginObjects(size_t maxDraws);
+    void SubmitObject(const Component::Model& model, const Component::BatchedMesh& mesh, const Component::Material& mat);
+    void RenderObjects(std::span<RenderView> renderViews);
+
+    void BeginEmitters(size_t maxDraws);
+    void SubmitEmitter(const Component::ParticleEmitter& emitter, const Component::Transform& model);
+    void RenderEmitters(std::span<RenderView> renderViews);
+ 
+    void DrawFog(std::span<RenderView> renderViews);
 
     // generic drawing functions (TODO: move)
-    void DrawAxisIndicator();
-
-    void DrawSkybox();
+    void DrawAxisIndicator(std::span<RenderView> renderViews);
+    void DrawSkybox(std::span<RenderView> renderViews);
 
     void StartFrame();
     void EndFrame(float dt);
+
+    [[nodiscard]] Framebuffer* GetMainFramebuffer() { return &hdrFbo.value(); }
 
     [[nodiscard]] GFX::DynamicBuffer<>* GetVertexBuffer()
     {
@@ -64,7 +71,7 @@ namespace GFX
       return &meshBufferInfo;
     }
 
-    bool GetIsFullscreen() const { return isFullscreen; }
+    [[nodiscard]] bool GetIsFullscreen() const { return isFullscreen; }
 
     void SetFramebufferSize(uint32_t width, uint32_t height);
     void SetRenderingScale(float scale);
@@ -75,8 +82,11 @@ namespace GFX
     Renderer() {};
     ~Renderer() {};
 
-    void InitVertexLayouts();
     GLFWwindow* InitContext();
+    void InitVertexBuffers();
+    void InitVertexLayouts();
+    void CompileShaders();
+    void InitTextures();
 
     GLFWwindow* window_{};
     bool isFullscreen{ false };
@@ -84,12 +94,21 @@ namespace GFX
     // resets the GL state to something predictable
     void GL_ResetState();
 
+    // particle rendering
+    struct EmitterDrawCommand
+    {
+      const Component::ParticleEmitter* emitter;
+      glm::mat4 modelUniform;
+    };
+    std::atomic_uint32_t emitterDrawIndex = 0;
+    std::vector<EmitterDrawCommand> emitterDrawCommands;
+
     // std140
     struct UniformData
     {
       glm::mat4 model;
     };
-    void RenderBatchHelper(MaterialID material, const std::vector<UniformData>& uniformBuffer);
+    void RenderBatchHelper(std::span<RenderView> renderViews, MaterialID material, const std::vector<UniformData>& uniformBuffer);
 
     // batched+instanced rendering stuff (ONE MATERIAL SUPPORTED ATM)
     std::unique_ptr<GFX::DynamicBuffer<>> vertexBuffer;
@@ -113,6 +132,9 @@ namespace GFX
 
     uint32_t emptyVao{};
 
+    uint32_t axisVao{};
+    std::optional<StaticBuffer> axisVbo;
+
     std::optional<TextureSampler> defaultSampler;
 
     // HDR inverse-z framebuffer stuff
@@ -133,11 +155,15 @@ namespace GFX
     std::optional<TextureView> hdrColorTexView;
     std::optional<TextureView> hdrDepthTexView;
 
+    struct Environment
+    {
+      std::optional<Texture> skyboxMemory;
+      std::optional<TextureView> skyboxView;
+      std::optional<TextureSampler> skyboxSampler;
+    }env;
+
     struct FogParams
     {
-      std::optional<Framebuffer> framebuffer;
-      std::optional<Texture> texMemory;
-      std::optional<TextureView> texView;
       glm::vec3 albedo{ 1.0 };
       float u_a = 0.005f;
       float u_b = 10000.0f;

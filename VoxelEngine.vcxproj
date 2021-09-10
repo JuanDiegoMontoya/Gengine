@@ -24,17 +24,13 @@
     <ClInclude Include="data\game\Shaders\noise.h" />
     <ClInclude Include="data\game\Shaders\particle.h" />
     <ClInclude Include="src\engine\Application.h" />
-    <ClInclude Include="src\engine\Camera.h" />
     <ClInclude Include="src\engine\Console.h" />
-    <ClInclude Include="src\engine\core\CoreMacros.h" />
     <ClInclude Include="src\engine\core\Logging.h" />
     <ClInclude Include="src\engine\core\Statistics.h" />
     <ClInclude Include="src\engine\core\StatMacros.h" />
     <ClInclude Include="src\engine\CVar.h" />
     <ClInclude Include="src\engine\CVarInternal.h" />
     <ClInclude Include="src\engine\Directories.h" />
-    <ClInclude Include="src\engine\ecs\component\Camera.h" />
-    <ClInclude Include="src\engine\ecs\component\Common.h" />
     <ClInclude Include="src\engine\ecs\component\Core.h" />
     <ClInclude Include="src\engine\ecs\component\ParticleEmitter.h" />
     <ClInclude Include="src\engine\ecs\component\Physics.h" />
@@ -49,10 +45,11 @@
     <ClInclude Include="src\engine\ecs\system\PhysicsSystem.h" />
     <ClInclude Include="src\engine\ecs\system\ScriptSystem.h" />
     <ClInclude Include="src\engine\Engine.h" />
-    <ClInclude Include="src\engine\gfx\CameraManager.h" />
+    <ClInclude Include="src\engine\gfx\Camera.h" />
     <ClInclude Include="src\engine\gfx\Framebuffer.h" />
     <ClInclude Include="src\engine\gfx\BasicTypes.h" />
     <ClInclude Include="src\engine\gfx\MeshManager.h" />
+    <ClInclude Include="src\engine\gfx\RenderView.h" />
     <ClInclude Include="src\engine\Timestep.h" />
     <ClInclude Include="src\utility\Flags.h" />
     <ClInclude Include="src\engine\GAssert.h" />
@@ -97,6 +94,7 @@
     <ClInclude Include="src\utility\Defer.h" />
     <ClInclude Include="src\utility\HashedString.h" />
     <ClInclude Include="src\utility\ImGuiExt.h" />
+    <ClInclude Include="src\utility\MathExtensions.h" />
     <ClInclude Include="src\utility\Palette.h" />
     <ClInclude Include="src\utility\Serialize.h" />
     <ClInclude Include="src\utility\Timer.h" />
@@ -180,10 +178,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="src\engine\Camera.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="src\engine\Console.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
@@ -253,6 +247,12 @@
     <ClCompile Include="src\engine\GAssert.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="src\engine\gfx\Camera.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../PCH.h</PrecompiledHeaderFile>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">../PCH.h</PrecompiledHeaderFile>
     </ClCompile>
     <ClCompile Include="src\engine\gfx\DebugMarker.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -359,6 +359,12 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="src\engine\gfx\stbiImpl.cpp" />
+    <ClCompile Include="src\game\FlyingPlayerController.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">gPCH.h</PrecompiledHeaderFile>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">gPCH.h</PrecompiledHeaderFile>
+    </ClCompile>
     <ClCompile Include="src\game\gPCH.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">gPCH.h</PrecompiledHeaderFile>
@@ -366,6 +372,12 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">gPCH.h</PrecompiledHeaderFile>
     </ClCompile>
     <ClCompile Include="src\game\main.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">gPCH.h</PrecompiledHeaderFile>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">gPCH.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <ClCompile Include="src\game\PhysicsPlayerController.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">gPCH.h</PrecompiledHeaderFile>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
@@ -384,6 +396,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">gPCH.h</PrecompiledHeaderFile>
     </ClCompile>
     <ClCompile Include="src\utility\ImGuiExt.cpp" />
+    <ClCompile Include="src\utility\MathExtensions.cpp" />
     <ClCompile Include="src\utility\Timer.cpp" />
     <ClCompile Include="src\voxel\block.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>

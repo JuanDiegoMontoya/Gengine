@@ -1,7 +1,8 @@
 #pragma once
 #include <engine/ecs/ScriptableEntity.h>
 #include <engine/Input.h>
-#include <engine/Camera.h>
+#include <engine/gfx/RenderView.h>
+#include <engine/gfx/Camera.h>
 #include <engine/ecs/component/Physics.h>
 #include <engine/ecs/component/Transform.h>
 
@@ -26,11 +27,12 @@ public:
       Input::SetCursorVisible(activeCursor);
     }
 
-    auto& cam = GetComponent<Component::Camera>();// *CameraSystem::ActiveCamera;
-    //cam.SetPos(transform.GetTranslation()); // TODO: TEMP BULLSHIT
+    auto* camera = GetScene()->GetRenderView("main").camera;
+    auto& vi = camera->viewInfo;
+    const auto cameraDir = vi.GetForwardDir();
     auto& controller = GetComponent<Component::CharacterController>();
 
-    const glm::vec2 xzForward = glm::normalize(glm::vec2(cam.GetForward().x, cam.GetForward().z));
+    const glm::vec2 xzForward = glm::normalize(glm::vec2(cameraDir.x, cameraDir.z));
     const glm::vec2 xzRight = glm::normalize(glm::vec2(-xzForward.y, xzForward.x));
 
     float maxXZSpeed = normalSpeed;
@@ -65,7 +67,7 @@ public:
       xzForce = glm::normalize(xzForce) * currSpeed;
     if (Input::IsKeyDown(GLFW_KEY_T))
     {
-      velocity += cam.GetForward() * (float)timestep.dt_effective * 100.f;
+      velocity += cameraDir * (float)timestep.dt_effective * 100.f;
       speeding = true;
     }
 
@@ -143,9 +145,8 @@ public:
     // mouse look controls
     if (!activeCursor)
     {
-      auto pyr = cam.GetEuler(); // Pitch, Yaw, Roll
-      cam.SetYaw(pyr.y + Input::GetScreenOffset().x);
-      cam.SetPitch(glm::clamp(pyr.x + Input::GetScreenOffset().y, -89.0f, 89.0f));
+      vi.yaw += Input::GetScreenOffset().x;
+      vi.pitch = glm::clamp(vi.pitch + Input::GetScreenOffset().y, glm::radians(-89.0f), glm::radians(89.0f));
     }
     //pyr = CameraSystem::GetEuler(); // oof
 

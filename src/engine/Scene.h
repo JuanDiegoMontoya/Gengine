@@ -1,7 +1,9 @@
 #pragma once
 #include <string_view>
-#include <memory>
 #include <entt/fwd.hpp>
+#include <engine/gfx/RenderView.h>
+#include <utility/HashedString.h>
+#include <vector>
 
 class Entity;
 class Engine;
@@ -12,6 +14,12 @@ public:
   Scene(std::string_view name, Engine* engine);
   ~Scene();
 
+  // no copy, no move
+  Scene(Scene&&) = delete;
+  Scene(Scene&) = delete;
+  Scene& operator=(const Scene&) = delete;
+  Scene& operator=(const Scene&&) = delete;
+
   Entity CreateEntity(std::string_view name = "");
 
   // Returns an entity whose tag matches the given name.
@@ -19,18 +27,16 @@ public:
   // If there are multiple matches, the first match is returned.
   Entity GetEntity(std::string_view name);
 
-  Engine& GetEngine() { return *engine_; }
-  std::string_view GetName() { return name_; }
-  entt::registry& GetRegistry() { return *registry_; }
+  void RegisterRenderView(hashed_string viewName, GFX::RenderView view);
+  void UnregisterRenderView(hashed_string viewName);
+  GFX::RenderView& GetRenderView(hashed_string viewName);
+  std::vector<std::pair<hashed_string, GFX::RenderView>> GetRenderViewsWithNames();
+  std::vector<GFX::RenderView> GetRenderViews();
 
-  Scene(Scene&&) noexcept = delete;
-  Scene(Scene&) = delete;
-  Scene& operator=(const Scene&) = delete;
-  Scene& operator=(const Scene&&) noexcept = delete;
-  bool operator==(const Scene&) const = delete;
+  Engine* GetEngine();
+  std::string_view GetName();
+  entt::registry& GetRegistry();
 
 private:
-  entt::registry* registry_{}; // all the entities in this scene
-  Engine* engine_;                             // non-owning
-  std::string name_;                           // the name of this scene
+  struct SceneStorage* data_; // PIMPL
 };

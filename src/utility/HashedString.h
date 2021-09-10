@@ -247,3 +247,24 @@ using hashed_wstring = basic_hashed_string<wchar_t>;
 //{
 //  return hashed_wstring{ str };
 //}
+
+namespace std
+{
+  template<>
+  struct hash<hashed_string>
+  {
+    std::size_t operator()(const hashed_string& hs) const noexcept
+    {
+      return hs.value();
+    }
+  };
+
+  template<>
+  struct equal_to<hashed_string>
+  {
+    bool operator()(const hashed_string& a, const hashed_string& b) const
+    {
+      return a.value() == b.value();
+    }
+  };
+}

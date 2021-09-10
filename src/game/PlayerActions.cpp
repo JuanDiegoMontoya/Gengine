@@ -2,22 +2,23 @@
 #include <game/PlayerActions.h>
 #include <imgui/imgui.h>
 #include <engine/gfx/Mesh.h>
-#include <engine/Camera.h>
 #include <engine/Input.h>
 #include <game/FlyingPlayerController.h>
 #include <game/KinematicPlayerController.h>
 #include <engine/Engine.h>
 #include <engine/ecs/system/ParticleSystem.h>
+#include <engine/gfx/TextureManager.h>
+#include <engine/gfx/RenderView.h>
+#include <engine/gfx/Camera.h>
 
-#include <engine/ecs/component/Camera.h>
 #include <engine/ecs/component/ParticleEmitter.h>
 #include <engine/ecs/component/Physics.h>
 #include <engine/ecs/component/Scripting.h>
 #include <engine/ecs/component/Transform.h>
 #include <engine/ecs/component/Rendering.h>
 #include <engine/ecs/component/Core.h>
+
 #include <glm/gtc/type_ptr.hpp>
-#include <engine/gfx/TextureManager.h>
 
 #include "KinematicPlayerController.h"
 
@@ -36,7 +37,7 @@ void PlayerActions::OnUpdate(Timestep timestep)
 {
   if (Input::IsKeyPressed(GLFW_KEY_P))
   {
-    GetScene()->GetEngine().IsPaused() ? GetScene()->GetEngine().Unpause() : GetScene()->GetEngine().Pause();
+    GetScene()->GetEngine()->IsPaused() ? GetScene()->GetEngine()->Unpause() : GetScene()->GetEngine()->Pause();
   }
 
   Entity parent = GetComponent<Component::Parent>().entity;

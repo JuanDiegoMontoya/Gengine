@@ -1,8 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClInclude Include="src\engine\ecs\component\Camera.h" />
-    <ClInclude Include="src\engine\ecs\component\Common.h" />
     <ClInclude Include="src\engine\ecs\component\Core.h" />
     <ClInclude Include="src\engine\ecs\component\ParticleEmitter.h" />
     <ClInclude Include="src\engine\ecs\component\Physics.h" />
@@ -33,7 +31,6 @@
     <ClInclude Include="src\engine\gfx\TextureLoader.h" />
     <ClInclude Include="src\engine\gfx\TextureManager.h" />
     <ClInclude Include="src\engine\Application.h" />
-    <ClInclude Include="src\engine\Camera.h" />
     <ClInclude Include="src\engine\Console.h" />
     <ClInclude Include="src\engine\CVar.h" />
     <ClInclude Include="src\engine\CVarInternal.h" />
@@ -152,10 +149,11 @@
     <ClInclude Include="src\engine\Directories.h" />
     <ClInclude Include="src\engine\core\Statistics.h" />
     <ClInclude Include="src\engine\core\StatMacros.h" />
-    <ClInclude Include="src\engine\gfx\CameraManager.h" />
-    <ClInclude Include="src\engine\core\CoreMacros.h" />
+    <ClInclude Include="src\engine\gfx\Camera.h" />
     <ClInclude Include="src\engine\gfx\Framebuffer.h" />
     <ClInclude Include="src\engine\gfx\BasicTypes.h" />
+    <ClInclude Include="src\utility\MathExtensions.h" />
+    <ClInclude Include="src\engine\gfx\RenderView.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\engine\ecs\system\DebugSystem.cpp" />
@@ -178,7 +176,6 @@
     <ClCompile Include="src\engine\gfx\TextureLoader.cpp" />
     <ClCompile Include="src\engine\gfx\TextureManager.cpp" />
     <ClCompile Include="src\engine\Application.cpp" />
-    <ClCompile Include="src\engine\Camera.cpp" />
     <ClCompile Include="src\engine\Console.cpp" />
     <ClCompile Include="src\engine\CVar.cpp" />
     <ClCompile Include="src\engine\Engine.cpp" />
@@ -218,6 +215,10 @@
     <ClCompile Include="src\engine\core\Logging.cpp" />
     <ClCompile Include="src\engine\core\Statistics.cpp" />
     <ClCompile Include="src\engine\gfx\Framebuffer.cpp" />
+    <ClCompile Include="src\utility\MathExtensions.cpp" />
+    <ClCompile Include="src\engine\gfx\Camera.cpp" />
+    <ClCompile Include="src\game\FlyingPlayerController.cpp" />
+    <ClCompile Include="src\game\PhysicsPlayerController.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="src\engine\gfx\DynamicBuffer.inl" />

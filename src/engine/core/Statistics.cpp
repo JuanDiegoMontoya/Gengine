@@ -8,25 +8,11 @@ DECLARE_FLOAT_STAT(DrawStatisticsUI, CPU)
 
 namespace engine::Core
 {
-  struct KeyHash
-  {
-    size_t operator()(hashed_string a) const
-    {
-      return a.value();
-    }
-  };
-  struct KeyEq
-  {
-    bool operator()(hashed_string a, hashed_string b) const
-    {
-      return a == b;
-    }
-  };
   using FloatStatPayload = std::pair<hashed_string, StatBuffer<float, STATISTICS_BUFFER_SIZE>>;
 
   struct StatisticsManagerData
   {
-    std::unordered_map<hashed_string, FloatStatPayload, KeyHash, KeyEq> floatStats;
+    std::unordered_map<hashed_string, FloatStatPayload> floatStats;
   };
 
   StatisticsManager* StatisticsManager::Get()
@@ -77,7 +63,8 @@ namespace engine::Core
       double min{};
       double max{};
     };
-    std::unordered_map<hashed_string, std::vector<std::pair<hashed_string, StatBufValues>>, KeyHash> groupNameToFloatStat;
+
+    std::unordered_map<hashed_string, std::vector<std::pair<hashed_string, StatBufValues>>> groupNameToFloatStat;
     for (auto& [statName, pair] : data->floatStats)
     {
       StatBufValues vals

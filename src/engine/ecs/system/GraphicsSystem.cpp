@@ -4,19 +4,21 @@
 #include "GraphicsSystem.h"
 #include <engine/Input.h>
 #include <engine/Application.h>
-#include <engine/Camera.h>
 #include <engine/gfx/Renderer.h>
 #include <engine/gfx/Mesh.h>
 #include <engine/gfx/Fence.h>
+#include <engine/gfx/RenderView.h>
+#include <engine/gfx/Camera.h>
 #include <engine/core/Statistics.h>
 #include <engine/core/StatMacros.h>
 #include <execution>
 #include <glm/gtx/norm.hpp>
+#include <entt/entity/registry.hpp>
 
 #include <imgui/imgui.h>
 
+#include <engine/ecs/component/Transform.h>
 #include "../component/Rendering.h"
-#include "../component/Camera.h"
 #include "../component/ParticleEmitter.h"
 
 DECLARE_FLOAT_STAT(DrawTransparent_GPU, GPU)
@@ -28,8 +30,6 @@ DECLARE_FLOAT_STAT(SwapBuffers_CPU, CPU)
 void GraphicsSystem::Init()
 {
   window = GFX::Renderer::Get()->Init();
-
-  CameraSystem::Init();
 }
 
 void GraphicsSystem::Shutdown()
@@ -54,18 +54,6 @@ void GraphicsSystem::StartFrame()
     ImGui::Text("ID: %u", id);
   }
   ImGui::End();
-
-  const auto& camList = CameraSystem::GetCameraList();
-  for (Component::Camera* camera : camList)
-  {
-    if (!camera->skyboxTexture)
-    {
-      continue;
-    }
-    CameraSystem::ActiveCamera = camera;
-    CameraSystem::Update();
-    GFX::Renderer::Get()->DrawSkybox();
-  }
 }
 
 void GraphicsSystem::DrawOpaque(Scene& scene)
@@ -73,28 +61,24 @@ void GraphicsSystem::DrawOpaque(Scene& scene)
   MEASURE_GPU_TIMER_STAT(DrawOpaque_GPU);
   MEASURE_CPU_TIMER_STAT(DrawOpaque_CPU);
 
-  const auto& camList = CameraSystem::GetCameraList();
-  for (Component::Camera* camera : camList)
-  {
-    CameraSystem::ActiveCamera = camera;
-    CameraSystem::Update();
+  auto views = scene.GetRenderViews();
+  std::span<GFX::RenderView> viewsSpan{ views.begin(), views.end() };
 
-    // draw batched objects in the scene
-    using namespace Component;
-    auto group = scene.GetRegistry().group<BatchedMesh>(entt::get<Model, Material>);
-    GFX::Renderer::Get()->BeginBatch(group.size());
-    std::for_each(std::execution::par, group.begin(), group.end(),
-      [&group](entt::entity entity)
-      {
-        auto [mesh, model, material] = group.get<BatchedMesh, Model, Material>(entity);
-        if ((CameraSystem::ActiveCamera->cullingMask & mesh.renderFlag) != mesh.renderFlag) // Mesh not set to be culled
-        {
-          GFX::Renderer::Get()->Submit(model, mesh, material);
-        }
-      });
+  // draw batched objects in the scene
+  using namespace Component;
+  auto group = scene.GetRegistry().group<BatchedMesh>(entt::get<Model, Material>);
+  GFX::Renderer::Get()->BeginObjects(group.size());
 
-    GFX::Renderer::Get()->RenderBatch();
-  }
+  std::for_each(std::execution::par, group.begin(), group.end(),
+    [&group](entt::entity entity)
+    {
+      auto [mesh, model, material] = group.get<BatchedMesh, Model, Material>(entity);
+      GFX::Renderer::Get()->SubmitObject(model, mesh, material);
+    });
+
+  GFX::Renderer::Get()->RenderObjects(viewsSpan);
+
+  GFX::Renderer::Get()->DrawSkybox(viewsSpan);
 }
 
 void GraphicsSystem::DrawTransparent(Scene& scene)
@@ -102,44 +86,20 @@ void GraphicsSystem::DrawTransparent(Scene& scene)
   MEASURE_GPU_TIMER_STAT(DrawTransparent_GPU);
   MEASURE_CPU_TIMER_STAT(DrawTransparent_CPU);
 
-  const auto& camList = CameraSystem::GetCameraList();
-  for (Component::Camera* camera : camList)
-  {
-    CameraSystem::ActiveCamera = camera;
+  auto renderViews = scene.GetRenderViews();
 
-    // draw particles from back to front
-    using namespace Component;
-    auto view = scene.GetRegistry().view<ParticleEmitter, Transform>();
-    auto compare = [&camera](const auto& p1, const auto& p2)
-    {
-      if (p1.second->GetTranslation() != p2.second->GetTranslation())
-      {
-        auto len = glm::length2(p1.second->GetTranslation() - camera->GetWorldPos()) -
-          glm::length2(p2.second->GetTranslation() - camera->GetWorldPos());
-        if (glm::abs(len) > .001f)
-        {
-          return len > 0.0f;
-        }
-      }
-      return p1.first < p2.first;
-    };
-    std::vector<std::pair<ParticleEmitter*, Transform*>> emitters;
-    for (auto entity : view)
+  using namespace Component;
+  auto view = scene.GetRegistry().view<ParticleEmitter, Transform>();
+  GFX::Renderer::Get()->BeginEmitters(view.size_hint()); // multi-component views only know the maximum possible size
+
+  std::for_each(std::execution::par, view.begin(), view.end(),
+    [&view](entt::entity entity)
     {
       auto [emitter, transform] = view.get<ParticleEmitter, Transform>(entity);
-      if ((CameraSystem::ActiveCamera->cullingMask & emitter.renderFlag) != emitter.renderFlag) // Emitter not set to be culled
-      {
-        emitters.push_back(std::pair<ParticleEmitter*, Transform*>(&emitter, &transform));
-      }
-    }
+      GFX::Renderer::Get()->SubmitEmitter(emitter, transform);
+    });
 
-    std::sort(emitters.begin(), emitters.end(), compare);
-    GFX::Renderer::Get()->BeginRenderParticleEmitter();
-    for (const auto& [emitter, transform] : emitters)
-    {
-      GFX::Renderer::Get()->RenderParticleEmitter(*emitter, *transform);
-    }
-  }
+  GFX::Renderer::Get()->RenderEmitters(renderViews);
 }
 
 void GraphicsSystem::EndFrame(Timestep timestep)

@@ -197,15 +197,3 @@ inline std::ostream& operator<<(std::ostream& o, glm::ivec3 v)
     << v.y << ", "
     << v.z << ')';
 }
-
-namespace std
-{
-  template<>
-  struct hash<hashed_string>
-  {
-    inline std::size_t operator()(const hashed_string& hs) const
-    {
-      return hs.value();
-    }
-  };
-}

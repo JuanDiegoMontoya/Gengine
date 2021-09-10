@@ -20,7 +20,7 @@
 #include <engine/gfx/TextureManager.h>
 #include <engine/gfx/Indirect.h>
 #include <engine/gfx/Fence.h>
-#include <engine/Camera.h>
+#include <engine/gfx/Camera.h>
 
 #define LOG_EMITTER_UPDATE_TIME 0
 #define LOG_PARTICLE_UPDATE_TIME 0
@@ -212,9 +212,13 @@ void ParticleSystem::Update(Scene& scene, Timestep timestep)
     auto particle_shader = GFX::ShaderManager::Get()->GetShader("update_particle");
     particle_shader->Bind();
     particle_shader->SetFloat("u_dt", timestep.dt_effective);
-    particle_shader->SetVec3("u_viewPos", CameraSystem::GetPos());
-    particle_shader->SetVec3("u_forwardDir", CameraSystem::GetFront());
 
+    // TODO: hackity hack hack, move to particle rendering in a new compute shader just for culling
+    // it will be slower but offers more flexibility
+    const auto& mainRenderViewHack = scene.GetRenderView("player");
+    particle_shader->SetVec3("u_viewPos", mainRenderViewHack.camera->viewInfo.position);
+    particle_shader->SetVec3("u_forwardDir", mainRenderViewHack.camera->viewInfo.GetForwardDir());
+    
     for (entt::entity entity : view)
     {
       auto [emitter, transform] = view.get<ParticleEmitter, Transform>(entity);

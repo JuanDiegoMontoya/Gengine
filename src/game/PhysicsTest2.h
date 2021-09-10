@@ -1,7 +1,9 @@
 #pragma once
 #include <engine/ecs/ScriptableEntity.h>
 #include <engine/Input.h>
-#include <engine/Camera.h>
+#include <engine/gfx/Camera.h>
+#include <engine/gfx/RenderView.h>
+#include <engine/ecs/component/Physics.h>
 
 class PhysicsTest2 : public ScriptableEntity
 {
@@ -35,7 +37,7 @@ public:
     // apply some force on this entity
     if (Input::IsKeyPressed(GLFW_KEY_F))
     {
-      auto dir = CameraSystem::GetDir();
+      auto dir = GetScene()->GetRenderView("main").camera->viewInfo.GetForwardDir();
       GetComponent<Component::DynamicPhysics>().Interface().AddForce(dir * 50.f);
     }
     

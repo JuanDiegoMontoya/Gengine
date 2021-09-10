@@ -39,7 +39,7 @@ void DebugSystem::StartFrame(Scene& scene)
 {
   if (glfwWindowShouldClose(*window))
   {
-    scene.GetEngine().Stop();
+    scene.GetEngine()->Stop();
   }
 
   ImGui_ImplOpenGL3_NewFrame();

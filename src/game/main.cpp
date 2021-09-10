@@ -17,7 +17,6 @@
 
 // eh
 #include <engine/gfx/Renderer.h>
-#include <engine/Camera.h>
 #include <voxel/prefab.h>
 #include <engine/ecs/system/ParticleSystem.h>
 
@@ -36,7 +35,6 @@
 #include <engine/ecs/component/Rendering.h>
 #include <engine/ecs/component/Physics.h>
 #include <engine/ecs/component/Scripting.h>
-#include <engine/ecs/component/Camera.h>
 #include <engine/ecs/component/ParticleEmitter.h>
 
 static std::unique_ptr<Voxels::VoxelManager> voxelManager{};
@@ -96,45 +94,6 @@ void OnStart(Scene* scene)
   GFX::TextureManager::Get()->AddTexture("smoke", *GFX::LoadTexture2D("smoke.png"));
   GFX::TextureManager::Get()->AddTexture("stone", *GFX::LoadTexture2D("stone.png"));
 
-
-  //const std::vector<std::string> faces =
-  //{
-  //  "hw_glacier/glacier_rt.tga",
-  //  "hw_glacier/glacier_lf.tga",
-  //  "hw_glacier/glacier_up.tga",
-  //  "hw_glacier/glacier_dn.tga",
-  //  "hw_glacier/glacier_bk.tga",
-  //  "hw_glacier/glacier_ft.tga",
-  //};
-  //const std::vector<std::string> faces =
-  //{
-  //  "night_sky_hdr/px.hdr",
-  //  "night_sky_hdr/nx.hdr",
-  //  "night_sky_hdr/py.hdr",
-  //  "night_sky_hdr/ny.hdr",
-  //  "night_sky_hdr/pz.hdr",
-  //  "night_sky_hdr/nz.hdr",
-  //};
-  const std::vector<std::string> faces =
-  {
-    "autumn_sky_hdr/px.hdr",
-    "autumn_sky_hdr/nx.hdr",
-    "autumn_sky_hdr/py.hdr",
-    "autumn_sky_hdr/ny.hdr",
-    "autumn_sky_hdr/pz.hdr",
-    "autumn_sky_hdr/nz.hdr",
-  };
-  std::vector<std::string_view> facesView(faces.begin(), faces.end());
-
-  //const std::vector<std::string> faces =
-  //{
-  //  "miramar/rt.tga",
-  //  "miramar/lf.tga",
-  //  "miramar/up.tga",
-  //  "miramar/dn.tga",
-  //  "miramar/bk.tga",
-  //  "miramar/ft.tga",
-  //};
   {
     Entity player = scene->CreateEntity("player");
     player.AddComponent<Component::Transform>().SetRotation(glm::rotate(glm::mat4(1), glm::pi<float>() / 2.f, { 0, 0, 1 }));
@@ -145,13 +104,7 @@ void OnStart(Scene* scene)
     //player.AddComponent<Components::Camera>(Camera::ActiveCamera);
     auto& cam = player.AddComponent<Component::Camera>(player);
     //cam.skybox = std::make_unique<GFX::TextureCube>(std::span<const std::string, 6>(faces.data(), faces.size()));
-    GFX::TextureManager::Get()->AddTexture("skycube", *GFX::LoadTextureCube(std::span<const std::string_view, 6>(facesView)));
-    cam.skyboxTexture = GFX::TextureView::Create(*GFX::TextureManager::Get()->GetTexture("skycube"), "skycube view");
-    GFX::SamplerState cubesamplerState{};
-    cubesamplerState.asBitField.addressModeU = GFX::AddressMode::MIRRORED_REPEAT;
-    cubesamplerState.asBitField.addressModeV = GFX::AddressMode::MIRRORED_REPEAT;
-    cubesamplerState.asBitField.addressModeW = GFX::AddressMode::MIRRORED_REPEAT;
-    cam.skyboxSampler = GFX::TextureSampler::Create(cubesamplerState, "skycube sampler");
+
     cam.SetPos({ 0, .65, 0 });
     Physics::CapsuleCollider collider(0.3, 0.5);
     //Physics::BoxCollider collider({ 1, 1, 1 });
@@ -406,20 +359,6 @@ void OnStart(Scene* scene)
       entity.AddComponent<Component::ParticleEmitter>(emitter);
     }
   }
-
-  // make an entity for each object in the maya mesh
-  //bool l, o;
-  //auto mesh = MeshManager::CreateMesh("./Resources/Models/Knuckles.fbx", l, o);
-  //for (auto handle : mesh)
-  //{
-  //  Entity newEnt = scene->CreateEntity("maya");
-  //  Components::Transform model;// {.model = glm::scale(glm::mat4(1), { .01, .01, .01 }) };
-  //  model.SetScale({ .01, .01, .01 });
-  //  newEnt.AddComponent<Components::Transform>(model);
-  //  Components::Mesh mesh{ .meshHandle = handle };
-  //  newEnt.AddComponent<Components::Mesh>(mesh);
-  //  newEnt.AddComponent<Components::Material>(userMaterial);
-  //}
 }
 
 void OnUpdate([[maybe_unused]] Timestep timestep)

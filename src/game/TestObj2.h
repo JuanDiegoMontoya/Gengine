@@ -1,7 +1,6 @@
 #pragma once
 #include <engine/ecs/ScriptableEntity.h>
 #include <engine/Input.h>
-#include <engine/Camera.h>
 
 class TestObj2 : public ScriptableEntity
 {

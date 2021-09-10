@@ -1,7 +1,6 @@
 #pragma once
 #include <engine/ecs/ScriptableEntity.h>
 #include <engine/Input.h>
-#include <engine/Camera.h>
 #include <engine/ecs/component/Transform.h>
 
 class TestObj : public ScriptableEntity

@@ -1,87 +1,14 @@
 #pragma once
 #include <engine/ecs/ScriptableEntity.h>
-#include <engine/Input.h>
-#include <engine/Camera.h>
-#include <engine/ecs/component/Physics.h>
-#include <engine/ecs/component/Transform.h>
-
 
 class PhysicsPlayerController : public ScriptableEntity
 {
 public:
-  virtual void OnCreate() override
-  {
-    auto& physics = GetComponent<Component::DynamicPhysics>();
-    //physics.Interface().SetMaxVelocity(maxSpeed);
-    physics.Interface().SetLockFlags(Physics::LockFlag::LOCK_ANGULAR_X | Physics::LockFlag::LOCK_ANGULAR_Y | Physics::LockFlag::LOCK_ANGULAR_Z);
-    physics.Interface().SetMass(5);
-  }
+  void OnCreate() override;
 
-  virtual void OnDestroy() override
-  {
+  void OnDestroy() override {}
 
-  }
-
-  virtual void OnUpdate(Timestep timestep) override
-  {
-    const auto& transform = GetComponent<Component::Transform>();
-    CameraSystem::SetPos(transform.GetTranslation()); // TODO: TEMP BULLSHIT
-    auto& physics = GetComponent<Component::DynamicPhysics>();
-
-    glm::vec2 xzForce{0};
-    const glm::vec2 xzForward = glm::normalize(glm::vec2(CameraSystem::GetDir().x, CameraSystem::GetDir().z));
-    const glm::vec2 xzRight = glm::normalize(glm::vec2(xzForward.y, -xzForward.x));
-    //
-    float currSpeed = normalForce * timestep.dt_effective;
-    float maxSpeed = normalSpeed;
-    if (Input::IsKeyDown(GLFW_KEY_LEFT_SHIFT))
-    {
-      maxSpeed = fastSpeed;
-      currSpeed = fastForce * timestep.dt_effective;
-    }
-    if (Input::IsKeyDown(GLFW_KEY_LEFT_CONTROL))
-    {
-      maxSpeed = slowSpeed;
-      currSpeed = slowForce * timestep.dt_effective;
-    }
-    if (Input::IsKeyDown(GLFW_KEY_T))
-    {
-      maxSpeed = 1000;
-      physics.Interface().AddForce(CameraSystem::GetDir() * 50.f, Physics::ForceMode::FORCE);
-    }
-    if (Input::IsKeyDown(GLFW_KEY_W))
-      xzForce += xzForward * currSpeed;
-    if (Input::IsKeyDown(GLFW_KEY_S))
-      xzForce -= xzForward * currSpeed;
-    if (Input::IsKeyDown(GLFW_KEY_A))
-      xzForce += xzRight * currSpeed;
-    if (Input::IsKeyDown(GLFW_KEY_D))
-      xzForce -= xzRight * currSpeed;
-
-    physics.Interface().AddForce({ xzForce.x, 0, xzForce.y });
-    auto vel = physics.Interface().GetVelocity();
-    if (Input::IsKeyPressed(GLFW_KEY_SPACE))
-      physics.Interface().SetVelocity({ vel.x, jumpVel, vel.z });
-    vel = physics.Interface().GetVelocity();
-    glm::vec2 xzVel{ vel.x, vel.z };
-    if (auto len = glm::length(xzVel); len > maxSpeed)
-      xzVel = (xzVel / len) * maxSpeed;
-    vel.x = xzVel[0];
-    vel.z = xzVel[1];
-    physics.Interface().SetVelocity(vel);
-
-    auto pyr = CameraSystem::GetEuler(); // Pitch, Yaw, Roll
-    CameraSystem::SetYaw(pyr.y + Input::GetScreenOffset().x);
-    CameraSystem::SetPitch(glm::clamp(pyr.x + Input::GetScreenOffset().y, -89.0f, 89.0f));
-    pyr = CameraSystem::GetEuler(); // oof
-
-    //glm::vec3 temp;
-    //temp.x = cos(glm::radians(pyr.x)) * cos(glm::radians(pyr.y));
-    //temp.y = sin(glm::radians(pyr.x));
-    //temp.z = cos(glm::radians(pyr.x)) * sin(glm::radians(pyr.y));
-    //CameraSystem::SetFront(glm::normalize(temp));
-    //CameraSystem::SetDir(CameraSystem::GetFront());
-  }
+  void OnUpdate(Timestep timestep) override;
 
   const float jumpVel = 8.0f;
 

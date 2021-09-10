@@ -5,6 +5,8 @@
 #include <memory>
 #include <utility/Flags.h>
 #include <engine/Timestep.h>
+#include <unordered_map>
+#include <unordered_set>
 
 namespace physx
 {
