@@ -37,9 +37,11 @@ void GraphicsSystem::Shutdown()
   glfwTerminate();
 }
 
-void GraphicsSystem::StartFrame()
+void GraphicsSystem::StartFrame(Scene& scene)
 {
+  auto renderViews = scene.GetRenderViews();
   GFX::Renderer::Get()->StartFrame();
+  GFX::Renderer::Get()->ClearFramebuffers(renderViews);
 
   ImGui::Begin("Graphics");
   ImGui::Text("Loaded Meshes");
@@ -102,8 +104,10 @@ void GraphicsSystem::DrawTransparent(Scene& scene)
   GFX::Renderer::Get()->RenderEmitters(renderViews);
 }
 
-void GraphicsSystem::EndFrame(Timestep timestep)
+void GraphicsSystem::EndFrame(Scene& scene, Timestep timestep)
 {
+  auto renderViews = scene.GetRenderViews();
+  GFX::Renderer::Get()->DrawFog(renderViews);
   GFX::Renderer::Get()->EndFrame(timestep.dt_effective);
 }
 

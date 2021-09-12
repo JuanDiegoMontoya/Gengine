@@ -1,5 +1,7 @@
 #pragma once
 #include <engine/Physics.h>
+#include <glm/vec3.hpp>
+#include <glm/gtx/quaternion.hpp>
 
 namespace Component
 {

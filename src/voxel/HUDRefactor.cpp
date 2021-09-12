@@ -2,7 +2,6 @@
 #include <glad/glad.h>
 #include <voxel/HUDRefactor.h>
 #include <engine/Input.h>
-#include <engine/Camera.h>
 #include <engine/gfx/ShaderManager.h>
 #include <engine/gfx/Renderer.h>
 #include <imgui/imgui.h>
@@ -25,7 +24,7 @@ void HUD::Update()
   //Camera* cam = CameraSystem::ActiveCamera;----
 
   //printf("%f\n", Input::Mouse().scrollOffset.y);
-
+#if 0
   // render the selected object on the screen
   glm::vec3 pos = glm::vec3(0, -6, -12);// +cam->GetPos() + cam->front * 10.f;
   glm::vec3 rot(.5, 1, 0);
@@ -66,7 +65,7 @@ void HUD::Update()
   glEnable(GL_DEPTH_TEST);
   glDepthMask(GL_TRUE);
   glPolygonMode(GL_FRONT_AND_BACK, polygonMode);
-
+#endif
   // display name of held block
   {
     //ImGui::Begin("##held", 0, Interface::activeCursor ? 0 : ImGuiWindowFlags_NoMouseInputs);

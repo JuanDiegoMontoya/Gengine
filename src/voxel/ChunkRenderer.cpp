@@ -1,16 +1,18 @@
 #include "vPCH.h"
-#include <voxel/ChunkRenderer.h>
-#include <voxel/Chunk.h>
+#include "Chunk.h"
+#include "ChunkRenderer.h"
 
-#include <engine/Camera.h>
 #include <engine/gfx/Frustum.h>
 #include <engine/gfx/ShaderManager.h>
 #include <engine/gfx/TextureLoader.h>
 #include <engine/gfx/DebugMarker.h>
 #include <engine/gfx/Indirect.h>
 #include <engine/gfx/Fence.h>
-#include <engine/CVar.h>
 #include <engine/gfx/DynamicBuffer.h>
+#include <engine/gfx/Camera.h>
+#include <engine/gfx/Framebuffer.h>
+
+#include <engine/CVar.h>
 #include <engine/Shapes.h>
 #include <engine/core/Statistics.h>
 
@@ -18,7 +20,6 @@
 #include <imgui/imgui.h>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "ChunkRenderer.h"
 #include <engine/core/StatMacros.h>
 
 AutoCVar<cvar_float> cullDistanceMinCVar("v.cullDistanceMin", "- Minimum distance at which chunks should render", 0);
@@ -145,7 +146,7 @@ namespace Voxels
     delete data;
   }
 
-  void ChunkRenderer::DrawBuffers()
+  void ChunkRenderer::DrawBuffers(std::span<GFX::RenderView> renderViews)
   {
     auto sdr = GFX::ShaderManager::Get()->GetShader("buffer_vis");
     sdr->Bind();
@@ -156,69 +157,82 @@ namespace Voxels
 
     glLineWidth(50);
     glDepthFunc(GL_ALWAYS);
-    data->verticesAllocator->Draw();
+
+    for (auto& renderView : renderViews)
+    {
+      if (!(renderView.mask & GFX::RenderMaskBit::RenderScreenElements))
+        continue;
+
+      renderView.renderTarget->Bind();
+      data->verticesAllocator->Draw();
+    }
+
     glLineWidth(2);
   }
 
-  void ChunkRenderer::Draw()
+  void ChunkRenderer::Draw(std::span<GFX::RenderView> renderViews)
   {
     GFX::DebugMarker marker("Draw voxels");
     MEASURE_GPU_TIMER_STAT(DrawVoxelsAll);
     MEASURE_CPU_TIMER_STAT(Joe);
 
-    RenderVisible();
-    GenerateDIB();
-    RenderOcclusion();
-    //RenderRest();
+    RenderVisibleLastFrame(renderViews);
+    GenerateDrawIndirectBuffer(renderViews);
+    RenderOcclusion(renderViews);
+    //RenderDisoccludedThisFrame(renderViews);
   }
 
-  void ChunkRenderer::RenderVisible()
+  void ChunkRenderer::RenderVisibleLastFrame(std::span<GFX::RenderView> renderViews)
   {
     // TODO: rendering is glitchy when modifying chunks rapidly
     // this is probably due to how the previous frame's visible chunks will be drawn
     GFX::DebugMarker marker("Draw visible chunks");
     MEASURE_GPU_TIMER_STAT(DrawVisibleChunks);
 
+    static float u_minBrightness = 0.01f;
+    static glm::vec3 u_envColor = glm::vec3(1);
+    ImGui::SliderFloat("Min Brightness", &u_minBrightness, 0.0f, 0.1f);
+    ImGui::SliderFloat3("Env Color", glm::value_ptr(u_envColor), 0.0f, 0.1f);
+
     if (!data->dib)
       return;
 
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK); // don't forget to reset original culling face
+    glBindVertexArray(data->vao);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, data->verticesAllocator->GetID());
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, data->verticesAllocator->GetID());
 
     // render blocks in each active chunk
     auto currShader = GFX::ShaderManager::Get()->GetShader("chunk_optimized");
     currShader->Bind();
 
-    //float angle = glm::max(glm::dot(-glm::normalize(NuRenderer::activeSun_->GetDir()), glm::vec3(0, 1, 0)), 0.f);
-    static float u_minBrightness = 0.01f;
-    static glm::vec3 u_envColor = glm::vec3(1);
-    ImGui::SliderFloat("Min Brightness", &u_minBrightness, 0.0f, 0.1f);
-    ImGui::SliderFloat3("Env Color", glm::value_ptr(u_envColor), 0.0f, 0.1f);
     currShader->SetFloat("u_minBrightness", u_minBrightness);
     currShader->SetVec3("u_envColor", u_envColor);
-
-    // undo gamma correction for sky color
-    static const glm::vec3 skyColor(
-      glm::pow(.529f, 2.2f),
-      glm::pow(.808f, 2.2f),
-      glm::pow(.922f, 2.2f));
-    currShader->SetMat4("u_viewProj", CameraSystem::GetProj() * CameraSystem::GetView());
-
-    glBindVertexArray(data->vao);
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, data->verticesAllocator->GetID());
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, data->verticesAllocator->GetID());
-    data->dib->Bind<GFX::Target::DRAW_INDIRECT_BUFFER>();
-    data->drawCountGPU->Bind<GFX::Target::PARAMETER_BUFFER>();
     GFX::SamplerState state = data->blockTexturesSampler->GetState();
     state.asBitField.anisotropy = getAnisotropy(anisotropyCVar.Get());
     data->blockTexturesSampler->SetState(state);
     data->blockTexturesView->Bind(0, *data->blockTexturesSampler);
-    glMultiDrawArraysIndirectCount(GL_TRIANGLES, 0, 0, data->activeAllocs, 0);
+
+    for (auto& renderView : renderViews)
+    {
+      if (!(renderView.mask & GFX::RenderMaskBit::RenderVoxels))
+        continue;
+
+      renderView.renderTarget->Bind();
+
+      currShader->SetMat4("u_viewProj", renderView.camera->GetViewProj());
+
+      data->dib->Bind<GFX::Target::DRAW_INDIRECT_BUFFER>();
+      data->drawCountGPU->Bind<GFX::Target::PARAMETER_BUFFER>();
+      glMultiDrawArraysIndirectCount(GL_TRIANGLES, 0, 0, data->activeAllocs, 0);
+    }
+
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
     data->blockTexturesView->Unbind(0);
   }
 
-  void ChunkRenderer::GenerateDIB()
+  void ChunkRenderer::GenerateDrawIndirectBuffer(std::span<GFX::RenderView> renderViews)
   {
     GFX::DebugMarker marker("Generate draw commands");
     MEASURE_GPU_TIMER_STAT(GenerateDIB);
@@ -228,46 +242,60 @@ namespace Voxels
 
     auto sdr = GFX::ShaderManager::Get()->GetShader("compact_batch");
     sdr->Bind();
-
-    // set uniforms for chunk rendering
-    sdr->SetVec3("u_viewpos", CameraSystem::GetPos());
-    Frustum fr = *CameraSystem::GetFrustum();
-    for (int i = 0; i < 5; i++) // ignore near plane
-    {
-      std::string uname = "u_viewfrustum.data_[" + std::to_string(i) + "][0]";
-      sdr->Set1FloatArray(hashed_string(uname.c_str()), std::span<float, 4>(fr.GetData()[i]));
-    }
     sdr->SetFloat("u_cullMinDist", cullDistanceMinCVar.Get());
     sdr->SetFloat("u_cullMaxDist", cullDistanceMaxCVar.Get());
     sdr->SetUInt("u_reservedBytes", 16);
     sdr->SetUInt("u_quadSize", sizeof(uint32_t) * 2);
-
-    constexpr uint32_t zero = 0;
-    data->drawCountGPU->SubData(&zero, sizeof(uint32_t));
-
     const auto& vertexAllocs = data->verticesAllocator->GetAllocs();
+    uint32_t numWorkGroups = (vertexAllocs.size() + data->workGroupSize - 1) / data->workGroupSize;
 
-    // only re-construct if allocator has been modified
     if (data->dirtyAlloc)
     {
       data->vertexAllocBuffer = std::make_unique<GFX::StaticBuffer>(vertexAllocs.data(), data->verticesAllocator->AllocSize() * vertexAllocs.size());
-      data->dib = std::make_unique<GFX::StaticBuffer>(nullptr, data->verticesAllocator->ActiveAllocs() * sizeof(DrawArraysIndirectCommand));
-      data->dirtyAlloc = false;
       data->verticesAllocator->GenDrawData();
     }
 
-    data->vertexAllocBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(0);
-    data->dib->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(1);
-    data->drawCountGPU->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(2);
+    for (auto& renderView : renderViews)
+    {
+      if (!(renderView.mask & GFX::RenderMaskBit::RenderVoxels))
+        continue;
 
-    int numWorkGroups = (vertexAllocs.size() + data->workGroupSize - 1) / data->workGroupSize;
-    glDispatchCompute(numWorkGroups, 1, 1);
+      // set uniforms for chunk rendering
+      sdr->SetVec3("u_viewpos", renderView.camera->viewInfo.position);
+      GFX::Frustum fr(renderView.camera->proj, renderView.camera->viewInfo.GetViewMatrix());
+      for (int i = 0; i < 5; i++) // ignore near plane
+      {
+        std::string uname = "u_viewfrustum.data_[" + std::to_string(i) + "][0]";
+        sdr->Set1FloatArray(hashed_string(uname.c_str()), std::span<float, 4>(fr.GetData()[i]));
+      }
+
+      constexpr uint32_t zero = 0;
+      data->drawCountGPU->SubData(&zero, sizeof(uint32_t));
+
+      // only re-construct if allocator has been modified
+      if (data->dirtyAlloc)
+      {
+        data->dib = std::make_unique<GFX::StaticBuffer>(nullptr, data->verticesAllocator->ActiveAllocs() * sizeof(DrawArraysIndirectCommand));
+      }
+
+      data->vertexAllocBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(0);
+      data->dib->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(1);
+      data->drawCountGPU->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(2);
+
+      glDispatchCompute(numWorkGroups, 1, 1);
+    }
+
+    if (data->dirtyAlloc)
+    {
+      data->dirtyAlloc = false;
+    }
+
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
     data->activeAllocs = data->verticesAllocator->ActiveAllocs();
   }
 
-  void ChunkRenderer::RenderOcclusion()
+  void ChunkRenderer::RenderOcclusion(std::span<GFX::RenderView> renderViews)
   {
     GFX::DebugMarker marker("Draw occlusion volumes");
     if (freezeCullingCVar.Get())
@@ -282,26 +310,36 @@ namespace Voxels
 
     auto sr = GFX::ShaderManager::Get()->GetShader("chunk_render_cull");
     sr->Bind();
-
-    //const glm::mat4 viewProj = cam->GetProj() * cam->GetView();
-    //Camera* cam = Camera::ActiveCamera;
-    const glm::mat4 viewProj = CameraSystem::GetProj() * CameraSystem::GetView();
-    sr->SetMat4("u_viewProj", viewProj);
     sr->SetUInt("u_chunk_size", Chunk::CHUNK_SIZE);
     sr->SetBool("u_debugDraw", drawOcclusionVolumesCVar.Get() != 0.0);
 
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, data->verticesAllocator->GetID());
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, data->verticesAllocator->GetID());
+    for (auto& renderView : renderViews)
+    {
+      // only draw occlusion for views that draw voxels AND don't have the RenderVoxelsNear bit set
+      if ((renderView.mask & GFX::RenderMaskBit::RenderVoxelsNear) ||
+        !(renderView.mask & GFX::RenderMaskBit::RenderVoxels))
+      {
+        continue;
+      }
 
-    data->dib->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(1);
+      renderView.renderTarget->Bind();
 
-    // copy # of chunks being drawn (parameter buffer) to instance count (DIB)
-    data->dibCull->Bind<GFX::Target::DRAW_INDIRECT_BUFFER>();
-    glBindVertexArray(data->vaoCull);
-    constexpr GLint offset = offsetof(DrawArraysIndirectCommand, instanceCount);
-    glCopyNamedBufferSubData(data->drawCountGPU->GetID(), data->dibCull->GetID(), 0, offset, sizeof(uint32_t));
-    //glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, (void*)0, 1, 0);
-    glDrawArraysIndirect(GL_TRIANGLE_STRIP, 0);
+      const glm::mat4 viewProj = renderView.camera->GetViewProj();
+      sr->SetMat4("u_viewProj", viewProj);
+
+      glBindBuffer(GL_SHADER_STORAGE_BUFFER, data->verticesAllocator->GetID());
+      glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, data->verticesAllocator->GetID());
+
+      data->dib->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(1);
+
+      // copy # of chunks being drawn (parameter buffer) to instance count (DIB)
+      data->dibCull->Bind<GFX::Target::DRAW_INDIRECT_BUFFER>();
+      glBindVertexArray(data->vaoCull);
+      constexpr GLint offset = offsetof(DrawArraysIndirectCommand, instanceCount);
+      glCopyNamedBufferSubData(data->drawCountGPU->GetID(), data->dibCull->GetID(), 0, offset, sizeof(uint32_t));
+      glDrawArraysIndirect(GL_TRIANGLE_STRIP, 0);
+    }
+
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
     glEnable(GL_CULL_FACE);
@@ -309,19 +347,19 @@ namespace Voxels
     glColorMask(true, true, true, true);
   }
 
-  void ChunkRenderer::RenderRest()
+  void ChunkRenderer::RenderDisoccludedThisFrame([[maybe_unused]] std::span<GFX::RenderView> renderViews)
   {
     GFX::DebugMarker marker("Draw disoccluded chunks");
     // Drawing logic:
     // for each Chunk in Chunks
-    //   if Chunk was not rendered in RenderVisible and not occluded
+    //   if Chunk was not rendered in RenderVisibleLastFrame and not occluded
     //     draw(Chunk)
 
     // resources:
     // DIB with draw info
 
-    // IDEA: RenderOcclusion generates a mask to use for the NEXT frame's RenderRest pass
-    // the mask will contain all the chunks that were to be drawn at the start of that frame's RenderVisible pass
+    // IDEA: RenderOcclusion generates a mask to use for the NEXT frame's RenderDisoccludedThisFrame pass
+    // the mask will contain all the chunks that were to be drawn at the start of that frame's RenderVisibleLastFrame pass
     // the current frame will ...
     
     ASSERT(0); // not implemented

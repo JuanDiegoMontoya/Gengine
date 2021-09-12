@@ -215,7 +215,7 @@ void ParticleSystem::Update(Scene& scene, Timestep timestep)
 
     // TODO: hackity hack hack, move to particle rendering in a new compute shader just for culling
     // it will be slower but offers more flexibility
-    const auto& mainRenderViewHack = scene.GetRenderView("player");
+    const auto& mainRenderViewHack = scene.GetRenderView("main");
     particle_shader->SetVec3("u_viewPos", mainRenderViewHack.camera->viewInfo.position);
     particle_shader->SetVec3("u_forwardDir", mainRenderViewHack.camera->viewInfo.GetForwardDir());
     

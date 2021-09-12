@@ -24,8 +24,8 @@ layout (location = 0) out vec4 fragColor;
 
 void main()
 {
-  const vec3 hdrColor = texture(u_hdrColor, vTexCoord).xyz;
-  const float depth = texture(u_hdrDepth, vTexCoord).r;
+  const vec3 hdrColor = texelFetch(u_hdrColor, ivec2(gl_FragCoord.xy), 0).xyz;
+  const float depth = texelFetch(u_hdrDepth, ivec2(gl_FragCoord.xy), 0).r;
   vec3 rayEnd = WorldPosFromDepth(max(depth, .00001), u_viewportSize, u_invViewProj);
   vec3 rayStart = WorldPosFromDepth(1.0, u_viewportSize, u_invViewProj);
   vec3 rayDir = normalize(rayEnd - rayStart);

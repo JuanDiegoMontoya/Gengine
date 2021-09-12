@@ -473,4 +473,10 @@ namespace GFX
 
     samplerState_ = state;
   }
+
+  void BindTextureViewNative(uint32_t slot, uint32_t textureViewAPIHandle, uint32_t samplerAPIHandle)
+  {
+    glBindSampler(slot, samplerAPIHandle);
+    glBindTextureUnit(slot, textureViewAPIHandle);
+  }
 }

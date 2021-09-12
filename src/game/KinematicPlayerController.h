@@ -148,6 +148,9 @@ public:
       vi.yaw += Input::GetScreenOffset().x;
       vi.pitch = glm::clamp(vi.pitch + Input::GetScreenOffset().y, glm::radians(-89.0f), glm::radians(89.0f));
     }
+
+    vi.position = controller.Interface().GetPosition();
+    vi.position.y += 0.65; // head height
     //pyr = CameraSystem::GetEuler(); // oof
 
     //glm::vec3 temp;

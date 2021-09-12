@@ -280,6 +280,9 @@ namespace GFX
 
     for (auto& renderView : renderViews)
     {
+      if (!(renderView.mask & RenderMaskBit::RenderObjects))
+        continue;
+
       renderView.renderTarget->Bind();
       shader->SetMat4("u_viewProj", renderView.camera->GetViewProj());
 
@@ -322,6 +325,9 @@ namespace GFX
 
     for (auto& renderView : renderViews)
     {
+      if (!(renderView.mask & RenderMaskBit::RenderEmitters))
+        continue;
+
       auto compare = [&renderView](const EmitterDrawCommand& p1, EmitterDrawCommand& p2)
       {
         auto pos1 = glm::vec3(p1.modelUniform[3]);
@@ -370,19 +376,34 @@ namespace GFX
     shader.SetVec3("u_envColor", fog.albedo);
     shader.SetFloat("u_beer", fog.u_beer);
     shader.SetFloat("u_powder", fog.u_powder);
+    
+    glBindVertexArray(emptyVao);
+    glDepthMask(GL_FALSE);
+    glDisable(GL_CULL_FACE);
+    glBlendFunc(GL_ONE, GL_ZERO);
 
     for (auto& renderView : renderViews)
     {
+      if (!(renderView.mask & RenderMaskBit::RenderFog))
+        continue;
+
+      // yes, we are reading from the render target while drawing to it
+      // this use case is valid under ARB_texture_barrier
+      // see here: https://www.khronos.org/registry/OpenGL/extensions/ARB/ARB_texture_barrier.txt
       renderView.renderTarget->Bind();
       shader.SetMat4("u_invViewProj", glm::inverse(renderView.camera->GetViewProj()));
 
-      hdrColorTexView->Bind(0, *defaultSampler);
-      hdrDepthTexView->Bind(1, *defaultSampler);
-      glBindVertexArray(emptyVao);
-      glDepthMask(GL_FALSE);
-      glDisable(GL_CULL_FACE);
+      GFX::BindTextureViewNative(0,
+        renderView.renderTarget->GetAttachmentAPIHandle(Attachment::COLOR_0),
+        defaultSampler->GetAPIHandle());
+      GFX::BindTextureViewNative(1,
+        renderView.renderTarget->GetAttachmentAPIHandle(Attachment::DEPTH),
+        defaultSampler->GetAPIHandle());
+
       glDrawArrays(GL_TRIANGLES, 0, 3);
     }
+
+    glTextureBarrier();
   }
 
   Renderer* Renderer::Get()
@@ -488,6 +509,9 @@ namespace GFX
 
     for (auto& renderView : renderViews)
     {
+      if (!(renderView.mask & GFX::RenderMaskBit::RenderScreenElements))
+        continue;
+
       renderView.renderTarget->Bind();
       const Camera& c = *renderView.camera;
       currShader->SetMat4("u_model", glm::translate(glm::mat4(1), c.viewInfo.position + c.viewInfo.GetForwardDir() * 10.f)); // add scaling factor (larger # = smaller visual)
@@ -504,7 +528,8 @@ namespace GFX
   {
     GFX::DebugMarker marker("Draw skybox");
 
-    glDepthMask(GL_FALSE);
+    //glDepthMask(GL_FALSE);
+    glDepthFunc(GL_EQUAL);
     glDisable(GL_CULL_FACE);
     glBindVertexArray(emptyVao);
 
@@ -515,6 +540,9 @@ namespace GFX
 
     for (auto& renderView : renderViews)
     {
+      if (!(renderView.mask & GFX::RenderMaskBit::RenderSky))
+        continue;
+
       renderView.renderTarget->Bind();
       const auto& c = *renderView.camera;
       shdr->SetMat4("u_proj", c.proj);
@@ -522,7 +550,8 @@ namespace GFX
       glDrawArrays(GL_TRIANGLE_STRIP, 0, 14);
     }
 
-    glDepthMask(GL_TRUE);
+    //glDepthMask(GL_TRUE);
+    glDepthFunc(GL_GEQUAL);
     glEnable(GL_CULL_FACE);
     env.skyboxView->Unbind(0);
   }
@@ -530,8 +559,6 @@ namespace GFX
   void Renderer::StartFrame()
   {
     GL_ResetState();
-    hdrFbo->Bind();
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     ImGui::Begin("Tonemapping");
     ImGui::Checkbox("FXAA", &fxaa.enabled);
@@ -552,6 +579,20 @@ namespace GFX
     ImGui::SliderFloat("u_beer", &fog.u_beer, 0, 5.0f);
     ImGui::SliderFloat("u_powder", &fog.u_powder, 0, 5.0f);
     ImGui::End();
+  }
+
+  void GFX::Renderer::ClearFramebuffers(std::span<RenderView> renderViews)
+  {
+    for (auto& renderView : renderViews)
+    {
+      renderView.renderTarget->Bind();
+      if (renderView.mask & RenderMaskBit::ClearColorEachFrame)
+        glClear(GL_COLOR_BUFFER_BIT);
+      if (renderView.mask & RenderMaskBit::ClearDepthEachFrame)
+        glClear(GL_DEPTH_BUFFER_BIT);
+    }
+
+    GL_ResetState();
   }
 
   void Renderer::EndFrame(float dt)

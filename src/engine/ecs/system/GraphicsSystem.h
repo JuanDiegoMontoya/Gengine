@@ -10,10 +10,10 @@ public:
   void Init();
   void Shutdown();
 
-  void StartFrame();
+  void StartFrame(Scene& scene);
   void DrawOpaque(Scene& scene);
   void DrawTransparent(Scene& scene);
-  void EndFrame(Timestep timestep);
+  void EndFrame(Scene& scene, Timestep timestep);
   void SwapBuffers();
 
   GLFWwindow* const* GetWindow() { return window; }

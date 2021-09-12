@@ -41,7 +41,8 @@ void PlayerActions::OnUpdate(Timestep timestep)
   }
 
   Entity parent = GetComponent<Component::Parent>().entity;
-  auto& cam = parent.GetComponent<Component::Camera>();
+  auto* camera = GetScene()->GetRenderView("main").camera;
+  auto& vi = camera->viewInfo;
   auto* controller = dynamic_cast<KinematicPlayerController*>(parent.GetComponent<Component::NativeScriptComponent>().Instance);
 
   if (Input::IsKeyPressed(GLFW_KEY_V))
@@ -53,7 +54,7 @@ void PlayerActions::OnUpdate(Timestep timestep)
     }
 
     Entity ent = CreateEntity("Arrow");
-    ent.AddComponent<Component::Transform>().SetTranslation(cam.GetWorldPos() + (cam.GetForward() * 1.5f));
+    ent.AddComponent<Component::Transform>().SetTranslation(vi.position + (vi.GetForwardDir() * 1.5f));
     ent.AddComponent<Component::Model>();
     ent.AddComponent<Component::BatchedMesh>().handle = MeshManager::GetMeshBatched("big_cube");
     ent.AddComponent<Component::Material>().handle = GFX::MaterialManager::Get()->GetMaterial("batchMaterial");
@@ -62,7 +63,7 @@ void PlayerActions::OnUpdate(Timestep timestep)
     Component::DynamicPhysics phys(ent, Physics::MaterialType::TERRAIN, collider);
     auto& physics = ent.AddComponent<Component::DynamicPhysics>(std::move(phys));
     physics.Interface().SetVelocity(controller->velocity);
-    physics.Interface().AddForce(cam.GetForward() * 300.f);
+    physics.Interface().AddForce(vi.GetForwardDir() * 300.f);
     auto& lifetime = ent.AddComponent<Component::Lifetime>();
     lifetime.active = true;
     lifetime.remainingSeconds = 2;
@@ -112,7 +113,7 @@ void PlayerActions::OnUpdate(Timestep timestep)
   if (ImGui::Button("Spawn Emitter"))
   {
     Entity ent = CreateEntity("SpawnedEmitter");
-    ent.AddComponent<Component::Transform>().SetTranslation(cam.GetWorldPos() + (cam.GetForward() * 1.5f));
+    ent.AddComponent<Component::Transform>().SetTranslation(vi.position + (vi.GetForwardDir() * 1.5f));
     ent.AddComponent<Component::BatchedMesh>().handle = MeshManager::GetMeshBatched("big_cube");
     ent.AddComponent<Component::Material>().handle = GFX::MaterialManager::Get()->GetMaterial("batchMaterial");
     ent.AddComponent<Component::Model>();
@@ -186,8 +187,8 @@ void PlayerActions::OnUpdate(Timestep timestep)
   ImGui::Text("Ray length: %0.f", dist);
   //const auto cam = Camera::ActiveCamera;
   voxels->Raycast(
-    CameraSystem::GetPos(),
-    CameraSystem::GetFront(),
+    vi.position,
+    vi.GetForwardDir(),
     dist,
     [this](glm::vec3 pos, Block block, glm::vec3 side)->bool
     {
@@ -251,10 +252,12 @@ void PlayerActions::checkBlockPlacement()
 {
   if (Input::IsInputActionPressed("Build"))
   {
+    auto& vi = GetScene()->GetRenderView("main").camera->viewInfo;
+
     //const auto cam = CameraSystem::ActiveCamera;
     voxels->Raycast(
-      CameraSystem::GetPos(),
-      CameraSystem::GetFront(),
+      vi.position,
+      vi.GetForwardDir(),
       5,
       std::function<bool(glm::vec3, Block, glm::vec3)>
       ([&](glm::vec3 pos, Block block, glm::vec3 side)->bool
@@ -327,10 +330,11 @@ void PlayerActions::checkBlockDestruction(float dt)
       !ImGui::IsAnyItemFocused()*/)
   {
     bool hit = false;
+    auto& vi = GetScene()->GetRenderView("main").camera->viewInfo;
     //const auto cam = CameraSystem::ActiveCamera;
     voxels->Raycast(
-      CameraSystem::GetPos(),
-      CameraSystem::GetFront(),
+      vi.position,
+      vi.GetForwardDir(),
       5,
       std::function<bool(glm::vec3, Block, glm::vec3)>
       ([&](glm::vec3 pos, Block block, [[maybe_unused]] glm::vec3 side)->bool
@@ -381,10 +385,11 @@ void PlayerActions::checkBlockPick()
     !ImGui::IsAnyItemActive() &&
     !ImGui::IsAnyItemFocused()*/)
   {
+    auto& vi = GetScene()->GetRenderView("main").camera->viewInfo;
     //const auto cam = CameraSystem::ActiveCamera;
     voxels->Raycast(
-      CameraSystem::GetPos(),
-      CameraSystem::GetFront(),
+      vi.position,
+      vi.GetForwardDir(),
       5,
       std::function<bool(glm::vec3, Block, glm::vec3)>
       ([&]([[maybe_unused]] glm::vec3 pos, Block block, [[maybe_unused]] glm::vec3 side)->bool

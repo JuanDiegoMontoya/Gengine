@@ -11,7 +11,36 @@ namespace GFX
   // this is inevitably going to become a hacky mess, better here than elsewhere!
   enum class RenderMaskBit : uint32_t
   {
-    MyCullableThing,
+    None                  = 0,
+    
+    // render voxels
+    RenderVoxels          = 1 << 0,
+
+    // render ordinary objects
+    RenderObjects         = 1 << 1,
+
+    // render particle emitters
+    RenderEmitters        = 1 << 2,
+
+    // render "screen elements", essentially non-ImGui UI stuff that may exist in world space
+    RenderScreenElements  = 1 << 3,
+
+    // if RenderVoxels is true, render only chunks near the camera
+    // the distance is determined by a quality setting
+    // this should only be used for probes or other low-quality rendering purposes
+    RenderVoxelsNear      = 1 << 4,
+
+    // render the skybox
+    RenderSky             = 1 << 5,
+
+    // render atmospheric fog
+    RenderFog             = 1 << 6,
+
+    // clear color at the start of each frame
+    ClearColorEachFrame   = 1 << 7,
+
+    // clear color at the start of each frame
+    ClearDepthEachFrame   = 1 << 8,
   };
   DECLARE_FLAG_TYPE(RenderMask, RenderMaskBit, uint32_t)
 

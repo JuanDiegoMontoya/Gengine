@@ -5,6 +5,7 @@
 #include "ecs/Entity.h"
 #include "ecs/component/Core.h"
 #include "ecs/component/Transform.h"
+#include <engine/gfx/Renderer.h>
 
 struct SceneStorage
 {
@@ -19,6 +20,11 @@ Scene::Scene(std::string_view name, Engine* engine)
   data_ = new SceneStorage;
   data_->name_ = name;
   data_->engine_ = engine;
+
+  GFX::RenderView defaultView{};
+  defaultView.camera = nullptr;
+  defaultView.renderTarget = GFX::Renderer::Get()->GetMainFramebuffer();
+  data_->renderViews_.emplace("main", defaultView);
 }
 
 Scene::~Scene()
@@ -54,6 +60,7 @@ Entity Scene::GetEntity(std::string_view name)
 void Scene::RegisterRenderView(hashed_string viewName, GFX::RenderView view)
 {
   ASSERT(!data_->renderViews_.contains(viewName));
+  ASSERT(view.camera && view.renderTarget);
   data_->renderViews_.emplace(viewName, view);
 }
 

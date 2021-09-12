@@ -4,9 +4,11 @@
 #include <voxel/ChunkRenderer.h>
 #include <voxel/EditorRefactor.h>
 
+#include <engine/Scene.h>
+
 namespace Voxels
 {
-  VoxelManager::VoxelManager(Scene& scene) : scene_(scene)
+  VoxelManager::VoxelManager(Scene* scene) : scene_(scene)
   {
     chunkManager_ = std::make_unique<ChunkManager>(*this);
     chunkManager_->Init();
@@ -26,9 +28,10 @@ namespace Voxels
 
   void VoxelManager::Draw()
   {
-    chunkRenderer_->Draw();
-    chunkRenderer_->DrawBuffers();
-    editor_->Update();
+    auto renderViews = scene_->GetRenderViews();
+    chunkRenderer_->Draw(renderViews);
+    chunkRenderer_->DrawBuffers(renderViews);
+    editor_->Update(scene_);
   }
 
   void VoxelManager::UpdateBlock(const glm::ivec3& wpos, Block block)

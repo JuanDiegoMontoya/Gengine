@@ -63,7 +63,7 @@ public:
 
   static void init_glfw_input_cbs(GLFWwindow* const* window);
 
-  static inline float sensitivity = 0.05f;
+  static inline float sensitivity = 0.05f * 3.1415f / 180.0f;
 
   static void AddInputAction(hashed_string action, std::span<InputActionType> keys);
   static void RemoveInputAction(hashed_string action);

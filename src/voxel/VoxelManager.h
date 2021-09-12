@@ -2,6 +2,8 @@
 #include <memory>
 #include <voxel/Chunk.h>
 #include <voxel/ChunkHelpers.h>
+#include <span>
+#include <engine/gfx/RenderView.h>
 
 class Editor;
 class Scene;
@@ -15,7 +17,7 @@ namespace Voxels
   class VoxelManager
   {
   public:
-    VoxelManager(Scene& scene);
+    VoxelManager(Scene* scene);
     ~VoxelManager();
 
     VoxelManager(VoxelManager&) = delete;
@@ -96,7 +98,7 @@ namespace Voxels
     glm::ivec3 chunksPerDim_{};
 
     std::unique_ptr<Editor> editor_{};
-    Scene& scene_;
+    Scene* scene_;
   };
 
 

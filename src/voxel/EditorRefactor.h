@@ -1,23 +1,27 @@
 #pragma once
 #include <glm/glm.hpp>
+#include <engine/gfx/RenderView.h>
+#include <span>
 
 namespace Voxels
 {
   class VoxelManager;
 }
 
+class Scene;
+
 class Editor
 {
 public:
   Editor(Voxels::VoxelManager& vm) : voxels(vm) {}
-  void Update();
+  void Update(Scene* scene);
 
 private:
   void SaveRegion();
   void LoadRegion();
   void CancelSelection();
   void SelectBlock();
-  void DrawSelection();
+  void DrawSelection(std::span<GFX::RenderView> renderViews);
 
   Voxels::VoxelManager& voxels;
 

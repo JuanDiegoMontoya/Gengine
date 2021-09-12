@@ -15,6 +15,8 @@
 #include <engine/gfx/TextureManager.h>
 #include <engine/gfx/TextureLoader.h>
 
+#include <utility/MathExtensions.h>
+
 // eh
 #include <engine/gfx/Renderer.h>
 #include <voxel/prefab.h>
@@ -38,12 +40,13 @@
 #include <engine/ecs/component/ParticleEmitter.h>
 
 static std::unique_ptr<Voxels::VoxelManager> voxelManager{};
+static GFX::Camera mainCamera;
 
 void OnStart(Scene* scene)
 {
   // TODO: eventually remove this
   Voxels::PrefabManager::InitPrefabs();
-  voxelManager = std::make_unique<Voxels::VoxelManager>(*scene);
+  voxelManager = std::make_unique<Voxels::VoxelManager>(scene);
   WorldGen wg(*voxelManager);
   wg.Init();
   wg.GenerateWorld();
@@ -94,6 +97,21 @@ void OnStart(Scene* scene)
   GFX::TextureManager::Get()->AddTexture("smoke", *GFX::LoadTexture2D("smoke.png"));
   GFX::TextureManager::Get()->AddTexture("stone", *GFX::LoadTexture2D("stone.png"));
 
+  mainCamera.proj = MakeInfReversedZProjRH(glm::radians(70.0f), GFX::Renderer::Get()->GetWindowAspectRatio(), 0.1f);
+  mainCamera.viewInfo.position = { 0, 2, 0 };
+  using RMB = GFX::RenderMaskBit;
+  GFX::RenderMask mask = RMB::ClearColorEachFrame |
+    RMB::ClearDepthEachFrame |
+    RMB::RenderSky |
+    RMB::RenderFog |
+    RMB::RenderEmitters |
+    RMB::RenderObjects |
+    RMB::RenderScreenElements |
+    RMB::RenderVoxels;
+  auto& mainRenderView = scene->GetRenderView("main");
+  mainRenderView.camera = &mainCamera;
+  mainRenderView.mask = mask;
+
   {
     Entity player = scene->CreateEntity("player");
     player.AddComponent<Component::Transform>().SetRotation(glm::rotate(glm::mat4(1), glm::pi<float>() / 2.f, { 0, 0, 1 }));
@@ -102,10 +120,8 @@ void OnStart(Scene* scene)
     //player.AddComponent<Components::NativeScriptComponent>().Bind<PhysicsPlayerController>();
     player.AddComponent<Component::NativeScriptComponent>().Bind<KinematicPlayerController>();
     //player.AddComponent<Components::Camera>(Camera::ActiveCamera);
-    auto& cam = player.AddComponent<Component::Camera>(player);
     //cam.skybox = std::make_unique<GFX::TextureCube>(std::span<const std::string, 6>(faces.data(), faces.size()));
 
-    cam.SetPos({ 0, .65, 0 });
     Physics::CapsuleCollider collider(0.3, 0.5);
     //Physics::BoxCollider collider({ 1, 1, 1 });
     player.AddComponent<Component::CharacterController>(player, Physics::MaterialType::PLAYER, collider);
@@ -265,7 +281,7 @@ void OnStart(Scene* scene)
       auto* actor = Physics::PhysicsManager::AddStaticActorGeneric(Physics::MaterialType::TERRAIN, collider, glm::mat4(1));
       ASSERT(actor);
     }
-    if (0) // particle emitter test
+    if (1) // particle emitter test
     {
       Entity entity = scene->CreateEntity("particle boi");
       auto& tr = entity.AddComponent<Component::Transform>();
@@ -375,10 +391,11 @@ void OnUpdate([[maybe_unused]] Timestep timestep)
   voxelManager->Update();
 }
 
-void OnDraw([[maybe_unused]] Timestep timestep)
+void OnDraw(Scene* scene, [[maybe_unused]] Timestep timestep)
 {
+  auto renderViews = scene->GetRenderViews();
   voxelManager->Draw();
-  GFX::Renderer::Get()->DrawAxisIndicator();
+  GFX::Renderer::Get()->DrawAxisIndicator(renderViews);
 }
 
 int main()
@@ -387,7 +404,7 @@ int main()
 
   Application::SetStartCallback(OnStart);
   Application::SetUpdateCallback(OnUpdate);
-  Application::SetDrawCallback(OnDraw);
+  Application::SetDrawOpaqueCallback(OnDraw);
 
   Application::Start();
   voxelManager.reset();

@@ -16,6 +16,6 @@ namespace GFX
 
   glm::mat4 View::GetViewMatrix() const
   {
-    return glm::lookAt(position, position + GetForwardDir(), { 0, 1, 0 });
+    return glm::lookAt(position, position + GetForwardDir(), Constants::Up);
   }
 }

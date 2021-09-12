@@ -88,7 +88,7 @@ void Application::Start()
   engine_->InitScenes();
   start(engine_->GetScene(0));
   engine_->updateCallback = update;
-  engine_->drawCallback = draw;
+  engine_->drawOpaqueCallback = drawOpaque;
   engine_->Run();
 }
 

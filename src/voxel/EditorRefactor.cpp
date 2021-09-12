@@ -2,7 +2,8 @@
 #include <glad/glad.h>
 #include "EditorRefactor.h"
 #include <engine/Input.h>
-#include <engine/Camera.h>
+#include <engine/gfx/Camera.h>
+#include <engine/gfx/Framebuffer.h>
 #include <engine/gfx/ShaderManager.h>
 #include <engine/gfx/Renderer.h>
 #include <engine/Scene.h>
@@ -20,6 +21,8 @@
 
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
+
+#include <glm/gtc/matrix_transform.hpp>
 
 #include "VoxelManager.h"
 #include "prefab.h"
@@ -62,14 +65,14 @@ void Editor::SaveRegion()
 
 void Editor::LoadRegion()
 {
-  auto view = voxels.scene_.GetRegistry().view<Component::Tag>();
+  auto view = voxels.scene_->GetRegistry().view<Component::Tag>();
   Entity player;
   for (auto entity : view)
   {
     auto tag = view.get<Component::Tag>(entity);
     if (tag.tag == "PlayerSub")
     {
-      player = { entity, &voxels.scene_ };
+      player = { entity, voxels.scene_ };
       break;
     }
   }
@@ -95,7 +98,7 @@ void Editor::SelectBlock()
   }
 }
 
-void Editor::DrawSelection()
+void Editor::DrawSelection(std::span<GFX::RenderView> renderViews)
 {
   {
     ImGui::Begin("Selection Zone");
@@ -178,34 +181,47 @@ void Editor::DrawSelection()
       scale = glm::abs(max - min);
     }
 
-    glm::mat4 tPos = glm::translate(glm::mat4(1), pos + .5f);
-    glm::mat4 tScale = glm::scale(glm::mat4(1), scale + 1.f);
-
     GLint polygonMode;
     glGetIntegerv(GL_POLYGON_MODE, &polygonMode);
     glDisable(GL_CULL_FACE);
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+    glm::mat4 tPos = glm::translate(glm::mat4(1), pos + .5f);
+    glm::mat4 tScale = glm::scale(glm::mat4(1), scale + 1.f);
+
     auto curr = GFX::ShaderManager::Get()->GetShader("flat_color");
     curr->Bind();
     curr->SetMat4("u_model", tPos * tScale);
-    curr->SetMat4("u_view", CameraSystem::GetView());
-    curr->SetMat4("u_proj", CameraSystem::GetProj());
     curr->SetVec4("u_color", glm::vec4(1.f, .3f, 1.f, 1.f));
-    //Renderer::DrawCube(); // TODO
+
+    for (auto& renderView : renderViews)
+    {
+      if (!(renderView.mask & GFX::RenderMaskBit::RenderScreenElements))
+        continue;
+
+      renderView.renderTarget->Bind();
+
+      curr->SetMat4("u_view", renderView.camera->viewInfo.GetViewMatrix());
+      curr->SetMat4("u_proj", renderView.camera->proj);
+      //Renderer::DrawCube(); // TODO
+    }
+
     glPolygonMode(GL_FRONT_AND_BACK, polygonMode);
     glEnable(GL_CULL_FACE);
   }
 }
 
-void Editor::Update()
+void Editor::Update(Scene* scene)
 {
   if (Input::IsKeyPressed(GLFW_KEY_F5))
     open = !open;
   if (open)
   {
+    const auto& vi = scene->GetRenderView("main").camera->viewInfo;
+
     voxels.Raycast(
-      CameraSystem::GetPos(),
-      CameraSystem::GetFront(),
+      vi.position,
+      vi.GetForwardDir(),
       pickLength,
       [&](glm::vec3 pos, Voxels::Block block, [[maybe_unused]] glm::vec3 side)->bool
     {
@@ -242,7 +258,8 @@ void Editor::Update()
       return true;
     });
 
-    DrawSelection();
+    auto renderViews = scene->GetRenderViews();
+    DrawSelection(renderViews);
   }
   else
   {

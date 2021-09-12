@@ -67,6 +67,17 @@ namespace GFX
     glBindFramebuffer(GL_FRAMEBUFFER, handle_);
   }
 
+  uint32_t Framebuffer::GetAttachmentAPIHandle(Attachment slot) const
+  {
+    GLint params{};
+    glGetNamedFramebufferAttachmentParameteriv(
+      handle_,
+      glAttachments[static_cast<uint32_t>(slot)],
+      GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME,
+      &params);
+    return static_cast<uint32_t>(params);
+  }
+
   void Framebuffer::Blit(const Framebuffer& source, Framebuffer& destination,
     Offset2D sourceStart, Offset2D sourceEnd,
     Offset2D destinationStart, Offset2D destinationEnd,

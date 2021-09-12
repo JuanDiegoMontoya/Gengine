@@ -52,8 +52,11 @@ namespace GFX
     void DrawSkybox(std::span<RenderView> renderViews);
 
     void StartFrame();
+    void ClearFramebuffers(std::span<RenderView> renderViews);
     void EndFrame(float dt);
 
+    // returns the framebuffer which is displayed on the screen
+    // do not modify this framebuffer
     [[nodiscard]] Framebuffer* GetMainFramebuffer() { return &hdrFbo.value(); }
 
     [[nodiscard]] GFX::DynamicBuffer<>* GetVertexBuffer()
@@ -69,6 +72,11 @@ namespace GFX
     [[nodiscard]] auto* GetMeshBufferInfos()
     {
       return &meshBufferInfo;
+    }
+
+    [[nodiscard]] float GetWindowAspectRatio() const
+    {
+      return static_cast<float>(windowWidth) / static_cast<float>(windowHeight);
     }
 
     [[nodiscard]] bool GetIsFullscreen() const { return isFullscreen; }

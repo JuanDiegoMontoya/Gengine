@@ -19,7 +19,7 @@ public:
 
   static void SetStartCallback(void(*fn)(Scene*)) { start = fn; }
   static void SetUpdateCallback(void(*fn)(Timestep)) { update = fn; }
-  static void SetDrawCallback(void(*fn)(Timestep)) { draw = fn; }
+  static void SetDrawOpaqueCallback(void(*fn)(Scene*, Timestep)) { drawOpaque = fn; }
   static void SetLoadSceneCallback(void(*fn)(const char*)) { loadSceneStr = fn; }
   static void SetLoadSceneCallback(void(*fn)(unsigned)) { loadSceneIndex = fn; }
   static void SetUnloadSceneCallback(void(*fn)(const char*)) { unloadSceneStr = fn; }
@@ -28,7 +28,7 @@ public:
 private:
   static inline void(*start)(Scene*) = nullptr;
   static inline void(*update)(Timestep) = nullptr;
-  static inline void(*draw)(Timestep) = nullptr;
+  static inline void(*drawOpaque)(Scene*, Timestep) = nullptr;
   static inline void(*loadSceneStr)(const char*) = nullptr;
   static inline void(*loadSceneIndex)(unsigned) = nullptr;
   static inline void(*unloadSceneStr)(const char*) = nullptr;

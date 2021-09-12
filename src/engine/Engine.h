@@ -2,6 +2,7 @@
 #include "Scene.h"
 #include "Timestep.h"
 #include <memory>
+#include <engine/gfx/RenderView.h>
 
 class GraphicsSystem;
 class DebugSystem;
@@ -20,8 +21,8 @@ public:
 
   Scene* GetScene(std::string_view name);
   Scene* GetScene(unsigned index);
-  void AddScene(Scene* scene);// { scenes.push_back(std::make_unique<Scene>(scene)); }
-  void SetActiveScene(std::string_view name);// { activeScene = scene; }
+  void AddScene(Scene* scene);
+  void SetActiveScene(std::string_view name);
   void SetActiveScene(unsigned index);
   void Pause() { paused_ = true; }
   void Unpause() { paused_ = false; }
@@ -40,7 +41,7 @@ private:
   Scene* activeScene_ = nullptr;
 
   void(*updateCallback)(Timestep) = nullptr;
-  void(*drawCallback)(Timestep) = nullptr;
+  void(*drawOpaqueCallback)(Scene*, Timestep) = nullptr;
 
   bool running_ = true;
   bool paused_ = false;

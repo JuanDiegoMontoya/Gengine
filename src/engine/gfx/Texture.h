@@ -94,8 +94,6 @@ namespace GFX
     Extent3D extent{};
   };
 
-
-
   struct SamplerState
   {
     SamplerState() {};
@@ -136,7 +134,7 @@ namespace GFX
 
     void SetState(const SamplerState& samplerState);
     [[nodiscard]] const SamplerState& GetState() const noexcept { return samplerState_; }
-
+    [[nodiscard]] uint32_t GetAPIHandle() const { return id_; }
 
   private:
     friend class TextureView;
@@ -146,4 +144,7 @@ namespace GFX
     uint32_t id_{};
     SamplerState samplerState_{};
   };
+
+  // unsafe way to bind texture view and sampler using only API handles
+  void BindTextureViewNative(uint32_t slot, uint32_t textureViewAPIHandle, uint32_t samplerAPIHandle);
 }

@@ -122,18 +122,18 @@ void Engine::Run()
 
     particleSystem->Update(*activeScene_, timestep);
 
-    graphicsSystem->StartFrame();
+    graphicsSystem->StartFrame(*activeScene_);
     graphicsSystem->DrawOpaque(*activeScene_);
-    if (drawCallback)
+    if (drawOpaqueCallback)
     {
-      drawCallback(timestep);
+      drawOpaqueCallback(activeScene_, timestep);
     }
     graphicsSystem->DrawTransparent(*activeScene_);
 
     physicsSystem->Update(*activeScene_, timestep);
     debugSystem->Update(*activeScene_, timestep);
 
-    graphicsSystem->EndFrame(timestep);
+    graphicsSystem->EndFrame(*activeScene_, timestep);
     debugSystem->EndFrame(*activeScene_); // render UI on top of everything else
     graphicsSystem->SwapBuffers();
   }
