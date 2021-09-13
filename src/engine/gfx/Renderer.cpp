@@ -286,6 +286,7 @@ namespace GFX
       renderView.renderTarget->Bind();
       shader->SetMat4("u_viewProj", renderView.camera->GetViewProj());
 
+      glViewport(renderView.offset.x, renderView.offset.y, renderView.size.width, renderView.size.height);
       glBindVertexArray(batchVAO);
       glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, (void*)0, static_cast<GLsizei>(commands.size()), 0);
     }
@@ -328,6 +329,8 @@ namespace GFX
       if (!(renderView.mask & RenderMaskBit::RenderEmitters))
         continue;
 
+      glViewport(renderView.offset.x, renderView.offset.y, renderView.size.width, renderView.size.height);
+
       auto compare = [&renderView](const EmitterDrawCommand& p1, EmitterDrawCommand& p2)
       {
         auto pos1 = glm::vec3(p1.modelUniform[3]);
@@ -368,7 +371,6 @@ namespace GFX
 
     Shader shader = *ShaderManager::Get()->GetShader("fog");
     shader.Bind();
-    shader.SetIVec2("u_viewportSize", { GetRenderWidth(), GetRenderHeight() });
     shader.SetFloat("u_a", fog.u_a);
     shader.SetFloat("u_b", fog.u_b);
     shader.SetFloat("u_heightOffset", fog.u_heightOffset);
@@ -387,6 +389,9 @@ namespace GFX
       if (!(renderView.mask & RenderMaskBit::RenderFog))
         continue;
 
+      glViewport(renderView.offset.x, renderView.offset.y, renderView.size.width, renderView.size.height);
+      shader.SetIVec2("u_viewportSize", { renderView.size.width, renderView.size.height });
+
       // yes, we are reading from the render target while drawing to it
       // this use case is valid under ARB_texture_barrier
       // see here: https://www.khronos.org/registry/OpenGL/extensions/ARB/ARB_texture_barrier.txt
@@ -401,9 +406,8 @@ namespace GFX
         defaultSampler->GetAPIHandle());
 
       glDrawArrays(GL_TRIANGLES, 0, 3);
+      glTextureBarrier();
     }
-
-    glTextureBarrier();
   }
 
   Renderer* Renderer::Get()
@@ -512,6 +516,8 @@ namespace GFX
       if (!(renderView.mask & GFX::RenderMaskBit::RenderScreenElements))
         continue;
 
+      glViewport(renderView.offset.x, renderView.offset.y, renderView.size.width, renderView.size.height);
+
       renderView.renderTarget->Bind();
       const Camera& c = *renderView.camera;
       currShader->SetMat4("u_model", glm::translate(glm::mat4(1), c.viewInfo.position + c.viewInfo.GetForwardDir() * 10.f)); // add scaling factor (larger # = smaller visual)
@@ -542,6 +548,8 @@ namespace GFX
     {
       if (!(renderView.mask & GFX::RenderMaskBit::RenderSky))
         continue;
+
+      glViewport(renderView.offset.x, renderView.offset.y, renderView.size.width, renderView.size.height);
 
       renderView.renderTarget->Bind();
       const auto& c = *renderView.camera;
@@ -746,7 +754,7 @@ namespace GFX
     {
       .imageType = ImageType::TEX_2D,
       .format = Format::R16G16B16A16_FLOAT,
-      .extent = Extent3D{.width = GetRenderWidth(), .height = GetRenderHeight(), .depth = 1 },
+      .extent = Extent3D{ .width = GetRenderWidth(), .height = GetRenderHeight(), .depth = 1 },
       .mipLevels = 1,
       .arrayLayers = 1
     };
@@ -755,7 +763,7 @@ namespace GFX
       .imageType = ImageType::TEX_2D,
       .format = Format::R8G8B8A8_UNORM,
       //.format = Format::R16G16B16A16_UNORM,
-      .extent {.width = GetRenderWidth(), .height = GetRenderHeight(), .depth = 1 },
+      .extent { .width = GetRenderWidth(), .height = GetRenderHeight(), .depth = 1 },
       .mipLevels = 1,
       .arrayLayers = 1
     };
@@ -763,7 +771,7 @@ namespace GFX
     {
       .imageType = ImageType::TEX_2D,
       .format = Format::D32_FLOAT,
-      .extent = Extent3D{.width = GetRenderWidth(), .height = GetRenderHeight(), .depth = 1 },
+      .extent = Extent3D{ .width = GetRenderWidth(), .height = GetRenderHeight(), .depth = 1 },
       .mipLevels = 1,
       .arrayLayers = 1
     };
@@ -939,6 +947,7 @@ namespace GFX
     glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
 
     const GLFWvidmode* videoMode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+    // set the window dims here, although it won't necessarily be what we get
     windowWidth = videoMode->width;
     windowHeight = videoMode->height;
     CreateWindow(isFullscreen);
@@ -977,13 +986,17 @@ namespace GFX
       GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
       const GLFWvidmode* videoMode = glfwGetVideoMode(primaryMonitor);
       window_ = glfwCreateWindow(videoMode->width, videoMode->height, "Gengine", primaryMonitor, nullptr);
-      windowWidth = videoMode->width;
-      windowHeight = videoMode->height;
     }
     else
     {
       window_ = glfwCreateWindow(windowWidth, windowHeight, "Gengine", nullptr, nullptr);
     }
+
+    // set the window dims to what we actually got
+    int width, height;
+    glfwGetFramebufferSize(window_, &width, &height);
+    windowWidth = width;
+    windowHeight = height;
 
     renderWidth = glm::max(static_cast<uint32_t>(windowWidth * renderScale), 1u);
     renderHeight = glm::max(static_cast<uint32_t>(windowHeight * renderScale), 1u);

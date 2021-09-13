@@ -58,6 +58,7 @@ namespace GFX
     // returns the framebuffer which is displayed on the screen
     // do not modify this framebuffer
     [[nodiscard]] Framebuffer* GetMainFramebuffer() { return &hdrFbo.value(); }
+    [[nodiscard]] Extent2D GetMainFramebufferDims() const { return { renderWidth, renderHeight }; }
 
     [[nodiscard]] GFX::DynamicBuffer<>* GetVertexBuffer()
     {

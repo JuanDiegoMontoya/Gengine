@@ -16,6 +16,7 @@
 #include <engine/gfx/TextureLoader.h>
 
 #include <utility/MathExtensions.h>
+#include <glm/gtc/type_ptr.hpp>
 
 // eh
 #include <engine/gfx/Renderer.h>
@@ -41,6 +42,13 @@
 
 static std::unique_ptr<Voxels::VoxelManager> voxelManager{};
 static GFX::Camera mainCamera;
+
+static GFX::Camera testCamera;
+static std::optional<GFX::Framebuffer> testFbo;
+static std::optional<GFX::Texture> testColorMemory;
+static std::optional<GFX::TextureView> testColorView;
+static std::optional<GFX::Texture> testDepthMemory;
+static std::optional<GFX::TextureView> testDepthView;
 
 void OnStart(Scene* scene)
 {
@@ -74,17 +82,19 @@ void OnStart(Scene* scene)
   Input::AddInputAxis("Sprint", sprintButtons);
   Input::AddInputAxis("Crouch", crouchButtons);
 
+  auto mySetter = [](hashed_string id, GFX::Shader& shader) { shader.SetFloat(id, (float)ProgramTimer::TimeSeconds()); };
+
   GFX::TextureManager::Get()->AddTexture("error", *GFX::LoadTexture2D("error.png"));
   auto view = *GFX::TextureView::Create(*GFX::TextureManager::Get()->GetTexture("error"), "batched material view");
   auto sampler = *GFX::TextureSampler::Create(GFX::SamplerState{}, "batched material sampler");
   GFX::PerMaterialUniformData uniformData;
   uniformData.id = "u_time";
-  uniformData.Setter = [](hashed_string id, GFX::Shader& shader) { shader.SetFloat(id, (float)ProgramTimer::TimeSeconds()); };
+  uniformData.Setter = mySetter;
   GFX::MaterialCreateInfo info
   {
     .shaderID = "batched",
     .viewSamplers = {{std::move(view), std::move(sampler)}},
-    .materialUniforms = {std::move(uniformData)},
+    .materialUniforms = { uniformData },
   };
   GFX::MaterialID batchMaterial = GFX::MaterialManager::Get()->AddMaterial("batchMaterial", info);
 
@@ -100,8 +110,7 @@ void OnStart(Scene* scene)
   mainCamera.proj = MakeInfReversedZProjRH(glm::radians(70.0f), GFX::Renderer::Get()->GetWindowAspectRatio(), 0.1f);
   mainCamera.viewInfo.position = { 0, 2, 0 };
   using RMB = GFX::RenderMaskBit;
-  GFX::RenderMask mask = RMB::ClearColorEachFrame |
-    RMB::ClearDepthEachFrame |
+  GFX::RenderMask mask = RMB::ClearDepthEachFrame |
     RMB::RenderSky |
     RMB::RenderFog |
     RMB::RenderEmitters |
@@ -111,6 +120,43 @@ void OnStart(Scene* scene)
   auto& mainRenderView = scene->GetRenderView("main");
   mainRenderView.camera = &mainCamera;
   mainRenderView.mask = mask;
+  mainRenderView.offset = { 0, 0 };
+  mainRenderView.size = GFX::Renderer::Get()->GetMainFramebufferDims();
+
+  testColorMemory.emplace(*GFX::CreateTexture2D({ 128, 128 }, GFX::Format::R16G16B16A16_FLOAT));
+  testColorView.emplace(*GFX::TextureView::Create(*testColorMemory));
+  testDepthMemory.emplace(*GFX::CreateTexture2D({ 128, 128 }, GFX::Format::D32_FLOAT));
+  testDepthView.emplace(*GFX::TextureView::Create(*testDepthMemory));
+  testFbo.emplace();
+  testFbo->SetAttachment(GFX::Attachment::COLOR_0, *testColorView, 0);
+  testFbo->SetAttachment(GFX::Attachment::DEPTH, *testDepthView, 0);
+  GFX::RenderMask testMask = RMB::ClearDepthEachFrame |
+    RMB::RenderSky |
+    RMB::RenderFog |
+    RMB::RenderObjects;
+  testCamera.proj = MakeInfReversedZProjRH(glm::radians(90.0f), 1.0f, 0.1f);
+  testCamera.viewInfo.position = { 0, 0, 0 };
+  testCamera.viewInfo.pitch = glm::radians(90.0f);
+  GFX::RenderView testView
+  {
+    .renderTarget = &testFbo.value(),
+    .camera = &testCamera,
+    .mask = testMask,
+    .offset = { 0, 0 },
+    .size = { 128, 128 }
+  };
+  scene->RegisterRenderView("test", testView);
+
+
+  auto view2 = *GFX::TextureView::Create(*testColorMemory);
+  auto sampler2 = *GFX::TextureSampler::Create({});
+  GFX::MaterialCreateInfo info2
+  {
+    .shaderID = "batched",
+    .viewSamplers = {{std::move(view2), std::move(sampler2)}},
+    .materialUniforms = { uniformData }
+  };
+  GFX::MaterialID testMaterial = GFX::MaterialManager::Get()->AddMaterial("testMaterial", info2);
 
   {
     Entity player = scene->CreateEntity("player");
@@ -146,6 +192,12 @@ void OnStart(Scene* scene)
     meshes.push_back(MeshManager::CreateMeshBatched(std::string(ModelDir) + "bunny.obj", "bunny"));
     meshes.push_back(MeshManager::CreateMeshBatched(std::string(ModelDir) + "goodSphere.obj", "sphere"));
     meshes.push_back(MeshManager::CreateMeshBatched(std::string(ModelDir) + "teapot.obj", "teapot"));
+
+    Entity testCam = scene->CreateEntity("testCam");
+    testCam.AddComponent<Component::Transform>().SetTranslation({ 0, 0, 0 });
+    testCam.AddComponent<Component::Model>();
+    testCam.AddComponent<Component::BatchedMesh>().handle = MeshManager::GetMeshBatched("big_cube");
+    testCam.AddComponent<Component::Material>(testMaterial);
 
     if (0) // creating a really tall parenting chain of objects
     {
@@ -377,22 +429,19 @@ void OnStart(Scene* scene)
   }
 }
 
+#include <imgui/imgui.h>
 void OnUpdate([[maybe_unused]] Timestep timestep)
 {
-  if (Input::IsKeyDown(GLFW_KEY_LEFT_SHIFT))
-  {
-    if (Input::IsKeyDown(GLFW_KEY_1))
-      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    if (Input::IsKeyDown(GLFW_KEY_2))
-      glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    if (Input::IsKeyDown(GLFW_KEY_3))
-      glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
-  }
   voxelManager->Update();
 }
 
 void OnDraw(Scene* scene, [[maybe_unused]] Timestep timestep)
 {
+  auto& vi = scene->GetRenderView("test").camera->viewInfo;
+  ImGui::Image((ImTextureID)testColorView->GetAPIHandle(), { 128, 128 }, { 1, 1 }, { 0, 0 });
+  ImGui::SliderFloat("Pitch", &vi.pitch, -glm::pi<float>() / 2, glm::pi<float>() / 2);
+  ImGui::SliderFloat("Yaw", &vi.yaw, 0, 6.28);
+  ImGui::SliderFloat3("Pos", glm::value_ptr(vi.position), 0, 10);
   auto renderViews = scene->GetRenderViews();
   voxelManager->Draw();
   GFX::Renderer::Get()->DrawAxisIndicator(renderViews);

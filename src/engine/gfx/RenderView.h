@@ -1,6 +1,7 @@
 #pragma once
 #include <utility/Flags.h>
 #include <cstdint>
+#include "BasicTypes.h"
 
 namespace GFX
 {
@@ -49,5 +50,7 @@ namespace GFX
     GFX::Framebuffer* renderTarget{};
     GFX::Camera* camera{};
     RenderMask mask{};
+    Offset2D offset{};
+    Extent2D size{};
   };
 }

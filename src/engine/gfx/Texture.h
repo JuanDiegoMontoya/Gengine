@@ -53,8 +53,6 @@ namespace GFX
     TextureCreateInfo createInfo_{};
   };
 
-
-
   struct TextureViewCreateInfo
   {
     ImageType viewType{};
@@ -84,6 +82,7 @@ namespace GFX
     void Bind(uint32_t slot, const TextureSampler& sampler);
     void Unbind(uint32_t slot); // unfortunate, but necessary to prevent state leakage until everything is upgraded
     void SubImage(const TextureUpdateInfo& info);
+    [[nodiscard]] uint32_t GetAPIHandle() const { return id_; }
 
   private:
     friend class Framebuffer;
@@ -147,4 +146,7 @@ namespace GFX
 
   // unsafe way to bind texture view and sampler using only API handles
   void BindTextureViewNative(uint32_t slot, uint32_t textureViewAPIHandle, uint32_t samplerAPIHandle);
+
+  // convenience function
+  std::optional<Texture> CreateTexture2D(Extent2D size, Format format, const std::string_view name = "");
 }

@@ -219,6 +219,7 @@
     <ClCompile Include="src\engine\gfx\Camera.cpp" />
     <ClCompile Include="src\game\FlyingPlayerController.cpp" />
     <ClCompile Include="src\game\PhysicsPlayerController.cpp" />
+    <ClCompile Include="src\game\KinematicPlayerController.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="src\engine\gfx\DynamicBuffer.inl" />

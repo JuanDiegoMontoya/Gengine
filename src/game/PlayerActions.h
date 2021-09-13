@@ -8,9 +8,9 @@ class PlayerActions : public ScriptableEntity
 public:
   PlayerActions(Voxels::VoxelManager* vm) : voxels(vm) {}
 
-  virtual void OnCreate() override;
-  virtual void OnDestroy() override;
-  virtual void OnUpdate(Timestep timestep) override;
+  void OnCreate() override;
+  void OnDestroy() override;
+  void OnUpdate(Timestep timestep) override;
 
   void checkTestButton();
   void checkBlockPlacement();

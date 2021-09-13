@@ -37,7 +37,8 @@ void PlayerActions::OnUpdate(Timestep timestep)
 {
   if (Input::IsKeyPressed(GLFW_KEY_P))
   {
-    GetScene()->GetEngine()->IsPaused() ? GetScene()->GetEngine()->Unpause() : GetScene()->GetEngine()->Pause();
+    auto* engine = GetScene()->GetEngine();
+    engine->IsPaused() ? engine->Unpause() : engine->Pause();
   }
 
   Entity parent = GetComponent<Component::Parent>().entity;
@@ -66,7 +67,7 @@ void PlayerActions::OnUpdate(Timestep timestep)
     physics.Interface().AddForce(vi.GetForwardDir() * 300.f);
     auto& lifetime = ent.AddComponent<Component::Lifetime>();
     lifetime.active = true;
-    lifetime.remainingSeconds = 2;
+    lifetime.remainingSeconds = 3;
 
     {
       Component::ParticleEmitter emitter{};
@@ -84,7 +85,7 @@ void PlayerActions::OnUpdate(Timestep timestep)
       //emitter.maxParticleColor = { 1, .75, 0, .8 };
       emitter.data.minParticleColor = { .75, .40, 0, .1 };
       emitter.data.maxParticleColor = { 1, .60, .2, .2 };
-      ent.AddComponent<Component::ParticleEmitter>(std::move(emitter));
+      ent.AddComponent<Component::ParticleEmitter>(emitter);
     }
 
     Entity child = CreateEntity("ArrowSmoke");
@@ -105,7 +106,7 @@ void PlayerActions::OnUpdate(Timestep timestep)
       emitter2.data.maxParticleOffset = { 1, 2, 1 };
       emitter2.data.minParticleColor = { .4, .4, .4, .1 };
       emitter2.data.maxParticleColor = { .5, .5, .5, .2 };
-      child.AddComponent<Component::ParticleEmitter>(std::move(emitter2));
+      child.AddComponent<Component::ParticleEmitter>(emitter2);
     }
   }
 

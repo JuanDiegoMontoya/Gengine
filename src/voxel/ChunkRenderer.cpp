@@ -219,6 +219,8 @@ namespace Voxels
       if (!(renderView.mask & GFX::RenderMaskBit::RenderVoxels))
         continue;
 
+      glViewport(renderView.offset.x, renderView.offset.y, renderView.size.width, renderView.size.height);
+
       renderView.renderTarget->Bind();
 
       currShader->SetMat4("u_viewProj", renderView.camera->GetViewProj());
@@ -321,6 +323,8 @@ namespace Voxels
       {
         continue;
       }
+
+      glViewport(renderView.offset.x, renderView.offset.y, renderView.size.width, renderView.size.height);
 
       renderView.renderTarget->Bind();
 

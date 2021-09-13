@@ -479,4 +479,18 @@ namespace GFX
     glBindSampler(slot, samplerAPIHandle);
     glBindTextureUnit(slot, textureViewAPIHandle);
   }
+
+  std::optional<Texture> CreateTexture2D(Extent2D size, Format format, const std::string_view name)
+  {
+    TextureCreateInfo createInfo
+    {
+      .imageType = ImageType::TEX_2D,
+      .format = format,
+      .extent = { size.width, size.height, 1 },
+      .mipLevels = 1,
+      .arrayLayers = 1,
+      .sampleCount = SampleCount::ONE
+    };
+    return Texture::Create(createInfo, name);
+  }
 }
