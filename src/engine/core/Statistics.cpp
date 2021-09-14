@@ -53,6 +53,16 @@ namespace engine::Core
   {
     MEASURE_CPU_TIMER_STAT(DrawStatisticsUI);
 
+    if (!ImGui::Begin("Statistics"))
+    {
+      ImGui::End();
+      return;
+    }
+
+    ImGui::Indent();
+    ImGui::Text("%-20s: %-10s%-10s%-10s%-10s", "Stat Name", "Average", "Variance", "Min", "Max");
+    ImGui::Unindent();
+
     // key: group name
     // value: pair containing <stat name, pointer to stat buffer>
     // IMPORTANT: the group name and stat names are swapped compared to that in `floatStats`
@@ -76,11 +86,6 @@ namespace engine::Core
       };
       groupNameToFloatStat[pair.first].emplace_back(statName, vals);
     }
-
-    ImGui::Begin("Statistics");
-    ImGui::Indent();
-    ImGui::Text("%-20s: %-10s%-10s%-10s%-10s", "Stat Name", "Average", "Variance", "Min", "Max");
-    ImGui::Unindent();
 
     for (auto& [groupName, vec] : groupNameToFloatStat)
     {

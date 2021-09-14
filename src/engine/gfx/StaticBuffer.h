@@ -71,7 +71,7 @@ namespace GFX
     bool IsMapped();
 
     // for when this class doesn't offer enough functionality itself
-    auto GetID() { return rendererID_; }
+    auto GetID() const { return rendererID_; }
 
   private:
     void BindBuffer(uint32_t target);

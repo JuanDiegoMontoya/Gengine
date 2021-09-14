@@ -27,9 +27,9 @@ AutoCVar<cvar_float> cullDistanceMaxCVar("v.cullDistanceMax", "- Maximum distanc
 AutoCVar<cvar_float> freezeCullingCVar("v.freezeCulling", "- If enabled, freezes chunk culling", 0, 0, 1, CVarFlag::CHEAT);
 AutoCVar<cvar_float> drawOcclusionVolumesCVar("v.drawOcclusionVolumes", "- If enabled, draws occlusion volumes", 0, 0, 1, CVarFlag::CHEAT);
 AutoCVar<cvar_float> anisotropyCVar("v.anisotropy", "- Level of anisotropic filtering to apply to voxels", 16, 1, 16);
+AutoCVar<cvar_float> lowQualityCullDistance("v.lowQualityCullDistance", "- Maximum distance at which chunks for low quality cameras should render", 100);
 
 DECLARE_FLOAT_STAT(DrawVoxelsAll, GPU)
-DECLARE_FLOAT_STAT(Joe, CPU)
 
 static GFX::Anisotropy getAnisotropy(cvar_float val)
 {
@@ -47,18 +47,23 @@ namespace Voxels
     std::unique_ptr<GFX::DebugDrawableBuffer<AABB16>> verticesAllocator;
     std::unordered_set<uint64_t> vertexAllocHandles;
 
-    GLuint vao{};
-    std::unique_ptr<GFX::StaticBuffer> dib;
+    GLuint chunkVao{};
 
-    std::unique_ptr<GFX::StaticBuffer> drawCountGPU;
+    struct ViewData
+    {
+      std::unique_ptr<GFX::StaticBuffer> drawIndirectBuffer;
+      std::unique_ptr<GFX::StaticBuffer> drawCountParameterBuffer;
+    };
+
+    std::unordered_map<GFX::RenderView, ViewData, GFX::hash<GFX::RenderView>> perViewData;
 
     // size of compute shader workgroup
     const int workGroupSize = 64; // defined in compact_batch.cs
 
-    GLuint vaoCull{};
-    std::unique_ptr<GFX::StaticBuffer> dibCull;
+    GLuint occlusionVao{};
+    std::unique_ptr<GFX::StaticBuffer> occlusionDib;
     GLsizei activeAllocs{};
-    std::pair<uint64_t, GLuint> stateInfo{ 0, 0 };
+    //std::pair<uint64_t, GLuint> stateInfo{ 0, 0 };
     bool dirtyAlloc = true;
     std::unique_ptr<GFX::StaticBuffer> vertexAllocBuffer;
 
@@ -73,11 +78,9 @@ namespace Voxels
   {
     data = new ChunkRendererStorage;
 
-    data->drawCountGPU = std::make_unique<GFX::StaticBuffer>(nullptr, sizeof(uint32_t));
-
     // allocate big buffers
     // TODO: vary the allocation size based on some user setting
-    data->verticesAllocator = std::make_unique<GFX::DebugDrawableBuffer<AABB16>>(250'000'000, 2 * sizeof(uint32_t));
+    data->verticesAllocator = std::make_unique<GFX::DebugDrawableBuffer<AABB16>>(1'000'000, 2 * sizeof(uint32_t));
 
     /* :::::::::::BUFFER FORMAT:::::::::::
                             CHUNK 1                                    CHUNK 2                   NULL                   CHUNK 3
@@ -86,19 +89,19 @@ namespace Voxels
     Draw commands will specify where in memory the draw call starts. This will account for variable offsets.
     
         :::::::::::BUFFER FORMAT:::::::::::*/
-    glCreateVertexArrays(1, &data->vao);
-    glEnableVertexArrayAttrib(data->vao, 0); // chunk position (one per instance)
+    glCreateVertexArrays(1, &data->chunkVao);
+    glEnableVertexArrayAttrib(data->chunkVao, 0); // chunk position (one per instance)
     
     // stride is sizeof(vertex) so baseinstance can be set to cmd.first and work (hopefully)
-    glVertexArrayAttribIFormat(data->vao, 0, 3, GL_INT, 0);
+    glVertexArrayAttribIFormat(data->chunkVao, 0, 3, GL_INT, 0);
 
-    glVertexArrayAttribBinding(data->vao, 0, 0);
-    glVertexArrayBindingDivisor(data->vao, 0, 1);
+    glVertexArrayAttribBinding(data->chunkVao, 0, 0);
+    glVertexArrayBindingDivisor(data->chunkVao, 0, 1);
 
-    glVertexArrayVertexBuffer(data->vao, 0, data->verticesAllocator->GetID(), 0, 2 * sizeof(uint32_t));
+    glVertexArrayVertexBuffer(data->chunkVao, 0, data->verticesAllocator->GetID(), 0, 2 * sizeof(uint32_t));
 
     // setup vertex buffer for cube that will be used for culling
-    glCreateVertexArrays(1, &data->vaoCull);
+    glCreateVertexArrays(1, &data->occlusionVao);
 
     DrawElementsIndirectCommand occlusionCullingCmd
     {
@@ -108,7 +111,7 @@ namespace Voxels
       .baseVertex = 0,
       .baseInstance = 0
     };
-    data->dibCull = std::make_unique<GFX::StaticBuffer>(&occlusionCullingCmd, sizeof(occlusionCullingCmd), GFX::BufferFlag::CLIENT_STORAGE);
+    data->occlusionDib = std::make_unique<GFX::StaticBuffer>(&occlusionCullingCmd, sizeof(occlusionCullingCmd), GFX::BufferFlag::CLIENT_STORAGE);
 
     // assets
     std::vector<std::string> texs;
@@ -174,7 +177,18 @@ namespace Voxels
   {
     GFX::DebugMarker marker("Draw voxels");
     MEASURE_GPU_TIMER_STAT(DrawVoxelsAll);
-    MEASURE_CPU_TIMER_STAT(Joe);
+
+    // init data for newly-created cameras
+    for (auto& renderView : renderViews)
+    {
+      if (!(renderView.mask & GFX::RenderMaskBit::RenderVoxels))
+        continue;
+
+      if (!data->perViewData.contains(renderView))
+      {
+        data->perViewData[renderView].drawCountParameterBuffer = std::make_unique<GFX::StaticBuffer>(nullptr, sizeof(uint32_t));
+      }
+    }
 
     RenderVisibleLastFrame(renderViews);
     GenerateDrawIndirectBuffer(renderViews);
@@ -194,12 +208,9 @@ namespace Voxels
     ImGui::SliderFloat("Min Brightness", &u_minBrightness, 0.0f, 0.1f);
     ImGui::SliderFloat3("Env Color", glm::value_ptr(u_envColor), 0.0f, 0.1f);
 
-    if (!data->dib)
-      return;
-
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK); // don't forget to reset original culling face
-    glBindVertexArray(data->vao);
+    glBindVertexArray(data->chunkVao);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, data->verticesAllocator->GetID());
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, data->verticesAllocator->GetID());
 
@@ -218,15 +229,18 @@ namespace Voxels
     {
       if (!(renderView.mask & GFX::RenderMaskBit::RenderVoxels))
         continue;
+      
+      auto& [drawIndirectBuffer, parameterBuffer] = data->perViewData[renderView];
+      if (!drawIndirectBuffer)
+        continue;
 
       glViewport(renderView.offset.x, renderView.offset.y, renderView.size.width, renderView.size.height);
-
       renderView.renderTarget->Bind();
 
       currShader->SetMat4("u_viewProj", renderView.camera->GetViewProj());
 
-      data->dib->Bind<GFX::Target::DRAW_INDIRECT_BUFFER>();
-      data->drawCountGPU->Bind<GFX::Target::PARAMETER_BUFFER>();
+      drawIndirectBuffer->Bind<GFX::Target::DRAW_INDIRECT_BUFFER>();
+      parameterBuffer->Bind<GFX::Target::PARAMETER_BUFFER>();
       glMultiDrawArraysIndirectCount(GL_TRIANGLES, 0, 0, data->activeAllocs, 0);
     }
 
@@ -257,10 +271,24 @@ namespace Voxels
       data->verticesAllocator->GenDrawData();
     }
 
+    data->vertexAllocBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(0);
+
     for (auto& renderView : renderViews)
     {
       if (!(renderView.mask & GFX::RenderMaskBit::RenderVoxels))
         continue;
+
+      if (renderView.mask & GFX::RenderMaskBit::RenderVoxelsNear)
+      {
+        sdr->SetBool("u_disableOcclusionCulling", true);
+        sdr->SetFloat("u_lowQualityCullDistance", lowQualityCullDistance.Get());
+      }
+      else
+      {
+        sdr->SetBool("u_disableOcclusionCulling", false);
+      }
+
+      auto& [drawIndirectBuffer, parameterBuffer] = data->perViewData[renderView];
 
       // set uniforms for chunk rendering
       sdr->SetVec3("u_viewpos", renderView.camera->viewInfo.position);
@@ -272,17 +300,16 @@ namespace Voxels
       }
 
       constexpr uint32_t zero = 0;
-      data->drawCountGPU->SubData(&zero, sizeof(uint32_t));
+      parameterBuffer->SubData(&zero, sizeof(uint32_t));
 
       // only re-construct if allocator has been modified
       if (data->dirtyAlloc)
       {
-        data->dib = std::make_unique<GFX::StaticBuffer>(nullptr, data->verticesAllocator->ActiveAllocs() * sizeof(DrawArraysIndirectCommand));
+        drawIndirectBuffer = std::make_unique<GFX::StaticBuffer>(nullptr, data->verticesAllocator->ActiveAllocs() * sizeof(DrawArraysIndirectCommand));
       }
 
-      data->vertexAllocBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(0);
-      data->dib->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(1);
-      data->drawCountGPU->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(2);
+      drawIndirectBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(1);
+      parameterBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(2);
 
       glDispatchCompute(numWorkGroups, 1, 1);
     }
@@ -324,6 +351,8 @@ namespace Voxels
         continue;
       }
 
+      auto& [drawIndirectBuffer, parameterBuffer] = data->perViewData[renderView];
+
       glViewport(renderView.offset.x, renderView.offset.y, renderView.size.width, renderView.size.height);
 
       renderView.renderTarget->Bind();
@@ -334,13 +363,13 @@ namespace Voxels
       glBindBuffer(GL_SHADER_STORAGE_BUFFER, data->verticesAllocator->GetID());
       glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, data->verticesAllocator->GetID());
 
-      data->dib->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(1);
+      drawIndirectBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(1);
 
       // copy # of chunks being drawn (parameter buffer) to instance count (DIB)
-      data->dibCull->Bind<GFX::Target::DRAW_INDIRECT_BUFFER>();
-      glBindVertexArray(data->vaoCull);
+      data->occlusionDib->Bind<GFX::Target::DRAW_INDIRECT_BUFFER>();
+      glBindVertexArray(data->occlusionVao);
       constexpr GLint offset = offsetof(DrawArraysIndirectCommand, instanceCount);
-      glCopyNamedBufferSubData(data->drawCountGPU->GetID(), data->dibCull->GetID(), 0, offset, sizeof(uint32_t));
+      glCopyNamedBufferSubData(parameterBuffer->GetID(), data->occlusionDib->GetID(), 0, offset, sizeof(uint32_t));
       glDrawArraysIndirect(GL_TRIANGLE_STRIP, 0);
     }
 

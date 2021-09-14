@@ -133,10 +133,12 @@ void OnStart(Scene* scene)
   GFX::RenderMask testMask = RMB::ClearDepthEachFrame |
     RMB::RenderSky |
     RMB::RenderFog |
+    RMB::RenderVoxelsNear |
+    RMB::RenderVoxels |
     RMB::RenderObjects;
   testCamera.proj = MakeInfReversedZProjRH(glm::radians(90.0f), 1.0f, 0.1f);
-  testCamera.viewInfo.position = { 0, 0, 0 };
-  testCamera.viewInfo.pitch = glm::radians(90.0f);
+  testCamera.viewInfo.position = { 50, 40, 50 };
+  testCamera.viewInfo.pitch = 0;
   GFX::RenderView testView
   {
     .renderTarget = &testFbo.value(),

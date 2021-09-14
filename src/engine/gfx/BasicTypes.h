@@ -9,12 +9,16 @@ namespace GFX
     uint32_t width{};
     uint32_t height{};
     uint32_t depth{};
+
+    bool operator==(const Extent3D&) const = default;
   };
 
   struct Extent2D
   {
     uint32_t width{};
     uint32_t height{};
+
+    bool operator==(const Extent2D&) const = default;
   };
 
   struct Offset3D
@@ -22,12 +26,16 @@ namespace GFX
     uint32_t x{};
     uint32_t y{};
     uint32_t z{};
+
+    bool operator==(const Offset3D&) const = default;
   };
 
   struct Offset2D
   {
     uint32_t x{};
     uint32_t y{};
+
+    bool operator==(const Offset2D&) const = default;
   };
 
   enum class ImageType : uint8_t

@@ -46,11 +46,13 @@ layout(std430, binding = 2) coherent restrict buffer parameterBuffer_4
 };
 
 layout(location = 0) uniform vec3 u_viewpos;
-layout(location = 6) uniform Frustum u_viewfrustum;
 layout(location = 2) uniform uint u_quadSize = 8; // size of vertex in bytes
 layout(location = 3) uniform float u_cullMinDist;
 layout(location = 4) uniform float u_cullMaxDist;
-layout(location = 5) uniform uint u_reservedBytes; // amt of reserved space (in vertices) before vertices for instanced attributes 
+layout(location = 5) uniform uint u_reservedBytes; // amt of reserved space (in vertices) before vertices for instanced attributes
+layout(location = 6) uniform bool u_disableOcclusionCulling = false;
+layout(location = 7) uniform float u_lowQualityCullDistance;
+layout(location = 8) uniform Frustum u_viewfrustum;
 
 float GetDistance(in AABB16 box, in vec3 pos);
 bool CullDistance(float dist, float minDist, float maxDist);
@@ -74,6 +76,9 @@ void main()
     verticesAlloc.size > u_quadSize * u_reservedBytes;
 #endif
 
+  if (u_disableOcclusionCulling && dist > u_lowQualityCullDistance)
+    shouldDrawChunk = false;
+
   if (shouldDrawChunk)
   {
     // start of chunk data, in quads (8 bytes each)
@@ -83,10 +88,12 @@ void main()
     // number of quads times 6
     cmd.count = 6 * ((verticesAlloc.size - u_reservedBytes) / u_quadSize);
 
-    // the instance count will be set to 1 if not culled by occlusion culling, or if too close for occlusion culling to work
+    // the instance count will be set to 1 if not culled by occlusion culling, or if too close for occlusion culling to work, or if occlusion culling is disabled
     cmd.instanceCount = 0;
-    if (dist < 32)
+    if (dist < 32 || u_disableOcclusionCulling)
+    {
       cmd.instanceCount = 1;
+    }
 
     // beginning of actual quad data, past the reserved bytes
     cmd.first = 6 * (u_reservedBytes / u_quadSize + startChunkAlloc);

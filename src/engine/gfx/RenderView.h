@@ -52,5 +52,15 @@ namespace GFX
     RenderMask mask{};
     Offset2D offset{};
     Extent2D size{};
+
+    bool operator==(const RenderView&) const = default;
+  };
+
+  template<typename T> struct hash;
+
+  template<>
+  struct hash<RenderView>
+  {
+    std::size_t operator()(const RenderView& a) const noexcept;
   };
 }
