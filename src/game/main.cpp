@@ -43,12 +43,15 @@
 static std::unique_ptr<Voxels::VoxelManager> voxelManager{};
 static GFX::Camera mainCamera;
 
-static GFX::Camera testCamera;
-static std::optional<GFX::Framebuffer> testFbo;
-static std::optional<GFX::Texture> testColorMemory;
-static std::optional<GFX::TextureView> testColorView;
-static std::optional<GFX::Texture> testDepthMemory;
-static std::optional<GFX::TextureView> testDepthView;
+struct ProbeFaceInfo
+{
+  GFX::Camera camera;
+  std::optional<GFX::Framebuffer> fbo;
+  std::optional<GFX::TextureView> colorView;
+  std::optional<GFX::TextureView> depthView;
+};
+
+static ProbeFaceInfo probeFaces[6];
 
 void OnStart(Scene* scene)
 {
@@ -123,42 +126,82 @@ void OnStart(Scene* scene)
   mainRenderView.offset = { 0, 0 };
   mainRenderView.size = GFX::Renderer::Get()->GetMainFramebufferDims();
 
-  testColorMemory.emplace(*GFX::CreateTexture2D({ 128, 128 }, GFX::Format::R16G16B16A16_FLOAT));
-  testColorView.emplace(*GFX::TextureView::Create(*testColorMemory));
-  testDepthMemory.emplace(*GFX::CreateTexture2D({ 128, 128 }, GFX::Format::D32_FLOAT));
-  testDepthView.emplace(*GFX::TextureView::Create(*testDepthMemory));
-  testFbo.emplace();
-  testFbo->SetAttachment(GFX::Attachment::COLOR_0, *testColorView, 0);
-  testFbo->SetAttachment(GFX::Attachment::DEPTH, *testDepthView, 0);
-  GFX::RenderMask testMask = RMB::ClearDepthEachFrame |
-    RMB::RenderSky |
-    RMB::RenderFog |
-    RMB::RenderVoxelsNear |
-    RMB::RenderVoxels |
-    RMB::RenderObjects;
-  testCamera.proj = MakeInfReversedZProjRH(glm::radians(90.0f), 1.0f, 0.1f);
-  testCamera.viewInfo.position = { 50, 40, 50 };
-  testCamera.viewInfo.pitch = 0;
-  GFX::RenderView testView
+  GFX::TextureCreateInfo cubeMemInfo
   {
-    .renderTarget = &testFbo.value(),
-    .camera = &testCamera,
-    .mask = testMask,
-    .offset = { 0, 0 },
-    .size = { 128, 128 }
+    .imageType = GFX::ImageType::TEX_CUBEMAP,
+    .format = GFX::Format::R16G16B16A16_FLOAT,
+    .extent = { 512, 512, 1 },
+    .mipLevels = 1,
+    .arrayLayers = 6
   };
-  scene->RegisterRenderView("test", testView);
+  GFX::TextureManager::Get()->AddTexture("probeColor", *GFX::Texture::Create(cubeMemInfo, "Cube Color"));
+  cubeMemInfo.format = GFX::Format::D32_FLOAT;
+  GFX::TextureManager::Get()->AddTexture("probeDepth", *GFX::Texture::Create(cubeMemInfo, "Cube Depth"));
+  const glm::vec3 faceDirs[6] =
+  {
+    { 1, 0, 0 },
+    { -1, 0, 0 },
+    { 0, 1, 0 },
+    { 0, -1, 0 },
+    { 0, 0, 1 },
+    { 0, 0, -1 }
+  };
+  const GFX::Constants::CardinalNames upDirs[6] =
+  {
+    GFX::Constants::CardinalNames::NegY,
+    GFX::Constants::CardinalNames::NegY,
+    GFX::Constants::CardinalNames::PosZ,
+    GFX::Constants::CardinalNames::NegZ,
+    GFX::Constants::CardinalNames::NegY,
+    GFX::Constants::CardinalNames::NegY,
+  };
+  for (uint32_t i = 0; i < 6; i++)
+  {
+    GFX::TextureViewCreateInfo cubeViewInfo
+    {
+      .viewType = GFX::ImageType::TEX_2D,
+      .format = GFX::Format::R16G16B16A16_FLOAT,
+      .minLevel = 0,
+      .numLevels = 1,
+      .minLayer = i,
+      .numLayers = 1
+    };
+    probeFaces[i].colorView.emplace(*GFX::TextureView::Create(cubeViewInfo, *GFX::TextureManager::Get()->GetTexture("probeColor")));
+    cubeViewInfo.format = GFX::Format::D32_FLOAT;
+    probeFaces[i].depthView.emplace(*GFX::TextureView::Create(cubeViewInfo, *GFX::TextureManager::Get()->GetTexture("probeDepth")));
+    probeFaces[i].fbo.emplace();
+    probeFaces[i].fbo->SetAttachment(GFX::Attachment::COLOR_0, *probeFaces[i].colorView, 0);
+    probeFaces[i].fbo->SetAttachment(GFX::Attachment::DEPTH, *probeFaces[i].depthView, 0);
+    GFX::RenderMask testMask = RMB::ClearDepthEachFrame |
+      RMB::RenderSky |
+      RMB::RenderFog |
+      RMB::RenderVoxels |
+      RMB::RenderVoxelsNear |
+      RMB::RenderObjects;
+    probeFaces[i].camera.proj = MakeInfReversedZProjRH(glm::radians(90.0f), 1.0f, 0.1f);
+    probeFaces[i].camera.viewInfo.SetForwardDir(faceDirs[i]);
+    probeFaces[i].camera.viewInfo.upDir = upDirs[i];
+    GFX::RenderView testView
+    {
+      .renderTarget = &probeFaces[i].fbo.value(),
+      .camera = &probeFaces[i].camera,
+      .mask = testMask,
+      .offset = { 0, 0 },
+      .size = { 512, 512 }
+    };
+    scene->RegisterRenderView("ProbeFace" + std::to_string(i), testView);
+  }
 
 
-  auto view2 = *GFX::TextureView::Create(*testColorMemory);
-  auto sampler2 = *GFX::TextureSampler::Create({});
-  GFX::MaterialCreateInfo info2
-  {
-    .shaderID = "batched",
-    .viewSamplers = {{std::move(view2), std::move(sampler2)}},
-    .materialUniforms = { uniformData }
-  };
-  GFX::MaterialID testMaterial = GFX::MaterialManager::Get()->AddMaterial("testMaterial", info2);
+  //auto view2 = *GFX::TextureView::Create(*probeFaces[0].colorMemory);
+  //auto sampler2 = *GFX::TextureSampler::Create({});
+  //GFX::MaterialCreateInfo info2
+  //{
+  //  .shaderID = "batched",
+  //  .viewSamplers = {{std::move(view2), std::move(sampler2)}},
+  //  .materialUniforms = { uniformData }
+  //};
+  //GFX::MaterialID testMaterial = GFX::MaterialManager::Get()->AddMaterial("testMaterial", info2);
 
   {
     Entity player = scene->CreateEntity("player");
@@ -199,7 +242,7 @@ void OnStart(Scene* scene)
     testCam.AddComponent<Component::Transform>().SetTranslation({ 0, 0, 0 });
     testCam.AddComponent<Component::Model>();
     testCam.AddComponent<Component::BatchedMesh>().handle = MeshManager::GetMeshBatched("big_cube");
-    testCam.AddComponent<Component::Material>(testMaterial);
+    testCam.AddComponent<Component::Material>(batchMaterial);
 
     if (0) // creating a really tall parenting chain of objects
     {
@@ -439,11 +482,21 @@ void OnUpdate([[maybe_unused]] Timestep timestep)
 
 void OnDraw(Scene* scene, [[maybe_unused]] Timestep timestep)
 {
-  auto& vi = scene->GetRenderView("test").camera->viewInfo;
-  ImGui::Image((ImTextureID)testColorView->GetAPIHandle(), { 128, 128 }, { 1, 1 }, { 0, 0 });
-  ImGui::SliderFloat("Pitch", &vi.pitch, -glm::pi<float>() / 2, glm::pi<float>() / 2);
-  ImGui::SliderFloat("Yaw", &vi.yaw, 0, 6.28);
-  ImGui::SliderFloat3("Pos", glm::value_ptr(vi.position), 0, 10);
+  static bool freezeCams = false;
+  //auto& vi = scene->GetRenderView("test").camera->viewInfo;
+  ImGui::Checkbox("Freeze Cams", &freezeCams);
+  for (int i = 0; i < 6; i++)
+  {
+    if (!freezeCams)
+    {
+      probeFaces[i].camera.viewInfo.position = scene->GetEntity("player").GetComponent<Component::Transform>().GetTranslation();
+      probeFaces[i].camera.viewInfo.position.y += .65f;
+    }
+    ImGui::Image((ImTextureID)probeFaces[i].colorView->GetAPIHandle(), { 128, 128 });
+  }
+  //ImGui::SliderFloat("Pitch", &vi.pitch, -glm::pi<float>() / 2, glm::pi<float>() / 2);
+  //ImGui::SliderFloat("Yaw", &vi.yaw, 0, 6.28);
+  //ImGui::SliderFloat3("Pos", glm::value_ptr(vi.position), 0, 10);
   auto renderViews = scene->GetRenderViews();
   voxelManager->Draw();
   GFX::Renderer::Get()->DrawAxisIndicator(renderViews);

@@ -2,8 +2,6 @@
 #include <memory>
 #include <voxel/Chunk.h>
 #include <voxel/ChunkHelpers.h>
-#include <span>
-#include <engine/gfx/RenderView.h>
 
 class Editor;
 class Scene;

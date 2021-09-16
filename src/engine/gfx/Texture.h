@@ -34,7 +34,7 @@ namespace GFX
   class Texture
   {
   public:
-    [[nodiscard]] static std::optional<Texture> Create(const TextureCreateInfo& createInfo, const std::string_view name = "");
+    [[nodiscard]] static std::optional<Texture> Create(const TextureCreateInfo& createInfo, std::string_view name = "");
     Texture(Texture&& old) noexcept;
     Texture& operator=(Texture&& old) noexcept;
     ~Texture();
@@ -68,10 +68,10 @@ namespace GFX
   {
   public:
     // make a texture view with explicit parameters
-    [[nodiscard]] static std::optional<TextureView> Create(const TextureViewCreateInfo& createInfo, const Texture& texture, const std::string_view name = "");
+    [[nodiscard]] static std::optional<TextureView> Create(const TextureViewCreateInfo& createInfo, const Texture& texture, std::string_view name = "");
 
     // make a texture view with automatic parameters (view of whole texture, same type)
-    [[nodiscard]] static std::optional<TextureView> Create(const Texture& texture, const std::string_view name = "");
+    [[nodiscard]] static std::optional<TextureView> Create(const Texture& texture, std::string_view name = "");
 
     TextureView(const TextureView& other);
     TextureView(TextureView&& old) noexcept;
@@ -86,7 +86,7 @@ namespace GFX
 
   private:
     friend class Framebuffer;
-    static std::optional<TextureView> Create(const TextureViewCreateInfo& createInfo, uint32_t texture, Extent3D extent, const std::string_view name = "");
+    static std::optional<TextureView> Create(const TextureViewCreateInfo& createInfo, uint32_t texture, Extent3D extent, std::string_view name = "");
     TextureView() {};
     uint32_t id_{};
     TextureViewCreateInfo createInfo_{};
@@ -124,7 +124,7 @@ namespace GFX
   class TextureSampler
   {
   public:
-    [[nodiscard]] static std::optional<TextureSampler> Create(const SamplerState& initialState, const std::string_view name = "");
+    [[nodiscard]] static std::optional<TextureSampler> Create(const SamplerState& initialState, std::string_view name = "");
     TextureSampler(const TextureSampler& other);
     TextureSampler(TextureSampler&& old) noexcept;
     TextureSampler& operator=(const TextureSampler& other);
@@ -148,5 +148,5 @@ namespace GFX
   void BindTextureViewNative(uint32_t slot, uint32_t textureViewAPIHandle, uint32_t samplerAPIHandle);
 
   // convenience function
-  std::optional<Texture> CreateTexture2D(Extent2D size, Format format, const std::string_view name = "");
+  std::optional<Texture> CreateTexture2D(Extent2D size, Format format, std::string_view name = "");
 }

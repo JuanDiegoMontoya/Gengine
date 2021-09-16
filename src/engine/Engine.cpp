@@ -128,6 +128,8 @@ void Engine::Run()
     {
       drawOpaqueCallback(activeScene_, timestep);
     }
+    graphicsSystem->DrawSky(*activeScene_);
+    graphicsSystem->DrawFog(*activeScene_);
     graphicsSystem->DrawTransparent(*activeScene_);
 
     physicsSystem->Update(*activeScene_, timestep);

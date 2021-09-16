@@ -6,6 +6,7 @@ namespace GFX
 {
   class TextureArray;
   class Texture2D;
+  struct RenderView;
 }
 
 struct AABB;
@@ -42,7 +43,7 @@ namespace Voxels
     $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$*/
 
   private:
-    void RenderVisibleLastFrame(std::span<GFX::RenderView> renderViews);   // phase 1
+    void RenderVisibleChunks(std::span<GFX::RenderView> renderViews);   // phase 1
     void GenerateDrawIndirectBuffer(std::span<GFX::RenderView> renderViews);     // phase 2
     void RenderOcclusion(std::span<GFX::RenderView> renderViews); // phase 3
     void RenderDisoccludedThisFrame(std::span<GFX::RenderView> renderViews);      // phase 4

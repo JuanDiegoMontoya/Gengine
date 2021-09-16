@@ -11,6 +11,8 @@
 #include <engine/gfx/DynamicBuffer.h>
 #include <engine/gfx/Camera.h>
 #include <engine/gfx/Framebuffer.h>
+#include <engine/gfx/RenderView.h>
+#include <engine/gfx/TextureManager.h>
 
 #include <engine/CVar.h>
 #include <engine/Shapes.h>
@@ -71,6 +73,7 @@ namespace Voxels
     std::optional<GFX::Texture> blockTextures;
     std::optional<GFX::TextureView> blockTexturesView;
     std::optional<GFX::TextureSampler> blockTexturesSampler;
+    std::optional<GFX::TextureSampler> probeSampler;
   };
 
   // call after all chunks are initialized
@@ -139,6 +142,14 @@ namespace Voxels
     ss.asBitField.anisotropy = GFX::Anisotropy::SAMPLES_16;
     data->blockTexturesSampler = GFX::TextureSampler::Create(ss);
 
+    GFX::SamplerState cubeSs{};
+    cubeSs.asBitField.magFilter = GFX::Filter::LINEAR;
+    cubeSs.asBitField.minFilter = GFX::Filter::LINEAR;
+    cubeSs.asBitField.addressModeU = GFX::AddressMode::CLAMP_TO_EDGE;
+    cubeSs.asBitField.addressModeV = GFX::AddressMode::CLAMP_TO_EDGE;
+    cubeSs.asBitField.addressModeW = GFX::AddressMode::CLAMP_TO_EDGE;
+    data->probeSampler = GFX::TextureSampler::Create(cubeSs);
+
     //engine::Core::StatisticsManager::Get()->RegisterFloatStat("DrawVoxelsAll", "GPU");
     engine::Core::StatisticsManager::Get()->RegisterFloatStat("DrawVisibleChunks", "GPU");
     engine::Core::StatisticsManager::Get()->RegisterFloatStat("GenerateDIB", "GPU");
@@ -166,6 +177,9 @@ namespace Voxels
       if (!(renderView.mask & GFX::RenderMaskBit::RenderScreenElements))
         continue;
 
+      glViewport(renderView.offset.x, renderView.offset.y, renderView.size.width, renderView.size.height);
+      renderView.renderTarget->Bind();
+
       renderView.renderTarget->Bind();
       data->verticesAllocator->Draw();
     }
@@ -190,13 +204,13 @@ namespace Voxels
       }
     }
 
-    RenderVisibleLastFrame(renderViews);
+    RenderVisibleChunks(renderViews);
     GenerateDrawIndirectBuffer(renderViews);
     RenderOcclusion(renderViews);
     //RenderDisoccludedThisFrame(renderViews);
   }
 
-  void ChunkRenderer::RenderVisibleLastFrame(std::span<GFX::RenderView> renderViews)
+  void ChunkRenderer::RenderVisibleChunks(std::span<GFX::RenderView> renderViews)
   {
     // TODO: rendering is glitchy when modifying chunks rapidly
     // this is probably due to how the previous frame's visible chunks will be drawn
@@ -224,6 +238,8 @@ namespace Voxels
     state.asBitField.anisotropy = getAnisotropy(anisotropyCVar.Get());
     data->blockTexturesSampler->SetState(state);
     data->blockTexturesView->Bind(0, *data->blockTexturesSampler);
+    auto probeView = GFX::TextureView::Create(*GFX::TextureManager::Get()->GetTexture("probeColor"));
+    probeView->Bind(1, *data->probeSampler);
 
     for (auto& renderView : renderViews)
     {
@@ -237,14 +253,18 @@ namespace Voxels
       glViewport(renderView.offset.x, renderView.offset.y, renderView.size.width, renderView.size.height);
       renderView.renderTarget->Bind();
 
+      currShader->SetBool("u_disableOcclusionCulling", !!(renderView.mask & GFX::RenderMaskBit::RenderVoxelsNear));
+      currShader->SetVec3("u_viewpos", renderView.camera->viewInfo.position);
       currShader->SetMat4("u_viewProj", renderView.camera->GetViewProj());
 
       drawIndirectBuffer->Bind<GFX::Target::DRAW_INDIRECT_BUFFER>();
       parameterBuffer->Bind<GFX::Target::PARAMETER_BUFFER>();
       glMultiDrawArraysIndirectCount(GL_TRIANGLES, 0, 0, data->activeAllocs, 0);
+      glTextureBarrier();
     }
 
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+    probeView->Unbind(0);
     data->blockTexturesView->Unbind(0);
   }
 
@@ -385,14 +405,14 @@ namespace Voxels
     GFX::DebugMarker marker("Draw disoccluded chunks");
     // Drawing logic:
     // for each Chunk in Chunks
-    //   if Chunk was not rendered in RenderVisibleLastFrame and not occluded
+    //   if Chunk was not rendered in RenderVisibleChunks and not occluded
     //     draw(Chunk)
 
     // resources:
     // DIB with draw info
 
     // IDEA: RenderOcclusion generates a mask to use for the NEXT frame's RenderDisoccludedThisFrame pass
-    // the mask will contain all the chunks that were to be drawn at the start of that frame's RenderVisibleLastFrame pass
+    // the mask will contain all the chunks that were to be drawn at the start of that frame's RenderVisibleChunks pass
     // the current frame will ...
     
     ASSERT(0); // not implemented

@@ -406,7 +406,6 @@ namespace GFX
         defaultSampler->GetAPIHandle());
 
       glDrawArrays(GL_TRIANGLES, 0, 3);
-      glTextureBarrier();
     }
   }
 
@@ -556,6 +555,7 @@ namespace GFX
       shdr->SetMat4("u_proj", c.proj);
       shdr->SetMat4("u_modview", glm::translate(c.viewInfo.GetViewMatrix(), c.viewInfo.position));
       glDrawArrays(GL_TRIANGLE_STRIP, 0, 14);
+      glTextureBarrier();
     }
 
     //glDepthMask(GL_TRUE);
@@ -881,6 +881,7 @@ namespace GFX
       glBindSampler(i, 0);
       glBindTextureUnit(i, 0);
     }
+    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
     // triangle winding
     glEnable(GL_CULL_FACE);

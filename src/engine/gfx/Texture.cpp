@@ -166,7 +166,7 @@ namespace GFX
 
 
 
-  std::optional<Texture> Texture::Create(const TextureCreateInfo& createInfo, const std::string_view name)
+  std::optional<Texture> Texture::Create(const TextureCreateInfo& createInfo, std::string_view name)
   {
     Texture texture;
     texture.createInfo_ = createInfo;
@@ -244,12 +244,12 @@ namespace GFX
 
 
 
-  std::optional<TextureView> TextureView::Create(const TextureViewCreateInfo& createInfo, const Texture& texture, const std::string_view name)
+  std::optional<TextureView> TextureView::Create(const TextureViewCreateInfo& createInfo, const Texture& texture, std::string_view name)
   {
     return Create(createInfo, texture.id_, texture.createInfo_.extent, name);
   }
 
-  std::optional<TextureView> TextureView::Create(const Texture& texture, const std::string_view name)
+  std::optional<TextureView> TextureView::Create(const Texture& texture, std::string_view name)
   {
     TextureViewCreateInfo createInfo
     {
@@ -263,7 +263,7 @@ namespace GFX
     return Create(createInfo, texture, name);
   }
 
-  std::optional<TextureView> TextureView::Create(const TextureViewCreateInfo& createInfo, uint32_t texture, Extent3D extent, const std::string_view name)
+  std::optional<TextureView> TextureView::Create(const TextureViewCreateInfo& createInfo, uint32_t texture, Extent3D extent, std::string_view name)
   {
     TextureView view;
     view.createInfo_ = createInfo;
@@ -338,7 +338,7 @@ namespace GFX
 
 
 
-  std::optional<TextureSampler> TextureSampler::Create(const SamplerState& state, const std::string_view name)
+  std::optional<TextureSampler> TextureSampler::Create(const SamplerState& state, std::string_view name)
   {
     TextureSampler sampler;
     glCreateSamplers(1, &sampler.id_);
@@ -480,7 +480,7 @@ namespace GFX
     glBindTextureUnit(slot, textureViewAPIHandle);
   }
 
-  std::optional<Texture> CreateTexture2D(Extent2D size, Format format, const std::string_view name)
+  std::optional<Texture> CreateTexture2D(Extent2D size, Format format, std::string_view name)
   {
     TextureCreateInfo createInfo
     {

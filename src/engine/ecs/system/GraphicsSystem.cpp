@@ -63,8 +63,7 @@ void GraphicsSystem::DrawOpaque(Scene& scene)
   MEASURE_GPU_TIMER_STAT(DrawOpaque_GPU);
   MEASURE_CPU_TIMER_STAT(DrawOpaque_CPU);
 
-  auto views = scene.GetRenderViews();
-  std::span<GFX::RenderView> viewsSpan{ views.begin(), views.end() };
+  auto renderViews = scene.GetRenderViews();
 
   // draw batched objects in the scene
   using namespace Component;
@@ -78,9 +77,13 @@ void GraphicsSystem::DrawOpaque(Scene& scene)
       GFX::Renderer::Get()->SubmitObject(model, mesh, material);
     });
 
-  GFX::Renderer::Get()->RenderObjects(viewsSpan);
+  GFX::Renderer::Get()->RenderObjects(renderViews);
+}
 
-  GFX::Renderer::Get()->DrawSkybox(viewsSpan);
+void GraphicsSystem::DrawSky(Scene& scene)
+{
+  auto renderViews = scene.GetRenderViews();
+  GFX::Renderer::Get()->DrawSkybox(renderViews);
 }
 
 void GraphicsSystem::DrawTransparent(Scene& scene)
@@ -104,10 +107,15 @@ void GraphicsSystem::DrawTransparent(Scene& scene)
   GFX::Renderer::Get()->RenderEmitters(renderViews);
 }
 
-void GraphicsSystem::EndFrame(Scene& scene, Timestep timestep)
+void GraphicsSystem::DrawFog(Scene& scene)
 {
   auto renderViews = scene.GetRenderViews();
   GFX::Renderer::Get()->DrawFog(renderViews);
+}
+
+void GraphicsSystem::EndFrame(Scene& scene, Timestep timestep)
+{
+  auto renderViews = scene.GetRenderViews();
   GFX::Renderer::Get()->EndFrame(timestep.dt_effective);
 }
 

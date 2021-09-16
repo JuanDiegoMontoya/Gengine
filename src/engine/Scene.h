@@ -27,10 +27,10 @@ public:
   // If there are multiple matches, the first match is returned.
   Entity GetEntity(std::string_view name);
 
-  void RegisterRenderView(hashed_string viewName, GFX::RenderView view);
-  void UnregisterRenderView(hashed_string viewName);
-  GFX::RenderView& GetRenderView(hashed_string viewName);
-  std::vector<std::pair<hashed_string, GFX::RenderView>> GetRenderViewsWithNames();
+  void RegisterRenderView(std::string_view viewName, GFX::RenderView view);
+  void UnregisterRenderView(std::string_view viewName);
+  GFX::RenderView& GetRenderView(std::string_view viewName);
+  std::vector<std::pair<std::string_view, GFX::RenderView>> GetRenderViewsWithNames();
   std::vector<GFX::RenderView> GetRenderViews();
 
   Engine* GetEngine();

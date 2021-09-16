@@ -7,12 +7,28 @@
 #include "ecs/component/Transform.h"
 #include <engine/gfx/Renderer.h>
 
+// https://www.codeproject.com/Tips/5255442/Cplusplus14-20-Heterogeneous-Lookup-Benchmark
+struct MyEqual : public std::equal_to<>
+{
+  using is_transparent = void;
+};
+
+struct string_hash
+{
+  using is_transparent = void;
+  using key_equal = std::equal_to<>;  // Pred to use
+  using hash_type = std::hash<std::string_view>;  // just a helper local type
+  size_t operator()(std::string_view txt) const { return hash_type{}(txt); }
+  size_t operator()(const std::string& txt) const { return hash_type{}(txt); }
+  size_t operator()(const char* txt) const { return hash_type{}(txt); }
+};
+
 struct SceneStorage
 {
   entt::registry registry_{};  // all the entities in this scene
   Engine* engine_{};           // non-owning
   std::string name_;           // the name of this scene
-  std::unordered_map<hashed_string, GFX::RenderView> renderViews_;
+  std::unordered_map<std::string, GFX::RenderView, string_hash, MyEqual> renderViews_;
 };
 
 Scene::Scene(std::string_view name, Engine* engine)
@@ -57,28 +73,28 @@ Entity Scene::GetEntity(std::string_view name)
   return Entity{};
 }
 
-void Scene::RegisterRenderView(hashed_string viewName, GFX::RenderView view)
+void Scene::RegisterRenderView(std::string_view viewName, GFX::RenderView view)
 {
   ASSERT(!data_->renderViews_.contains(viewName));
   ASSERT(view.camera && view.renderTarget);
   data_->renderViews_.emplace(viewName, view);
 }
 
-void Scene::UnregisterRenderView(hashed_string viewName)
+void Scene::UnregisterRenderView(std::string_view viewName)
 {
   ASSERT(data_->renderViews_.contains(viewName));
-  data_->renderViews_.erase(viewName);
+  data_->renderViews_.erase(data_->renderViews_.find(viewName));
 }
 
-GFX::RenderView& Scene::GetRenderView(hashed_string viewName)
+GFX::RenderView& Scene::GetRenderView(std::string_view viewName)
 {
   ASSERT(data_->renderViews_.contains(viewName));
-  return data_->renderViews_[viewName];
+  return data_->renderViews_.find(viewName)->second;
 }
 
-std::vector<std::pair<hashed_string, GFX::RenderView>> Scene::GetRenderViewsWithNames()
+std::vector<std::pair<std::string_view, GFX::RenderView>> Scene::GetRenderViewsWithNames()
 {
-  std::vector<std::pair<hashed_string, GFX::RenderView>> views(
+  std::vector<std::pair<std::string_view, GFX::RenderView>> views(
     data_->renderViews_.begin(), data_->renderViews_.end());
   return views;
 }
@@ -88,8 +104,12 @@ std::vector<GFX::RenderView> Scene::GetRenderViews()
   std::vector<GFX::RenderView> views;
   for (auto& [name, view] : data_->renderViews_)
   {
-    views.push_back(view);
+    if (name == "main")
+      views.insert(views.begin(), view);
+    else
+      views.push_back(view);
   }
+  std::reverse(views.begin(), views.end());
   return views;
 }
 

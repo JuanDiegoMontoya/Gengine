@@ -12,6 +12,8 @@ public:
 
   void StartFrame(Scene& scene);
   void DrawOpaque(Scene& scene);
+  void DrawFog(Scene& scene);
+  void DrawSky(Scene& scene);
   void DrawTransparent(Scene& scene);
   void EndFrame(Scene& scene, Timestep timestep);
   void SwapBuffers();

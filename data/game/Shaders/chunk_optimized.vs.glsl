@@ -5,6 +5,7 @@ layout(location = 0) in ivec3 u_pos; // (per instance)
 
 // global info
 layout(location = 0) uniform mat4 u_viewProj;
+layout(location = 1) uniform vec3 u_viewPos;
 
 // How is this buffer laid out?
 //
@@ -29,7 +30,7 @@ layout(std430, binding = 0) restrict readonly buffer VertexData
   uvec2 quads[];
 };
 
-layout(location = 0) out vec3 vPos;
+layout(location = 0) out vec3 vPosViewSpace;
 layout(location = 1) out vec3 vTexCoord;
 layout(location = 2) out vec4 vLighting; // RGBSun
 layout(location = 3) out flat uint vQuadAO;
@@ -105,7 +106,8 @@ void main()
   uint texIdx;
   DecodeQuad(quadData[0], blockPos, face, texIdx);
   vec3 blockPosWorldSpace = blockPos + u_pos + 0.5;
-  vPos = blockPosWorldSpace + ObjSpaceVertexPos(vertexIndex, face);
+  vec3 vertPos = blockPosWorldSpace + ObjSpaceVertexPos(vertexIndex, face);
+  vPosViewSpace = vertPos - u_viewPos;
   vTexCoord = vec3(tex_corners[vertexIndex], texIdx);
 
   // decode lighting + quad AO
@@ -116,5 +118,5 @@ void main()
   //uint myAO = (quadAO >> (vertexIndex * 2)) & 0x3;
   //vAmbientOcclusion = float(myAO) / 3.0;
 
-  gl_Position = u_viewProj * vec4(vPos, 1.0);
+  gl_Position = u_viewProj * vec4(vertPos, 1.0);
 }

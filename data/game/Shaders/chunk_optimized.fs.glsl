@@ -1,16 +1,18 @@
 #version 460 core
 
-// material properties
-layout(location = 0) in vec3 vPos;
-layout(location = 1) in vec3 vTexCoord;
-layout(location = 2) in vec4 vLighting; // RGBSun
-layout(location = 3) in flat uint vQuadAO;
-
-layout(location = 1) uniform vec3 viewPos;  // world space
+layout(location = 1) uniform vec3 u_viewPos;
 layout(location = 2) uniform vec3 u_envColor = vec3(1.0);
 layout(location = 3) uniform float u_minBrightness = 0.01;
 layout(location = 4, binding = 0) uniform sampler2DArray textures;
 layout(location = 5) uniform float u_ambientOcclusionStrength = 0.5;
+layout(location = 6, binding = 1) uniform samplerCube u_probeCube;
+layout(location = 7) uniform bool u_disableOcclusionCulling;
+
+// material properties
+layout(location = 0) in vec3 vPosViewSpace;
+layout(location = 1) in vec3 vTexCoord;
+layout(location = 2) in vec4 vLighting; // RGBSun
+layout(location = 3) in flat uint vQuadAO;
 
 layout(location = 0) out vec4 fragColor;
 
@@ -36,7 +38,8 @@ bool clipTransparency(float alpha)
 
 vec3 GetNormal()
 {
-  return normalize(cross(dFdx(vPos), dFdy(vPos)));
+  return normalize(cross(dFdx(vPosViewSpace), dFdy(vPosViewSpace)));
+  //return vNormal;
 }
 
 float CalculateAO()
@@ -61,6 +64,7 @@ float CalculateAO()
 void main()
 {
   vec4 texColor = texture(textures, vTexCoord).rgba;
+  vec3 normal = GetNormal();
 
   // dithering
   if ((texColor.a < 1.0 && clipTransparency(texColor.a) || texColor.a == 0.0))
@@ -73,6 +77,22 @@ void main()
   vec3 shaded = diffuse * max(vLighting.rgb, envLight);
   shaded = max(shaded, vec3(u_minBrightness));
   shaded = mix(shaded, shaded * CalculateAO(), u_ambientOcclusionStrength);
+
+  if (!u_disableOcclusionCulling)
+  {
+    // vec3 cubesample = texture(u_probeCube, vCubeCoord * 2.0).rgb;
+    vec3 refldir = reflect(normalize(vPosViewSpace), normal);
+    //refldir.y *= -1.0;
+    vec3 cubesample = texture(u_probeCube, refldir).rgb;
+    if (abs(vTexCoord.z - 3.0) <= 0.001 || abs(vTexCoord.z - 7.0) <= 0.001)
+    {
+      shaded = cubesample;
+      //shaded = refldir * .5 + .5;
+      //shaded = shaded * .0001 + normal * .5 + .5;
+    }
+  }
+
+  //shaded = shaded * .001 + vCubeCoord + .5;
 
   fragColor = vec4(shaded, 1.0);
 }
