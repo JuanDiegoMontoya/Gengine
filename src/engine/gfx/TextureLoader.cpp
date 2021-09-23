@@ -79,7 +79,7 @@ namespace GFX
   }
 
 
-  std::optional<Texture> LoadTexture2D(const std::string_view file,
+  std::optional<Texture> LoadTexture2D(std::string_view file,
     Format internalFormat,
     UploadType uploadType)
   {
@@ -221,7 +221,7 @@ namespace GFX
 
 
   std::optional<Texture> LoadTextureCube(std::span<const std::string_view, 6> files,
-    uint32_t xSize, uint32_t ySize,
+    uint32_t xSize, uint32_t ySize, bool autoLevel,
     Format internalFormat,
     UploadType uploadType)
   {
@@ -254,6 +254,12 @@ namespace GFX
       texturesCPU.push_back(pixels);
     }
 
+    uint32_t levels = 1;
+    if (autoLevel)
+    {
+      levels = glm::floor(glm::log2(glm::max((float)xSize, (float)ySize))) + 1;
+    }
+
     TextureCreateInfo createInfo
     {
       .imageType = ImageType::TEX_CUBEMAP,
@@ -264,7 +270,7 @@ namespace GFX
         .height = ySize,
         .depth = 1
       },
-      .mipLevels = 1,
+      .mipLevels = levels,
       .arrayLayers = 6,
       .sampleCount = SampleCount::ONE,
     };

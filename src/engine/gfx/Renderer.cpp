@@ -35,6 +35,10 @@ DECLARE_FLOAT_STAT(LuminanceHistogram, GPU)
 DECLARE_FLOAT_STAT(CameraExposure, GPU)
 DECLARE_FLOAT_STAT(FXAA, GPU)
 
+// TODO: hacky hack hackity hack
+extern GFX::Camera mainCamera;
+extern ProbeFaceInfo probeFaces[6];
+
 namespace GFX
 {
   void vsyncCallback([[maybe_unused]] const char* cvar, cvar_float val)
@@ -471,8 +475,6 @@ namespace GFX
       });
     GFX::ShaderManager::Get()->AddShader("calc_exposure",
       { { "calc_exposure.cs.glsl", GFX::ShaderType::COMPUTE } });
-    GFX::ShaderManager::Get()->AddShader("linearize_log_lum_tex",
-      { { "linearize_tex.cs.glsl", GFX::ShaderType::COMPUTE } });
     GFX::ShaderManager::Get()->AddShader("generate_histogram",
       { { "generate_histogram.cs.glsl", GFX::ShaderType::COMPUTE } });
 
@@ -495,6 +497,21 @@ namespace GFX
       {
         { "fullscreen_tri.vs.glsl", GFX::ShaderType::VERTEX },
         { "fxaa.fs.glsl", GFX::ShaderType::FRAGMENT }
+      });
+    GFX::ShaderManager::Get()->AddShader("cubemap_pbr_trace",
+      {
+        { "fullscreen_tri.vs.glsl", GFX::ShaderType::VERTEX },
+        { "cubemap_pbr_trace.fs.glsl", GFX::ShaderType::FRAGMENT }
+      });
+    GFX::ShaderManager::Get()->AddShader("cubemap_pbr_sample",
+      {
+        { "fullscreen_tri.vs.glsl", GFX::ShaderType::VERTEX },
+        { "cubemap_pbr_sample.fs.glsl", GFX::ShaderType::FRAGMENT }
+      });
+    GFX::ShaderManager::Get()->AddShader("unproject_depth",
+      {
+        { "fullscreen_tri.vs.glsl", GFX::ShaderType::VERTEX },
+        { "unproject_depth.fs.glsl", GFX::ShaderType::FRAGMENT }
       });
   }
 
@@ -609,6 +626,8 @@ namespace GFX
     MEASURE_GPU_TIMER_STAT(Postprocessing);
 
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    DrawReflections();
 
     ldrFbo->Bind();
 
@@ -750,48 +769,32 @@ namespace GFX
   void Renderer::InitFramebuffers()
   {
     //const int levels = glm::floor(glm::log2(glm::max(fboWidth, fboHeight))) + 1;
-    TextureCreateInfo hdrColorTexInfo
-    {
-      .imageType = ImageType::TEX_2D,
-      .format = Format::R16G16B16A16_FLOAT,
-      .extent = Extent3D{ .width = GetRenderWidth(), .height = GetRenderHeight(), .depth = 1 },
-      .mipLevels = 1,
-      .arrayLayers = 1
-    };
-    TextureCreateInfo ldrColorTexInfo
-    {
-      .imageType = ImageType::TEX_2D,
-      .format = Format::R8G8B8A8_UNORM,
-      //.format = Format::R16G16B16A16_UNORM,
-      .extent { .width = GetRenderWidth(), .height = GetRenderHeight(), .depth = 1 },
-      .mipLevels = 1,
-      .arrayLayers = 1
-    };
-    TextureCreateInfo depthTexInfo
-    {
-      .imageType = ImageType::TEX_2D,
-      .format = Format::D32_FLOAT,
-      .extent = Extent3D{ .width = GetRenderWidth(), .height = GetRenderHeight(), .depth = 1 },
-      .mipLevels = 1,
-      .arrayLayers = 1
-    };
 
-    hdrColorTexMemory.emplace(*Texture::Create(hdrColorTexInfo, "HDR Color Texture"));
-    hdrDepthTexMemory.emplace(*Texture::Create(depthTexInfo, "HDR Depth Texture"));
-    hdrColorTexView.emplace(*TextureView::Create(*hdrColorTexMemory, "HDR Color View"));
-    hdrDepthTexView.emplace(*TextureView::Create(*hdrDepthTexMemory, "HDR Depth View"));
+    Extent2D fboSize = { GetRenderWidth(), GetRenderHeight() };
+    
+    hdrColorTexMemory = CreateTexture2D(fboSize, Format::R16G16B16A16_FLOAT, "HDR Color Texture");
+    hdrDepthTexMemory = CreateTexture2D(fboSize, Format::D32_FLOAT, "HDR Depth Texture");
+    hdrPBRTexMemory = CreateTexture2D(fboSize, Format::R8G8_UNORM, "HDR PBR Texture");
+    hdrColorTexView = TextureView::Create(*hdrColorTexMemory, "HDR Color View");
+    hdrDepthTexView = TextureView::Create(*hdrDepthTexMemory, "HDR Depth View");
+    hdrPBRTexView = TextureView::Create(*hdrPBRTexMemory, "HDR PBR View");
     hdrFbo.emplace();
     hdrFbo->SetAttachment(Attachment::COLOR_0, *hdrColorTexView, 0);
+    hdrFbo->SetAttachment(Attachment::COLOR_1, *hdrPBRTexView, 0);
     hdrFbo->SetAttachment(Attachment::DEPTH, *hdrDepthTexView, 0);
     ASSERT(hdrFbo->IsValid());
 
-    ldrColorTexMemory.emplace(*Texture::Create(ldrColorTexInfo, "LDR Color Texture"));
-    ldrColorTexView.emplace(*TextureView::Create(*ldrColorTexMemory, "LDR Color View"));
+    ldrColorTexMemory = CreateTexture2D(fboSize, Format::R8G8B8A8_UNORM, "LDR Color Texture");
+    ldrColorTexView = TextureView::Create(*ldrColorTexMemory, "LDR Color View");
     ldrFbo.emplace();
     ldrFbo->SetAttachment(Attachment::COLOR_0, *ldrColorTexView, 0);
     ASSERT(ldrFbo->IsValid());
 
-    defaultSampler.emplace(*TextureSampler::Create({}, "Plain Sampler"));
+    SamplerState ss{};
+    ss.asBitField.addressModeU = AddressMode::MIRRORED_REPEAT;
+    ss.asBitField.addressModeV = AddressMode::MIRRORED_REPEAT;
+    ss.asBitField.addressModeW = AddressMode::MIRRORED_REPEAT;
+    defaultSampler.emplace(*TextureSampler::Create(ss, "Default Sampler"));
 
     glViewport(0, 0, GetRenderWidth(), GetRenderHeight());
   }
@@ -848,8 +851,11 @@ namespace GFX
   void Renderer::InitTextures()
   {
     TextureManager::Get()->AddTexture("blueNoiseRGB",
-      *LoadTexture2D("BlueNoise/16_16/LDR_RGB1_0.png", GFX::Format::R8G8B8A8_UNORM));
-    tonemap.blueNoiseView = GFX::TextureView::Create(*TextureManager::Get()->GetTexture("blueNoiseRGB"), "BlueNoiseRGBView");
+      *LoadTexture2D("BlueNoise/16_16/LDR_RGB1_0.png", Format::R8G8B8A8_UNORM));
+    tonemap.blueNoiseView = TextureView::Create(*TextureManager::Get()->GetTexture("blueNoiseRGB"), "BlueNoiseRGBView");
+    TextureManager::Get()->AddTexture("blueNoiseR",
+      *LoadTexture2D("BlueNoise/32_32/HDR_L_0.png", Format::R16_UNORM));
+    blueNoiseRView = TextureView::Create(*TextureManager::Get()->GetTexture("blueNoiseR"));
     SamplerState samplerState{};
     samplerState.asBitField.addressModeU = AddressMode::REPEAT;
     samplerState.asBitField.addressModeV = AddressMode::REPEAT;
@@ -864,13 +870,99 @@ namespace GFX
       "autumn_sky_hdr/pz.hdr",
       "autumn_sky_hdr/nz.hdr",
     };
-    env.skyboxMemory = GFX::LoadTextureCube(faces);
+    env.skyboxMemory = GFX::LoadTextureCube(faces, 0, 0, true);
+    env.skyboxMemory->GenMipmaps();
     env.skyboxView = TextureView::Create(*env.skyboxMemory, "skycube view");
     SamplerState cubesamplerState{};
     cubesamplerState.asBitField.addressModeU = AddressMode::MIRRORED_REPEAT;
     cubesamplerState.asBitField.addressModeV = AddressMode::MIRRORED_REPEAT;
     cubesamplerState.asBitField.addressModeW = AddressMode::MIRRORED_REPEAT;
     env.skyboxSampler = TextureSampler::Create(cubesamplerState, "skycube sampler");
+  }
+
+
+  void GFX::Renderer::DrawReflections()
+  {
+    GFX::DebugMarker marker("Apply reflections");
+
+    SamplerState ps{};
+    ps.asBitField.minFilter = Filter::NEAREST;
+    ps.asBitField.magFilter = Filter::NEAREST;
+    ps.asBitField.mipmapFilter = Filter::NEAREST;
+    auto probeSampler = TextureSampler::Create(ps, "probe sampler");
+
+    glBindVertexArray(emptyVao);
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_CULL_FACE);
+
+    // read each face of the cube depth, unproject to get the distance to the camera, and write it to an RXX_FLOAT cube texture face
+    auto shader0 = ShaderManager::Get()->GetShader("unproject_depth");
+    shader0->Bind();
+    shader0->SetVec3("u_viewPos", probeFaces[0].camera.viewInfo.position);
+    auto fbo = Framebuffer();
+    fbo.SetDrawBuffers({{ Attachment::COLOR_0 }});
+    glViewport(0, 0, 512, 512);
+    glBlendFunc(GL_ONE, GL_ZERO);
+    for (uint32_t i = 0; i < 6; i++)
+    {
+      GFX::TextureViewCreateInfo cubeViewInfo
+      {
+        .viewType = ImageType::TEX_2D,
+        .format = Format::R16_FLOAT,
+        .minLevel = 0,
+        .numLevels = 1,
+        .minLayer = i,
+        .numLayers = 1
+      };
+      auto probeDistanceFace = TextureView::Create(cubeViewInfo, *TextureManager::Get()->GetTexture("probeDistance"), "probe distance face" + std::to_string(i));
+      cubeViewInfo.format = Format::D16_UNORM;
+      auto probeDepthFace = TextureView::Create(cubeViewInfo, *TextureManager::Get()->GetTexture("probeDepth"), "probe depth face" + std::to_string(i));
+      fbo.SetAttachment(Attachment::COLOR_0, *probeDistanceFace, 0);
+      fbo.Bind();
+      probeDepthFace->Bind(0, *probeSampler);
+      shader0->SetInt("u_depthTex", 0);
+      shader0->SetMat4("u_invViewProj", glm::inverse(probeFaces[i].camera.GetViewProj()));
+      glDrawArrays(GL_TRIANGLES, 0, 3);
+    }
+
+    glViewport(0, 0, GetRenderWidth(), GetRenderHeight());
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    auto shader = ShaderManager::Get()->GetShader("cubemap_pbr_trace");
+    shader->Bind();
+    shader->SetMat4("u_invProj", glm::inverse(mainCamera.proj));
+    shader->SetMat4("u_invView", glm::inverse(mainCamera.viewInfo.GetViewMatrix()));
+    shader->SetVec3("u_viewPos", mainCamera.viewInfo.position);
+
+    TextureManager::Get()->GetTexture("probeColor")->GenMipmaps();
+    TextureManager::Get()->GetTexture("probeDistance")->GenMipmaps();
+    auto probeColor = TextureView::Create(*TextureManager::Get()->GetTexture("probeColor"));
+    auto probeDistance = TextureView::Create(*TextureManager::Get()->GetTexture("probeDistance"));
+
+    hdrDepthTexView->Bind(0, *defaultSampler);
+    hdrPBRTexView->Bind(1, *defaultSampler);
+    probeColor->Bind(2, *defaultSampler);
+    probeDistance->Bind(3, *defaultSampler);
+    env.skyboxView->Bind(4, *env.skyboxSampler);
+    blueNoiseRView->Bind(5, *tonemap.blueNoiseSampler);
+    //hdrColorTexView->Bind(6, *defaultSampler);
+
+    hdrFbo->Bind();
+
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+    glEnable(GL_CULL_FACE);
+    glEnable(GL_DEPTH_TEST);
+
+    probeColor->Unbind(6);
+    probeColor->Unbind(5);
+    probeColor->Unbind(4);
+    probeColor->Unbind(3);
+    probeColor->Unbind(2);
+    probeColor->Unbind(1);
+    probeColor->Unbind(0);
+
+    //GLint swizzleMask[] = { GL_RED, GL_GREEN, GL_BLUE, GL_ONE };
+    //glTextureParameteriv(hdrPBRTexView->GetAPIHandle(), GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
+    //ImGui::Image((ImTextureID)hdrPBRTexView->GetAPIHandle(), { 128 * GetWindowAspectRatio(), 128 });
   }
 
   void Renderer::GL_ResetState()

@@ -214,6 +214,7 @@ namespace GFX
 
   enum class Attachment
   {
+    NONE,
     COLOR_0,
     COLOR_1,
     COLOR_2,

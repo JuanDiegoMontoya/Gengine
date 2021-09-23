@@ -41,17 +41,19 @@
 #include <engine/ecs/component/ParticleEmitter.h>
 
 static std::unique_ptr<Voxels::VoxelManager> voxelManager{};
-static GFX::Camera mainCamera;
 
-struct ProbeFaceInfo
-{
-  GFX::Camera camera;
-  std::optional<GFX::Framebuffer> fbo;
-  std::optional<GFX::TextureView> colorView;
-  std::optional<GFX::TextureView> depthView;
-};
+// todo: hack hacker hackity hackton
+GFX::Camera mainCamera;
 
-static ProbeFaceInfo probeFaces[6];
+//struct ProbeFaceInfo
+//{
+//  GFX::Camera camera;
+//  std::optional<GFX::Framebuffer> fbo;
+//  std::optional<GFX::TextureView> colorView;
+//  std::optional<GFX::TextureView> depthView;
+//};
+
+ProbeFaceInfo probeFaces[6];
 
 void OnStart(Scene* scene)
 {
@@ -88,15 +90,15 @@ void OnStart(Scene* scene)
   auto mySetter = [](hashed_string id, GFX::Shader& shader) { shader.SetFloat(id, (float)ProgramTimer::TimeSeconds()); };
 
   GFX::TextureManager::Get()->AddTexture("error", *GFX::LoadTexture2D("error.png"));
-  auto view = *GFX::TextureView::Create(*GFX::TextureManager::Get()->GetTexture("error"), "batched material view");
-  auto sampler = *GFX::TextureSampler::Create(GFX::SamplerState{}, "batched material sampler");
+  auto view = GFX::TextureView::Create(*GFX::TextureManager::Get()->GetTexture("error"), "batched material view");
+  auto sampler = GFX::TextureSampler::Create(GFX::SamplerState{}, "batched material sampler");
   GFX::PerMaterialUniformData uniformData;
   uniformData.id = "u_time";
   uniformData.Setter = mySetter;
   GFX::MaterialCreateInfo info
   {
     .shaderID = "batched",
-    .viewSamplers = {{std::move(view), std::move(sampler)}},
+    .viewSamplers = {{std::move(*view), std::move(*sampler)}},
     .materialUniforms = { uniformData },
   };
   GFX::MaterialID batchMaterial = GFX::MaterialManager::Get()->AddMaterial("batchMaterial", info);
@@ -129,13 +131,17 @@ void OnStart(Scene* scene)
   GFX::TextureCreateInfo cubeMemInfo
   {
     .imageType = GFX::ImageType::TEX_CUBEMAP,
-    .format = GFX::Format::R16G16B16A16_FLOAT,
+    .format = GFX::Format::R11G11B10_FLOAT,
     .extent = { 512, 512, 1 },
     .mipLevels = 1,
     .arrayLayers = 6
   };
+  cubeMemInfo.mipLevels = glm::floor(glm::log2(glm::max((float)cubeMemInfo.extent.width, (float)cubeMemInfo.extent.height))) + 1;
   GFX::TextureManager::Get()->AddTexture("probeColor", *GFX::Texture::Create(cubeMemInfo, "Cube Color"));
-  cubeMemInfo.format = GFX::Format::D32_FLOAT;
+  cubeMemInfo.format = GFX::Format::R16_FLOAT;
+  GFX::TextureManager::Get()->AddTexture("probeDistance", *GFX::Texture::Create(cubeMemInfo, "Cube Depth Distance"));
+  cubeMemInfo.mipLevels = 1;
+  cubeMemInfo.format = GFX::Format::D16_UNORM;
   GFX::TextureManager::Get()->AddTexture("probeDepth", *GFX::Texture::Create(cubeMemInfo, "Cube Depth"));
   const glm::vec3 faceDirs[6] =
   {
@@ -160,14 +166,14 @@ void OnStart(Scene* scene)
     GFX::TextureViewCreateInfo cubeViewInfo
     {
       .viewType = GFX::ImageType::TEX_2D,
-      .format = GFX::Format::R16G16B16A16_FLOAT,
+      .format = GFX::Format::R11G11B10_FLOAT,
       .minLevel = 0,
       .numLevels = 1,
       .minLayer = i,
       .numLayers = 1
     };
     probeFaces[i].colorView.emplace(*GFX::TextureView::Create(cubeViewInfo, *GFX::TextureManager::Get()->GetTexture("probeColor")));
-    cubeViewInfo.format = GFX::Format::D32_FLOAT;
+    cubeViewInfo.format = GFX::Format::D16_UNORM;
     probeFaces[i].depthView.emplace(*GFX::TextureView::Create(cubeViewInfo, *GFX::TextureManager::Get()->GetTexture("probeDepth")));
     probeFaces[i].fbo.emplace();
     probeFaces[i].fbo->SetAttachment(GFX::Attachment::COLOR_0, *probeFaces[i].colorView, 0);
@@ -489,7 +495,8 @@ void OnDraw(Scene* scene, [[maybe_unused]] Timestep timestep)
   {
     if (!freezeCams)
     {
-      probeFaces[i].camera.viewInfo.position = scene->GetEntity("player").GetComponent<Component::Transform>().GetTranslation();
+      glm::vec3 pos = scene->GetEntity("player").GetComponent<Component::Transform>().GetTranslation();
+      probeFaces[i].camera.viewInfo.position = pos;
       probeFaces[i].camera.viewInfo.position.y += .65f;
     }
     ImGui::Image((ImTextureID)probeFaces[i].colorView->GetAPIHandle(), { 128, 128 });

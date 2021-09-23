@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <optional>
 #include "BasicTypes.h"
+#include <span>
 
 namespace GFX
 {
@@ -18,6 +19,7 @@ namespace GFX
     ~Framebuffer();
 
     void SetAttachment(Attachment slot, TextureView& view, uint32_t level);
+    void SetDrawBuffers(std::span<const Attachment> slots);
     void Bind();
 
     [[nodiscard]] bool IsValid() const;

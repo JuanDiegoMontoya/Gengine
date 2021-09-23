@@ -15,6 +15,7 @@ layout(location = 2) in vec4 vLighting; // RGBSun
 layout(location = 3) in flat uint vQuadAO;
 
 layout(location = 0) out vec4 fragColor;
+layout(location = 1) out vec4 pbr;
 
 // dithered transparency
 bool clipTransparency(float alpha)
@@ -78,14 +79,17 @@ void main()
   shaded = max(shaded, vec3(u_minBrightness));
   shaded = mix(shaded, shaded * CalculateAO(), u_ambientOcclusionStrength);
 
+  bool isShiny = abs(vTexCoord.z - 3.0) <= 0.001 || abs(vTexCoord.z - 7.0) <= 0.001;
+
   if (!u_disableOcclusionCulling)
   {
     // vec3 cubesample = texture(u_probeCube, vCubeCoord * 2.0).rgb;
     vec3 refldir = reflect(normalize(vPosViewSpace), normal);
     //refldir.y *= -1.0;
     vec3 cubesample = texture(u_probeCube, refldir).rgb;
-    if (abs(vTexCoord.z - 3.0) <= 0.001 || abs(vTexCoord.z - 7.0) <= 0.001)
+    if (isShiny)
     {
+      cubesample = shaded + cubesample * .001;
       shaded = cubesample;
       //shaded = refldir * .5 + .5;
       //shaded = shaded * .0001 + normal * .5 + .5;
@@ -93,6 +97,9 @@ void main()
   }
 
   //shaded = shaded * .001 + vCubeCoord + .5;
-
+  if (isShiny)
+    pbr = vec4(0.0, 1.0, 1.0, 1.0);
+  else
+    pbr = vec4(1.0, 0.0, 0.0, 1.0);
   fragColor = vec4(shaded, 1.0);
 }

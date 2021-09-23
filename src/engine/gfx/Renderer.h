@@ -10,6 +10,7 @@
 #include "Texture.h"
 #include "Framebuffer.h"
 #include "RenderView.h"
+#include "Camera.h"
 
 namespace Component
 {
@@ -97,6 +98,8 @@ namespace GFX
     void CompileShaders();
     void InitTextures();
 
+    void DrawReflections();
+
     GLFWwindow* window_{};
     bool isFullscreen{ false };
 
@@ -161,8 +164,12 @@ namespace GFX
     std::optional<Framebuffer> hdrFbo;
     std::optional<Texture> hdrColorTexMemory;
     std::optional<Texture> hdrDepthTexMemory;
+    std::optional<Texture> hdrPBRTexMemory;
     std::optional<TextureView> hdrColorTexView;
     std::optional<TextureView> hdrDepthTexView;
+    std::optional<TextureView> hdrPBRTexView;
+
+    std::optional<TextureView> blueNoiseRView;
 
     struct Environment
     {
@@ -208,3 +215,11 @@ namespace GFX
     }fxaa;
   };
 }
+
+struct ProbeFaceInfo
+{
+  GFX::Camera camera;
+  std::optional<GFX::Framebuffer> fbo;
+  std::optional<GFX::TextureView> colorView;
+  std::optional<GFX::TextureView> depthView;
+};

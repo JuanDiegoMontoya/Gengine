@@ -31,6 +31,7 @@ namespace GFX
     void SetVec4(hashed_string uniform, const glm::vec4& value);
     void SetMat3(hashed_string uniform, const glm::mat3& mat);
     void SetMat4(hashed_string uniform, const glm::mat4& mat);
+    void SetMat4Array(hashed_string uniform, std::span<const glm::mat4> mats);
 
     Shader(const Shader&) = default;
     Shader(Shader&&) = default;

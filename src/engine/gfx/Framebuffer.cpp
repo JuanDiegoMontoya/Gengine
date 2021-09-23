@@ -10,6 +10,7 @@ namespace GFX
   {
     GLenum glAttachments[] =
     {
+      GL_NONE,
       GL_COLOR_ATTACHMENT0,
       GL_COLOR_ATTACHMENT1,
       GL_COLOR_ATTACHMENT2,
@@ -54,6 +55,17 @@ namespace GFX
   void Framebuffer::SetAttachment(Attachment slot, TextureView& view, uint32_t level)
   {
     glNamedFramebufferTexture(handle_, glAttachments[static_cast<uint32_t>(slot)], view.id_, level);
+  }
+
+  void Framebuffer::SetDrawBuffers(std::span<const Attachment> slots)
+  {
+    ASSERT(slots.size() < 8);
+    GLenum buffers[8]{};
+    for (uint32_t i = 0; i < slots.size(); i++)
+    {
+      buffers[i] = glAttachments[static_cast<uint32_t>(slots[i])];
+    }
+    glNamedFramebufferDrawBuffers(handle_, slots.size(), buffers);
   }
 
   bool Framebuffer::IsValid() const

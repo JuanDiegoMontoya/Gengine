@@ -85,6 +85,11 @@ namespace GFX
     ASSERT(uniformIDs_.contains(uniform));
     glProgramUniformMatrix4fv(id_, uniformIDs_[uniform], 1, GL_FALSE, glm::value_ptr(mat));
   }
+  void Shader::SetMat4Array(hashed_string uniform, std::span<const glm::mat4> mats)
+  {
+    ASSERT(uniformIDs_.contains(uniform));
+    glProgramUniformMatrix4fv(id_, uniformIDs_[uniform], mats.size(), GL_FALSE, glm::value_ptr(mats[0]));
+  }
 
   //void SetHandle(hashed_string uniform, const uint64_t handle)
   //{

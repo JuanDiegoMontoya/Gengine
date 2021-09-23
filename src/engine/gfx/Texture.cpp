@@ -397,15 +397,15 @@ namespace GFX
   void TextureSampler::SetState(const SamplerState& state, bool force)
   {
     // early out
-    if (state.asUint32 == samplerState_.asUint32)
+    if (state.asUint32 == samplerState_.asUint32 && !force)
       return;
 
-    if (state.asBitField.magFilter != samplerState_.asBitField.magFilter)
+    if (state.asBitField.magFilter != samplerState_.asBitField.magFilter || force)
     {
       GLint filter = state.asBitField.magFilter == Filter::LINEAR ? GL_LINEAR : GL_NEAREST;
       glSamplerParameteri(id_, GL_TEXTURE_MAG_FILTER, filter);
     }
-    if (state.asBitField.minFilter != samplerState_.asBitField.minFilter)
+    if (state.asBitField.minFilter != samplerState_.asBitField.minFilter || force)
     {
       GLint filter{};
       if (state.asBitField.minFilter == Filter::LINEAR)
@@ -422,8 +422,9 @@ namespace GFX
     if (state.asBitField.addressModeW != samplerState_.asBitField.addressModeW || force)
       glSamplerParameteri(id_, GL_TEXTURE_WRAP_R, addressModes[(int)state.asBitField.addressModeW]);
 
-    if (state.asBitField.borderColor != samplerState_.asBitField.borderColor)
+    if (state.asBitField.borderColor != samplerState_.asBitField.borderColor || force)
     {
+      // TODO: determine whether int white values should be 1 or 255
       switch (state.asBitField.borderColor)
       {
       case BorderColor::FLOAT_TRANSPARENT_BLACK:
@@ -446,7 +447,7 @@ namespace GFX
       }
       case BorderColor::INT_OPAQUE_BLACK:
       {
-        constexpr GLint color[4]{ 0, 0, 0, 1 };
+        constexpr GLint color[4]{ 0, 0, 0, 255 };
         glSamplerParameteriv(id_, GL_TEXTURE_BORDER_COLOR, color);
         break;
       }
@@ -458,7 +459,7 @@ namespace GFX
       }
       case BorderColor::INT_OPAQUE_WHITE:
       {
-        constexpr GLint color[4]{ 1, 1, 1, 1 };
+        constexpr GLint color[4]{ 255, 255, 255, 255 };
         glSamplerParameteriv(id_, GL_TEXTURE_BORDER_COLOR, color);
         break;
       }
@@ -468,8 +469,10 @@ namespace GFX
       }
     }
 
-    if (state.asBitField.anisotropy != samplerState_.asBitField.anisotropy)
+    if (state.asBitField.anisotropy != samplerState_.asBitField.anisotropy || force)
+    {
       glSamplerParameterf(id_, GL_TEXTURE_MAX_ANISOTROPY, anisotropies[(int)state.asBitField.anisotropy]);
+    }
 
     samplerState_ = state;
   }

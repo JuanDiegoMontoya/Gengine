@@ -13,6 +13,7 @@
 #include <engine/gfx/Framebuffer.h>
 #include <engine/gfx/RenderView.h>
 #include <engine/gfx/TextureManager.h>
+#include <engine/gfx/Renderer.h>
 
 #include <engine/CVar.h>
 #include <engine/Shapes.h>
@@ -241,6 +242,9 @@ namespace Voxels
     auto probeView = GFX::TextureView::Create(*GFX::TextureManager::Get()->GetTexture("probeColor"));
     probeView->Bind(1, *data->probeSampler);
 
+    auto bufs1 = { GFX::Attachment::COLOR_0, GFX::Attachment::COLOR_1 };
+    GFX::Renderer::Get()->GetMainFramebuffer()->SetDrawBuffers(bufs1);
+
     for (auto& renderView : renderViews)
     {
       if (!(renderView.mask & GFX::RenderMaskBit::RenderVoxels))
@@ -262,6 +266,9 @@ namespace Voxels
       glMultiDrawArraysIndirectCount(GL_TRIANGLES, 0, 0, data->activeAllocs, 0);
       glTextureBarrier();
     }
+
+    auto bufs2 = { GFX::Attachment::COLOR_0, GFX::Attachment::NONE };
+    GFX::Renderer::Get()->GetMainFramebuffer()->SetDrawBuffers(bufs2);
 
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
     probeView->Unbind(0);

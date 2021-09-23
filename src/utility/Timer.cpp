@@ -11,7 +11,7 @@ using timepoint_t = std::chrono::time_point<myclock_t>;
 
 Timer::Timer()
 {
-  static_assert(sizeof(timepoint_t) == sizeof(mem_));
+  static_assert(sizeof(timepoint_t) == sizeof(mem_), "You need to change the size of the internal storage!");
   new(mem_) timepoint_t(myclock_t::now());
 }
 

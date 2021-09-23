@@ -1,7 +1,7 @@
 #ifndef COMMON_H
 #define COMMON_H
 
-#define REVERSE_Z
+#define DEPTH_ZERO_TO_ONE
 
 // Returns ±1
 vec2 signNotZero(vec2 v)
@@ -28,7 +28,7 @@ vec3 oct_to_float32x3(vec2 e)
 // also works for View space by passing in inverse projection
 vec3 WorldPosFromDepth(float depth, vec2 screenSize, mat4 invViewProj)
 {
-#ifndef REVERSE_Z
+#ifndef DEPTH_ZERO_TO_ONE
   float z = depth * 2.0 - 1.0; // [0, 1] -> [-1, 1]
 #else
   float z = depth;
@@ -45,7 +45,7 @@ vec3 WorldPosFromDepth(float depth, vec2 screenSize, mat4 invViewProj)
 
 vec3 WorldPosFromDepthUV(float depth, vec2 uv, mat4 invViewProj)
 {
-#ifndef REVERSE_Z
+#ifndef DEPTH_ZERO_TO_ONE
   float z = depth * 2.0 - 1.0; // [0, 1] -> [-1, 1]
 #else
   float z = depth;
