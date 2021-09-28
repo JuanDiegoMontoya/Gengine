@@ -175,7 +175,7 @@ void OnStart(Scene* scene)
     probeFaces[i].colorView.emplace(*GFX::TextureView::Create(cubeViewInfo, *GFX::TextureManager::Get()->GetTexture("probeColor")));
     cubeViewInfo.format = GFX::Format::D16_UNORM;
     probeFaces[i].depthView.emplace(*GFX::TextureView::Create(cubeViewInfo, *GFX::TextureManager::Get()->GetTexture("probeDepth")));
-    probeFaces[i].fbo.emplace();
+    probeFaces[i].fbo = GFX::Framebuffer::Create();
     probeFaces[i].fbo->SetAttachment(GFX::Attachment::COLOR_0, *probeFaces[i].colorView, 0);
     probeFaces[i].fbo->SetAttachment(GFX::Attachment::DEPTH, *probeFaces[i].depthView, 0);
     GFX::RenderMask testMask = RMB::ClearDepthEachFrame |

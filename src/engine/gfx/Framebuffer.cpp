@@ -42,14 +42,30 @@ namespace GFX
     glCreateFramebuffers(1, &handle_);
   }
 
+  std::optional<Framebuffer> Framebuffer::Create()
+  {
+    return Framebuffer();
+  }
+
   Framebuffer::Framebuffer(Framebuffer&& old) noexcept
   {
     handle_ = std::exchange(old.handle_, 0);
   }
 
+  Framebuffer& Framebuffer::operator=(Framebuffer&& old) noexcept
+  {
+    if (this == &old) return *this;
+    this->~Framebuffer();
+    handle_ = std::exchange(old.handle_, 0);
+    return *this;
+  }
+
   Framebuffer::~Framebuffer()
   {
-    glDeleteFramebuffers(1, &handle_);
+    if (handle_ != 0)
+    {
+      glDeleteFramebuffers(1, &handle_);
+    }
   }
 
   void Framebuffer::SetAttachment(Attachment slot, TextureView& view, uint32_t level)

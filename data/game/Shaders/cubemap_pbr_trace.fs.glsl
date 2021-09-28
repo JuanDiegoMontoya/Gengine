@@ -25,7 +25,6 @@ uniform int stepIncreaseAfter = 30;
 uniform float initialStepDist = 0.20;
 uniform int raySteps = 60;
 uniform int binarySearchIterations = 4;
-uniform ivec2 u_cubeSize = ivec2(512, 512);
 uniform uint u_samples = 1;
 
 // stopgap solution to precision issues when camera is far away
@@ -45,6 +44,12 @@ float CalcLod(uint samples, vec3 N, vec3 H, float roughness, ivec2 textureDim)
 {
   float dist = D_GGX(N, H, roughness);
   return 0.5 * (log2(float(textureDim.x * textureDim.y) / samples) - log2(dist));
+}
+
+float CalcLod2(uint samples, float rayDistToHit, float zHit, float roughness, ivec2 textureDim)
+{
+  //float dist = 
+  return 0.0;
 }
 
 
@@ -114,7 +119,8 @@ float TraceCubemap(vec3 rayStart, vec3 N, vec3 V, vec3 reflectDir, out vec3 cube
       return blend;
     }
 
-    // a tiny jitter here removes wobbliness caused by the step increase factor
+    // Crytek paper suggests a per-step jitter to reduce staircase artifacts
+    // I'm aware that I'm reusing the original jitter, but it seems to work just fine
     rayPos += reflectDir * stepDist * (0.95 + 0.1 * jitter);
     if (i > stepIncreaseAfter)
     {
@@ -137,11 +143,15 @@ vec3 ComputeSpecularRadiance(vec3 rayStart, vec3 N, vec3 V, vec3 F0, float rough
   const uint samples = u_samples;
   for (uint i = 0; i < samples; i++)
   {
-    vec2 Xi = Hammersley(i, samples);
+    //vec2 Xi1 = Hammersley(i, samples);
+    ivec2 texel = ivec2(gl_FragCoord.xy) % ivec2(textureSize(u_blueNoise, 0));
+    vec2 Xi = min(texelFetch(u_blueNoise, texel, 0).xy, vec2(0.99));
+    //vec2 Xi = (Xi1 + Xi2) / 2.0;
     vec3 H = ImportanceSampleGGX(Xi, N, roughness);
     vec3 L = normalize(reflect(V, H));
-    //vec3 L = reflect(V, N);
-    float lod = CalcLod(samples, N, H, roughness, u_cubeSize);
+    vec3 mirrorL = reflect(V, N);
+    float lod = CalcLod(samples, N, H, roughness, textureSize(u_SkyCube, 0));
+    //float lod = 0;
 
     float NoH = abs(dot(N, H));
     float VoH = abs(dot(V, H));
@@ -153,10 +163,9 @@ vec3 ComputeSpecularRadiance(vec3 rayStart, vec3 N, vec3 V, vec3 F0, float rough
     vec3 hitSample = vec3(0.0);
     if (rayBlend > 0.01)
     {
-      
-      hitSample = CalcHitReflection(cubeHit, lod);
+      hitSample = CalcHitReflection(cubeHit, 0);
     }
-    vec3 missSample = CalcMissReflection(L, lod);
+    vec3 missSample = CalcMissReflection(L, 0);
     float blend = cameraBlend * rayBlend;
     vec3 lColor = mix(missSample, hitSample, blend);
 
@@ -180,7 +189,8 @@ void main()
     discard;
 
   // temp
-  roughness = 0.01;
+  roughness = 0.10;
+  metalness = 1.0;
 
   // reconstruct position in view space rather than world space
   // this is important for ensuring partial derivatives have maximum precision
@@ -202,12 +212,9 @@ void main()
   // not physical at all because gBufferDiffuse already has diffuse lighting applied to it
   vec3 F0 = mix(vec3(0.04), gBufferDiffuse, metalness);
   vec3 envSpecular = ComputeSpecularRadiance(gBufferWorldPos, gBufferWorldNormal, V, F0, roughness);
-  fragColor = vec4(envSpecular, 0.9);
+  fragColor = vec4(envSpecular, .5);
 }
 
 // TODO
-// fresnel
-// roughness
-// metalness
 // improved normals
-// cone-based LoD selection
+// consider lighting model

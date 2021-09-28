@@ -778,7 +778,7 @@ namespace GFX
     hdrColorTexView = TextureView::Create(*hdrColorTexMemory, "HDR Color View");
     hdrDepthTexView = TextureView::Create(*hdrDepthTexMemory, "HDR Depth View");
     hdrPBRTexView = TextureView::Create(*hdrPBRTexMemory, "HDR PBR View");
-    hdrFbo.emplace();
+    hdrFbo = Framebuffer::Create();
     hdrFbo->SetAttachment(Attachment::COLOR_0, *hdrColorTexView, 0);
     hdrFbo->SetAttachment(Attachment::COLOR_1, *hdrPBRTexView, 0);
     hdrFbo->SetAttachment(Attachment::DEPTH, *hdrDepthTexView, 0);
@@ -786,7 +786,7 @@ namespace GFX
 
     ldrColorTexMemory = CreateTexture2D(fboSize, Format::R8G8B8A8_UNORM, "LDR Color Texture");
     ldrColorTexView = TextureView::Create(*ldrColorTexMemory, "LDR Color View");
-    ldrFbo.emplace();
+    ldrFbo = Framebuffer::Create();
     ldrFbo->SetAttachment(Attachment::COLOR_0, *ldrColorTexView, 0);
     ASSERT(ldrFbo->IsValid());
 
@@ -796,7 +796,20 @@ namespace GFX
     ss.asBitField.addressModeW = AddressMode::MIRRORED_REPEAT;
     defaultSampler.emplace(*TextureSampler::Create(ss, "Default Sampler"));
 
+    InitReflectionFramebuffer();
+
     glViewport(0, 0, GetRenderWidth(), GetRenderHeight());
+  }
+
+  void Renderer::InitReflectionFramebuffer()
+  {
+    reflect.texMemory = CreateTexture2D(reflect.fboSize, Format::R16G16B16A16_FLOAT, "Reflection Texture");
+    reflect.texView = TextureView::Create(*reflect.texMemory, "Reflection View");
+    reflect.texBlurMemory = CreateTexture2D(reflect.fboSize, Format::R16G16B16A16_FLOAT, "Reflection Blur Texture");
+    reflect.texBlurView = TextureView::Create(*reflect.texBlurMemory, "Reflection Blur View");
+    reflect.fbo = Framebuffer::Create();
+    reflect.fbo->SetAttachment(Attachment::COLOR_0, *reflect.texView, 0);
+    reflect.fbo->SetDrawBuffers({ { Attachment::COLOR_0 } });
   }
 
   void Renderer::InitVertexBuffers()
@@ -855,7 +868,10 @@ namespace GFX
     tonemap.blueNoiseView = TextureView::Create(*TextureManager::Get()->GetTexture("blueNoiseRGB"), "BlueNoiseRGBView");
     TextureManager::Get()->AddTexture("blueNoiseR",
       *LoadTexture2D("BlueNoise/32_32/HDR_L_0.png", Format::R16_UNORM));
+    TextureManager::Get()->AddTexture("blueNoiseBig",
+      *LoadTexture2D("BlueNoise/1024_1024/LDR_RGBA_0.png", Format::R16G16B16A16_UNORM));
     blueNoiseRView = TextureView::Create(*TextureManager::Get()->GetTexture("blueNoiseR"));
+    blueNoiseBigView = TextureView::Create(*TextureManager::Get()->GetTexture("blueNoiseBig"));
     SamplerState samplerState{};
     samplerState.asBitField.addressModeU = AddressMode::REPEAT;
     samplerState.asBitField.addressModeV = AddressMode::REPEAT;
@@ -894,13 +910,13 @@ namespace GFX
     glBindVertexArray(emptyVao);
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
-
+    
     // read each face of the cube depth, unproject to get the distance to the camera, and write it to an RXX_FLOAT cube texture face
     auto shader0 = ShaderManager::Get()->GetShader("unproject_depth");
     shader0->Bind();
     shader0->SetVec3("u_viewPos", probeFaces[0].camera.viewInfo.position);
-    auto fbo = Framebuffer();
-    fbo.SetDrawBuffers({{ Attachment::COLOR_0 }});
+    auto fbo = Framebuffer::Create();
+    fbo->SetDrawBuffers({{ Attachment::COLOR_0 }});
     glViewport(0, 0, 512, 512);
     glBlendFunc(GL_ONE, GL_ZERO);
     for (uint32_t i = 0; i < 6; i++)
@@ -917,8 +933,8 @@ namespace GFX
       auto probeDistanceFace = TextureView::Create(cubeViewInfo, *TextureManager::Get()->GetTexture("probeDistance"), "probe distance face" + std::to_string(i));
       cubeViewInfo.format = Format::D16_UNORM;
       auto probeDepthFace = TextureView::Create(cubeViewInfo, *TextureManager::Get()->GetTexture("probeDepth"), "probe depth face" + std::to_string(i));
-      fbo.SetAttachment(Attachment::COLOR_0, *probeDistanceFace, 0);
-      fbo.Bind();
+      fbo->SetAttachment(Attachment::COLOR_0, *probeDistanceFace, 0);
+      fbo->Bind();
       probeDepthFace->Bind(0, *probeSampler);
       shader0->SetInt("u_depthTex", 0);
       shader0->SetMat4("u_invViewProj", glm::inverse(probeFaces[i].camera.GetViewProj()));
@@ -943,7 +959,7 @@ namespace GFX
     probeColor->Bind(2, *defaultSampler);
     probeDistance->Bind(3, *defaultSampler);
     env.skyboxView->Bind(4, *env.skyboxSampler);
-    blueNoiseRView->Bind(5, *tonemap.blueNoiseSampler);
+    blueNoiseBigView->Bind(5, *tonemap.blueNoiseSampler);
     //hdrColorTexView->Bind(6, *defaultSampler);
 
     hdrFbo->Bind();
@@ -1109,5 +1125,13 @@ namespace GFX
     renderWidth = glm::max(static_cast<uint32_t>(windowWidth * renderScale), 1u);
     renderHeight = glm::max(static_cast<uint32_t>(windowHeight * renderScale), 1u);
     InitFramebuffers();
+  }
+
+  void Renderer::SetReflectionsRenderScale(float scale)
+  {
+    reflect.renderScale = scale;
+    reflect.fboSize.width = glm::max(static_cast<uint32_t>(renderWidth * scale), 1u);
+    reflect.fboSize.height = glm::max(static_cast<uint32_t>(renderHeight * scale), 1u);
+    InitReflectionFramebuffer();
   }
 }

@@ -11,11 +11,12 @@ namespace GFX
   class Framebuffer
   {
   public:
-    Framebuffer();
+    static std::optional<Framebuffer> Create();
+
     Framebuffer(const Framebuffer&) = delete;
     Framebuffer(Framebuffer&& old) noexcept;
     Framebuffer& operator=(const Framebuffer&) = delete;
-    Framebuffer& operator=(Framebuffer&&) = delete;
+    Framebuffer& operator=(Framebuffer&& old) noexcept;
     ~Framebuffer();
 
     void SetAttachment(Attachment slot, TextureView& view, uint32_t level);
@@ -32,6 +33,7 @@ namespace GFX
       AspectMaskBits mask, Filter filter);
 
   private:
+    Framebuffer();
     uint32_t handle_{};
   };
 }

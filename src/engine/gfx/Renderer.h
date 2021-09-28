@@ -85,8 +85,10 @@ namespace GFX
 
     void SetFramebufferSize(uint32_t width, uint32_t height);
     void SetRenderingScale(float scale);
+    void SetReflectionsRenderScale(float scale);
     GLFWwindow* CreateWindow(bool fullscreen);
     void InitFramebuffers();
+    void InitReflectionFramebuffer();
 
   private:
     Renderer() {};
@@ -99,6 +101,8 @@ namespace GFX
     void InitTextures();
 
     void DrawReflections();
+    void BlurReflections();
+    void CompositeReflections();
 
     GLFWwindow* window_{};
     bool isFullscreen{ false };
@@ -170,6 +174,19 @@ namespace GFX
     std::optional<TextureView> hdrPBRTexView;
 
     std::optional<TextureView> blueNoiseRView;
+
+    std::optional<TextureView> blueNoiseBigView;
+
+    struct Reflections
+    {
+      std::optional<Framebuffer> fbo;
+      std::optional<Texture> texMemory;
+      std::optional<TextureView> texView;
+      std::optional<Texture> texBlurMemory;
+      std::optional<TextureView> texBlurView;
+      float renderScale = 1.0;
+      Extent2D fboSize{};
+    }reflect;
 
     struct Environment
     {
