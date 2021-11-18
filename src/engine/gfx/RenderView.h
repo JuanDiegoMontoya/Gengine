@@ -42,6 +42,9 @@ namespace GFX
 
     // clear color at the start of each frame
     ClearDepthEachFrame   = 1 << 8,
+
+    // early fog pass (before shading) for probes
+    RenderEarlyFog        = 1 << 9,
   };
   DECLARE_FLAG_TYPE(RenderMask, RenderMaskBit, uint32_t)
 

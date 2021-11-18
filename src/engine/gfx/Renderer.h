@@ -45,20 +45,22 @@ namespace GFX
     void BeginEmitters(size_t maxDraws);
     void SubmitEmitter(const Component::ParticleEmitter& emitter, const Component::Transform& model);
     void RenderEmitters(std::span<RenderView> renderViews);
- 
-    void DrawFog(std::span<RenderView> renderViews);
+
+    void DrawFog(std::span<RenderView> renderViews, bool earlyFogPass);
 
     // generic drawing functions (TODO: move)
     void DrawAxisIndicator(std::span<RenderView> renderViews);
-    void DrawSkybox(std::span<RenderView> renderViews);
+    void DrawSky(std::span<RenderView> renderViews);
 
     void StartFrame();
     void ClearFramebuffers(std::span<RenderView> renderViews);
-    void EndFrame(float dt);
+    void ApplyShading();
+    void AntialiasAndWriteSwapchain();
+    void ApplyTonemap(float dt);
 
     // returns the framebuffer which is displayed on the screen
     // do not modify this framebuffer
-    [[nodiscard]] Framebuffer* GetMainFramebuffer() { return &hdrFbo.value(); }
+    [[nodiscard]] Framebuffer* GetMainFramebuffer() { return &gBuffer.fbo.value(); }
     [[nodiscard]] Extent2D GetMainFramebufferDims() const { return { renderWidth, renderHeight }; }
 
     [[nodiscard]] GFX::DynamicBuffer<>* GetVertexBuffer()
@@ -101,7 +103,9 @@ namespace GFX
     void InitTextures();
 
     void DrawReflections();
-    void BlurReflections();
+    void DrawReflectionsTrace();
+    void DrawReflectionsSample();
+    void DenoiseReflections();
     void CompositeReflections();
 
     GLFWwindow* window_{};
@@ -152,12 +156,12 @@ namespace GFX
     std::optional<StaticBuffer> axisVbo;
 
     std::optional<TextureSampler> defaultSampler;
+    std::optional<TextureSampler> nearestSampler;
 
     // HDR inverse-z framebuffer stuff
     std::optional<Framebuffer> ldrFbo;
     std::optional<Texture> ldrColorTexMemory;
     std::optional<TextureView> ldrColorTexView;
-    //uint32_t ldrColorTex{};
     uint32_t windowWidth{ 1 };
     uint32_t windowHeight{ 1 };
     uint32_t renderWidth{ 1 };
@@ -165,13 +169,20 @@ namespace GFX
     float renderScale{ 1.0f }; // 1.0 means render resolution will match window
     uint32_t GetRenderWidth() const { return renderWidth; }
     uint32_t GetRenderHeight() const { return renderHeight; }
-    std::optional<Framebuffer> hdrFbo;
-    std::optional<Texture> hdrColorTexMemory;
-    std::optional<Texture> hdrDepthTexMemory;
-    std::optional<Texture> hdrPBRTexMemory;
-    std::optional<TextureView> hdrColorTexView;
-    std::optional<TextureView> hdrDepthTexView;
-    std::optional<TextureView> hdrPBRTexView;
+    uint64_t frameNumber{ 0 };
+
+    struct GBuffer
+    {
+      std::optional<Framebuffer> fbo;
+      std::optional<Texture> colorTexMemory;
+      std::optional<Texture> normalTexMemory;
+      std::optional<Texture> depthTexMemory;
+      std::optional<Texture> PBRTexMemory;
+      std::optional<TextureView> colorTexView;
+      std::optional<TextureView> normalTexView;
+      std::optional<TextureView> depthTexView;
+      std::optional<TextureView> PBRTexView;
+    }gBuffer;
 
     std::optional<TextureView> blueNoiseRView;
 
@@ -186,7 +197,24 @@ namespace GFX
       std::optional<TextureView> texBlurView;
       float renderScale = 1.0;
       Extent2D fboSize{};
+
+      // TODO: currently unused
+      struct ProbeDistanceData
+      {
+        std::optional<TextureSampler> sampler;
+        std::optional<TextureView> faceViews[6];
+        std::optional<Texture> colorTextures;
+        std::optional<Texture> depthTextures;
+      }probeDistanceData;
     }reflect;
+
+    struct Composited
+    {
+      // post-shading
+      std::optional<Framebuffer> fbo;
+      std::optional<Texture> compositedTexMemory;
+      std::optional<TextureView> compositedTexView;
+    }composited[2];
 
     struct Environment
     {

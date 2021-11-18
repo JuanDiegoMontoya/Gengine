@@ -30,10 +30,14 @@ layout(std430, binding = 0) restrict readonly buffer VertexData
   uvec2 quads[];
 };
 
-layout(location = 0) out vec3 vPosViewSpace;
-layout(location = 1) out vec3 vTexCoord;
-layout(location = 2) out vec4 vLighting; // RGBSun
-layout(location = 3) out flat uint vQuadAO;
+layout(location = 0) out VS_OUT
+{
+  vec3 posViewSpace;
+  vec3 texCoord;
+  vec4 lighting;
+  flat uint quadAO;
+  vec3 normal;
+}vs_out;
 
 // unused
 const vec3 normals[] =
@@ -107,14 +111,15 @@ void main()
   DecodeQuad(quadData[0], blockPos, face, texIdx);
   vec3 blockPosWorldSpace = blockPos + u_pos + 0.5;
   vec3 vertPos = blockPosWorldSpace + ObjSpaceVertexPos(vertexIndex, face);
-  vPosViewSpace = vertPos - u_viewPos;
-  vTexCoord = vec3(tex_corners[vertexIndex], texIdx);
+  vs_out.posViewSpace = vertPos - u_viewPos;
+  vs_out.texCoord = vec3(tex_corners[vertexIndex], texIdx);
 
   // decode lighting + quad AO
   uint quadAO;
-  DecodeQuadLight(quadData[1], vLighting, quadAO);
+  DecodeQuadLight(quadData[1], vs_out.lighting, quadAO);
 
-  vQuadAO = quadAO;
+  vs_out.quadAO = quadAO;
+  vs_out.normal = normals[vertexIndex];
   //uint myAO = (quadAO >> (vertexIndex * 2)) & 0x3;
   //vAmbientOcclusion = float(myAO) / 3.0;
 

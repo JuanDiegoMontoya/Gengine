@@ -9,13 +9,18 @@ layout(location = 6, binding = 1) uniform samplerCube u_probeCube;
 layout(location = 7) uniform bool u_disableOcclusionCulling;
 
 // material properties
-layout(location = 0) in vec3 vPosViewSpace;
-layout(location = 1) in vec3 vTexCoord;
-layout(location = 2) in vec4 vLighting; // RGBSun
-layout(location = 3) in flat uint vQuadAO;
+layout(location = 0) in VS_OUT
+{
+  vec3 posViewSpace;
+  vec3 texCoord;
+  vec4 lighting;
+  flat uint quadAO;
+  vec3 normal;
+}fs_in;
 
-layout(location = 0) out vec4 fragColor;
-layout(location = 1) out vec4 pbr;
+layout(location = 0) out vec4 o_diffuse;
+layout(location = 1) out vec4 o_normal;
+layout(location = 2) out vec4 o_pbr;
 
 // dithered transparency
 bool clipTransparency(float alpha)
@@ -39,32 +44,32 @@ bool clipTransparency(float alpha)
 
 vec3 GetNormal()
 {
-  return normalize(cross(dFdx(vPosViewSpace), dFdy(vPosViewSpace)));
-  //return vNormal;
+  return normalize(cross(dFdx(fs_in.posViewSpace), dFdy(fs_in.posViewSpace)));
+  //return normalize(fs_in.normal);
 }
 
 float CalculateAO()
 {
   // bilinearly interpolate AO across face
-  uint ao1i = (vQuadAO >> 0) & 0x3;
-  uint ao2i = (vQuadAO >> 2) & 0x3;
-  uint ao3i = (vQuadAO >> 4) & 0x3;
-  uint ao4i = (vQuadAO >> 6) & 0x3;
+  uint ao1i = (fs_in.quadAO >> 0) & 0x3;
+  uint ao2i = (fs_in.quadAO >> 2) & 0x3;
+  uint ao3i = (fs_in.quadAO >> 4) & 0x3;
+  uint ao4i = (fs_in.quadAO >> 6) & 0x3;
   float ao1f = float(ao1i) / 3.0;
   float ao2f = float(ao2i) / 3.0;
   float ao3f = float(ao3i) / 3.0;
   float ao4f = float(ao4i) / 3.0;
 
-  float r = mix(ao1f, ao2f, vTexCoord.y);
-  float l = mix(ao4f, ao3f, vTexCoord.y);
-  float v = mix(l, r, vTexCoord.x);
+  float r = mix(ao1f, ao2f, fs_in.texCoord.y);
+  float l = mix(ao4f, ao3f, fs_in.texCoord.y);
+  float v = mix(l, r, fs_in.texCoord.x);
   //float edgeFactor = 
   return v;
 }
 
 void main()
 {
-  vec4 texColor = texture(textures, vTexCoord).rgba;
+  vec4 texColor = texture(textures, fs_in.texCoord).rgba;
   vec3 normal = GetNormal();
 
   // dithering
@@ -74,32 +79,34 @@ void main()
   }
 
   vec3 diffuse = texColor.rgb;
-  vec3 envLight = vLighting.a * u_envColor;
-  vec3 shaded = diffuse * max(vLighting.rgb, envLight);
+  vec3 envLight = fs_in.lighting.a * u_envColor;
+  vec3 shaded = diffuse * max(fs_in.lighting.rgb, envLight);
   shaded = max(shaded, vec3(u_minBrightness));
   shaded = mix(shaded, shaded * CalculateAO(), u_ambientOcclusionStrength);
 
-  bool isShiny = abs(vTexCoord.z - 3.0) <= 0.001 || abs(vTexCoord.z - 7.0) <= 0.001;
+  bool isShiny = abs(fs_in.texCoord.z - 3.0) <= 0.001 || abs(fs_in.texCoord.z - 7.0) <= 0.001;
 
-  if (!u_disableOcclusionCulling)
+  if (!u_disableOcclusionCulling && shaded.x == 123.123123123)
   {
-    // vec3 cubesample = texture(u_probeCube, vCubeCoord * 2.0).rgb;
-    vec3 refldir = reflect(normalize(vPosViewSpace), normal);
-    //refldir.y *= -1.0;
+    vec3 refldir = reflect(normalize(fs_in.posViewSpace), normal);
     vec3 cubesample = texture(u_probeCube, refldir).rgb;
     if (isShiny)
     {
       cubesample = shaded + cubesample * .001;
       shaded = cubesample;
-      //shaded = refldir * .5 + .5;
-      //shaded = shaded * .0001 + normal * .5 + .5;
     }
   }
 
   //shaded = shaded * .001 + vCubeCoord + .5;
   if (isShiny)
-    pbr = vec4(0.0, 1.0, 1.0, 1.0);
+  {
+    o_pbr = vec4(0.15, 0.0, 1.0, 1.0);
+  }
   else
-    pbr = vec4(1.0, 0.0, 0.0, 1.0);
-  fragColor = vec4(shaded, 1.0);
+  {
+    // perfectly rough, not metal
+    o_pbr = vec4(1.0, 0.0, 0.0, 1.0);
+  }
+  o_normal = vec4(GetNormal(), 1.0);
+  o_diffuse = vec4(shaded, 1.0);
 }

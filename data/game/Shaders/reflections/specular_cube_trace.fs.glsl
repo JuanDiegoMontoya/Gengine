@@ -1,17 +1,18 @@
 #version 460 core
 
-#include "common.h"
+#include "../common.h"
 #include "pbr.h"
 
 layout(location = 0) in vec2 vTexCoord;
 
-layout(binding = 0) uniform sampler2D u_screenDepth;
-layout(binding = 1) uniform sampler2D u_screenRoughnessMetalness;
+layout(binding = 0) uniform sampler2D u_gBufferDepth;
+layout(binding = 1) uniform sampler2D u_gBufferPBR;
 layout(binding = 2) uniform samplerCube u_ReflectionCubemap;
 layout(binding = 3) uniform samplerCube u_ReflectionCubemapDistance;
 layout(binding = 4) uniform samplerCube u_SkyCube;
 layout(binding = 5) uniform sampler2D u_blueNoise;
-layout(binding = 6) uniform sampler2D u_screenDiffuse;
+layout(binding = 6) uniform sampler2D u_gBufferNormal;
+layout(binding = 7) uniform sampler2D u_gBufferDiffuse;
 
 layout(location = 0) uniform mat4 u_invProj;
 layout(location = 1) uniform mat4 u_invView;
@@ -27,14 +28,14 @@ uniform int raySteps = 60;
 uniform int binarySearchIterations = 4;
 uniform uint u_samples = 1;
 
-// stopgap solution to precision issues when camera is far away
+// stopgap solution for precision issues when camera is far away
 uniform float u_cameraFadeBegin = 50;
 uniform float u_cameraFadeEnd = 60;
 
 // % of max steps to begin fade
 uniform float skyboxFadeBegin = 0.90;
 
-layout(location = 0) out vec4 fragColor;
+layout(location = 0) out vec4 o_specularIrradiance;
 
 
 
@@ -45,13 +46,6 @@ float CalcLod(uint samples, vec3 N, vec3 H, float roughness, ivec2 textureDim)
   float dist = D_GGX(N, H, roughness);
   return 0.5 * (log2(float(textureDim.x * textureDim.y) / samples) - log2(dist));
 }
-
-float CalcLod2(uint samples, float rayDistToHit, float zHit, float roughness, ivec2 textureDim)
-{
-  //float dist = 
-  return 0.0;
-}
-
 
 
 
@@ -65,14 +59,6 @@ vec3 CalcMissReflection(vec3 dir, float lod)
 vec3 CalcHitReflection(vec3 dir, float lod)
 {
   return textureLod(u_ReflectionCubemap, dir, lod).rgb;
-}
-
-//https://atyuwen.github.io/posts/normal-reconstruction/#fn:1
-// vec3 GetNormalPrecise(vec3 pos) {}
-
-vec3 GetNormal(vec3 pos)
-{
-  return normalize(cross(dFdxFine(pos), dFdyFine(pos)));
 }
 
 vec3 BinarySearch(vec3 rayPos, vec3 reflectDir, float stepDist, float maxError)
@@ -139,14 +125,12 @@ vec3 ComputeSpecularRadiance(vec3 rayStart, vec3 N, vec3 V, vec3 F0, float rough
   float NoV = abs(dot(N, V));
 
   vec3 accumColor = vec3(0.0);
-
+  
   const uint samples = u_samples;
   for (uint i = 0; i < samples; i++)
   {
-    //vec2 Xi1 = Hammersley(i, samples);
     ivec2 texel = ivec2(gl_FragCoord.xy) % ivec2(textureSize(u_blueNoise, 0));
     vec2 Xi = min(texelFetch(u_blueNoise, texel, 0).xy, vec2(0.99));
-    //vec2 Xi = (Xi1 + Xi2) / 2.0;
     vec3 H = ImportanceSampleGGX(Xi, N, roughness);
     vec3 L = normalize(reflect(V, H));
     vec3 mirrorL = reflect(V, N);
@@ -178,43 +162,32 @@ vec3 ComputeSpecularRadiance(vec3 rayStart, vec3 N, vec3 V, vec3 F0, float rough
 
 void main()
 {
-  vec2 pbr = texture(u_screenRoughnessMetalness, vTexCoord).xy;
+  vec2 pbr = texture(u_gBufferPBR, vTexCoord).xy;
   float roughness = pbr.x;
   float metalness = pbr.y;
-  float gBufferDepth = texture(u_screenDepth, vTexCoord).x;
+  float gBufferDepth = texture(u_gBufferDepth, vTexCoord).x;
 
-  if (gBufferDepth == 0.0 || gBufferDepth == 1.0)
-    discard;
-  if (roughness > .99)
-    discard;
-
-  // temp
-  roughness = 0.10;
-  metalness = 1.0;
+  if (gBufferDepth == 0.0 || gBufferDepth == 1.0 || roughness > .99)
+  {
+    o_specularIrradiance = vec4(0, 0, 0, 1) + 1.0.rrrr;
+    return;
+  }
 
   // reconstruct position in view space rather than world space
   // this is important for ensuring partial derivatives have maximum precision
   vec3 gBufferViewPos = WorldPosFromDepthUV(gBufferDepth, vTexCoord, u_invProj);
   vec3 gBufferWorldPos = (u_invView * vec4(gBufferViewPos, 1.0)).xyz;
-  vec3 gBufferWorldNormal = GetNormal(gBufferWorldPos - u_viewPos);
   
+  vec3 diffuse = texture(u_gBufferDiffuse, vTexCoord).rgb;
+
+  vec3 N = texture(u_gBufferNormal, vTexCoord).xyz;
+  //vec3 vpos = gBufferWorldPos - u_viewPos;
+  //vec3 N = normalize(cross(dFdxFine(vpos), dFdyFine(vpos)));
   vec3 V = normalize(gBufferWorldPos - u_viewPos);
-  vec3 L = reflect(V, gBufferWorldNormal);
 
-  //vec3 trace = TraceCubemap(gBufferWorldPos, gBufferWorldNormal, V, L, 0);
-  //fragColor = vec4(trace, 0.9);
+  vec3 F0 = mix(vec3(0.04), diffuse, metalness);
 
-  vec3 gBufferDiffuse = texture(u_screenDiffuse, vTexCoord).rgb;
-
-  // temp
-  gBufferDiffuse = vec3(1);
-
-  // not physical at all because gBufferDiffuse already has diffuse lighting applied to it
-  vec3 F0 = mix(vec3(0.04), gBufferDiffuse, metalness);
-  vec3 envSpecular = ComputeSpecularRadiance(gBufferWorldPos, gBufferWorldNormal, V, F0, roughness);
-  fragColor = vec4(envSpecular, .5);
+  o_specularIrradiance.rgb = ComputeSpecularRadiance(gBufferWorldPos, N, V, F0, min(roughness, 0.3));
+  //o_specularIrradiance.rgb = o_specularIrradiance.rgb * .00001 + (N * .5 + .5);
+  o_specularIrradiance.a = 1.0;
 }
-
-// TODO
-// improved normals
-// consider lighting model

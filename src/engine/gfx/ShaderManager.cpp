@@ -6,6 +6,7 @@
 #include <fstream>
 #include <iostream>
 #include <regex>
+#include <filesystem>
 #include <utility/Defer.h>
 
 namespace GFX
@@ -43,13 +44,13 @@ namespace GFX
     std::vector<ShaderCreateInfo> createInfos;
   };
 
-  static std::string LoadFile(std::string_view path)
+  static std::string LoadFileA(std::string_view path)
   {
-    std::string shaderpath = std::string(ShaderDir) + std::string(path);
     std::string content;
     try
     {
-      std::ifstream ifs(shaderpath);
+      std::string patha(path); // intellisense complains if I don't make this an explicit variable
+      std::ifstream ifs(patha);
       content = std::string((std::istreambuf_iterator<char>(ifs)),
         (std::istreambuf_iterator<char>()));
     }
@@ -59,6 +60,12 @@ namespace GFX
       std::cout << "Message: " << e.what() << std::endl;
     }
     return content;
+  }
+
+  static std::string LoadFile(std::string_view path)
+  {
+    std::string shaderpath = std::string(ShaderDir) + std::string(path);
+    return LoadFileA(shaderpath);
   }
 
   GLuint CompileShader(GLenum type, const std::string& src, std::string_view path)
@@ -172,17 +179,18 @@ namespace GFX
   class IncludeHandler : public shaderc::CompileOptions::IncluderInterface
   {
   public:
-    virtual shaderc_include_result* GetInclude(
+    shaderc_include_result* GetInclude(
       const char* requested_source,
       [[maybe_unused]] shaderc_include_type type,
       [[maybe_unused]] const char* requesting_source,
-      [[maybe_unused]] size_t include_depth)
+      [[maybe_unused]] size_t include_depth) final
     {
       auto* data = new shaderc_include_result;
 
-      content = LoadFile(requested_source);
+      std::filesystem::path requesting = std::string(ShaderDir) + std::string(requesting_source);
+      content = LoadFileA(requesting.parent_path().string() + "/" + requested_source);
       source_name = requested_source;
-
+      
       data->content = content.c_str();
       data->source_name = source_name.c_str();
       data->content_length = content.size();
@@ -192,7 +200,7 @@ namespace GFX
       return data;
     }
 
-    virtual void ReleaseInclude([[maybe_unused]] shaderc_include_result* data)
+    void ReleaseInclude([[maybe_unused]] shaderc_include_result* data) final
     {
     }
 

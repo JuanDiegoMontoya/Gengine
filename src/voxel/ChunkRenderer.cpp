@@ -181,7 +181,6 @@ namespace Voxels
       glViewport(renderView.offset.x, renderView.offset.y, renderView.size.width, renderView.size.height);
       renderView.renderTarget->Bind();
 
-      renderView.renderTarget->Bind();
       data->verticesAllocator->Draw();
     }
 
@@ -242,8 +241,8 @@ namespace Voxels
     auto probeView = GFX::TextureView::Create(*GFX::TextureManager::Get()->GetTexture("probeColor"));
     probeView->Bind(1, *data->probeSampler);
 
-    auto bufs1 = { GFX::Attachment::COLOR_0, GFX::Attachment::COLOR_1 };
-    GFX::Renderer::Get()->GetMainFramebuffer()->SetDrawBuffers(bufs1);
+    //auto bufs1 = { GFX::Attachment::COLOR_0, GFX::Attachment::COLOR_1 };
+    //GFX::Renderer::Get()->GetMainFramebuffer()->SetDrawBuffers(bufs1);
 
     for (auto& renderView : renderViews)
     {
@@ -267,8 +266,8 @@ namespace Voxels
       glTextureBarrier();
     }
 
-    auto bufs2 = { GFX::Attachment::COLOR_0, GFX::Attachment::NONE };
-    GFX::Renderer::Get()->GetMainFramebuffer()->SetDrawBuffers(bufs2);
+    //auto bufs2 = { GFX::Attachment::COLOR_0, GFX::Attachment::NONE };
+    //GFX::Renderer::Get()->GetMainFramebuffer()->SetDrawBuffers(bufs2);
 
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
     probeView->Unbind(0);

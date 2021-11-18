@@ -150,28 +150,28 @@ void ParticleSystem::Update(Scene& scene, Timestep timestep)
       auto& emitterData = ParticleManager::Get().data->handleToGPUParticleData_[emitter.handle];
       ASSERT(emitterData);
 
-      // set a few variables in a few buffers... (emitter and particle updates can be swapped, probably)
-      emitterData->particleSharedDataBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(0);
-      emitterData->particleUpdateDataBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(1);
-      emitterData->particleRenderDataBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(2);
-      emitterData->freeStackBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(3);
-
       emitterData->timer += timestep.dt_effective;
-      unsigned particlesToSpawn = 0;
-      while (emitterData->timer > emitter.data.interval)
-      {
-        particlesToSpawn++;
-        emitterData->timer -= emitter.data.interval;
-      }
-      //unsigned particlesToSpawn = glm::floor(emitter.timer / emitter.interval);
-      //particlesToSpawn = glm::min(particlesToSpawn, emitter.maxParticles - emitter.numParticles);
+      //unsigned particlesToSpawn = 0;
+      //while (emitterData->timer > emitter.data.interval)
+      //{
+      //  particlesToSpawn++;
+      //  emitterData->timer -= emitter.data.interval;
+      //}
+      unsigned particlesToSpawn = emitterData->timer / emitter.data.interval;
+      //particlesToSpawn = glm::min(particlesToSpawn, emitterData.maxParticles - emitterData.numParticles);
       //emitter.numParticles += particlesToSpawn;
-      //emitter.timer = glm::mod(emitter.timer, emitter.interval);
+      emitterData->timer = glm::mod(emitterData->timer, emitter.data.interval);
       ASSERT(particlesToSpawn >= 0);
 
       // update emitter
       if (particlesToSpawn > 0)
       {
+        // set a few variables in a few buffers... (emitter and particle updates can be swapped, probably)
+        emitterData->particleSharedDataBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(0);
+        emitterData->particleUpdateDataBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(1);
+        emitterData->particleRenderDataBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(2);
+        emitterData->freeStackBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(3);
+
 #pragma region uniforms
         emitter_shader->SetInt("u_particlesToSpawn", particlesToSpawn);
         //emitter_shader->SetFloat("u_time", static_cast<float>(timer.Elapsed()) + 1.61803f);

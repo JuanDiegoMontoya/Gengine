@@ -79,9 +79,10 @@ namespace GFX
     TextureView& operator=(TextureView&& old) noexcept;
     ~TextureView();
 
-    void Bind(uint32_t slot, const TextureSampler& sampler);
-    void Unbind(uint32_t slot); // unfortunate, but necessary to prevent state leakage until everything is upgraded
-    void SubImage(const TextureUpdateInfo& info);
+    // TODO: remove Bind() and Unbind() in favor of the free functions
+    void Bind(uint32_t slot, const TextureSampler& sampler) const;
+    void Unbind(uint32_t slot) const; // unfortunate, but necessary to prevent state leakage until everything is upgraded
+    void SubImage(const TextureUpdateInfo& info) const;
     [[nodiscard]] uint32_t GetAPIHandle() const { return id_; }
 
   private:
@@ -146,6 +147,9 @@ namespace GFX
 
   // unsafe way to bind texture view and sampler using only API handles
   void BindTextureViewNative(uint32_t slot, uint32_t textureViewAPIHandle, uint32_t samplerAPIHandle);
+  
+  void BindTextureView(uint32_t slot, const TextureView& textureView, const TextureSampler& textureSampler);
+  void UnbindTextureView(uint32_t slot);
 
   // convenience function
   std::optional<Texture> CreateTexture2D(Extent2D size, Format format, std::string_view name = "");

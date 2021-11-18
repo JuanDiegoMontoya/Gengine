@@ -50,4 +50,16 @@ vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness)
   return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(max(1.0 - cosTheta, 0.0), 5.0);
 }
 
+float G_SchlickGGX(vec3 N, vec3 I, float roughness)
+{
+  float k = pow(roughness + 1.0, 2.0) / 8.0;
+  float cosTheta = max(dot(N, I), 0.0);
+  return cosTheta / (cosTheta * (1.0 - k) + k);
+}
+
+float G_Smith(vec3 N, vec3 V, vec3 L, float roughness)
+{
+  return G_SchlickGGX(N, V, roughness) * G_SchlickGGX(N, L, roughness);
+}
+
 #endif

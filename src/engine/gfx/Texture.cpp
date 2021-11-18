@@ -319,19 +319,19 @@ namespace GFX
     glDeleteTextures(1, &id_);
   }
 
-  void TextureView::Bind(uint32_t slot, const TextureSampler& sampler)
+  void TextureView::Bind(uint32_t slot, const TextureSampler& sampler) const
   {
     glBindTextureUnit(slot, id_);
     glBindSampler(slot, sampler.id_);
   }
 
-  void TextureView::Unbind(uint32_t slot)
+  void TextureView::Unbind(uint32_t slot) const
   {
     glBindTextureUnit(slot, 0);
     glBindSampler(slot, 0);
   }
 
-  void TextureView::SubImage(const TextureUpdateInfo& info)
+  void TextureView::SubImage(const TextureUpdateInfo& info) const
   {
     subImage(id_, info);
   }
@@ -479,8 +479,20 @@ namespace GFX
 
   void BindTextureViewNative(uint32_t slot, uint32_t textureViewAPIHandle, uint32_t samplerAPIHandle)
   {
-    glBindSampler(slot, samplerAPIHandle);
     glBindTextureUnit(slot, textureViewAPIHandle);
+    glBindSampler(slot, samplerAPIHandle);
+  }
+
+  void BindTextureView(uint32_t slot, const TextureView& textureView, const TextureSampler& textureSampler)
+  {
+    glBindTextureUnit(slot, textureView.GetAPIHandle());
+    glBindSampler(slot, textureSampler.GetAPIHandle());
+  }
+
+  void UnbindTextureView(uint32_t slot)
+  {
+    glBindTextureUnit(slot, 0);
+    glBindSampler(slot, 0);
   }
 
   std::optional<Texture> CreateTexture2D(Extent2D size, Format format, std::string_view name)

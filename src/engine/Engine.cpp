@@ -132,9 +132,10 @@ void Engine::Run()
       drawOpaqueCallback(activeScene_, timestep);
     }
     graphicsSystem->DrawSky(*activeScene_);
+    graphicsSystem->DrawEarlyFog(*activeScene_);
+    graphicsSystem->DrawShading(*activeScene_);
     graphicsSystem->DrawFog(*activeScene_);
     graphicsSystem->DrawTransparent(*activeScene_);
-
     graphicsSystem->EndFrame(*activeScene_, timestep);
     debugSystem->EndFrame(*activeScene_); // render UI on top of everything else
     graphicsSystem->SwapBuffers();

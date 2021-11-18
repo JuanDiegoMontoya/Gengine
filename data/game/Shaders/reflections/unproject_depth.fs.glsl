@@ -1,6 +1,6 @@
 #version 460 core
 
-#include "common.h"
+#include "../common.h"
 
 layout(binding = 0) uniform sampler2D u_depthTex;
 layout(location = 1) uniform mat4 u_invViewProj;

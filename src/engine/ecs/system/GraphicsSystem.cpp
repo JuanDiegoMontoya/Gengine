@@ -83,7 +83,25 @@ void GraphicsSystem::DrawOpaque(Scene& scene)
 void GraphicsSystem::DrawSky(Scene& scene)
 {
   auto renderViews = scene.GetRenderViews();
-  GFX::Renderer::Get()->DrawSkybox(renderViews);
+  GFX::Renderer::Get()->DrawSky(renderViews);
+}
+
+void GraphicsSystem::DrawShading(Scene& scene)
+{
+  auto renderViews = scene.GetRenderViews();
+  GFX::Renderer::Get()->ApplyShading();
+}
+
+void GraphicsSystem::DrawFog(Scene& scene)
+{
+  auto renderViews = scene.GetRenderViews();
+  GFX::Renderer::Get()->DrawFog(renderViews, false);
+}
+
+void GraphicsSystem::DrawEarlyFog(Scene& scene)
+{
+  auto renderViews = scene.GetRenderViews();
+  GFX::Renderer::Get()->DrawFog(renderViews, true);
 }
 
 void GraphicsSystem::DrawTransparent(Scene& scene)
@@ -107,16 +125,11 @@ void GraphicsSystem::DrawTransparent(Scene& scene)
   GFX::Renderer::Get()->RenderEmitters(renderViews);
 }
 
-void GraphicsSystem::DrawFog(Scene& scene)
-{
-  auto renderViews = scene.GetRenderViews();
-  GFX::Renderer::Get()->DrawFog(renderViews);
-}
-
 void GraphicsSystem::EndFrame(Scene& scene, Timestep timestep)
 {
   auto renderViews = scene.GetRenderViews();
-  GFX::Renderer::Get()->EndFrame(timestep.dt_effective);
+  GFX::Renderer::Get()->ApplyTonemap(timestep.dt_effective);
+  GFX::Renderer::Get()->AntialiasAndWriteSwapchain();
 }
 
 void GraphicsSystem::SwapBuffers()
