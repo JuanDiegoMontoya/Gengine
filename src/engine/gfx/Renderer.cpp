@@ -34,6 +34,7 @@ DECLARE_FLOAT_STAT(Postprocessing, GPU)
 DECLARE_FLOAT_STAT(LuminanceHistogram, GPU)
 DECLARE_FLOAT_STAT(CameraExposure, GPU)
 DECLARE_FLOAT_STAT(FXAA, GPU)
+DECLARE_FLOAT_STAT(Reflections, GPU)
 
 // TODO: hacky hack hackity hack
 extern GFX::Camera mainCamera;
@@ -596,6 +597,10 @@ namespace GFX
 
   void Renderer::StartFrame()
   {
+    reflect.fbo->Bind();
+    glClearColor(0, 0, 0, 0);
+    glClear(GL_COLOR_BUFFER_BIT);
+
     GL_ResetState();
 
     ImGui::Begin("Tonemapping");
@@ -629,9 +634,6 @@ namespace GFX
       if (renderView.mask & RenderMaskBit::ClearDepthEachFrame)
         glClear(GL_DEPTH_BUFFER_BIT);
     }
-
-    reflect.fbo->Bind();
-    glClear(GL_COLOR_BUFFER_BIT);
 
     GL_ResetState();
   }
@@ -857,12 +859,13 @@ namespace GFX
 
   void Renderer::InitReflectionFramebuffer()
   {
-    reflect.texMemory = CreateTexture2D(reflect.fboSize, Format::R16G16B16A16_FLOAT, "Reflection Texture");
-    reflect.texView = TextureView::Create(*reflect.texMemory, "Reflection View");
-    reflect.texBlurMemory = CreateTexture2D(reflect.fboSize, Format::R16G16B16A16_FLOAT, "Reflection Blur Texture");
-    reflect.texBlurView = TextureView::Create(*reflect.texBlurMemory, "Reflection Blur View");
+    for (int i = 0; i < 2; i++)
+    {
+      reflect.texMemory[i] = CreateTexture2D(reflect.fboSize, Format::R16G16B16A16_FLOAT, ("Reflection Texture " + std::to_string(i)).c_str());
+      reflect.texView[i] = TextureView::Create(*reflect.texMemory[i], ("Reflection View " + std::to_string(i)).c_str());
+    }
     reflect.fbo = Framebuffer::Create();
-    reflect.fbo->SetAttachment(Attachment::COLOR_0, *reflect.texView, 0);
+    reflect.fbo->SetAttachment(Attachment::COLOR_0, *reflect.texView[0], 0);
     reflect.fbo->SetDrawBuffers({ { Attachment::COLOR_0 } });
     ASSERT(reflect.fbo->IsValid());
   }
@@ -951,6 +954,22 @@ namespace GFX
     env.skyboxSampler = TextureSampler::Create(cubesamplerState, "skycube sampler");
 
 
+  }
+
+  void Renderer::DrawReflections()
+  {
+    DebugMarker marker("Draw reflections");
+    MEASURE_GPU_TIMER_STAT(Reflections);
+
+    reflect.fbo->SetAttachment(Attachment::COLOR_0, *reflect.texView[0], 0);
+    if (reflectionsHighQualityCvar.Get() != 0)
+    {
+      DrawReflectionsTrace();
+    }
+    else
+    {
+      DrawReflectionsSample();
+    }
   }
 
   // expensive reflections
@@ -1042,23 +1061,41 @@ namespace GFX
     DebugMarker marker("Cube Sampled Reflections");
   }
 
-  void Renderer::DrawReflections()
-  {
-    DebugMarker marker("Draw reflections");
-
-    if (reflectionsHighQualityCvar.Get() != 0)
-    {
-      DrawReflectionsTrace();
-    }
-    else
-    {
-      DrawReflectionsSample();
-    }
-  }
-
   void Renderer::DenoiseReflections()
   {
     DebugMarker marker("Denoise reflections");
+
+    //if (ssao.atrous_passes > 0)
+    //{
+    //  glBindTextureUnit(1, gDepth);
+    //  glBindTextureUnit(2, gNormal);
+    //  auto& ssaoblur = Shader::shaders["atrous_ssao"];
+    //  ssaoblur->Bind();
+    //  ssaoblur->SetFloat("n_phi", ssao.atrous_n_phi);
+    //  ssaoblur->SetFloat("p_phi", ssao.atrous_p_phi);
+    //  ssaoblur->SetFloat("stepwidth", ssao.atrous_step_width);
+    //  ssaoblur->SetMat4("u_invViewProj", glm::inverse(cam.GetViewProj()));
+    //  ssaoblur->SetIVec2("u_resolution", WINDOW_WIDTH, WINDOW_HEIGHT);
+    //  ssaoblur->Set1FloatArray("kernel[0]", ssao.atrous_kernel);
+    //  ssaoblur->Set1FloatArray("offsets[0]", ssao.atrous_offsets);
+    //  for (int i = 0; i < ssao.atrous_passes; i++)
+    //  {
+    //    float offsets2[5];
+    //    for (int j = 0; j < 5; j++)
+    //    {
+    //      offsets2[j] = ssao.atrous_offsets[j] * glm::pow(2.0f, i);
+    //    }
+    //    ssaoblur->Set1FloatArray("offsets[0]", offsets2);
+    //    ssaoblur->SetBool("u_horizontal", false);
+    //    glBindTextureUnit(0, ssao.texture);
+    //    glNamedFramebufferTexture(ssao.fbo, GL_COLOR_ATTACHMENT0, ssao.textureBlurred, 0);
+    //    glDrawArrays(GL_TRIANGLES, 0, 3);
+    //    ssaoblur->SetBool("u_horizontal", true);
+    //    glBindTextureUnit(0, ssao.textureBlurred);
+    //    glNamedFramebufferTexture(ssao.fbo, GL_COLOR_ATTACHMENT0, ssao.texture, 0);
+    //    glDrawArrays(GL_TRIANGLES, 0, 3);
+    //  }
+    //}
   }
 
   void Renderer::CompositeReflections()
@@ -1085,7 +1122,7 @@ namespace GFX
     //  BindTextureView(3, *composited[(frameNumber + 1) % 2].compositedTexView, *nearestSampler);
     //}
     //composited[frameNumber % 2].fbo->Bind();
-    reflect.texView->Bind(4, *nearestSampler);
+    reflect.texView[0]->Bind(4, *nearestSampler);
     gBuffer.fbo->Bind();
 
     glBlendFunc(GL_ONE, GL_ZERO);

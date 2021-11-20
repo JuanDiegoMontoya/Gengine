@@ -188,27 +188,35 @@ namespace GFX
 
     std::optional<TextureView> blueNoiseBigView;
 
-    struct Reflections
+    struct Reflections_t
     {
       std::optional<Framebuffer> fbo;
-      std::optional<Texture> texMemory;
-      std::optional<TextureView> texView;
-      std::optional<Texture> texBlurMemory;
-      std::optional<TextureView> texBlurView;
+      std::optional<Texture> texMemory[2];
+      std::optional<TextureView> texView[2];
       float renderScale = 1.0;
       Extent2D fboSize{};
 
       // TODO: currently unused
-      struct ProbeDistanceData
+      struct ProbeDistanceData_t
       {
         std::optional<TextureSampler> sampler;
         std::optional<TextureView> faceViews[6];
         std::optional<Texture> colorTextures;
         std::optional<Texture> depthTextures;
       }probeDistanceData;
+
+      struct
+      {
+        float kernel[5] = { 0.0625f, 0.25f, 0.375f, 0.25f, 0.0625f };
+        float offsets[5] = { -2.0f, -1.0f, 0.0f, 1.0f, 2.0f };
+        int num_passes{ 1 };
+        float n_phi{ .1f };
+        float p_phi{ .5f };
+        float step_width{ 1.0f };
+      }atrous;
     }reflect;
 
-    struct Composited
+    struct Composited_t
     {
       // post-shading
       std::optional<Framebuffer> fbo;
@@ -216,14 +224,14 @@ namespace GFX
       std::optional<TextureView> compositedTexView;
     }composited[2];
 
-    struct Environment
+    struct Environment_t
     {
       std::optional<Texture> skyboxMemory;
       std::optional<TextureView> skyboxView;
       std::optional<TextureSampler> skyboxSampler;
     }env;
 
-    struct FogParams
+    struct FogParams_t
     {
       glm::vec3 albedo{ 1.0 };
       float u_a = 0.005f;
@@ -234,7 +242,7 @@ namespace GFX
       float u_powder = 1.0f;
     }fog;
 
-    struct TonemapperParams
+    struct TonemapperParams_t
     {
       float exposure = 1.0f;
       float minExposure = 0.1f;
@@ -250,7 +258,7 @@ namespace GFX
       bool tonemapDither = true;
     }tonemap;
 
-    struct FXAAParams
+    struct FXAAParams_t
     {
       bool enabled{ true };
       float contrastThreshold = 0.0312;

@@ -3,6 +3,8 @@
 #include "../common.h"
 #include "pbr.h"
 
+#define ROUGHNESS_DISCARD_THRESHOLD 0.99
+
 layout(location = 0) in vec2 vTexCoord;
 
 layout(binding = 0) uniform sampler2D u_gBufferDepth;
@@ -17,6 +19,34 @@ layout(location = 2) uniform vec3 u_viewPos;
 
 layout(location = 0) out vec4 o_shaded;
 
+// interpolates up to 4 of neighbor texels' specular irradiance
+vec3 fixupSpecularIrradiance()
+{
+  const vec2 offsets[4] = {
+    { -1, 0 },
+    { 0, 1 },
+    { 1, 0 },
+    { 0, -1 }
+  };
+
+  vec3 accumColor = vec3(0);
+  float weight = 0;
+  for (int i = 0; i < 4; i++)
+  {
+    vec2 newUV = vTexCoord + offsets[i] / vec2(textureSize(u_specularIrradianceTex, 0));
+    vec3 neighborSample = texture(u_specularIrradianceTex, newUV).rgb;
+    if (neighborSample != vec3(0))
+    {
+      accumColor += neighborSample;
+      weight += 1.0;
+    }
+  }
+
+  if (weight > 0)
+    return accumColor / weight;
+  return vec3(1.0);
+}
+
 void main()
 {
   vec2 pbr = texture(u_gBufferPBR, vTexCoord).xy;
@@ -27,7 +57,15 @@ void main()
   vec3 gBufferDiffuse = texture(u_gBufferDiffuse, vTexCoord).rgb;
   vec3 specularIrradiance = texture(u_specularIrradianceTex, vTexCoord).rgb;
 
-  if (gBufferDepth == 0.0 || gBufferDepth == 1.0 || roughness > .99 || specularIrradiance == vec3(0))
+  // we have a fragment that should receive a reflected color, but isn't because the irradiance map is low res
+  // attempt fixup by interpolating neighbors
+  if (specularIrradiance == vec3(0) && roughness <= ROUGHNESS_DISCARD_THRESHOLD && 
+      textureSize(u_gBufferPBR, 0) != textureSize(u_specularIrradianceTex, 0))
+  {
+    specularIrradiance = fixupSpecularIrradiance();
+  }
+
+  if (gBufferDepth == 0.0 || gBufferDepth == 1.0 || roughness > ROUGHNESS_DISCARD_THRESHOLD || specularIrradiance == vec3(0))
   {
     o_shaded = vec4(gBufferDiffuse, 1.0);
     return;
@@ -53,5 +91,5 @@ void main()
   // not physical at all because gBufferDiffuse already has diffuse lighting applied to it
   vec3 shaded = gBufferDiffuse * kD + specularIrradiance;
   o_shaded = vec4(shaded, 1.0);
-  //o_shaded.rgb = o_shaded.rgb * .00001 + specularIrradiance;
+  o_shaded.rgb = o_shaded.rgb * .00001 + specularIrradiance;
 }

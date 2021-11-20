@@ -100,7 +100,7 @@ void main()
   //shaded = shaded * .001 + vCubeCoord + .5;
   if (isShiny)
   {
-    o_pbr = vec4(0.15, 0.0, 1.0, 1.0);
+    o_pbr = vec4(0.05, 0.0, 1.0, 1.0);
   }
   else
   {

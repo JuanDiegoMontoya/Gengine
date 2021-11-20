@@ -169,7 +169,7 @@ void main()
 
   if (gBufferDepth == 0.0 || gBufferDepth == 1.0 || roughness > .99)
   {
-    o_specularIrradiance = vec4(0, 0, 0, 1) + 1.0.rrrr;
+    o_specularIrradiance = vec4(0, 0, 0, 1);
     return;
   }
 
