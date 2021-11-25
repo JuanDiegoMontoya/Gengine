@@ -132,8 +132,11 @@ vec3 ComputeSpecularRadiance(vec3 rayStart, vec3 N, vec3 V, vec3 F0, float rough
     ivec2 texel = ivec2(gl_FragCoord.xy) % ivec2(textureSize(u_blueNoise, 0));
     vec2 Xi = min(texelFetch(u_blueNoise, texel, 0).xy, vec2(0.99));
     vec3 H = ImportanceSampleGGX(Xi, N, roughness);
-    vec3 L = normalize(reflect(V, H));
-    vec3 mirrorL = reflect(V, N);
+    vec3 L;
+    if (roughness > 0.03)
+      L = normalize(reflect(V, H));
+    else
+      L = reflect(V, N);
     float lod = CalcLod(samples, N, H, roughness, textureSize(u_SkyCube, 0));
     //float lod = 0;
 

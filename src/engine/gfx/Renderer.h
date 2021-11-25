@@ -193,7 +193,7 @@ namespace GFX
       std::optional<Framebuffer> fbo;
       std::optional<Texture> texMemory[2];
       std::optional<TextureView> texView[2];
-      float renderScale = 1.0;
+      float renderScale{};
       Extent2D fboSize{};
 
       // TODO: currently unused
@@ -210,8 +210,8 @@ namespace GFX
         float kernel[5] = { 0.0625f, 0.25f, 0.375f, 0.25f, 0.0625f };
         float offsets[5] = { -2.0f, -1.0f, 0.0f, 1.0f, 2.0f };
         int num_passes{ 1 };
-        float n_phi{ .1f };
-        float p_phi{ .5f };
+        float n_phi{ 1 };
+        float p_phi{ 1 };
         float step_width{ 1.0f };
       }atrous;
     }reflect;
@@ -220,9 +220,7 @@ namespace GFX
     {
       // post-shading
       std::optional<Framebuffer> fbo;
-      std::optional<Texture> compositedTexMemory;
-      std::optional<TextureView> compositedTexView;
-    }composited[2];
+    }composited;
 
     struct Environment_t
     {

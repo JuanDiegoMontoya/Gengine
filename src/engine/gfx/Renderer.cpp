@@ -527,6 +527,12 @@ namespace GFX
         { "fullscreen_tri.vs.glsl", GFX::ShaderType::VERTEX },
         { "reflections/specular_composite.fs.glsl", GFX::ShaderType::FRAGMENT }
       });
+
+    GFX::ShaderManager::Get()->AddShader("atrous_reflection",
+      {
+        { "fullscreen_tri.vs.glsl", GFX::ShaderType::VERTEX },
+        { "atrous.fs.glsl", GFX::ShaderType::FRAGMENT }
+      });
   }
 
   void Renderer::DrawAxisIndicator(std::span<RenderView> renderViews)
@@ -832,14 +838,9 @@ namespace GFX
     ldrFbo->SetAttachment(Attachment::COLOR_0, *ldrColorTexView, 0);
     ASSERT(ldrFbo->IsValid());
 
-    for (int i = 0; i < 2; i++)
-    {
-      composited[i].compositedTexMemory = CreateTexture2D(fboSize, Format::R16G16B16A16_FLOAT, "Composited Texture");
-      composited[i].compositedTexView = TextureView::Create(*composited[i].compositedTexMemory, "Composited View");
-      composited[i].fbo = Framebuffer::Create();
-      composited[i].fbo->SetAttachment(Attachment::COLOR_0, *composited[i].compositedTexView, 0);
-      ASSERT(composited[i].fbo->IsValid());
-    }
+    composited.fbo = Framebuffer::Create();
+    composited.fbo->SetAttachment(Attachment::COLOR_0, *gBuffer.colorTexView, 0);
+    ASSERT(composited.fbo->IsValid());
 
     SamplerState ss{};
     ss.asBitField.addressModeU = AddressMode::MIRRORED_REPEAT;
@@ -852,7 +853,7 @@ namespace GFX
     ss.asBitField.mipmapFilter = Filter::NEAREST;
     nearestSampler.emplace(*TextureSampler::Create(ss, "Nearest Sampler"));
 
-    SetReflectionsRenderScale(1.0f);
+    SetReflectionsRenderScale(0.5f);
 
     glViewport(0, 0, GetRenderWidth(), GetRenderHeight());
   }
@@ -1029,14 +1030,14 @@ namespace GFX
     auto probeColor = TextureView::Create(*TextureManager::Get()->GetTexture("probeColor"));
     auto probeDistance = TextureView::Create(*TextureManager::Get()->GetTexture("probeDistance"));
 
-    BindTextureView(0, *gBuffer.depthTexView, *defaultSampler);
-    BindTextureView(1, *gBuffer.PBRTexView, *defaultSampler);
-    BindTextureView(2, *probeColor, *defaultSampler);
-    BindTextureView(3, *probeDistance, *defaultSampler);
+    BindTextureView(0, *gBuffer.depthTexView, *nearestSampler);
+    BindTextureView(1, *gBuffer.PBRTexView, *nearestSampler);
+    BindTextureView(2, *probeColor, *nearestSampler);
+    BindTextureView(3, *probeDistance, *nearestSampler);
     BindTextureView(4, *env.skyboxView, *defaultSampler);
     BindTextureView(5, *blueNoiseBigView, *tonemap.blueNoiseSampler);
-    BindTextureView(6, *gBuffer.normalTexView, *defaultSampler);
-    BindTextureView(7, *gBuffer.colorTexView, *defaultSampler);
+    BindTextureView(6, *gBuffer.normalTexView, *nearestSampler);
+    BindTextureView(7, *gBuffer.colorTexView, *nearestSampler);
     reflect.fbo->Bind();
 
     glDrawArrays(GL_TRIANGLES, 0, 3);
@@ -1065,37 +1066,41 @@ namespace GFX
   {
     DebugMarker marker("Denoise reflections");
 
-    //if (ssao.atrous_passes > 0)
-    //{
-    //  glBindTextureUnit(1, gDepth);
-    //  glBindTextureUnit(2, gNormal);
-    //  auto& ssaoblur = Shader::shaders["atrous_ssao"];
-    //  ssaoblur->Bind();
-    //  ssaoblur->SetFloat("n_phi", ssao.atrous_n_phi);
-    //  ssaoblur->SetFloat("p_phi", ssao.atrous_p_phi);
-    //  ssaoblur->SetFloat("stepwidth", ssao.atrous_step_width);
-    //  ssaoblur->SetMat4("u_invViewProj", glm::inverse(cam.GetViewProj()));
-    //  ssaoblur->SetIVec2("u_resolution", WINDOW_WIDTH, WINDOW_HEIGHT);
-    //  ssaoblur->Set1FloatArray("kernel[0]", ssao.atrous_kernel);
-    //  ssaoblur->Set1FloatArray("offsets[0]", ssao.atrous_offsets);
-    //  for (int i = 0; i < ssao.atrous_passes; i++)
-    //  {
-    //    float offsets2[5];
-    //    for (int j = 0; j < 5; j++)
-    //    {
-    //      offsets2[j] = ssao.atrous_offsets[j] * glm::pow(2.0f, i);
-    //    }
-    //    ssaoblur->Set1FloatArray("offsets[0]", offsets2);
-    //    ssaoblur->SetBool("u_horizontal", false);
-    //    glBindTextureUnit(0, ssao.texture);
-    //    glNamedFramebufferTexture(ssao.fbo, GL_COLOR_ATTACHMENT0, ssao.textureBlurred, 0);
-    //    glDrawArrays(GL_TRIANGLES, 0, 3);
-    //    ssaoblur->SetBool("u_horizontal", true);
-    //    glBindTextureUnit(0, ssao.textureBlurred);
-    //    glNamedFramebufferTexture(ssao.fbo, GL_COLOR_ATTACHMENT0, ssao.texture, 0);
-    //    glDrawArrays(GL_TRIANGLES, 0, 3);
-    //  }
-    //}
+    if (reflect.atrous.num_passes > 0)
+    {
+      BindTextureView(1, *gBuffer.depthTexView, *nearestSampler);
+      BindTextureView(2, *gBuffer.normalTexView, *nearestSampler);
+      BindTextureView(3, *gBuffer.PBRTexView, *nearestSampler);
+      auto shader = ShaderManager::Get()->GetShader("atrous_reflection");
+      shader->Bind();
+      shader->SetFloat("n_phi", reflect.atrous.n_phi);
+      shader->SetFloat("p_phi", reflect.atrous.p_phi);
+      shader->SetFloat("stepwidth", reflect.atrous.step_width);
+      shader->SetMat4("u_invViewProj", glm::inverse(mainCamera.GetViewProj()));
+      shader->SetIVec2("u_resolution", { reflect.fboSize.width, reflect.fboSize.height });
+      shader->Set1FloatArray("kernel[0]", reflect.atrous.kernel);
+      shader->Set1FloatArray("offsets[0]", reflect.atrous.offsets);
+
+      reflect.fbo->Bind();
+      for (int i = 0; i < reflect.atrous.num_passes; i++)
+      {
+        float offsets2[5];
+        for (int j = 0; j < 5; j++)
+        {
+          offsets2[j] = reflect.atrous.offsets[j] * glm::pow(2.0f, i);
+        }
+        shader->Set1FloatArray("offsets[0]", offsets2);
+        shader->SetBool("u_horizontal", false);
+        BindTextureView(0, *reflect.texView[0], *nearestSampler);
+        reflect.fbo->SetAttachment(Attachment::COLOR_0, *reflect.texView[1], 0);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+
+        shader->SetBool("u_horizontal", true);
+        BindTextureView(0, *reflect.texView[1], *nearestSampler);
+        reflect.fbo->SetAttachment(Attachment::COLOR_0, *reflect.texView[0], 0);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+      }
+    }
   }
 
   void Renderer::CompositeReflections()
@@ -1123,7 +1128,7 @@ namespace GFX
     //}
     //composited[frameNumber % 2].fbo->Bind();
     reflect.texView[0]->Bind(4, *nearestSampler);
-    gBuffer.fbo->Bind();
+    composited.fbo->Bind();
 
     glBlendFunc(GL_ONE, GL_ZERO);
     glViewport(0, 0, GetRenderWidth(), GetRenderHeight());
