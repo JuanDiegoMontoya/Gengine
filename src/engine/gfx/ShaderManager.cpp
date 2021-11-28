@@ -173,9 +173,10 @@ namespace GFX
     //}
 
     std::string preprocessed = PreprocessResult.begin();
-    // TODO: uncomment when extension capabilities can be queried effectively
-    //preprocessed = std::regex_replace(preprocessed,
-    //  std::regex("#((extension[\n\t ]+(GL_GOOGLE_include_directive))|(line[\n\t ]+\"))[a - zA - Z0 - 9\"_:. ]+"), "// line removed for combatibility");
+    preprocessed = std::regex_replace(preprocessed,
+      std::regex(
+        R"((#extension\s+GL_GOOGLE_include_directive\s+:\s+\S+)|(#line\s+[0-9]+\s+"[0-9a-zA-Z\.]+"))"),
+      "// line removed for combatibility");
 
     return preprocessed;
   }
