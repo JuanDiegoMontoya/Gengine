@@ -13,7 +13,7 @@ layout(std430, binding = 1) writeonly buffer cmds
 layout(location = 0) in flat int vID;
 
 #if DEBUG_VIEW
-out vec4 fragColor;
+layout(location = 0) out vec4 fragColor;
 layout(location = 3) uniform bool u_debugDraw = false;
 #endif
 

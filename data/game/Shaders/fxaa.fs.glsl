@@ -20,7 +20,7 @@
 
 layout (location = 0) in vec2 vTexCoord;
 
-layout (location = 0, binding = 0) uniform sampler2D colorTex;
+layout (binding = 0) uniform sampler2D colorTex;
 layout (location = 1) uniform vec2 u_invScreenSize;
 layout (location = 2) uniform float u_contrastThreshold = .0312; // .0833, .0625, .0312 from lowest to best quality
 layout (location = 3) uniform float u_relativeThreshold = .125; // .250, .166, .125

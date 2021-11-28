@@ -20,20 +20,20 @@ layout(location = 2) uniform vec3 u_viewPos;
 
 // amount to increase the step distance by after each step
 // higher values allow the longer reflections at the expense of stability
-uniform float stepIncreaseFactor = 1.04;
-uniform float stepIncreaseConstant = 0.04;
-uniform int stepIncreaseAfter = 30;
-uniform float initialStepDist = 0.20;
-uniform int raySteps = 60;
-uniform int binarySearchIterations = 4;
-uniform uint u_samples = 1;
+layout(location = 3) uniform float stepIncreaseFactor = 1.04;
+layout(location = 4) uniform float stepIncreaseConstant = 0.04;
+layout(location = 5) uniform int stepIncreaseAfter = 30;
+layout(location = 6) uniform float initialStepDist = 0.20;
+layout(location = 7) uniform int raySteps = 60;
+layout(location = 8) uniform int binarySearchIterations = 4;
+layout(location = 9) uniform uint u_samples = 1;
 
 // stopgap solution for precision issues when camera is far away
-uniform float u_cameraFadeBegin = 50;
-uniform float u_cameraFadeEnd = 60;
+layout(location = 10) uniform float u_cameraFadeBegin = 50;
+layout(location = 11) uniform float u_cameraFadeEnd = 60;
 
 // % of max steps to begin fade
-uniform float skyboxFadeBegin = 0.90;
+layout(location = 12) uniform float skyboxFadeBegin = 0.90;
 
 layout(location = 0) out vec4 o_specularIrradiance;
 

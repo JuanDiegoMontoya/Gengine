@@ -3,9 +3,9 @@
 layout(location = 3) uniform sampler2DArray u_textures;
 layout(location = 4) uniform int u_texIdx;
 
-in vec2 vTexCoord;
+layout(location = 0) in vec2 vTexCoord;
 
-out vec4 fragColor;
+layout(location = 0) out vec4 fragColor;
 
 void main()
 {

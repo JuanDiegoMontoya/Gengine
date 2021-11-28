@@ -1,13 +1,13 @@
 #version 450 core
 
-layout (location = 0) in vec3 aPos;
-layout (location = 2) in vec2 aTexCoord;
+layout(location = 0) in vec3 aPos;
+layout(location = 2) in vec2 aTexCoord;
 
 layout(location = 0) uniform mat4 u_model;
 layout(location = 1) uniform mat4 u_view;
 layout(location = 2) uniform mat4 u_proj;
 
-out vec2 vTexCoord;
+layout(location = 0) out vec2 vTexCoord;
 
 void main()
 {

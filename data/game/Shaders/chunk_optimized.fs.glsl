@@ -3,9 +3,9 @@
 layout(location = 1) uniform vec3 u_viewPos;
 layout(location = 2) uniform vec3 u_envColor = vec3(1.0);
 layout(location = 3) uniform float u_minBrightness = 0.01;
-layout(location = 4, binding = 0) uniform sampler2DArray textures;
+layout(binding = 0) uniform sampler2DArray textures;
 layout(location = 5) uniform float u_ambientOcclusionStrength = 0.5;
-layout(location = 6, binding = 1) uniform samplerCube u_probeCube;
+layout(binding = 1) uniform samplerCube u_probeCube;
 layout(location = 7) uniform bool u_disableOcclusionCulling;
 
 // material properties

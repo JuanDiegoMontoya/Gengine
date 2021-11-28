@@ -491,21 +491,21 @@ namespace GFX
     GFX::ShaderManager::Get()->AddShader("generate_histogram",
       { { "generate_histogram.cs.glsl", GFX::ShaderType::COMPUTE } });
 
-    GFX::ShaderManager::Get()->AddShader("sun",
-      {
-        { "flat_sun.vs.glsl", GFX::ShaderType::VERTEX },
-        { "flat_sun.fs.glsl", GFX::ShaderType::FRAGMENT }
-      });
+    //GFX::ShaderManager::Get()->AddShader("sun",
+    //  {
+    //    { "flat_sun.vs.glsl", GFX::ShaderType::VERTEX },
+    //    { "flat_sun.fs.glsl", GFX::ShaderType::FRAGMENT }
+    //  });
     GFX::ShaderManager::Get()->AddShader("axis",
       {
         { "axis.vs.glsl", GFX::ShaderType::VERTEX },
         { "axis.fs.glsl", GFX::ShaderType::FRAGMENT }
       });
-    GFX::ShaderManager::Get()->AddShader("flat_color",
-      {
-        { "flat_color.vs.glsl", GFX::ShaderType::VERTEX },
-        { "flat_color.fs.glsl", GFX::ShaderType::FRAGMENT }
-      });
+    //GFX::ShaderManager::Get()->AddShader("flat_color",
+    //  {
+    //    { "flat_color.vs.glsl", GFX::ShaderType::VERTEX },
+    //    { "flat_color.fs.glsl", GFX::ShaderType::FRAGMENT }
+    //  });
     GFX::ShaderManager::Get()->AddShader("fxaa",
       {
         { "fullscreen_tri.vs.glsl", GFX::ShaderType::VERTEX },
@@ -871,6 +871,23 @@ namespace GFX
     ASSERT(reflect.fbo->IsValid());
   }
 
+  bool Renderer::QueryOpenGLExtensionStatus(std::string_view extensionName)
+  {
+    for (const auto& extension : openglExtensions)
+    {
+      if (extension == extensionName)
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  std::vector<std::string>& Renderer::GetAllOpenGLExtensions()
+  {
+    return openglExtensions;
+  }
+
   void Renderer::InitVertexBuffers()
   {
     // TODO: use dynamically sized buffer
@@ -1089,6 +1106,9 @@ namespace GFX
         {
           offsets2[j] = reflect.atrous.offsets[j] * glm::pow(2.0f, i);
         }
+
+        // fake separable a-trous wavelet filter
+        // technically incorrect, but looks good enough
         shader->Set1FloatArray("offsets[0]", offsets2);
         shader->SetBool("u_horizontal", false);
         BindTextureView(0, *reflect.texView[0], *nearestSampler);
@@ -1233,10 +1253,27 @@ namespace GFX
         Renderer::Get()->SetFramebufferSize(static_cast<uint32_t>(width), static_cast<uint32_t>(height));
       });
 
+    // load OpenGL function pointers
     if (!gladLoadGL())
     {
       spdlog::critical("Failed to initialize GLAD");
     }
+
+    // query all available extensions
+    openglExtensions.clear();
+    GLint extensionCount = 0;
+    glGetIntegerv(GL_NUM_EXTENSIONS, &extensionCount);
+    for (int i = 0; i < extensionCount; i++)
+    {
+      // spoopy
+      openglExtensions.push_back(reinterpret_cast<const char*>(glGetStringi(GL_EXTENSIONS, i)));
+    }
+
+    Console::Get()->Log("%zu OpenGL extensions supported", openglExtensions.size());
+    //for (const auto& extension : openglExtensions)
+    //{
+    //  Console::Get()->Log("%s", extension.c_str());
+    //}
 
     return window_;
   }

@@ -1,7 +1,7 @@
 #version 460 core
 
-layout(location = 1, binding = 1) uniform sampler2D u_hdrBuffer;
-layout(location = 2, binding = 2) uniform sampler2D u_blueNoise;
+layout(binding = 1) uniform sampler2D u_hdrBuffer;
+layout(binding = 2) uniform sampler2D u_blueNoise;
 layout(location = 3) uniform bool u_useDithering = true;
 layout(location = 4) uniform bool u_encodeSRGB = true;
 layout(location = 5) uniform float u_exposureFactor = 1.0;

@@ -5,8 +5,8 @@
 
 layout (location = 0) in vec2 vTexCoord;
 
-layout(location = 0, binding = 0) uniform sampler2D u_hdrColor;
-layout(location = 1, binding = 1) uniform sampler2D u_hdrDepth;
+layout(binding = 0) uniform sampler2D u_hdrColor;
+layout(binding = 1) uniform sampler2D u_hdrDepth;
 layout(location = 2) uniform mat4 u_invViewProj;
 layout(location = 3) uniform ivec2 u_viewportSize;
 layout(location = 4) uniform float u_distanceScale = 0.10;

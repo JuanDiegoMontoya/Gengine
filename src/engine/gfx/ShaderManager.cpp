@@ -68,18 +68,10 @@ namespace GFX
     return LoadFileA(shaderpath);
   }
 
-  GLuint CompileShader(GLenum type, const std::string& src, std::string_view path)
+  bool GetShaderCompilationStatus(GFX::ShaderType type, std::string_view path, GLuint shader)
   {
-    GLuint shader = 0;
     GLchar infoLog[512];
     GLint success;
-
-    shader = glCreateShader(type);
-
-    const GLchar* strings = src.c_str();
-
-    glShaderSource(shader, 1, &strings, NULL);
-    glCompileShader(shader);
 
     glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
     if (!success)
@@ -87,10 +79,45 @@ namespace GFX
       glGetShaderInfoLog(shader, 512, NULL, infoLog);
 
       std::cout << "File: " << path << std::endl;
-      std::cout << "Error compiling shader of type " << type << '\n' << infoLog << std::endl;
+      std::cout << "Error compiling shader of type " << (int)type << '\n' << infoLog << std::endl;
+      return false;
+    }
+
+    return true;
+  }
+
+  GLuint CompileShader(GFX::ShaderType type, const std::string& src, std::string_view path)
+  {
+    GLuint shader = 0;
+
+    shader = glCreateShader(shaderTypeToGLType[(int)type]);
+
+    const GLchar* strings = src.c_str();
+
+    glShaderSource(shader, 1, &strings, NULL);
+    glCompileShader(shader);
+
+    GetShaderCompilationStatus(type, path, shader);
+    return shader;
+  }
+
+  GLuint CompileShaderSpirV(GFX::ShaderType type, const std::string& src, const std::string& path, const shaderc::Compiler& compiler, const shaderc::CompileOptions& options)
+  {
+    auto compileResult = compiler.CompileGlslToSpv(
+      src.c_str(), shaderTypeToShadercType[(int)type], path.c_str(), options);
+    if (auto numErr = compileResult.GetNumErrors(); numErr > 0)
+    {
+      printf("%llu shaderc errors compiling %s!\n", numErr, path.c_str());
+      printf("%s", compileResult.GetErrorMessage().c_str());
       return 0;
     }
 
+    GLuint shader = glCreateShader(shaderTypeToGLType[(int)type]);
+    uintptr_t lengthBytes = reinterpret_cast<uintptr_t>(compileResult.end()) - reinterpret_cast<uintptr_t>(compileResult.begin());
+    glShaderBinary(1, &shader, GL_SHADER_BINARY_FORMAT_SPIR_V, compileResult.begin(), lengthBytes);
+    glSpecializeShader(shader, "main", 0, nullptr, nullptr);
+
+    GetShaderCompilationStatus(type, path, shader);
     return shader;
   }
 
@@ -259,7 +286,7 @@ namespace GFX
     return true;
   }
 
-  ShaderData CompileShader(hashed_string name, const std::vector<ShaderCreateInfo>& createInfos)
+  ShaderData CompileProgram(hashed_string name, const std::vector<ShaderCreateInfo>& createInfos)
   {
     ShaderData shader;
     shaderc::Compiler compiler;
@@ -270,8 +297,9 @@ namespace GFX
     options.SetTargetEnvironment(shaderc_target_env_opengl, 450);
     options.SetIncluder(std::make_unique<IncludeHandler>());
     options.SetWarningsAsErrors();
-    options.SetAutoMapLocations(true);
-    options.SetAutoBindUniforms(true);
+    //options.SetAutoMapLocations(true);
+    //options.SetAutoBindUniforms(true);
+    //options.SetGenerateDebugInfo();
 
     std::vector<GLuint> shaderIDs;
     Defer deleteShaders = [&shaderIDs]()
@@ -285,11 +313,8 @@ namespace GFX
     for (auto& [shaderPath, shaderType, replace] : createInfos)
     {
       std::string preprocessedSource = PreprocessShader(compiler, options, replace, shaderPath, shaderTypeToShadercType[(int)shaderType]);
-      GLuint shaderID = CompileShader(shaderTypeToGLType[(int)shaderType], preprocessedSource, shaderPath);
-      if (shaderID == 0)
-      {
-        return shader;
-      }
+      //GLuint shaderID = CompileShader(shaderType, preprocessedSource, shaderPath);
+      GLuint shaderID = CompileShaderSpirV(shaderType, preprocessedSource, shaderPath, compiler, options);
       shaderIDs.push_back(shaderID);
     }
 
@@ -364,7 +389,7 @@ namespace GFX
 
   std::optional<Shader> ShaderManager::AddShader(hashed_string name, const std::vector<ShaderCreateInfo>& createInfos)
   {
-    auto data = CompileShader(name, createInfos);
+    auto data = CompileProgram(name, createInfos);
     if (data.id != 0 && !storage->shaders.contains(name))
     {
       auto it = storage->shaders.emplace(name, std::move(data));
@@ -388,7 +413,7 @@ namespace GFX
       return std::nullopt;
     }
 
-    auto data = CompileShader(name, it->second.createInfos);
+    auto data = CompileProgram(name, it->second.createInfos);
     if (data.id == 0) // compile failed
     {
       return std::nullopt;

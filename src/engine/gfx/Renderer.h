@@ -92,6 +92,9 @@ namespace GFX
     void InitFramebuffers();
     void InitReflectionFramebuffer();
 
+    bool QueryOpenGLExtensionStatus(std::string_view extensionName);
+    std::vector<std::string>& GetAllOpenGLExtensions();
+
   private:
     Renderer() {};
     ~Renderer() {};
@@ -110,6 +113,8 @@ namespace GFX
 
     GLFWwindow* window_{};
     bool isFullscreen{ false };
+
+    std::vector<std::string> openglExtensions;
 
     // resets the GL state to something predictable
     void GL_ResetState();
