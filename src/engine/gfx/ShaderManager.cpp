@@ -288,6 +288,10 @@ namespace GFX
 
   ShaderData CompileProgram(hashed_string name, const std::vector<ShaderCreateInfo>& createInfos)
   {
+    std::string vendor = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
+    std::for_each(vendor.begin(), vendor.end(), [](char& c) { c = std::tolower(c); });
+    bool isVendorNV = vendor.find("nvidia") != std::string::npos;
+
     ShaderData shader;
     shaderc::Compiler compiler;
     ASSERT(compiler.IsValid());
@@ -313,8 +317,17 @@ namespace GFX
     for (auto& [shaderPath, shaderType, replace] : createInfos)
     {
       std::string preprocessedSource = PreprocessShader(compiler, options, replace, shaderPath, shaderTypeToShadercType[(int)shaderType]);
-      //GLuint shaderID = CompileShader(shaderType, preprocessedSource, shaderPath);
-      GLuint shaderID = CompileShaderSpirV(shaderType, preprocessedSource, shaderPath, compiler, options);
+
+      GLuint shaderID{};
+      if (isVendorNV)
+      {
+        shaderID = CompileShaderSpirV(shaderType, preprocessedSource, shaderPath, compiler, options);
+      }
+      else
+      {
+        shaderID = CompileShader(shaderType, preprocessedSource, shaderPath);
+      }
+
       shaderIDs.push_back(shaderID);
     }
 
