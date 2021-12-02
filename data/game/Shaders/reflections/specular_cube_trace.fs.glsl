@@ -7,7 +7,7 @@ layout(location = 0) in vec2 vTexCoord;
 
 layout(binding = 0) uniform sampler2D u_gBufferDepth;
 layout(binding = 1) uniform sampler2D u_gBufferPBR;
-layout(binding = 2) uniform samplerCube u_ReflectionCubemap;
+layout(binding = 2) uniform samplerCube u_ReflectionCubemapDiffuse;
 layout(binding = 3) uniform samplerCube u_ReflectionCubemapDistance;
 layout(binding = 4) uniform samplerCube u_SkyCube;
 layout(binding = 5) uniform sampler2D u_blueNoise;
@@ -58,7 +58,7 @@ vec3 CalcMissReflection(vec3 dir, float lod)
 
 vec3 CalcHitReflection(vec3 dir, float lod)
 {
-  return textureLod(u_ReflectionCubemap, dir, lod).rgb;
+  return textureLod(u_ReflectionCubemapDiffuse, dir, lod).rgb;
 }
 
 vec3 BinarySearch(vec3 rayPos, vec3 reflectDir, float stepDist, float maxError)

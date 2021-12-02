@@ -37,7 +37,7 @@ public:
     // apply some force on this entity
     if (Input::IsKeyPressed(GLFW_KEY_F))
     {
-      auto dir = GetScene()->GetRenderView("main").camera->viewInfo.GetForwardDir();
+      auto dir = GetScene()->GetRenderView("main")->camera->viewInfo.GetForwardDir();
       GetComponent<Component::DynamicPhysics>().Interface().AddForce(dir * 50.f);
     }
     

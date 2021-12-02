@@ -2,6 +2,7 @@
 #include <utility/Flags.h>
 #include <cstdint>
 #include "BasicTypes.h"
+#include "RenderInfo.h"
 
 namespace GFX
 {
@@ -37,26 +38,18 @@ namespace GFX
     // render atmospheric fog
     RenderFog             = 1 << 6,
 
-    // clear color at the start of each frame
-    ClearColorEachFrame   = 1 << 7,
-
-    // clear color at the start of each frame
-    ClearDepthEachFrame   = 1 << 8,
-
     // early fog pass (before shading) for probes
-    RenderEarlyFog        = 1 << 9,
+    RenderEarlyFog        = 1 << 7,
   };
   DECLARE_FLAG_TYPE(RenderMask, RenderMaskBit, uint32_t)
 
   struct RenderView
   {
-    GFX::Framebuffer* renderTarget{};
-    GFX::Camera* camera{};
+    RenderInfo renderInfo{};
+    Camera* camera{};
     RenderMask mask{};
-    Offset2D offset{};
-    Extent2D size{};
 
-    bool operator==(const RenderView&) const = default;
+    bool operator==(const RenderView& b) const;
   };
 
   template<typename T> struct hash;

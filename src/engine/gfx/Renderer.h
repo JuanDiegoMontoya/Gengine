@@ -40,28 +40,28 @@ namespace GFX
     // big boy drawing functions
     void BeginObjects(size_t maxDraws);
     void SubmitObject(const Component::Model& model, const Component::BatchedMesh& mesh, const Component::Material& mat);
-    void RenderObjects(std::span<RenderView> renderViews);
+    void RenderObjects(std::span<RenderView*> renderViews);
 
     void BeginEmitters(size_t maxDraws);
     void SubmitEmitter(const Component::ParticleEmitter& emitter, const Component::Transform& model);
-    void RenderEmitters(std::span<RenderView> renderViews);
+    void RenderEmitters(std::span<RenderView*> renderViews);
 
-    void DrawFog(std::span<RenderView> renderViews, bool earlyFogPass);
+    void DrawFog(std::span<RenderView*> renderViews, bool earlyFogPass);
 
     // generic drawing functions (TODO: move)
-    void DrawAxisIndicator(std::span<RenderView> renderViews);
-    void DrawSky(std::span<RenderView> renderViews);
+    void DrawAxisIndicator(std::span<RenderView*> renderViews);
+    void DrawSky(std::span<RenderView*> renderViews);
 
     void StartFrame();
-    void ClearFramebuffers(std::span<RenderView> renderViews);
+    void ClearFramebuffers(std::span<RenderView*> renderViews);
     void ApplyShading();
     void AntialiasAndWriteSwapchain();
     void ApplyTonemap(float dt);
 
-    // returns the framebuffer which is displayed on the screen
-    // do not modify this framebuffer
-    [[nodiscard]] Framebuffer* GetMainFramebuffer() { return &gBuffer.fbo.value(); }
-    [[nodiscard]] Extent2D GetMainFramebufferDims() const { return { renderWidth, renderHeight }; }
+    // feel free to modify the camera and/or the render mask, but not the render info of the returned RenderView
+    [[nodiscard]] RenderView* GetMainRenderView() { return &gBuffer.renderView; }
+    [[nodiscard]] RenderView* GetProbeRenderView(size_t index) { ASSERT(index < 6); return &probeData.renderViews[index]; }
+    [[nodiscard]] Extent2D GetWindowDimensions() const { return { renderWidth, renderHeight }; }
 
     [[nodiscard]] GFX::DynamicBuffer<>* GetVertexBuffer()
     {
@@ -94,6 +94,9 @@ namespace GFX
 
     bool QueryOpenGLExtensionStatus(std::string_view extensionName);
     std::vector<std::string>& GetAllOpenGLExtensions();
+
+    void SetProbePosition(glm::vec3 worldPos);
+    void SetProbeRenderMask(RenderMask mask);
 
   private:
     Renderer() {};
@@ -133,7 +136,7 @@ namespace GFX
     {
       glm::mat4 model;
     };
-    void RenderBatchHelper(std::span<RenderView> renderViews, MaterialID material, const std::vector<UniformData>& uniformBuffer);
+    void RenderBatchHelper(std::span<RenderView*> renderViews, MaterialID material, const std::vector<UniformData>& uniformBuffer);
 
     // batched+instanced rendering stuff (ONE MATERIAL SUPPORTED ATM)
     std::unique_ptr<GFX::DynamicBuffer<>> vertexBuffer;
@@ -179,6 +182,8 @@ namespace GFX
     struct GBuffer
     {
       std::optional<Framebuffer> fbo;
+      RenderView renderView{};
+      Camera camera{};
       std::optional<Texture> colorTexMemory;
       std::optional<Texture> normalTexMemory;
       std::optional<Texture> depthTexMemory;
@@ -201,15 +206,6 @@ namespace GFX
       float renderScale{};
       Extent2D fboSize{};
 
-      // TODO: currently unused
-      struct ProbeDistanceData_t
-      {
-        std::optional<TextureSampler> sampler;
-        std::optional<TextureView> faceViews[6];
-        std::optional<Texture> colorTextures;
-        std::optional<Texture> depthTextures;
-      }probeDistanceData;
-
       struct
       {
         float kernel[5] = { 0.0625f, 0.25f, 0.375f, 0.25f, 0.0625f };
@@ -220,6 +216,22 @@ namespace GFX
         float step_width{ 1.0f };
       }atrous;
     }reflect;
+
+    struct ProbeData_t
+    {
+      RenderView renderViews[6];
+      Camera cameras[6];
+      std::optional<TextureView> colorViews[6];
+      std::optional<TextureView> depthViews[6];
+      std::optional<TextureView> distanceViews[6];
+      std::optional<Texture> colorCube;
+      std::optional<Texture> depthCube;
+      std::optional<Texture> distanceCube;
+      Format colorFormat = Format::R11G11B10_FLOAT;
+      Format depthFormat = Format::D16_UNORM;
+      Format distanceFormat = Format::R16_FLOAT;
+      Extent2D imageSize{ 512, 512 };
+    }probeData;
 
     struct Composited_t
     {
@@ -270,12 +282,6 @@ namespace GFX
       float edgeBlendStrength = 1.0;
     }fxaa;
   };
-}
 
-struct ProbeFaceInfo
-{
-  GFX::Camera camera;
-  std::optional<GFX::Framebuffer> fbo;
-  std::optional<GFX::TextureView> colorView;
-  std::optional<GFX::TextureView> depthView;
-};
+  void SetFramebufferDrawBuffersAuto(Framebuffer& framebuffer, const RenderInfo& renderInfo, size_t maxCount);
+}

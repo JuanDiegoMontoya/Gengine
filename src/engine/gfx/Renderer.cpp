@@ -25,6 +25,7 @@
 #include "../Parser.h"
 #include <engine/core/StatMacros.h>
 #include "Camera.h"
+#include "../../utility/MathExtensions.h"
 
 #include <imgui/imgui.h>
 
@@ -34,11 +35,9 @@ DECLARE_FLOAT_STAT(Postprocessing, GPU)
 DECLARE_FLOAT_STAT(LuminanceHistogram, GPU)
 DECLARE_FLOAT_STAT(CameraExposure, GPU)
 DECLARE_FLOAT_STAT(FXAA, GPU)
-DECLARE_FLOAT_STAT(Reflections, GPU)
-
-// TODO: hacky hack hackity hack
-extern GFX::Camera mainCamera;
-extern ProbeFaceInfo probeFaces[6];
+DECLARE_FLOAT_STAT(ReflectionsTrace, GPU)
+DECLARE_FLOAT_STAT(ReflectionsDenoise, GPU)
+DECLARE_FLOAT_STAT(ReflectionsComposite, GPU)
 
 namespace GFX
 {
@@ -187,7 +186,7 @@ namespace GFX
     userCommands[index] = BatchDrawCommand{ .mesh = mesh.handle, .material = mat.handle, .modelUniform = model.matrix };
   }
 
-  void Renderer::RenderObjects(std::span<RenderView> renderViews)
+  void Renderer::RenderObjects(std::span<RenderView*> renderViews)
   {
     GFX::DebugMarker marker("Draw batched objects");
 
@@ -239,7 +238,7 @@ namespace GFX
     userCommands.clear();
   }
 
-  void Renderer::RenderBatchHelper(std::span<RenderView> renderViews, MaterialID mat, const std::vector<UniformData>& uniforms)
+  void Renderer::RenderBatchHelper(std::span<RenderView*> renderViews, MaterialID mat, const std::vector<UniformData>& uniforms)
   {
     ASSERT(MaterialManager::Get()->materials_.contains(mat));
     auto& [id, material] = *MaterialManager::Get()->materials_.find(mat);
@@ -291,15 +290,22 @@ namespace GFX
 
     // TODO: perform GPU culling somewhere around here
 
+    auto framebuffer = Framebuffer::Create();
+    framebuffer->Bind();
+
     for (auto& renderView : renderViews)
     {
-      if (!(renderView.mask & RenderMaskBit::RenderObjects))
+      if (!(renderView->mask & RenderMaskBit::RenderObjects))
         continue;
 
-      renderView.renderTarget->Bind();
-      shader->SetMat4("u_viewProj", renderView.camera->GetViewProj());
+      SetFramebufferDrawBuffersAuto(*framebuffer, renderView->renderInfo, 3);
 
-      glViewport(renderView.offset.x, renderView.offset.y, renderView.size.width, renderView.size.height);
+      ASSERT(renderView->renderInfo.depthAttachment.has_value());
+      framebuffer->SetAttachment(Attachment::DEPTH, *renderView->renderInfo.depthAttachment->textureView, 0);
+
+      shader->SetMat4("u_viewProj", renderView->camera->GetViewProj());
+
+      SetViewport(renderView->renderInfo);
       glBindVertexArray(batchVAO);
       glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, (void*)0, static_cast<GLsizei>(commands.size()), 0);
     }
@@ -322,7 +328,7 @@ namespace GFX
     emitterDrawCommands[index] = { &emitter, model.GetModel() };
   }
 
-  void Renderer::RenderEmitters(std::span<RenderView> renderViews)
+  void Renderer::RenderEmitters(std::span<RenderView*> renderViews)
   {
     emitterDrawCommands.resize(emitterDrawIndex);
     if (emitterDrawCommands.empty())
@@ -337,12 +343,20 @@ namespace GFX
     auto shader = GFX::ShaderManager::Get()->GetShader("particle");
     shader->Bind();
 
+    auto framebuffer = Framebuffer::Create();
+    framebuffer->SetDrawBuffers({ { Attachment::COLOR_0 } });
+    framebuffer->Bind();
+
     for (auto& renderView : renderViews)
     {
-      if (!(renderView.mask & RenderMaskBit::RenderEmitters))
+      if (!(renderView->mask & RenderMaskBit::RenderEmitters))
         continue;
 
-      glViewport(renderView.offset.x, renderView.offset.y, renderView.size.width, renderView.size.height);
+      SetViewport(renderView->renderInfo);
+      ASSERT(renderView->renderInfo.colorAttachments[0].has_value());
+      ASSERT(renderView->renderInfo.depthAttachment.has_value());
+      framebuffer->SetAttachment(Attachment::COLOR_0, *renderView->renderInfo.colorAttachments[0]->textureView, 0);
+      framebuffer->SetAttachment(Attachment::DEPTH, *renderView->renderInfo.depthAttachment->textureView, 0);
 
       auto compare = [&renderView](const EmitterDrawCommand& p1, EmitterDrawCommand& p2)
       {
@@ -350,8 +364,8 @@ namespace GFX
         auto pos2 = glm::vec3(p2.modelUniform[3]);
         if (pos1 != pos2)
         {
-          auto len = glm::length2(pos1 - renderView.camera->viewInfo.position) -
-            glm::length2(pos2 - renderView.camera->viewInfo.position);
+          auto len = glm::length2(pos1 - renderView->camera->viewInfo.position) -
+            glm::length2(pos2 - renderView->camera->viewInfo.position);
           if (glm::abs(len) > 0.001f)
           {
             return len > 0.0f;
@@ -363,8 +377,8 @@ namespace GFX
 
       std::sort(emitterDrawCommands.begin(), emitterDrawCommands.end(), compare);
 
-      auto v = renderView.camera->viewInfo.GetViewMatrix();
-      shader->SetMat4("u_viewProj", renderView.camera->GetViewProj());
+      auto v = renderView->camera->viewInfo.GetViewMatrix();
+      shader->SetMat4("u_viewProj", renderView->camera->GetViewProj());
       shader->SetVec3("u_cameraRight", { v[0][0], v[1][0], v[2][0] });
       shader->SetVec3("u_cameraUp", { v[0][1], v[1][1], v[2][1] });
 
@@ -378,7 +392,7 @@ namespace GFX
     }
   }
 
-  void Renderer::DrawFog(std::span<RenderView> renderViews, bool earlyFogPass)
+  void Renderer::DrawFog(std::span<RenderView*> renderViews, bool earlyFogPass)
   {
     GFX::DebugMarker fogMarker("Fog");
 
@@ -397,30 +411,39 @@ namespace GFX
     glDisable(GL_CULL_FACE);
     glBlendFunc(GL_ONE, GL_ZERO);
 
+    auto framebuffer = Framebuffer::Create();
+    framebuffer->SetDrawBuffers({ { Attachment::COLOR_0 } });
+    framebuffer->Bind();
+
     for (auto& renderView : renderViews)
     {
-      if (!(renderView.mask & RenderMaskBit::RenderFog || renderView.mask & RenderMaskBit::RenderEarlyFog))
+      if (!(renderView->mask & RenderMaskBit::RenderFog || renderView->mask & RenderMaskBit::RenderEarlyFog))
         continue;
-      if (earlyFogPass && !(renderView.mask & RenderMaskBit::RenderEarlyFog))
+      if (earlyFogPass && !(renderView->mask & RenderMaskBit::RenderEarlyFog))
         continue;
-      if (!earlyFogPass && (renderView.mask & RenderMaskBit::RenderEarlyFog))
+      if (!earlyFogPass && (renderView->mask & RenderMaskBit::RenderEarlyFog))
         continue;
 
-      glViewport(renderView.offset.x, renderView.offset.y, renderView.size.width, renderView.size.height);
-      shader.SetIVec2("u_viewportSize", { renderView.size.width, renderView.size.height });
+      SetViewport(renderView->renderInfo);
+      shader.SetIVec2("u_viewportSize", { renderView->renderInfo.size.width, renderView->renderInfo.size.height });
+      shader.SetMat4("u_invViewProj", glm::inverse(renderView->camera->GetViewProj()));
 
       // yes, we are reading from the render target while drawing to it
-      // this use case is valid under ARB_texture_barrier
+      // this use case is valid under ARB_texture_barrier (core as of 4.5)
       // see here: https://www.khronos.org/registry/OpenGL/extensions/ARB/ARB_texture_barrier.txt
-      renderView.renderTarget->Bind();
-      shader.SetMat4("u_invViewProj", glm::inverse(renderView.camera->GetViewProj()));
+      ASSERT(renderView->renderInfo.colorAttachments[0].has_value());
+      ASSERT(renderView->renderInfo.depthAttachment.has_value());
+      framebuffer->SetAttachment(Attachment::COLOR_0, *renderView->renderInfo.colorAttachments[0]->textureView, 0);
+      framebuffer->SetAttachment(Attachment::DEPTH, *renderView->renderInfo.depthAttachment->textureView, 0);
 
-      GFX::BindTextureViewNative(0,
-        renderView.renderTarget->GetAttachmentAPIHandle(Attachment::COLOR_0),
-        defaultSampler->GetAPIHandle());
-      GFX::BindTextureViewNative(1,
-        renderView.renderTarget->GetAttachmentAPIHandle(Attachment::DEPTH),
-        defaultSampler->GetAPIHandle());
+      BindTextureView(0, *renderView->renderInfo.colorAttachments[0]->textureView, *nearestSampler);
+      BindTextureView(1, *renderView->renderInfo.depthAttachment->textureView, *nearestSampler);
+      //GFX::BindTextureViewNative(0,
+      //  renderView->renderTarget->GetAttachmentAPIHandle(Attachment::COLOR_0),
+      //  defaultSampler->GetAPIHandle());
+      //GFX::BindTextureViewNative(1,
+      //  renderView->renderTarget->GetAttachmentAPIHandle(Attachment::DEPTH),
+      //  defaultSampler->GetAPIHandle());
 
       glDrawArrays(GL_TRIANGLES, 0, 3);
     }
@@ -535,7 +558,7 @@ namespace GFX
       });
   }
 
-  void Renderer::DrawAxisIndicator(std::span<RenderView> renderViews)
+  void Renderer::DrawAxisIndicator(std::span<RenderView*> renderViews)
   {
     GFX::DebugMarker marker("Draw axis indicator");
 
@@ -547,15 +570,20 @@ namespace GFX
     auto currShader = GFX::ShaderManager::Get()->GetShader("axis");
     currShader->Bind();
 
+    auto framebuffer = Framebuffer::Create();
+    framebuffer->SetDrawBuffers({ { Attachment::COLOR_0 } });
+    framebuffer->Bind();
+
     for (auto& renderView : renderViews)
     {
-      if (!(renderView.mask & GFX::RenderMaskBit::RenderScreenElements))
+      if (!(renderView->mask & GFX::RenderMaskBit::RenderScreenElements))
         continue;
 
-      glViewport(renderView.offset.x, renderView.offset.y, renderView.size.width, renderView.size.height);
+      SetViewport(renderView->renderInfo);
+      ASSERT(renderView->renderInfo.colorAttachments[0].has_value());
+      framebuffer->SetAttachment(Attachment::COLOR_0, *renderView->renderInfo.colorAttachments[0]->textureView, 0);
 
-      renderView.renderTarget->Bind();
-      const Camera& c = *renderView.camera;
+      const Camera& c = *renderView->camera;
       currShader->SetMat4("u_model", glm::translate(glm::mat4(1), c.viewInfo.position + c.viewInfo.GetForwardDir() * 10.f)); // add scaling factor (larger # = smaller visual)
       currShader->SetMat4("u_view", c.viewInfo.GetViewMatrix());
       currShader->SetMat4("u_proj", c.proj);
@@ -566,7 +594,7 @@ namespace GFX
     glBindVertexArray(0);
   }
 
-  void Renderer::DrawSky(std::span<RenderView> renderViews)
+  void Renderer::DrawSky(std::span<RenderView*> renderViews)
   {
     GFX::DebugMarker marker("Draw skybox");
 
@@ -580,15 +608,22 @@ namespace GFX
     shdr->SetInt("u_skybox", 0);
     env.skyboxView->Bind(0, *env.skyboxSampler);
 
+    auto framebuffer = Framebuffer::Create();
+    framebuffer->SetDrawBuffers({ { Attachment::COLOR_0 } });
+    framebuffer->Bind();
+
     for (auto& renderView : renderViews)
     {
-      if (!(renderView.mask & GFX::RenderMaskBit::RenderSky))
+      if (!(renderView->mask & GFX::RenderMaskBit::RenderSky))
         continue;
 
-      glViewport(renderView.offset.x, renderView.offset.y, renderView.size.width, renderView.size.height);
+      SetViewport(renderView->renderInfo);
+      ASSERT(renderView->renderInfo.colorAttachments[0].has_value());
+      ASSERT(renderView->renderInfo.depthAttachment.has_value());
+      framebuffer->SetAttachment(Attachment::COLOR_0, *renderView->renderInfo.colorAttachments[0]->textureView, 0);
+      framebuffer->SetAttachment(Attachment::DEPTH, *renderView->renderInfo.depthAttachment->textureView, 0);
 
-      renderView.renderTarget->Bind();
-      const auto& c = *renderView.camera;
+      const auto& c = *renderView->camera;
       shdr->SetMat4("u_proj", c.proj);
       shdr->SetMat4("u_modview", glm::translate(c.viewInfo.GetViewMatrix(), c.viewInfo.position));
       glDrawArrays(GL_TRIANGLE_STRIP, 0, 14);
@@ -603,12 +638,16 @@ namespace GFX
 
   void Renderer::StartFrame()
   {
-    reflect.fbo->Bind();
     glClearColor(0, 0, 0, 0);
+
+    reflect.fbo->Bind();
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    gBuffer.fbo->Bind();
     glClear(GL_COLOR_BUFFER_BIT);
 
     GL_ResetState();
-
+    
     ImGui::Begin("Tonemapping");
     ImGui::Checkbox("FXAA", &fxaa.enabled);
     ImGui::Checkbox("Dither", &tonemap.tonemapDither);
@@ -630,15 +669,41 @@ namespace GFX
     ImGui::End();
   }
 
-  void Renderer::ClearFramebuffers(std::span<RenderView> renderViews)
+  void Renderer::ClearFramebuffers(std::span<RenderView*> renderViews)
   {
+    auto framebuffer = Framebuffer::Create();
+    framebuffer->SetDrawBuffers({ { Attachment::COLOR_0 } });
+    framebuffer->Bind();
+
     for (auto& renderView : renderViews)
     {
-      renderView.renderTarget->Bind();
-      if (renderView.mask & RenderMaskBit::ClearColorEachFrame)
-        glClear(GL_COLOR_BUFFER_BIT);
-      if (renderView.mask & RenderMaskBit::ClearDepthEachFrame)
-        glClear(GL_DEPTH_BUFFER_BIT);
+      for (size_t i = 0; i < RenderInfo::maxColorAttachments; i++)
+      {
+        const auto& attachment = renderView->renderInfo.colorAttachments[i];
+        if (attachment && attachment->clearEachFrame)
+        {
+          framebuffer->SetAttachment(Attachment::COLOR_0, *attachment->textureView, 0);
+          ASSERT(framebuffer->IsValid());
+          const auto& f = attachment->clearValue.color.f;
+          glClearColor(f[0], f[1], f[2], f[3]);
+          glClear(GL_COLOR_BUFFER_BIT);
+        }
+        framebuffer->ResetAttachment(Attachment::COLOR_0);
+      }
+
+      if (const auto& depthAttachment = renderView->renderInfo.depthAttachment; depthAttachment && depthAttachment->clearEachFrame)
+      {
+        framebuffer->SetAttachment(Attachment::DEPTH, *depthAttachment->textureView, 0);
+        glClearNamedFramebufferfv(framebuffer->GetAPIHandle(), GL_DEPTH, 0, &depthAttachment->clearValue.depthStencil.depth);
+        framebuffer->ResetAttachment(Attachment::DEPTH);
+      }
+
+      if (const auto& stencilAttachment = renderView->renderInfo.stencilAttachment; stencilAttachment && stencilAttachment->clearEachFrame)
+      {
+        framebuffer->SetAttachment(Attachment::DEPTH, *stencilAttachment->textureView, 0);
+        glClearNamedFramebufferiv(framebuffer->GetAPIHandle(), GL_STENCIL, 0, &stencilAttachment->clearValue.depthStencil.stencil);
+        framebuffer->ResetAttachment(Attachment::STENCIL);
+      }
     }
 
     GL_ResetState();
@@ -832,6 +897,42 @@ namespace GFX
     gBuffer.fbo->SetDrawBuffers(drawBuffers);
     ASSERT(gBuffer.fbo->IsValid());
 
+    RenderAttachment diffuseAttachment
+    {
+      .textureView = &*gBuffer.colorTexView,
+      .clearEachFrame = false
+    };
+    RenderAttachment normalAttachment
+    {
+      .textureView = &*gBuffer.normalTexView,
+      .clearEachFrame = false
+    };
+    RenderAttachment pbrAttachment
+    {
+      .textureView = &*gBuffer.PBRTexView,
+      .clearEachFrame = true,
+      .clearValue = { .color = { .f = { 1, 0, 0, 0 } } }
+    };
+    RenderAttachment depthAttachment
+    {
+      .textureView = &*gBuffer.depthTexView,
+      .clearEachFrame = true,
+      .clearValue = { .depthStencil = { .depth = 0.0 } }
+    };
+    RenderInfo renderInfo
+    {
+      .offset = { 0, 0 },
+      .size = fboSize,
+      .colorAttachments = { diffuseAttachment, normalAttachment, pbrAttachment },
+      .depthAttachment = { depthAttachment },
+    };
+    gBuffer.renderView = RenderView
+    {
+      .renderInfo = renderInfo,
+      .camera = &gBuffer.camera,
+      .mask = RenderMaskBit::None
+    };
+
     ldrColorTexMemory = CreateTexture2D(fboSize, Format::R8G8B8A8_UNORM, "LDR Color Texture");
     ldrColorTexView = TextureView::Create(*ldrColorTexMemory, "LDR Color View");
     ldrFbo = Framebuffer::Create();
@@ -888,6 +989,22 @@ namespace GFX
     return openglExtensions;
   }
 
+  void Renderer::SetProbePosition(glm::vec3 worldPos)
+  {
+    for (size_t i = 0; i < 6; i++)
+    {
+      probeData.cameras[i].viewInfo.position = worldPos;
+    }
+  }
+
+  void Renderer::SetProbeRenderMask(RenderMask mask)
+  {
+    for (size_t i = 0; i < 6; i++)
+    {
+      probeData.renderViews[i].mask = mask;
+    }
+  }
+
   void Renderer::InitVertexBuffers()
   {
     // TODO: use dynamically sized buffer
@@ -939,6 +1056,7 @@ namespace GFX
 
   void Renderer::InitTextures()
   {
+    // these are some commonly used blue noise textures
     TextureManager::Get()->AddTexture("blueNoiseRGB",
       *LoadTexture2D("BlueNoise/16_16/LDR_RGB1_0.png", Format::R8G8B8A8_UNORM));
     tonemap.blueNoiseView = TextureView::Create(*TextureManager::Get()->GetTexture("blueNoiseRGB"), "BlueNoiseRGBView");
@@ -953,6 +1071,7 @@ namespace GFX
     samplerState.asBitField.addressModeV = AddressMode::REPEAT;
     tonemap.blueNoiseSampler.emplace(*TextureSampler::Create(samplerState, "BlueNoiseRGBSampler"));
 
+    // TODO: temp, inits the skybox cubemap
     const std::string_view faces[6] =
     {
       "autumn_sky_hdr/px.hdr",
@@ -971,13 +1090,94 @@ namespace GFX
     cubesamplerState.asBitField.addressModeW = AddressMode::MIRRORED_REPEAT;
     env.skyboxSampler = TextureSampler::Create(cubesamplerState, "skycube sampler");
 
+    // init the reflection probe textures
+    GFX::TextureCreateInfo cubeMemInfo
+    {
+      .imageType = GFX::ImageType::TEX_CUBEMAP,
+      .format = probeData.colorFormat,
+      .extent = { probeData.imageSize.width, probeData.imageSize.height, 1 },
+      .mipLevels = 1,
+      .arrayLayers = 6
+    };
+    //cubeMemInfo.mipLevels = glm::floor(glm::log2(glm::max((float)cubeMemInfo.extent.width, (float)cubeMemInfo.extent.height))) + 1;
+    probeData.colorCube = GFX::Texture::Create(cubeMemInfo, "Cube Color");
 
+    cubeMemInfo.format = probeData.depthFormat;
+    probeData.depthCube = GFX::Texture::Create(cubeMemInfo, "Cube Depth");
+
+    cubeMemInfo.format = probeData.distanceFormat;
+    probeData.distanceCube = GFX::Texture::Create(cubeMemInfo, "Cube Depth Distance");
+
+    const glm::vec3 faceDirs[6] =
+    {
+      { 1, 0, 0 },
+      { -1, 0, 0 },
+      { 0, 1, 0 },
+      { 0, -1, 0 },
+      { 0, 0, 1 },
+      { 0, 0, -1 }
+    };
+    const GFX::Constants::CardinalNames upDirs[6] =
+    {
+      GFX::Constants::CardinalNames::NegY,
+      GFX::Constants::CardinalNames::NegY,
+      GFX::Constants::CardinalNames::PosZ,
+      GFX::Constants::CardinalNames::NegZ,
+      GFX::Constants::CardinalNames::NegY,
+      GFX::Constants::CardinalNames::NegY,
+    };
+    for (uint32_t i = 0; i < 6; i++)
+    {
+      GFX::TextureViewCreateInfo cubeViewInfo
+      {
+        .viewType = GFX::ImageType::TEX_2D,
+        .format = probeData.colorFormat,
+        .minLevel = 0,
+        .numLevels = 1,
+        .minLayer = i,
+        .numLayers = 1
+      };
+      probeData.colorViews[i].emplace(*GFX::TextureView::Create(cubeViewInfo, *probeData.colorCube));
+
+      cubeViewInfo.format = probeData.depthFormat;
+      probeData.depthViews[i].emplace(*GFX::TextureView::Create(cubeViewInfo, *probeData.depthCube));
+
+      cubeViewInfo.format = probeData.distanceFormat;
+      probeData.distanceViews[i].emplace(*TextureView::Create(cubeViewInfo, *probeData.distanceCube));
+
+      probeData.cameras[i].proj = MakeInfReversedZProjRH(glm::radians(90.0f), 1.0f, 0.1f);
+      probeData.cameras[i].viewInfo.SetForwardDir(faceDirs[i]);
+      probeData.cameras[i].viewInfo.upDir = upDirs[i];
+      RenderAttachment colorAttachment
+      {
+        .textureView = &*probeData.colorViews[i],
+        .clearEachFrame = false,
+      };
+      RenderAttachment depthAttachment
+      {
+        .textureView = &*probeData.depthViews[i],
+        .clearEachFrame = true,
+        .clearValue = ClearValue {.depthStencil = {.depth = 0.0f } }
+      };
+      probeData.renderViews[i] = RenderView
+      {
+        .renderInfo = RenderInfo
+        {
+          .offset = { 0, 0 },
+          .size = probeData.imageSize,
+          .colorAttachments = { colorAttachment },
+          .depthAttachment = depthAttachment
+        },
+        .camera = &probeData.cameras[i],
+        .mask = RenderMaskBit::None
+      };
+      //scene->RegisterRenderView("ProbeFace" + std::to_string(i), testView);
+    }
   }
 
   void Renderer::DrawReflections()
   {
     DebugMarker marker("Draw reflections");
-    MEASURE_GPU_TIMER_STAT(Reflections);
 
     reflect.fbo->SetAttachment(Attachment::COLOR_0, *reflect.texView[0], 0);
     if (reflectionsHighQualityCvar.Get() != 0)
@@ -994,6 +1194,8 @@ namespace GFX
   void Renderer::DrawReflectionsTrace()
   {
     DebugMarker marker("Cube Traced Reflections");
+    MEASURE_GPU_TIMER_STAT(ReflectionsTrace);
+
     SamplerState ps{};
     ps.asBitField.minFilter = Filter::NEAREST;
     ps.asBitField.magFilter = Filter::NEAREST;
@@ -1005,30 +1207,19 @@ namespace GFX
     // read each face of the cube depth, unproject to get the distance to the camera, and write it to an RXX_FLOAT cube texture face
     auto shader0 = ShaderManager::Get()->GetShader("unproject_depth");
     shader0->Bind();
-    shader0->SetVec3("u_viewPos", probeFaces[0].camera.viewInfo.position);
-    auto fbo = Framebuffer::Create();
-    fbo->SetDrawBuffers({ { Attachment::COLOR_0 } });
-    glViewport(0, 0, 512, 512);
+    shader0->SetVec3("u_viewPos", probeData.cameras[0].viewInfo.position);
+    auto framebuffer = Framebuffer::Create();
+    framebuffer->SetDrawBuffers({ { Attachment::COLOR_0 } });
+    framebuffer->Bind();
+
+    glViewport(0, 0, probeData.imageSize.width, probeData.imageSize.height);
     glBlendFunc(GL_ONE, GL_ZERO);
-    for (uint32_t i = 0; i < 6; i++)
+    for (size_t i = 0; i < 6; i++)
     {
-      GFX::TextureViewCreateInfo cubeViewInfo
-      {
-        .viewType = ImageType::TEX_2D,
-        .format = Format::R16_FLOAT,
-        .minLevel = 0,
-        .numLevels = 1,
-        .minLayer = i,
-        .numLayers = 1
-      };
-      auto probeDistanceFace = TextureView::Create(cubeViewInfo, *TextureManager::Get()->GetTexture("probeDistance"), "probe distance face" + std::to_string(i));
-      cubeViewInfo.format = Format::D16_UNORM;
-      auto probeDepthFace = TextureView::Create(cubeViewInfo, *TextureManager::Get()->GetTexture("probeDepth"), "probe depth face" + std::to_string(i));
-      fbo->SetAttachment(Attachment::COLOR_0, *probeDistanceFace, 0);
-      if (i == 0) fbo->Bind();
-      probeDepthFace->Bind(0, *probeSampler);
+      framebuffer->SetAttachment(Attachment::COLOR_0, *probeData.distanceViews[i], 0);
+      BindTextureView(0, *probeData.depthViews[i], *probeSampler);
       shader0->SetInt("u_depthTex", 0);
-      shader0->SetMat4("u_invViewProj", glm::inverse(probeFaces[i].camera.GetViewProj()));
+      shader0->SetMat4("u_invViewProj", glm::inverse(probeData.cameras[i].GetViewProj()));
       glDrawArrays(GL_TRIANGLES, 0, 3);
     }
 
@@ -1036,16 +1227,14 @@ namespace GFX
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     auto shader = ShaderManager::Get()->GetShader("specular_cube_trace");
     shader->Bind();
-    shader->SetMat4("u_invProj", glm::inverse(mainCamera.proj));
-    shader->SetMat4("u_invView", glm::inverse(mainCamera.viewInfo.GetViewMatrix()));
-    shader->SetVec3("u_viewPos", mainCamera.viewInfo.position);
+    shader->SetMat4("u_invProj", glm::inverse(gBuffer.camera.proj));
+    shader->SetMat4("u_invView", glm::inverse(gBuffer.camera.viewInfo.GetViewMatrix()));
+    shader->SetVec3("u_viewPos", gBuffer.camera.viewInfo.position);
     //shader->SetIVec2("u_screenSize", { renderWidth, renderHeight });
     //shader->SetMat4("u_invViewProj", glm::inverse(mainCamera.GetViewProj()));
 
-    TextureManager::Get()->GetTexture("probeColor")->GenMipmaps();
-    TextureManager::Get()->GetTexture("probeDistance")->GenMipmaps();
-    auto probeColor = TextureView::Create(*TextureManager::Get()->GetTexture("probeColor"));
-    auto probeDistance = TextureView::Create(*TextureManager::Get()->GetTexture("probeDistance"));
+    auto probeColor = TextureView::Create(*probeData.colorCube);
+    auto probeDistance = TextureView::Create(*probeData.distanceCube);
 
     BindTextureView(0, *gBuffer.depthTexView, *nearestSampler);
     BindTextureView(1, *gBuffer.PBRTexView, *nearestSampler);
@@ -1082,6 +1271,7 @@ namespace GFX
   void Renderer::DenoiseReflections()
   {
     DebugMarker marker("Denoise reflections");
+    MEASURE_GPU_TIMER_STAT(ReflectionsDenoise);
 
     if (reflect.atrous.num_passes > 0)
     {
@@ -1093,7 +1283,7 @@ namespace GFX
       shader->SetFloat("n_phi", reflect.atrous.n_phi);
       shader->SetFloat("p_phi", reflect.atrous.p_phi);
       shader->SetFloat("stepwidth", reflect.atrous.step_width);
-      shader->SetMat4("u_invViewProj", glm::inverse(mainCamera.GetViewProj()));
+      shader->SetMat4("u_invViewProj", glm::inverse(gBuffer.camera.GetViewProj()));
       shader->SetIVec2("u_resolution", { reflect.fboSize.width, reflect.fboSize.height });
       shader->Set1FloatArray("kernel[0]", reflect.atrous.kernel);
       shader->Set1FloatArray("offsets[0]", reflect.atrous.offsets);
@@ -1126,12 +1316,13 @@ namespace GFX
   void Renderer::CompositeReflections()
   {
     DebugMarker marker("Composite reflections");
+    MEASURE_GPU_TIMER_STAT(ReflectionsComposite);
 
     auto shader = ShaderManager::Get()->GetShader("specular_composite");
     shader->Bind();
-    shader->SetMat4("u_invProj", glm::inverse(mainCamera.proj));
-    shader->SetMat4("u_invView", glm::inverse(mainCamera.viewInfo.GetViewMatrix()));
-    shader->SetVec3("u_viewPos", mainCamera.viewInfo.position);
+    shader->SetMat4("u_invProj", glm::inverse(gBuffer.camera.proj));
+    shader->SetMat4("u_invView", glm::inverse(gBuffer.camera.viewInfo.GetViewMatrix()));
+    shader->SetVec3("u_viewPos", gBuffer.camera.viewInfo.position);
 
     gBuffer.depthTexView->Bind(0, *nearestSampler);
     gBuffer.PBRTexView->Bind(1, *nearestSampler);
@@ -1331,5 +1522,20 @@ namespace GFX
     reflect.fboSize.width = glm::max(static_cast<uint32_t>(renderWidth * scale), 1u);
     reflect.fboSize.height = glm::max(static_cast<uint32_t>(renderHeight * scale), 1u);
     InitReflectionFramebuffer();
+  }
+
+  void SetFramebufferDrawBuffersAuto(Framebuffer& framebuffer, const RenderInfo& renderInfo, size_t maxCount)
+  {
+    Attachment drawBuffers[RenderInfo::maxColorAttachments]{ Attachment::NONE };
+    for (size_t i = 0, j = 0; i < RenderInfo::maxColorAttachments; i++)
+    {
+      if (const auto& attachment = renderInfo.colorAttachments[i]; attachment.has_value())
+      {
+        framebuffer.SetAttachment(Attachment::COLOR_0 + i, *attachment->textureView, 0);
+        drawBuffers[j] = Attachment::COLOR_0 + i;
+        if (j++ > maxCount) break;
+      }
+    }
+    framebuffer.SetDrawBuffers(drawBuffers);
   }
 }

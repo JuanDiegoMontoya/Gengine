@@ -91,7 +91,7 @@ namespace GFX
     TextureView() {};
     uint32_t id_{};
     TextureViewCreateInfo createInfo_{};
-    Extent3D extent{};
+    Extent3D extent_{};
   };
 
   struct SamplerState

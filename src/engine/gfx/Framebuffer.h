@@ -1,8 +1,8 @@
 #pragma once
 #include <cstdint>
 #include <optional>
-#include "BasicTypes.h"
 #include <span>
+#include "BasicTypes.h"
 
 namespace GFX
 {
@@ -19,7 +19,8 @@ namespace GFX
     Framebuffer& operator=(Framebuffer&& old) noexcept;
     ~Framebuffer();
 
-    void SetAttachment(Attachment slot, TextureView& view, uint32_t level);
+    void SetAttachment(Attachment slot, const TextureView& view, uint32_t level);
+    void ResetAttachment(Attachment slot);
     void SetDrawBuffers(std::span<const Attachment> slots);
     void Bind();
 

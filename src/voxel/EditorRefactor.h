@@ -21,7 +21,7 @@ private:
   void LoadRegion();
   void CancelSelection();
   void SelectBlock();
-  void DrawSelection(std::span<GFX::RenderView> renderViews);
+  void DrawSelection(std::span<GFX::RenderView*> renderViews);
 
   Voxels::VoxelManager& voxels;
 

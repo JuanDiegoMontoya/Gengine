@@ -17,7 +17,7 @@ void PhysicsPlayerController::OnCreate()
 void PhysicsPlayerController::OnUpdate(Timestep timestep)
 {
   const auto& transform = GetComponent<Component::Transform>();
-  auto* camera = GetScene()->GetRenderView("main").camera;
+  auto* camera = GetScene()->GetRenderView("main")->camera;
   auto& vi = camera->viewInfo;
   const auto cameraDir = vi.GetForwardDir();
   vi.position = transform.GetTranslation();

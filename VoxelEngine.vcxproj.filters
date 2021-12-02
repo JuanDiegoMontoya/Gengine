@@ -154,6 +154,7 @@
     <ClInclude Include="src\engine\gfx\BasicTypes.h" />
     <ClInclude Include="src\utility\MathExtensions.h" />
     <ClInclude Include="src\engine\gfx\RenderView.h" />
+    <ClInclude Include="src\engine\gfx\RenderInfo.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\engine\ecs\system\DebugSystem.cpp" />
@@ -221,6 +222,7 @@
     <ClCompile Include="src\game\PhysicsPlayerController.cpp" />
     <ClCompile Include="src\game\KinematicPlayerController.cpp" />
     <ClCompile Include="src\engine\gfx\RenderView.cpp" />
+    <ClCompile Include="src\engine\gfx\RenderInfo.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="src\engine\gfx\DynamicBuffer.inl" />

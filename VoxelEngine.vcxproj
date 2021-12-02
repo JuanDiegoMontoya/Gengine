@@ -49,6 +49,7 @@
     <ClInclude Include="src\engine\gfx\Framebuffer.h" />
     <ClInclude Include="src\engine\gfx\BasicTypes.h" />
     <ClInclude Include="src\engine\gfx\MeshManager.h" />
+    <ClInclude Include="src\engine\gfx\RenderInfo.h" />
     <ClInclude Include="src\engine\gfx\RenderView.h" />
     <ClInclude Include="src\engine\Timestep.h" />
     <ClInclude Include="src\utility\Flags.h" />
@@ -297,6 +298,12 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">../PCH.h</PrecompiledHeaderFile>
     </ClCompile>
     <ClCompile Include="src\engine\gfx\Renderer.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../PCH.h</PrecompiledHeaderFile>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">../PCH.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <ClCompile Include="src\engine\gfx\RenderInfo.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../PCH.h</PrecompiledHeaderFile>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>

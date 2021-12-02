@@ -47,8 +47,15 @@ namespace GFX
 
   std::size_t hash<RenderView>::operator()(const RenderView& a) const noexcept
   {
-    auto tup = std::make_tuple(static_cast<void*>(a.renderTarget), static_cast<void*>(a.camera), static_cast<uint32_t>(a.mask), a.offset.x, a.offset.y, a.size.width, a.size.height);
+    // TODO: hash RenderInfo struct
+    auto tup = std::make_tuple(static_cast<void*>(a.camera), static_cast<uint32_t>(a.mask), a.renderInfo.offset.x, a.renderInfo.offset.y, a.renderInfo.size.width, a.renderInfo.size.height);
     hash<decltype(tup)> hasher;
     return hasher(tup);
+  }
+
+  bool RenderView::operator==(const RenderView& b) const
+  {
+    // TODO: compare renderInfo
+    return camera == b.camera && mask == b.mask;
   }
 }

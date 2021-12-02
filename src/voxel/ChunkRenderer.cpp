@@ -58,7 +58,7 @@ namespace Voxels
       std::unique_ptr<GFX::StaticBuffer> drawCountParameterBuffer;
     };
 
-    std::unordered_map<GFX::RenderView, ViewData, GFX::hash<GFX::RenderView>> perViewData;
+    std::unordered_map<GFX::RenderView*, ViewData> perViewData;
 
     // size of compute shader workgroup
     const int workGroupSize = 64; // defined in compact_batch.cs
@@ -161,7 +161,7 @@ namespace Voxels
     delete data;
   }
 
-  void ChunkRenderer::DrawBuffers(std::span<GFX::RenderView> renderViews)
+  void ChunkRenderer::DrawBuffers(std::span<GFX::RenderView*> renderViews)
   {
     auto sdr = GFX::ShaderManager::Get()->GetShader("buffer_vis");
     sdr->Bind();
@@ -173,13 +173,18 @@ namespace Voxels
     glLineWidth(50);
     glDepthFunc(GL_ALWAYS);
 
+    auto framebuffer = GFX::Framebuffer::Create();
+    framebuffer->SetDrawBuffers({ { GFX::Attachment::COLOR_0 } });
+    framebuffer->Bind();
+
     for (auto& renderView : renderViews)
     {
-      if (!(renderView.mask & GFX::RenderMaskBit::RenderScreenElements))
+      if (!(renderView->mask & GFX::RenderMaskBit::RenderScreenElements))
         continue;
 
-      glViewport(renderView.offset.x, renderView.offset.y, renderView.size.width, renderView.size.height);
-      renderView.renderTarget->Bind();
+      GFX::SetViewport(renderView->renderInfo);
+      ASSERT(renderView->renderInfo.colorAttachments[0].has_value());
+      framebuffer->SetAttachment(GFX::Attachment::COLOR_0, *renderView->renderInfo.colorAttachments[0]->textureView, 0);
 
       data->verticesAllocator->Draw();
     }
@@ -187,7 +192,7 @@ namespace Voxels
     glLineWidth(2);
   }
 
-  void ChunkRenderer::Draw(std::span<GFX::RenderView> renderViews)
+  void ChunkRenderer::Draw(std::span<GFX::RenderView*> renderViews)
   {
     GFX::DebugMarker marker("Draw voxels");
     MEASURE_GPU_TIMER_STAT(DrawVoxelsAll);
@@ -195,7 +200,7 @@ namespace Voxels
     // init data for newly-created cameras
     for (auto& renderView : renderViews)
     {
-      if (!(renderView.mask & GFX::RenderMaskBit::RenderVoxels))
+      if (!(renderView->mask & GFX::RenderMaskBit::RenderVoxels))
         continue;
 
       if (!data->perViewData.contains(renderView))
@@ -210,7 +215,7 @@ namespace Voxels
     //RenderDisoccludedThisFrame(renderViews);
   }
 
-  void ChunkRenderer::RenderVisibleChunks(std::span<GFX::RenderView> renderViews)
+  void ChunkRenderer::RenderVisibleChunks(std::span<GFX::RenderView*> renderViews)
   {
     // TODO: rendering is glitchy when modifying chunks rapidly
     // this is probably due to how the previous frame's visible chunks will be drawn
@@ -238,27 +243,33 @@ namespace Voxels
     state.asBitField.anisotropy = getAnisotropy(anisotropyCVar.Get());
     data->blockTexturesSampler->SetState(state);
     data->blockTexturesView->Bind(0, *data->blockTexturesSampler);
-    auto probeView = GFX::TextureView::Create(*GFX::TextureManager::Get()->GetTexture("probeColor"));
-    probeView->Bind(1, *data->probeSampler);
+    //auto probeView = GFX::TextureView::Create(*GFX::TextureManager::Get()->GetTexture("probeColor"));
+    //probeView->Bind(1, *data->probeSampler);
 
     //auto bufs1 = { GFX::Attachment::COLOR_0, GFX::Attachment::COLOR_1 };
     //GFX::Renderer::Get()->GetMainFramebuffer()->SetDrawBuffers(bufs1);
 
+    auto framebuffer = GFX::Framebuffer::Create();
+    framebuffer->SetDrawBuffers({ { GFX::Attachment::COLOR_0 } });
+    framebuffer->Bind();
+
     for (auto& renderView : renderViews)
     {
-      if (!(renderView.mask & GFX::RenderMaskBit::RenderVoxels))
+      if (!(renderView->mask & GFX::RenderMaskBit::RenderVoxels))
         continue;
       
       auto& [drawIndirectBuffer, parameterBuffer] = data->perViewData[renderView];
       if (!drawIndirectBuffer)
         continue;
 
-      glViewport(renderView.offset.x, renderView.offset.y, renderView.size.width, renderView.size.height);
-      renderView.renderTarget->Bind();
+      GFX::SetViewport(renderView->renderInfo);
+      GFX::SetFramebufferDrawBuffersAuto(*framebuffer, renderView->renderInfo, 3);
+      ASSERT(renderView->renderInfo.depthAttachment.has_value());
+      framebuffer->SetAttachment(GFX::Attachment::DEPTH, *renderView->renderInfo.depthAttachment->textureView, 0);
 
-      currShader->SetBool("u_disableOcclusionCulling", !!(renderView.mask & GFX::RenderMaskBit::RenderVoxelsNear));
-      currShader->SetVec3("u_viewpos", renderView.camera->viewInfo.position);
-      currShader->SetMat4("u_viewProj", renderView.camera->GetViewProj());
+      currShader->SetBool("u_disableOcclusionCulling", !!(renderView->mask & GFX::RenderMaskBit::RenderVoxelsNear));
+      currShader->SetVec3("u_viewpos", renderView->camera->viewInfo.position);
+      currShader->SetMat4("u_viewProj", renderView->camera->GetViewProj());
 
       drawIndirectBuffer->Bind<GFX::Target::DRAW_INDIRECT_BUFFER>();
       parameterBuffer->Bind<GFX::Target::PARAMETER_BUFFER>();
@@ -270,11 +281,11 @@ namespace Voxels
     //GFX::Renderer::Get()->GetMainFramebuffer()->SetDrawBuffers(bufs2);
 
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-    probeView->Unbind(0);
+    //probeView->Unbind(0);
     data->blockTexturesView->Unbind(0);
   }
 
-  void ChunkRenderer::GenerateDrawIndirectBuffer(std::span<GFX::RenderView> renderViews)
+  void ChunkRenderer::GenerateDrawIndirectBuffer(std::span<GFX::RenderView*> renderViews)
   {
     GFX::DebugMarker marker("Generate draw commands");
     MEASURE_GPU_TIMER_STAT(GenerateDIB);
@@ -301,10 +312,10 @@ namespace Voxels
 
     for (auto& renderView : renderViews)
     {
-      if (!(renderView.mask & GFX::RenderMaskBit::RenderVoxels))
+      if (!(renderView->mask & GFX::RenderMaskBit::RenderVoxels))
         continue;
 
-      if (renderView.mask & GFX::RenderMaskBit::RenderVoxelsNear)
+      if (renderView->mask & GFX::RenderMaskBit::RenderVoxelsNear)
       {
         sdr->SetBool("u_disableOcclusionCulling", true);
         sdr->SetFloat("u_lowQualityCullDistance", lowQualityCullDistance.Get());
@@ -317,8 +328,8 @@ namespace Voxels
       auto& [drawIndirectBuffer, parameterBuffer] = data->perViewData[renderView];
 
       // set uniforms for chunk rendering
-      sdr->SetVec3("u_viewpos", renderView.camera->viewInfo.position);
-      GFX::Frustum fr(renderView.camera->proj, renderView.camera->viewInfo.GetViewMatrix());
+      sdr->SetVec3("u_viewpos", renderView->camera->viewInfo.position);
+      GFX::Frustum fr(renderView->camera->proj, renderView->camera->viewInfo.GetViewMatrix());
       for (int i = 0; i < 5; i++) // ignore near plane
       {
         std::string uname = "u_viewfrustum.data_[" + std::to_string(i) + "][0]";
@@ -350,7 +361,7 @@ namespace Voxels
     data->activeAllocs = data->verticesAllocator->ActiveAllocs();
   }
 
-  void ChunkRenderer::RenderOcclusion(std::span<GFX::RenderView> renderViews)
+  void ChunkRenderer::RenderOcclusion(std::span<GFX::RenderView*> renderViews)
   {
     GFX::DebugMarker marker("Draw occlusion volumes");
     if (freezeCullingCVar.Get())
@@ -363,27 +374,39 @@ namespace Voxels
     }
     glDisable(GL_CULL_FACE);
 
+    const bool drawOcclusion = drawOcclusionVolumesCVar.Get() != 0.0;
+
     auto sr = GFX::ShaderManager::Get()->GetShader("chunk_render_cull");
     sr->Bind();
     sr->SetUInt("u_chunk_size", Chunk::CHUNK_SIZE);
-    sr->SetBool("u_debugDraw", drawOcclusionVolumesCVar.Get() != 0.0);
+    sr->SetBool("u_debugDraw", drawOcclusion);
+
+    auto framebuffer = GFX::Framebuffer::Create();
+    framebuffer->Bind();
+    framebuffer->SetDrawBuffers({ { drawOcclusion ? GFX::Attachment::COLOR_0 : GFX::Attachment::NONE } });
 
     for (auto& renderView : renderViews)
     {
       // only draw occlusion for views that draw voxels AND don't have the RenderVoxelsNear bit set
-      if ((renderView.mask & GFX::RenderMaskBit::RenderVoxelsNear) ||
-        !(renderView.mask & GFX::RenderMaskBit::RenderVoxels))
+      if ((renderView->mask & GFX::RenderMaskBit::RenderVoxelsNear) ||
+        !(renderView->mask & GFX::RenderMaskBit::RenderVoxels))
       {
         continue;
       }
 
       auto& [drawIndirectBuffer, parameterBuffer] = data->perViewData[renderView];
 
-      glViewport(renderView.offset.x, renderView.offset.y, renderView.size.width, renderView.size.height);
+      GFX::SetViewport(renderView->renderInfo);
+      ASSERT(renderView->renderInfo.depthAttachment.has_value());
+      framebuffer->SetAttachment(GFX::Attachment::DEPTH, *renderView->renderInfo.depthAttachment->textureView, 0);
 
-      renderView.renderTarget->Bind();
+      if (drawOcclusion)
+      {
+        ASSERT(renderView->renderInfo.colorAttachments[0].has_value());
+        framebuffer->SetAttachment(GFX::Attachment::COLOR_0, *renderView->renderInfo.colorAttachments[0]->textureView, 0);
+      }
 
-      const glm::mat4 viewProj = renderView.camera->GetViewProj();
+      const glm::mat4 viewProj = renderView->camera->GetViewProj();
       sr->SetMat4("u_viewProj", viewProj);
 
       glBindBuffer(GL_SHADER_STORAGE_BUFFER, data->verticesAllocator->GetID());
@@ -406,7 +429,7 @@ namespace Voxels
     glColorMask(true, true, true, true);
   }
 
-  void ChunkRenderer::RenderDisoccludedThisFrame([[maybe_unused]] std::span<GFX::RenderView> renderViews)
+  void ChunkRenderer::RenderDisoccludedThisFrame([[maybe_unused]] std::span<GFX::RenderView*> renderViews)
   {
     GFX::DebugMarker marker("Draw disoccluded chunks");
     // Drawing logic:

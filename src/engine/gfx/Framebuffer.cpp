@@ -68,17 +68,23 @@ namespace GFX
     }
   }
 
-  void Framebuffer::SetAttachment(Attachment slot, TextureView& view, uint32_t level)
+  void Framebuffer::SetAttachment(Attachment slot, const TextureView& view, uint32_t level)
   {
     glNamedFramebufferTexture(handle_, glAttachments[static_cast<uint32_t>(slot)], view.id_, level);
+  }
+
+  void Framebuffer::ResetAttachment(Attachment slot)
+  {
+    glNamedFramebufferTexture(handle_, glAttachments[static_cast<uint32_t>(slot)], 0, 0);
   }
 
   void Framebuffer::SetDrawBuffers(std::span<const Attachment> slots)
   {
     ASSERT(slots.size() < 8);
     GLenum buffers[8]{};
-    for (uint32_t i = 0; i < slots.size(); i++)
+    for (size_t i = 0; i < slots.size(); i++)
     {
+      ASSERT(slots[i] <= Attachment::COLOR_ATTACHMENT_MAX);
       buffers[i] = glAttachments[static_cast<uint32_t>(slots[i])];
     }
     glNamedFramebufferDrawBuffers(handle_, slots.size(), buffers);
@@ -86,12 +92,12 @@ namespace GFX
 
   bool Framebuffer::IsValid() const
   {
-    return glCheckNamedFramebufferStatus(handle_, GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE;
+    GLenum status = glCheckNamedFramebufferStatus(handle_, GL_FRAMEBUFFER);
+    return status == GL_FRAMEBUFFER_COMPLETE;
   }
 
   void Framebuffer::Bind()
   {
-    ASSERT(IsValid());
     glBindFramebuffer(GL_FRAMEBUFFER, handle_);
   }
 

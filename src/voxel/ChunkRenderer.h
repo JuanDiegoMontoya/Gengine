@@ -20,8 +20,8 @@ namespace Voxels
     ~ChunkRenderer();
 
     // for debug
-    void DrawBuffers(std::span<GFX::RenderView> renderViews);
-    void Draw(std::span<GFX::RenderView> renderViews);
+    void DrawBuffers(std::span<GFX::RenderView*> renderViews);
+    void Draw(std::span<GFX::RenderView*> renderViews);
 
     uint64_t AllocChunkMesh(std::span<uint32_t> vertices, const AABB& aabb);
     void FreeChunkMesh(uint64_t allocHandle);
@@ -43,10 +43,10 @@ namespace Voxels
     $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$*/
 
   private:
-    void RenderVisibleChunks(std::span<GFX::RenderView> renderViews);   // phase 1
-    void GenerateDrawIndirectBuffer(std::span<GFX::RenderView> renderViews);     // phase 2
-    void RenderOcclusion(std::span<GFX::RenderView> renderViews); // phase 3
-    void RenderDisoccludedThisFrame(std::span<GFX::RenderView> renderViews);      // phase 4
+    void RenderVisibleChunks(std::span<GFX::RenderView*> renderViews);   // phase 1
+    void GenerateDrawIndirectBuffer(std::span<GFX::RenderView*> renderViews);     // phase 2
+    void RenderOcclusion(std::span<GFX::RenderView*> renderViews); // phase 3
+    void RenderDisoccludedThisFrame(std::span<GFX::RenderView*> renderViews);      // phase 4
 
     // PIMPL
     struct ChunkRendererStorage* data{};

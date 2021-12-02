@@ -13,7 +13,7 @@ void KinematicPlayerController::OnUpdate(Timestep timestep)
     Input::SetCursorVisible(activeCursor);
   }
 
-  auto* camera = GetScene()->GetRenderView("main").camera;
+  auto* camera = GetScene()->GetRenderView("main")->camera;
   auto& vi = camera->viewInfo;
   const auto cameraDir = vi.GetForwardDir();
   auto& controller = GetComponent<Component::CharacterController>();

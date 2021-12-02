@@ -17,7 +17,7 @@ layout(std430, binding = 2) readonly restrict buffer ParticlesRender
   ParticleRenderData particlesRender[];
 };
 
-layout(std430, binding = 3) readonly restrict buffer Drawindices
+layout(std430, binding = 3) readonly restrict buffer DrawIndices
 {
   uint drawIndices[];
 };

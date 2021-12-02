@@ -42,11 +42,11 @@ void PlayerActions::OnUpdate(Timestep timestep)
   }
 
   Entity parent = GetComponent<Component::Parent>().entity;
-  auto* camera = GetScene()->GetRenderView("main").camera;
+  auto* camera = GetScene()->GetRenderView("main")->camera;
   auto& vi = camera->viewInfo;
   auto* controller = dynamic_cast<KinematicPlayerController*>(parent.GetComponent<Component::NativeScriptComponent>().Instance);
 
-  if (Input::IsKeyPressed(GLFW_KEY_V))
+  if (Input::IsKeyDown(GLFW_KEY_V))
   {
     std::optional<Entity> arrow = GetScene()->GetEntity("Arrow");
     if (arrow)
@@ -67,14 +67,14 @@ void PlayerActions::OnUpdate(Timestep timestep)
     physics.Interface().AddForce(vi.GetForwardDir() * 300.f);
     auto& lifetime = ent.AddComponent<Component::Lifetime>();
     lifetime.active = true;
-    lifetime.remainingSeconds = 3;
+    lifetime.remainingSeconds = 15;
 
     {
       Component::ParticleEmitter emitter{};
-      emitter.handle = ParticleManager::Get().MakeParticleEmitter(1500, "smoke");
+      emitter.handle = ParticleManager::Get().MakeParticleEmitter(15, "smoke");
       emitter.data.minLife = 1.0f;
       emitter.data.maxLife = 2.0f;
-      emitter.data.interval = .001;
+      emitter.data.interval = .1;
       emitter.data.minParticleOffset = { -.5, -.5, -.5 };
       emitter.data.maxParticleOffset = { .5, .5, .5 };
       emitter.data.minParticleAccel = { -.5, 1, -.5 };
@@ -88,26 +88,26 @@ void PlayerActions::OnUpdate(Timestep timestep)
       ent.AddComponent<Component::ParticleEmitter>(emitter);
     }
 
-    Entity child = CreateEntity("ArrowSmoke");
-    child.SetParent(ent);
-    child.AddComponent<Component::Transform>();
-    child.AddComponent<Component::LocalTransform>();
-    {
-      Component::ParticleEmitter emitter2{};
-      emitter2.handle = ParticleManager::Get().MakeParticleEmitter(3500, "smoke");
-      emitter2.data.minLife = 3.0f;
-      emitter2.data.maxLife = 4.0f;
-      emitter2.data.interval = .001;
-      emitter2.data.minParticleAccel = { -2, 1, -2 };
-      emitter2.data.maxParticleAccel = { 2, 2, 2 };
-      emitter2.data.minParticleScale = { .3, .3 };
-      emitter2.data.maxParticleScale = { .3, .3 };
-      emitter2.data.minParticleOffset = { -1, -1, -1 };
-      emitter2.data.maxParticleOffset = { 1, 2, 1 };
-      emitter2.data.minParticleColor = { .4, .4, .4, .1 };
-      emitter2.data.maxParticleColor = { .5, .5, .5, .2 };
-      child.AddComponent<Component::ParticleEmitter>(emitter2);
-    }
+    //Entity child = CreateEntity("ArrowSmoke");
+    //child.SetParent(ent);
+    //child.AddComponent<Component::Transform>();
+    //child.AddComponent<Component::LocalTransform>();
+    //{
+    //  Component::ParticleEmitter emitter2{};
+    //  emitter2.handle = ParticleManager::Get().MakeParticleEmitter(3500, "smoke");
+    //  emitter2.data.minLife = 3.0f;
+    //  emitter2.data.maxLife = 4.0f;
+    //  emitter2.data.interval = .001;
+    //  emitter2.data.minParticleAccel = { -2, 1, -2 };
+    //  emitter2.data.maxParticleAccel = { 2, 2, 2 };
+    //  emitter2.data.minParticleScale = { .3, .3 };
+    //  emitter2.data.maxParticleScale = { .3, .3 };
+    //  emitter2.data.minParticleOffset = { -1, -1, -1 };
+    //  emitter2.data.maxParticleOffset = { 1, 2, 1 };
+    //  emitter2.data.minParticleColor = { .4, .4, .4, .1 };
+    //  emitter2.data.maxParticleColor = { .5, .5, .5, .2 };
+    //  child.AddComponent<Component::ParticleEmitter>(emitter2);
+    //}
   }
 
   ImGui::Begin("Particle Emitter Settings");
@@ -253,7 +253,7 @@ void PlayerActions::checkBlockPlacement()
 {
   if (Input::IsInputActionPressed("Build"))
   {
-    auto& vi = GetScene()->GetRenderView("main").camera->viewInfo;
+    auto& vi = GetScene()->GetRenderView("main")->camera->viewInfo;
 
     //const auto cam = CameraSystem::ActiveCamera;
     voxels->Raycast(
@@ -331,7 +331,7 @@ void PlayerActions::checkBlockDestruction(float dt)
       !ImGui::IsAnyItemFocused()*/)
   {
     bool hit = false;
-    auto& vi = GetScene()->GetRenderView("main").camera->viewInfo;
+    auto& vi = GetScene()->GetRenderView("main")->camera->viewInfo;
     //const auto cam = CameraSystem::ActiveCamera;
     voxels->Raycast(
       vi.position,
@@ -386,7 +386,7 @@ void PlayerActions::checkBlockPick()
     !ImGui::IsAnyItemActive() &&
     !ImGui::IsAnyItemFocused()*/)
   {
-    auto& vi = GetScene()->GetRenderView("main").camera->viewInfo;
+    auto& vi = GetScene()->GetRenderView("main")->camera->viewInfo;
     //const auto cam = CameraSystem::ActiveCamera;
     voxels->Raycast(
       vi.position,

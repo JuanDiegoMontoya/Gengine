@@ -98,7 +98,7 @@ void Editor::SelectBlock()
   }
 }
 
-void Editor::DrawSelection(std::span<GFX::RenderView> renderViews)
+void Editor::DrawSelection(std::span<GFX::RenderView*> renderViews)
 {
   {
     ImGui::Begin("Selection Zone");
@@ -196,13 +196,14 @@ void Editor::DrawSelection(std::span<GFX::RenderView> renderViews)
 
     for (auto& renderView : renderViews)
     {
-      if (!(renderView.mask & GFX::RenderMaskBit::RenderScreenElements))
+      if (!(renderView->mask & GFX::RenderMaskBit::RenderScreenElements))
         continue;
 
-      renderView.renderTarget->Bind();
+      // TODO
+      //renderView.renderTarget->Bind();
 
-      curr->SetMat4("u_view", renderView.camera->viewInfo.GetViewMatrix());
-      curr->SetMat4("u_proj", renderView.camera->proj);
+      curr->SetMat4("u_view", renderView->camera->viewInfo.GetViewMatrix());
+      curr->SetMat4("u_proj", renderView->camera->proj);
       //Renderer::DrawCube(); // TODO
     }
 
@@ -217,7 +218,7 @@ void Editor::Update(Scene* scene)
     open = !open;
   if (open)
   {
-    const auto& vi = scene->GetRenderView("main").camera->viewInfo;
+    const auto& vi = scene->GetRenderView("main")->camera->viewInfo;
 
     voxels.Raycast(
       vi.position,

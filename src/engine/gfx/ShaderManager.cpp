@@ -176,7 +176,7 @@ namespace GFX
     preprocessed = std::regex_replace(preprocessed,
       std::regex(
         R"((#extension\s+GL_GOOGLE_include_directive\s+:\s+\S+)|(#line\s+[0-9]+\s+"[_\/\\0-9a-zA-Z\.]+"))"),
-      "// line removed for combatibility");
+      "// line removed for compatibility");
 
     return preprocessed;
   }

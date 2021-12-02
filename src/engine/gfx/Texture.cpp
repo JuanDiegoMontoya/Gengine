@@ -267,7 +267,7 @@ namespace GFX
   {
     TextureView view;
     view.createInfo_ = createInfo;
-    view.extent = extent;
+    view.extent_ = extent;
     glGenTextures(1, &view.id_); // glCreateTextures does not work here
     glTextureView(view.id_, targets[(int)createInfo.viewType], texture,
       formats[(int)createInfo.format], createInfo.minLevel,
@@ -296,12 +296,13 @@ namespace GFX
   {
     id_ = std::exchange(old.id_, 0);
     createInfo_ = old.createInfo_;
+    extent_ = old.extent_;
   }
 
   TextureView& TextureView::operator=(const TextureView& other)
   {
     if (&other == this) return *this;
-    *this = *Create(other.createInfo_, other.id_, other.extent); // invokes move assignment
+    *this = *Create(other.createInfo_, other.id_, other.extent_); // invokes move assignment
     return *this;
   }
 
@@ -311,6 +312,7 @@ namespace GFX
     this->~TextureView();
     id_ = std::exchange(old.id_, 0);
     createInfo_ = old.createInfo_;
+    extent_ = old.extent_;
     return *this;
   }
 

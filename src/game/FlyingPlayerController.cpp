@@ -8,7 +8,7 @@
 void FlyingPlayerController::OnUpdate(Timestep timestep)
 {
   glm::vec3 translation = GetComponent<Component::Transform>().GetTranslation();
-  auto* camera = GetScene()->GetRenderView("main").camera;
+  auto* camera = GetScene()->GetRenderView("main")->camera;
   auto& vi = camera->viewInfo;
 
   const float speed = 3.5f;
