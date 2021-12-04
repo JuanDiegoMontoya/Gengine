@@ -43,6 +43,7 @@ namespace Voxels
     bStone,
     bDirt,
     bMetal,
+    bOre,
     bGrass,
     bSand,
     bSnow,

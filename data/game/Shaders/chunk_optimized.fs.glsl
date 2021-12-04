@@ -3,10 +3,10 @@
 layout(location = 1) uniform vec3 u_viewPos;
 layout(location = 2) uniform vec3 u_envColor = vec3(1.0);
 layout(location = 3) uniform float u_minBrightness = 0.01;
-layout(binding = 0) uniform sampler2DArray textures;
-layout(location = 5) uniform float u_ambientOcclusionStrength = 0.5;
-layout(binding = 1) uniform samplerCube u_probeCube;
-layout(location = 7) uniform bool u_disableOcclusionCulling;
+layout(location = 4) uniform float u_ambientOcclusionStrength = 0.5;
+layout(binding = 0) uniform sampler2DArray u_diffuseTextures;
+layout(binding = 1) uniform sampler2DArray u_normalTextures;
+layout(binding = 2) uniform sampler2DArray u_PBRTextures;
 
 // material properties
 layout(location = 0) in VS_OUT
@@ -19,8 +19,8 @@ layout(location = 0) in VS_OUT
 }fs_in;
 
 layout(location = 0) out vec4 o_diffuse;
-layout(location = 1) out vec4 o_normal;
-layout(location = 2) out vec4 o_pbr;
+layout(location = 1) out vec3 o_normal;
+layout(location = 2) out vec2 o_pbr;
 
 // dithered transparency
 bool clipTransparency(float alpha)
@@ -69,7 +69,7 @@ float CalculateAO()
 
 void main()
 {
-  vec4 texColor = texture(textures, fs_in.texCoord).rgba;
+  vec4 texColor = texture(u_diffuseTextures, fs_in.texCoord).rgba;
   vec3 normal = GetNormal();
 
   // dithering
@@ -86,27 +86,8 @@ void main()
 
   bool isShiny = abs(fs_in.texCoord.z - 3.0) <= 0.001 || abs(fs_in.texCoord.z - 7.0) <= 0.001;
 
-  if (!u_disableOcclusionCulling && shaded.x == 123.123123123)
-  {
-    vec3 refldir = reflect(normalize(fs_in.posViewSpace), normal);
-    vec3 cubesample = texture(u_probeCube, refldir).rgb;
-    if (isShiny)
-    {
-      cubesample = shaded + cubesample * .001;
-      shaded = cubesample;
-    }
-  }
-
-  //shaded = shaded * .001 + vCubeCoord + .5;
-  if (isShiny)
-  {
-    o_pbr = vec4(0.05, 0.0, 1.0, 1.0);
-  }
-  else
-  {
-    // perfectly rough, not metal
-    o_pbr = vec4(1.0, 0.0, 0.0, 1.0);
-  }
-  o_normal = vec4(GetNormal(), 1.0);
+  vec2 pbr = texture(u_PBRTextures, fs_in.texCoord).xy;
+  o_pbr = pbr;
+  o_normal = GetNormal();
   o_diffuse = vec4(shaded, 1.0);
 }

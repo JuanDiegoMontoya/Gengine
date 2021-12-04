@@ -54,18 +54,6 @@ namespace
     return Utils::map(rng(), 0.0, 1.0, low, high);
   }
 
-  // TODO: split into different structs based on usage (SoA style)
-  //struct Particle // std430 layout
-  //{
-  //  glm::vec4 pos{ -1 };
-  //  glm::vec4 velocity{ 1 };
-  //  glm::vec4 accel{ 1 };
-  //  glm::vec4 color{ 0 };
-  //  float life{ 0 };
-  //  int alive{ 0 };
-  //  glm::vec2 scale{ 1 };
-  //};
-
   struct ParticleSharedData
   {
     glm::vec4 position{ 0 };
@@ -214,7 +202,7 @@ void ParticleSystem::Update(Scene& scene, Timestep timestep)
     particle_shader->SetFloat("u_dt", timestep.dt_effective);
 
     // TODO: hackity hack hack, move to particle rendering in a new compute shader just for culling
-    // it will be slower but offers more flexibility
+    // it will be slower, but offers more flexibility
     const auto* mainRenderViewHack = GFX::Renderer::Get()->GetMainRenderView();
     particle_shader->SetVec3("u_viewPos", mainRenderViewHack->camera->viewInfo.position);
     particle_shader->SetVec3("u_forwardDir", mainRenderViewHack->camera->viewInfo.GetForwardDir());

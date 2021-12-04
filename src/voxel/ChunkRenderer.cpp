@@ -43,6 +43,24 @@ static GFX::Anisotropy getAnisotropy(cvar_float val)
   return GFX::Anisotropy::SAMPLES_1;
 }
 
+static std::vector<std::string> GetBlockTexturePaths(std::string_view type)
+{
+  std::vector<std::string> texs;
+  for (const auto& prop : Voxels::Block::PropertiesTable)
+  {
+    std::string path = "Voxel/" + std::string(prop.name) + "/" + std::string(type) + ".png";
+    std::string realPath = std::string(TextureDir) + std::string(path);
+    bool hasTex = std::filesystem::exists(realPath);
+    if (!hasTex)
+    {
+      spdlog::warn("Texture {} does not exist, using fallback.", path);
+      path = "error/" + std::string(type) + ".png";
+    }
+    texs.push_back(path);
+  }
+  return texs;
+}
+
 namespace Voxels
 {
   struct ChunkRendererStorage
@@ -71,8 +89,12 @@ namespace Voxels
     std::unique_ptr<GFX::StaticBuffer> vertexAllocBuffer;
 
     // resources
-    std::optional<GFX::Texture> blockTextures;
-    std::optional<GFX::TextureView> blockTexturesView;
+    std::optional<GFX::Texture> blockDiffuseTextures;
+    std::optional<GFX::Texture> blockNormalTextures;
+    std::optional<GFX::Texture> blockPBRTextures;
+    std::optional<GFX::TextureView> blockDiffuseTexturesView;
+    std::optional<GFX::TextureView> blockNormalTexturesView;
+    std::optional<GFX::TextureView> blockPBRTexturesView;
     std::optional<GFX::TextureSampler> blockTexturesSampler;
     std::optional<GFX::TextureSampler> probeSampler;
   };
@@ -118,23 +140,18 @@ namespace Voxels
     data->occlusionDib = std::make_unique<GFX::StaticBuffer>(&occlusionCullingCmd, sizeof(occlusionCullingCmd), GFX::BufferFlag::CLIENT_STORAGE);
 
     // assets
-    std::vector<std::string> texs;
-    for (const auto& prop : Block::PropertiesTable)
-    {
-      std::string path = std::string(prop.name) + ".png";
-      std::string realPath = std::string(TextureDir) + std::string(path);
-      bool hasTex = std::filesystem::exists(realPath);
-      if (!hasTex)
-      {
-        spdlog::warn("Texture {} does not exist, using fallback.", path);
-        path = "error.png";
-      }
-      texs.push_back(path);
-    }
-    std::vector<std::string_view> texsView(texs.begin(), texs.end());
-    data->blockTextures = GFX::LoadTexture2DArray(texsView);
-
-    data->blockTexturesView = GFX::TextureView::Create(*data->blockTextures);
+    std::vector<std::string> texsDiffuse = GetBlockTexturePaths("diffuse");
+    std::vector<std::string> texsNormal = GetBlockTexturePaths("normal");
+    std::vector<std::string> texsPBR = GetBlockTexturePaths("pbr");
+    std::vector<std::string_view> texsDiffuseView(texsDiffuse.begin(), texsDiffuse.end());
+    std::vector<std::string_view> texsNormalView(texsNormal.begin(), texsNormal.end());
+    std::vector<std::string_view> texsPBRView(texsPBR.begin(), texsPBR.end());
+    data->blockDiffuseTextures = GFX::LoadTexture2DArray(texsDiffuseView);
+    data->blockNormalTextures = GFX::LoadTexture2DArray(texsNormalView, 0, 0, GFX::Format::R8G8B8_SNORM);
+    data->blockPBRTextures = GFX::LoadTexture2DArray(texsPBRView, 0, 0, GFX::Format::R8G8B8A8_UNORM);
+    data->blockDiffuseTexturesView = GFX::TextureView::Create(*data->blockDiffuseTextures);
+    data->blockNormalTexturesView = GFX::TextureView::Create(*data->blockNormalTextures);
+    data->blockPBRTexturesView = GFX::TextureView::Create(*data->blockPBRTextures);
 
     GFX::SamplerState ss;
     ss.asBitField.magFilter = GFX::Filter::NEAREST;
@@ -232,6 +249,7 @@ namespace Voxels
     glBindVertexArray(data->chunkVao);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, data->verticesAllocator->GetID());
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, data->verticesAllocator->GetID());
+    glBlendFunc(GL_ONE, GL_ZERO);
 
     // render blocks in each active chunk
     auto currShader = GFX::ShaderManager::Get()->GetShader("chunk_optimized");
@@ -242,7 +260,9 @@ namespace Voxels
     GFX::SamplerState state = data->blockTexturesSampler->GetState();
     state.asBitField.anisotropy = getAnisotropy(anisotropyCVar.Get());
     data->blockTexturesSampler->SetState(state);
-    data->blockTexturesView->Bind(0, *data->blockTexturesSampler);
+    data->blockDiffuseTexturesView->Bind(0, *data->blockTexturesSampler);
+    data->blockNormalTexturesView->Bind(1, *data->blockTexturesSampler);
+    data->blockPBRTexturesView->Bind(2, *data->blockTexturesSampler);
     //auto probeView = GFX::TextureView::Create(*GFX::TextureManager::Get()->GetTexture("probeColor"));
     //probeView->Bind(1, *data->probeSampler);
 
@@ -267,7 +287,6 @@ namespace Voxels
       ASSERT(renderView->renderInfo.depthAttachment.has_value());
       framebuffer->SetAttachment(GFX::Attachment::DEPTH, *renderView->renderInfo.depthAttachment->textureView, 0);
 
-      currShader->SetBool("u_disableOcclusionCulling", !!(renderView->mask & GFX::RenderMaskBit::RenderVoxelsNear));
       currShader->SetVec3("u_viewpos", renderView->camera->viewInfo.position);
       currShader->SetMat4("u_viewProj", renderView->camera->GetViewProj());
 
@@ -281,8 +300,10 @@ namespace Voxels
     //GFX::Renderer::Get()->GetMainFramebuffer()->SetDrawBuffers(bufs2);
 
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-    //probeView->Unbind(0);
-    data->blockTexturesView->Unbind(0);
+
+    GFX::UnbindTextureView(2);
+    GFX::UnbindTextureView(1);
+    GFX::UnbindTextureView(0);
   }
 
   void ChunkRenderer::GenerateDrawIndirectBuffer(std::span<GFX::RenderView*> renderViews)

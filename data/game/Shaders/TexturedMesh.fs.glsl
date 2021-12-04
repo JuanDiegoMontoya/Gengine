@@ -20,6 +20,7 @@ void main()
   vec3 normalColor = fs_in.normal * .5 + .5;
   o_diffuse = vec4(mix(texColor, normalColor, fs_in.posWorldSpace / 100), 1.0);
   o_diffuse.rgb *= abs(sin(u_time));
-  o_normal = vec4(normalize(fs_in.normal), 1.0);
+  //o_normal = vec4(normalize(fs_in.normal), 1.0);
+  o_normal = vec4(normalize(cross(dFdx(fs_in.posWorldSpace), dFdy(fs_in.posWorldSpace))), 1.0);
   o_pbr = vec4(0.0, 0.0, 0.0, 1.0);
 }

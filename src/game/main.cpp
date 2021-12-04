@@ -76,7 +76,7 @@ void OnStart(Scene* scene)
 
   auto mySetter = [](hashed_string id, GFX::Shader& shader) { shader.SetFloat(id, (float)ProgramTimer::TimeSeconds()); };
 
-  GFX::TextureManager::Get()->AddTexture("error", *GFX::LoadTexture2D("error.png"));
+  GFX::TextureManager::Get()->AddTexture("error", *GFX::LoadTexture2D("error/diffuse.png"));
   auto view = GFX::TextureView::Create(*GFX::TextureManager::Get()->GetTexture("error"), "batched material view");
   auto sampler = GFX::TextureSampler::Create(GFX::SamplerState{}, "batched material sampler");
   GFX::PerMaterialUniformData uniformData;
@@ -97,7 +97,7 @@ void OnStart(Scene* scene)
   }
 
   GFX::TextureManager::Get()->AddTexture("smoke", *GFX::LoadTexture2D("smoke.png"));
-  GFX::TextureManager::Get()->AddTexture("stone", *GFX::LoadTexture2D("stone.png"));
+  GFX::TextureManager::Get()->AddTexture("stone", *GFX::LoadTexture2D("Voxel/stone/diffuse.png"));
 
   using RMB = GFX::RenderMaskBit;
   GFX::RenderMask mask = 

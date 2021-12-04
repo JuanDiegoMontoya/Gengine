@@ -229,7 +229,7 @@ namespace GFX
   template<typename T>
   Attachment operator+(Attachment a, T b) { return static_cast<Attachment>(static_cast<T>(a) + b); }
   template<typename T>
-  Attachment operator+(T b, Attachment a) { a + b; }
+  Attachment operator+(T b, Attachment a) { return a + b; }
 
   enum class AspectMaskBit
   {

@@ -9,6 +9,7 @@ namespace Voxels
     {BlockProperties("stone",      {0, 0, 0, 0}, 1, 2.0f, false)},
     {BlockProperties("dirt",       {0, 0, 0, 0}, 1, 0.5f, true, Visibility::Opaque)},
     {BlockProperties("metal",      {0, 0, 0, 0}, 1)},
+    {BlockProperties("ore",        {0, 0, 0, 0}, 1)},
     {BlockProperties("grass",      {0, 0, 0, 0}, 1, 0.25f)},
     {BlockProperties("sand",       {0, 0, 0, 0}, 1)},
     {BlockProperties("snow",       {0, 0, 0, 0}, 1)},
