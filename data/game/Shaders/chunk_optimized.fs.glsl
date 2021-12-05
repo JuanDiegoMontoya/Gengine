@@ -15,12 +15,12 @@ layout(location = 0) in VS_OUT
   vec3 texCoord;
   vec4 lighting;
   flat uint quadAO;
-  vec3 normal;
+  flat mat3 tbn;
 }fs_in;
 
 layout(location = 0) out vec4 o_diffuse;
 layout(location = 1) out vec3 o_normal;
-layout(location = 2) out vec2 o_pbr;
+layout(location = 2) out vec3 o_pbr;
 
 // dithered transparency
 bool clipTransparency(float alpha)
@@ -44,8 +44,9 @@ bool clipTransparency(float alpha)
 
 vec3 GetNormal()
 {
-  return normalize(cross(dFdx(fs_in.posViewSpace), dFdy(fs_in.posViewSpace)));
+  //return normalize(cross(dFdx(fs_in.posViewSpace), dFdy(fs_in.posViewSpace)));
   //return normalize(fs_in.normal);
+  return fs_in.tbn * normalize((texture(u_normalTextures, fs_in.texCoord).xyz * 2.0 - 1.0));
 }
 
 float CalculateAO()
@@ -80,14 +81,17 @@ void main()
 
   vec3 diffuse = texColor.rgb;
   vec3 envLight = fs_in.lighting.a * u_envColor;
-  vec3 shaded = diffuse * max(fs_in.lighting.rgb, envLight);
-  shaded = max(shaded, vec3(u_minBrightness));
+  vec3 light = max(fs_in.lighting.rgb, envLight);
+  light = max(light, vec3(u_minBrightness));
+  vec3 shaded = diffuse * light;
   shaded = mix(shaded, shaded * CalculateAO(), u_ambientOcclusionStrength);
 
   bool isShiny = abs(fs_in.texCoord.z - 3.0) <= 0.001 || abs(fs_in.texCoord.z - 7.0) <= 0.001;
 
-  vec2 pbr = texture(u_PBRTextures, fs_in.texCoord).xy;
+  vec3 pbr = texture(u_PBRTextures, fs_in.texCoord).xyz;
+//pbr.r += 1.0;
   o_pbr = pbr;
   o_normal = GetNormal();
   o_diffuse = vec4(shaded, 1.0);
+//o_diffuse = vec4(shaded * .0001 + (GetNormal() * .5 + .5), 1.0);
 }

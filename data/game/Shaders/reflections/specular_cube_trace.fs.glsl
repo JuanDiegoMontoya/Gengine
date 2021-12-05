@@ -73,9 +73,7 @@ vec3 BinarySearch(vec3 rayPos, vec3 reflectDir, float stepDist, float maxError)
     rayPos += reflectDir * stepDist * (error < maxError ? -1.0 : 1.0);
   }
 
-  
   return normalize(rayPos - u_viewPos);
-  //return CalcHitReflection(normalize(rayPos - u_viewPos), lod);
 }
 
 float TraceCubemap(vec3 rayStart, vec3 N, vec3 V, vec3 reflectDir, out vec3 cubeHit)
@@ -190,7 +188,7 @@ void main()
 
   vec3 F0 = mix(vec3(0.04), diffuse, metalness);
 
-  o_specularIrradiance.rgb = ComputeSpecularRadiance(gBufferWorldPos, N, V, F0, min(roughness, 0.3));
+  o_specularIrradiance.rgb = ComputeSpecularRadiance(gBufferWorldPos, N, V, F0, min(roughness, 0.10));
   //o_specularIrradiance.rgb = o_specularIrradiance.rgb * .00001 + (N * .5 + .5);
   o_specularIrradiance.a = 1.0;
 }

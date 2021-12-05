@@ -49,9 +49,10 @@ vec3 fixupSpecularIrradiance()
 
 void main()
 {
-  vec2 pbr = texture(u_gBufferPBR, vTexCoord).xy;
+  vec3 pbr = texture(u_gBufferPBR, vTexCoord).xyz;
   float roughness = pbr.x;
   float metalness = pbr.y;
+  float diffuseBlend = pbr.z;
   float gBufferDepth = texture(u_gBufferDepth, vTexCoord).x;
 
   vec3 gBufferDiffuse = texture(u_gBufferDiffuse, vTexCoord).rgb;
@@ -91,5 +92,5 @@ void main()
   // not physical at all because gBufferDiffuse already has diffuse lighting applied to it
   vec3 shaded = gBufferDiffuse * kD + specularIrradiance;
   o_shaded = vec4(shaded, 1.0);
-  o_shaded.rgb = o_shaded.rgb * .00001 + specularIrradiance;
+  //o_shaded.rgb = o_shaded.rgb * .00001 + specularIrradiance;
 }

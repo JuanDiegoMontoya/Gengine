@@ -36,10 +36,9 @@ layout(location = 0) out VS_OUT
   vec3 texCoord;
   vec4 lighting;
   flat uint quadAO;
-  vec3 normal;
+  mat3 tbn;
 }vs_out;
 
-// unused
 const vec3 normals[] =
 {
   { 0, 0, 1 }, // 'far' face    (+z direction)
@@ -47,9 +46,38 @@ const vec3 normals[] =
   {-1, 0, 0 }, // 'left' face   (-x direction)
   { 1, 0, 0 }, // 'right' face  (+x direction)
   { 0, 1, 0 }, // 'top' face    (+y direction)
-  { 0,-1, 0 }  // 'bottom' face (-y direction)
+  { 0,-1, 0 }, // 'bottom' face (-y direction)
 };
 
+const vec3 tangents[] =
+{
+  { 0, 1, 0 },
+  { 0, 1, 0 },
+  { 0, 1, 0 },
+  { 0, 1, 0 },
+  { 0, 0, 1 },
+  { 0, 0,-1 },
+};
+
+const vec3 bitangents[] =
+{
+  {-1, 0, 0 },
+  { 1, 0, 0 },
+  { 0, 0,-1 },
+  { 0, 0, 1 },
+  { 1, 1, 0 },
+  {-1, 0, 0 },
+};
+
+const mat3 tbns[] =
+{
+  { tangents[0], bitangents[0], normals[0] },
+  { tangents[1], bitangents[1], normals[1] },
+  { tangents[2], bitangents[2], normals[2] },
+  { tangents[3], bitangents[3], normals[3] },
+  { tangents[4], bitangents[4], normals[4] },
+  { tangents[5], bitangents[5], normals[5] },
+};
 
 // counterclockwise from bottom right texture coordinates
 const vec2 tex_corners[] =
@@ -119,7 +147,8 @@ void main()
   DecodeQuadLight(quadData[1], vs_out.lighting, quadAO);
 
   vs_out.quadAO = quadAO;
-  vs_out.normal = normals[vertexIndex];
+  //vs_out.normal = normals[face];
+  vs_out.tbn = tbns[face];
   //uint myAO = (quadAO >> (vertexIndex * 2)) & 0x3;
   //vAmbientOcclusion = float(myAO) / 3.0;
 

@@ -147,7 +147,7 @@ namespace Voxels
     std::vector<std::string_view> texsNormalView(texsNormal.begin(), texsNormal.end());
     std::vector<std::string_view> texsPBRView(texsPBR.begin(), texsPBR.end());
     data->blockDiffuseTextures = GFX::LoadTexture2DArray(texsDiffuseView);
-    data->blockNormalTextures = GFX::LoadTexture2DArray(texsNormalView, 0, 0, GFX::Format::R8G8B8_SNORM);
+    data->blockNormalTextures = GFX::LoadTexture2DArray(texsNormalView, 0, 0, GFX::Format::R8G8B8_UNORM);
     data->blockPBRTextures = GFX::LoadTexture2DArray(texsPBRView, 0, 0, GFX::Format::R8G8B8A8_UNORM);
     data->blockDiffuseTexturesView = GFX::TextureView::Create(*data->blockDiffuseTextures);
     data->blockNormalTexturesView = GFX::TextureView::Create(*data->blockNormalTextures);
@@ -261,7 +261,7 @@ namespace Voxels
     state.asBitField.anisotropy = getAnisotropy(anisotropyCVar.Get());
     data->blockTexturesSampler->SetState(state);
     data->blockDiffuseTexturesView->Bind(0, *data->blockTexturesSampler);
-    data->blockNormalTexturesView->Bind(1, *data->blockTexturesSampler);
+    data->blockNormalTexturesView->Bind(1, *data->probeSampler);
     data->blockPBRTexturesView->Bind(2, *data->blockTexturesSampler);
     //auto probeView = GFX::TextureView::Create(*GFX::TextureManager::Get()->GetTexture("probeColor"));
     //probeView->Bind(1, *data->probeSampler);
