@@ -165,6 +165,7 @@ namespace GFX
 
     std::optional<TextureSampler> defaultSampler;
     std::optional<TextureSampler> nearestSampler;
+    std::optional<TextureSampler> linearMipmapNearestSampler;
 
     // HDR inverse-z framebuffer stuff
     std::optional<Framebuffer> ldrFbo;
@@ -185,10 +186,12 @@ namespace GFX
       RenderView renderView{};
       Camera camera{};
       std::optional<Texture> colorTexMemory;
+      std::optional<Texture> colorTexMemoryCopy;
       std::optional<Texture> normalTexMemory;
       std::optional<Texture> depthTexMemory;
       std::optional<Texture> PBRTexMemory;
       std::optional<TextureView> colorTexView;
+      std::optional<TextureView> colorTexViewCopy;
       std::optional<TextureView> normalTexView;
       std::optional<TextureView> depthTexView;
       std::optional<TextureView> PBRTexView;
@@ -282,6 +285,10 @@ namespace GFX
       float edgeBlendStrength = 1.0;
     }fxaa;
   };
+
+  void GenerateTextureMipmapStable(const TextureView& readTexture, const TextureView& writeTexture, const TextureSampler& sampler);
+
+  void UpscaleMipChain(const TextureView& readTexture, const TextureView& writeTexture, const TextureSampler& sampler);
 
   void SetFramebufferDrawBuffersAuto(Framebuffer& framebuffer, const RenderInfo& renderInfo, size_t maxCount);
 }

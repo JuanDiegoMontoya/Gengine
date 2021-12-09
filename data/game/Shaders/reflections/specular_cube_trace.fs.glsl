@@ -163,10 +163,10 @@ vec3 ComputeSpecularRadiance(vec3 rayStart, vec3 N, vec3 V, vec3 F0, float rough
 
 void main()
 {
-  vec2 pbr = texture(u_gBufferPBR, vTexCoord).xy;
+  vec2 pbr = textureLod(u_gBufferPBR, vTexCoord, 0).xy;
   float roughness = pbr.x;
   float metalness = pbr.y;
-  float gBufferDepth = texture(u_gBufferDepth, vTexCoord).x;
+  float gBufferDepth = textureLod(u_gBufferDepth, vTexCoord, 0).x;
 
   if (gBufferDepth == 0.0 || gBufferDepth == 1.0 || roughness > .99)
   {
@@ -179,9 +179,9 @@ void main()
   vec3 gBufferViewPos = WorldPosFromDepthUV(gBufferDepth, vTexCoord, u_invProj);
   vec3 gBufferWorldPos = (u_invView * vec4(gBufferViewPos, 1.0)).xyz;
   
-  vec3 diffuse = texture(u_gBufferDiffuse, vTexCoord).rgb;
+  vec3 diffuse = textureLod(u_gBufferDiffuse, vTexCoord, 0).rgb;
 
-  vec3 N = texture(u_gBufferNormal, vTexCoord).xyz;
+  vec3 N = textureLod(u_gBufferNormal, vTexCoord, 0).xyz;
   //vec3 vpos = gBufferWorldPos - u_viewPos;
   //vec3 N = normalize(cross(dFdxFine(vpos), dFdyFine(vpos)));
   vec3 V = normalize(gBufferWorldPos - u_viewPos);

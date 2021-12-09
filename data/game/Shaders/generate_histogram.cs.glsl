@@ -38,8 +38,8 @@ void main()
   memoryBarrierShared();
 
   uvec2 texSize = textureSize(u_hdrBuffer, 0);
-  uvec2 upscaleFactor = texSize / (gl_NumWorkGroups.xy * gl_WorkGroupSize.xy);
-  uvec2 coords = gl_GlobalInvocationID.xy * upscaleFactor;
+  vec2 upscaleFactor = vec2(texSize) / (gl_NumWorkGroups.xy * gl_WorkGroupSize.xy);
+  uvec2 coords = uvec2(gl_GlobalInvocationID.xy * upscaleFactor);
   if (!any(greaterThanEqual(coords, texSize)))
   {
     vec3 color = texelFetch(u_hdrBuffer, ivec2(coords), 0).rgb;

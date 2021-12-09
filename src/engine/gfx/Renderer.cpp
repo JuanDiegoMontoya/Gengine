@@ -556,6 +556,12 @@ namespace GFX
         { "fullscreen_tri.vs.glsl", GFX::ShaderType::VERTEX },
         { "atrous.fs.glsl", GFX::ShaderType::FRAGMENT }
       });
+
+    GFX::ShaderManager::Get()->AddShader("downscale",
+      { { "downscale.cs.glsl", GFX::ShaderType::COMPUTE } });
+
+    GFX::ShaderManager::Get()->AddShader("upscale",
+      { { "upscale.cs.glsl", GFX::ShaderType::COMPUTE } });
   }
 
   void Renderer::DrawAxisIndicator(std::span<RenderView*> renderViews)
@@ -730,7 +736,7 @@ namespace GFX
       GFX::DebugMarker marker1("FXAA");
       MEASURE_GPU_TIMER_STAT(FXAA);
 
-      ldrColorTexView->Bind(0, *defaultSampler);
+      BindTextureView(0, *ldrColorTexView, *defaultSampler);
       auto shdr = GFX::ShaderManager::Get()->GetShader("fxaa");
       shdr->Bind();
       shdr->SetVec2("u_invScreenSize", { 1.0f / GetRenderWidth(), 1.0f / GetRenderHeight() });
@@ -761,6 +767,14 @@ namespace GFX
   {
     GFX::DebugMarker endframeMarker("Postprocessing");
     MEASURE_GPU_TIMER_STAT(Postprocessing);
+
+    static bool enableBloom = false;
+    ImGui::Checkbox("Enable Bloom", &enableBloom);
+    if (enableBloom)
+    {
+      GenerateTextureMipmapStable(*gBuffer.colorTexView, *gBuffer.colorTexViewCopy, *linearMipmapNearestSampler);
+      UpscaleMipChain(*gBuffer.colorTexViewCopy, *gBuffer.colorTexView, *linearMipmapNearestSampler);
+    }
 
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -876,12 +890,14 @@ namespace GFX
 
   void Renderer::InitFramebuffers()
   {
-    //const int levels = glm::floor(glm::log2(glm::max(fboWidth, fboHeight))) + 1;
-
     Extent2D fboSize = { GetRenderWidth(), GetRenderHeight() };
+
+    const int levels = glm::min(7.0f, glm::floor(glm::log2(glm::max((float)fboSize.width, (float)fboSize.height))) + 1);
     
-    gBuffer.colorTexMemory = CreateTexture2D(fboSize, Format::R16G16B16A16_FLOAT, "GBuffer Color Texture");
+    gBuffer.colorTexMemory = CreateTexture2DMip(fboSize, Format::R16G16B16A16_FLOAT, levels, "GBuffer Color Texture");
+    gBuffer.colorTexMemoryCopy = CreateTexture2DMip(fboSize, Format::R16G16B16A16_FLOAT, levels, "GBuffer Color Texture Copy");
     gBuffer.colorTexView = TextureView::Create(*gBuffer.colorTexMemory, "GBuffer Color View");
+    gBuffer.colorTexViewCopy = TextureView::Create(*gBuffer.colorTexMemoryCopy, "GBuffer Color View Copy");
     gBuffer.depthTexMemory = CreateTexture2D(fboSize, Format::D32_FLOAT, "GBuffer Depth Texture");
     gBuffer.depthTexView = TextureView::Create(*gBuffer.depthTexMemory, "GBuffer Depth View");
     gBuffer.PBRTexMemory = CreateTexture2D(fboSize, Format::R8G8_UNORM, "GBuffer PBR Texture");
@@ -930,7 +946,7 @@ namespace GFX
     {
       .renderInfo = renderInfo,
       .camera = &gBuffer.camera,
-      .mask = RenderMaskBit::None
+      .mask = RenderMaskBit::None // set by the user
     };
 
     ldrColorTexMemory = CreateTexture2D(fboSize, Format::R8G8B8A8_UNORM, "LDR Color Texture");
@@ -944,10 +960,16 @@ namespace GFX
     ASSERT(composited.fbo->IsValid());
 
     SamplerState ss{};
+    ss.asBitField.minFilter = Filter::LINEAR;
+    ss.asBitField.magFilter = Filter::LINEAR;
+    ss.asBitField.mipmapFilter = Filter::LINEAR;
     ss.asBitField.addressModeU = AddressMode::MIRRORED_REPEAT;
     ss.asBitField.addressModeV = AddressMode::MIRRORED_REPEAT;
     ss.asBitField.addressModeW = AddressMode::MIRRORED_REPEAT;
     defaultSampler.emplace(*TextureSampler::Create(ss, "Default Sampler"));
+
+    ss.asBitField.mipmapFilter = Filter::NEAREST;
+    linearMipmapNearestSampler = TextureSampler::Create(ss, "Linear Mipmap Nearest Sampler");
 
     ss.asBitField.minFilter = Filter::NEAREST;
     ss.asBitField.magFilter = Filter::NEAREST;
@@ -1200,7 +1222,7 @@ namespace GFX
     ps.asBitField.minFilter = Filter::NEAREST;
     ps.asBitField.magFilter = Filter::NEAREST;
     ps.asBitField.mipmapFilter = Filter::NEAREST;
-    auto probeSampler = TextureSampler::Create(ps, "probe sampler");
+    auto linearSampler = TextureSampler::Create(ps, "probe sampler");
 
     glBindVertexArray(emptyVao);
 
@@ -1217,7 +1239,7 @@ namespace GFX
     for (size_t i = 0; i < 6; i++)
     {
       framebuffer->SetAttachment(Attachment::COLOR_0, *probeData.distanceViews[i], 0);
-      BindTextureView(0, *probeData.depthViews[i], *probeSampler);
+      BindTextureView(0, *probeData.depthViews[i], *linearSampler);
       shader0->SetInt("u_depthTex", 0);
       shader0->SetMat4("u_invViewProj", glm::inverse(probeData.cameras[i].GetViewProj()));
       glDrawArrays(GL_TRIANGLES, 0, 3);
@@ -1324,21 +1346,12 @@ namespace GFX
     shader->SetMat4("u_invView", glm::inverse(gBuffer.camera.viewInfo.GetViewMatrix()));
     shader->SetVec3("u_viewPos", gBuffer.camera.viewInfo.position);
 
-    gBuffer.depthTexView->Bind(0, *nearestSampler);
-    gBuffer.PBRTexView->Bind(1, *nearestSampler);
-    gBuffer.normalTexView->Bind(2, *nearestSampler);
-    gBuffer.colorTexView->Bind(3, *nearestSampler);
-    //if (frameNumber == 0)
-    //{
-    //  // use this frame's diffuse
-    //}
-    //else
-    //{
-    //  // use last frame's composited texture
-    //  BindTextureView(3, *composited[(frameNumber + 1) % 2].compositedTexView, *nearestSampler);
-    //}
-    //composited[frameNumber % 2].fbo->Bind();
-    reflect.texView[0]->Bind(4, *nearestSampler);
+    BindTextureView(0, *gBuffer.depthTexView, *nearestSampler);
+    BindTextureView(1, *gBuffer.PBRTexView, *defaultSampler);
+    BindTextureView(2, *gBuffer.normalTexView, *defaultSampler);
+    BindTextureView(3, *gBuffer.colorTexView, *defaultSampler);
+    BindTextureView(4, *reflect.texView[0], *nearestSampler);
+
     composited.fbo->Bind();
 
     glBlendFunc(GL_ONE, GL_ZERO);
@@ -1522,6 +1535,60 @@ namespace GFX
     reflect.fboSize.width = glm::max(static_cast<uint32_t>(renderWidth * scale), 1u);
     reflect.fboSize.height = glm::max(static_cast<uint32_t>(renderHeight * scale), 1u);
     InitReflectionFramebuffer();
+  }
+
+  void GenerateTextureMipmapStable(const TextureView& readTexture, const TextureView& writeTexture, const TextureSampler& sampler)
+  {
+    auto ds = GFX::ShaderManager::Get()->GetShader("downscale");
+    ds->Bind();
+    const int local_size = 16;
+    Extent3D extent = writeTexture.GetExtent();
+    uint32_t width = extent.width;
+    uint32_t height = extent.height;
+    ASSERT(readTexture.GetCreateInfo().numLevels == writeTexture.GetCreateInfo().numLevels);
+    for (uint32_t readMip = 0; readMip < readTexture.GetCreateInfo().numLevels - 1; readMip++)
+    {
+      width >>= 1;
+      height >>= 1;
+      ASSERT(width > 0 && height > 0);
+      const int numGroupsX = (width + local_size - 1) / local_size;
+      const int numGroupsY = (height + local_size - 1) / local_size;
+      ds->SetInt("u_readImageMip", readMip);
+      BindTextureView(0, readMip == 0 ? readTexture : writeTexture, sampler);
+      BindImage(0, writeTexture, readMip + 1);
+      glDispatchCompute(numGroupsX, numGroupsY, 1);
+      glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+    }
+  }
+
+  void UpscaleMipChain(const TextureView& readTexture, const TextureView& writeTexture, const TextureSampler& sampler)
+  {
+    auto us = GFX::ShaderManager::Get()->GetShader("upscale");
+    us->Bind();
+    const int local_size = 16;
+    Extent3D extent = writeTexture.GetExtent();
+    const uint32_t baseWidth = extent.width;
+    const uint32_t baseHeight = extent.height;
+    bool first = true;
+    ASSERT(readTexture.GetCreateInfo().numLevels == writeTexture.GetCreateInfo().numLevels);
+    for (int32_t writeMip = writeTexture.GetCreateInfo().numLevels - 1; writeMip >= 0; writeMip--)
+    {
+      uint32_t width = baseWidth >> writeMip;
+      uint32_t height = baseHeight >> writeMip;
+      ASSERT(width > 0 && height > 0);
+      const int numGroupsX = (width + local_size - 1) / local_size;
+      const int numGroupsY = (height + local_size - 1) / local_size;
+      us->SetInt("u_writeImageMip", writeMip);
+      us->SetInt("u_firstPass", first);
+      us->SetInt("u_lastPass", writeMip == 0);
+      us->SetFloat("u_blurWidth", 1.0f);
+      BindTextureView(0, readTexture, sampler);
+      BindTextureView(1, writeTexture, sampler);
+      BindImage(0, writeTexture, writeMip);
+      glDispatchCompute(numGroupsX, numGroupsY, 1);
+      glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+      first = false;
+    }
   }
 
   void SetFramebufferDrawBuffersAuto(Framebuffer& framebuffer, const RenderInfo& renderInfo, size_t maxCount)

@@ -410,10 +410,19 @@ namespace GFX
     if (state.asBitField.minFilter != samplerState_.asBitField.minFilter || force)
     {
       GLint filter{};
-      if (state.asBitField.minFilter == Filter::LINEAR)
-        filter = state.asBitField.mipmapFilter == Filter::LINEAR ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR_MIPMAP_NEAREST;
-      else
-        filter = state.asBitField.mipmapFilter == Filter::LINEAR ? GL_NEAREST_MIPMAP_LINEAR : GL_NEAREST_MIPMAP_NEAREST;
+      switch (state.asBitField.mipmapFilter)
+      {
+      case (Filter::NONE):
+        filter = state.asBitField.minFilter == Filter::LINEAR ? GL_LINEAR : GL_NEAREST;
+        break;
+      case (Filter::NEAREST):
+        filter = state.asBitField.minFilter == Filter::LINEAR ? GL_LINEAR_MIPMAP_NEAREST : GL_NEAREST_MIPMAP_NEAREST;
+        break;
+      case (Filter::LINEAR):
+        filter = state.asBitField.minFilter == Filter::LINEAR ? GL_LINEAR_MIPMAP_LINEAR : GL_NEAREST_MIPMAP_LINEAR;
+        break;
+      default: UNREACHABLE;
+      }
       glSamplerParameteri(id_, GL_TEXTURE_MIN_FILTER, filter);
     }
 
@@ -497,6 +506,12 @@ namespace GFX
     glBindSampler(slot, 0);
   }
 
+  void BindImage(uint32_t slot, const TextureView& textureView, uint32_t level)
+  {
+    glBindImageTexture(slot, textureView.GetAPIHandle(), level, GL_FALSE, 0,
+      GL_READ_WRITE, formats[(int)textureView.GetCreateInfo().format]);
+  }
+
   std::optional<Texture> CreateTexture2D(Extent2D size, Format format, std::string_view name)
   {
     TextureCreateInfo createInfo
@@ -505,6 +520,20 @@ namespace GFX
       .format = format,
       .extent = { size.width, size.height, 1 },
       .mipLevels = 1,
+      .arrayLayers = 1,
+      .sampleCount = SampleCount::ONE
+    };
+    return Texture::Create(createInfo, name);
+  }
+
+  std::optional<Texture> CreateTexture2DMip(Extent2D size, Format format, uint32_t mipLevels, std::string_view name)
+  {
+    TextureCreateInfo createInfo
+    {
+      .imageType = ImageType::TEX_2D,
+      .format = format,
+      .extent = { size.width, size.height, 1 },
+      .mipLevels = mipLevels,
       .arrayLayers = 1,
       .sampleCount = SampleCount::ONE
     };

@@ -84,6 +84,8 @@ namespace GFX
     void Unbind(uint32_t slot) const; // unfortunate, but necessary to prevent state leakage until everything is upgraded
     void SubImage(const TextureUpdateInfo& info) const;
     [[nodiscard]] uint32_t GetAPIHandle() const { return id_; }
+    [[nodiscard]] TextureViewCreateInfo GetCreateInfo() const { return createInfo_; }
+    [[nodiscard]] Extent3D GetExtent() const { return extent_; }
 
   private:
     friend class Framebuffer;
@@ -101,9 +103,9 @@ namespace GFX
     {
       struct
       {
-        Filter magFilter         : 1 = Filter::LINEAR;
-        Filter minFilter         : 1 = Filter::LINEAR;
-        Filter mipmapFilter      : 1 = Filter::LINEAR;
+        Filter magFilter         : 2 = Filter::LINEAR;
+        Filter minFilter         : 2 = Filter::LINEAR;
+        Filter mipmapFilter      : 2 = Filter::NONE;
         AddressMode addressModeU : 3 = AddressMode::CLAMP_TO_EDGE;
         AddressMode addressModeV : 3 = AddressMode::CLAMP_TO_EDGE;
         AddressMode addressModeW : 3 = AddressMode::CLAMP_TO_EDGE;
@@ -151,6 +153,9 @@ namespace GFX
   void BindTextureView(uint32_t slot, const TextureView& textureView, const TextureSampler& textureSampler);
   void UnbindTextureView(uint32_t slot);
 
+  void BindImage(uint32_t slot, const TextureView& textureView, uint32_t level);
+
   // convenience function
   std::optional<Texture> CreateTexture2D(Extent2D size, Format format, std::string_view name = "");
+  std::optional<Texture> CreateTexture2DMip(Extent2D size, Format format, uint32_t mipLevels, std::string_view name = "");
 }

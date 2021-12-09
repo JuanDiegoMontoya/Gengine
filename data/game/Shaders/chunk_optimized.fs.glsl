@@ -86,8 +86,6 @@ void main()
   vec3 shaded = diffuse * light;
   shaded = mix(shaded, shaded * CalculateAO(), u_ambientOcclusionStrength);
 
-  bool isShiny = abs(fs_in.texCoord.z - 3.0) <= 0.001 || abs(fs_in.texCoord.z - 7.0) <= 0.001;
-
   vec3 pbr = texture(u_PBRTextures, fs_in.texCoord).xyz;
 //pbr.r += 1.0;
   o_pbr = pbr;

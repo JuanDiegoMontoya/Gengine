@@ -95,8 +95,12 @@ namespace Voxels
     std::optional<GFX::TextureView> blockDiffuseTexturesView;
     std::optional<GFX::TextureView> blockNormalTexturesView;
     std::optional<GFX::TextureView> blockPBRTexturesView;
-    std::optional<GFX::TextureSampler> blockTexturesSampler;
-    std::optional<GFX::TextureSampler> probeSampler;
+    
+    std::optional<GFX::TextureSampler> anisotropicNearestSampler;
+    std::optional<GFX::TextureSampler> anisotropicLinearSampler;
+
+    std::optional<GFX::TextureSampler> isotropicNearestSampler;
+    std::optional<GFX::TextureSampler> isotropicLinearSampler;
   };
 
   // call after all chunks are initialized
@@ -158,15 +162,16 @@ namespace Voxels
     ss.asBitField.minFilter = GFX::Filter::LINEAR;
     ss.asBitField.mipmapFilter = GFX::Filter::LINEAR;
     ss.asBitField.anisotropy = GFX::Anisotropy::SAMPLES_16;
-    data->blockTexturesSampler = GFX::TextureSampler::Create(ss);
+    data->anisotropicNearestSampler = GFX::TextureSampler::Create(ss);
 
-    GFX::SamplerState cubeSs{};
-    cubeSs.asBitField.magFilter = GFX::Filter::LINEAR;
-    cubeSs.asBitField.minFilter = GFX::Filter::LINEAR;
-    cubeSs.asBitField.addressModeU = GFX::AddressMode::CLAMP_TO_EDGE;
-    cubeSs.asBitField.addressModeV = GFX::AddressMode::CLAMP_TO_EDGE;
-    cubeSs.asBitField.addressModeW = GFX::AddressMode::CLAMP_TO_EDGE;
-    data->probeSampler = GFX::TextureSampler::Create(cubeSs);
+    ss.asBitField.magFilter = GFX::Filter::LINEAR;
+    data->anisotropicLinearSampler = GFX::TextureSampler::Create(ss);
+
+    ss.asBitField.anisotropy = GFX::Anisotropy::SAMPLES_1;
+    data->isotropicLinearSampler = GFX::TextureSampler::Create(ss);
+
+    ss.asBitField.magFilter = GFX::Filter::NEAREST;
+    data->isotropicNearestSampler = GFX::TextureSampler::Create(ss);
 
     //engine::Core::StatisticsManager::Get()->RegisterFloatStat("DrawVoxelsAll", "GPU");
     engine::Core::StatisticsManager::Get()->RegisterFloatStat("DrawVisibleChunks", "GPU");
@@ -257,17 +262,9 @@ namespace Voxels
 
     currShader->SetFloat("u_minBrightness", u_minBrightness);
     currShader->SetVec3("u_envColor", u_envColor);
-    GFX::SamplerState state = data->blockTexturesSampler->GetState();
+    GFX::SamplerState state = data->anisotropicNearestSampler->GetState();
     state.asBitField.anisotropy = getAnisotropy(anisotropyCVar.Get());
-    data->blockTexturesSampler->SetState(state);
-    data->blockDiffuseTexturesView->Bind(0, *data->blockTexturesSampler);
-    data->blockNormalTexturesView->Bind(1, *data->probeSampler);
-    data->blockPBRTexturesView->Bind(2, *data->blockTexturesSampler);
-    //auto probeView = GFX::TextureView::Create(*GFX::TextureManager::Get()->GetTexture("probeColor"));
-    //probeView->Bind(1, *data->probeSampler);
-
-    //auto bufs1 = { GFX::Attachment::COLOR_0, GFX::Attachment::COLOR_1 };
-    //GFX::Renderer::Get()->GetMainFramebuffer()->SetDrawBuffers(bufs1);
+    data->anisotropicNearestSampler->SetState(state);
 
     auto framebuffer = GFX::Framebuffer::Create();
     framebuffer->SetDrawBuffers({ { GFX::Attachment::COLOR_0 } });
@@ -281,6 +278,20 @@ namespace Voxels
       auto& [drawIndirectBuffer, parameterBuffer] = data->perViewData[renderView];
       if (!drawIndirectBuffer)
         continue;
+
+      // we don't need as much quality for probe views
+      if (renderView->mask & GFX::RenderMaskBit::RenderVoxelsNear)
+      {
+        GFX::BindTextureView(0, *data->blockDiffuseTexturesView, *data->isotropicNearestSampler);
+        GFX::BindTextureView(1, *data->blockNormalTexturesView, *data->isotropicLinearSampler);
+        GFX::BindTextureView(2, *data->blockPBRTexturesView, *data->isotropicNearestSampler);
+      }
+      else
+      {
+        GFX::BindTextureView(0, *data->blockDiffuseTexturesView, *data->anisotropicNearestSampler);
+        GFX::BindTextureView(1, *data->blockNormalTexturesView, *data->anisotropicLinearSampler);
+        GFX::BindTextureView(2, *data->blockPBRTexturesView, *data->anisotropicNearestSampler);
+      }
 
       GFX::SetViewport(renderView->renderInfo);
       GFX::SetFramebufferDrawBuffersAuto(*framebuffer, renderView->renderInfo, 3);

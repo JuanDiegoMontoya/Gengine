@@ -416,6 +416,7 @@ namespace GFX
   {
     if (auto it = storage->shaders.find(name); it != storage->shaders.end())
       return Shader(it->second.uniformIDs, it->second.id);
+    ASSERT(false);
     return std::nullopt;
   }
 

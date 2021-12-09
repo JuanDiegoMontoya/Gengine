@@ -180,6 +180,7 @@ namespace GFX
 
   enum class Filter : uint8_t
   {
+    NONE,
     NEAREST,
     LINEAR,
   };
