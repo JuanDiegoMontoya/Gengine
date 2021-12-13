@@ -1,62 +1,39 @@
 #version 460 core
 
-layout(binding = 0) uniform sampler2D u_readImageBlur; // another image
-layout(binding = 1) uniform sampler2D u_readImageMip; // same image as what's being written to
-layout(binding = 0) uniform writeonly image2D u_writeImage;
-layout(location = 0) uniform int u_writeImageMip;
-layout(location = 1) uniform bool u_firstPass;
-layout(location = 2) uniform bool u_lastPass; // no relation
-layout(location = 3) uniform float u_blurWidth;
+layout(binding = 0) uniform sampler2D s_source;
+layout(binding = 1) uniform sampler2D s_targetRead;
+layout(binding = 0) uniform writeonly image2D i_targetWrite;
+layout(location = 1) uniform float u_width = 1.0;
+layout(location = 2) uniform float u_strength = 1.0 / 64.0;
+layout(location = 3) uniform ivec2 u_sourceDim;
+layout(location = 4) uniform ivec2 u_targetDim;
 
 layout(local_size_x = 16, local_size_y = 16) in;
 void main()
 {
-  int readImageMip = u_writeImageMip + 1;
-  ivec2 writeImageSize = imageSize(u_writeImage);
-  ivec2 coords = ivec2(gl_GlobalInvocationID.xy);
+  ivec2 gid = ivec2(gl_GlobalInvocationID.xy);
 
-  if (any(greaterThanEqual(coords, writeImageSize)))
+  if (any(greaterThanEqual(gid, u_targetDim)))
     return;
 
-  vec2 stepWidth = 1.0 / writeImageSize;
+  vec2 texel = 1.0 / u_sourceDim;
 
   // center of written pixel
-  vec2 uv = stepWidth * coords + stepWidth / 2.0;
+  vec2 uv = (vec2(gid) + 0.5) / u_targetDim;
 
-  vec4 rgba = vec4(0);
-  
-  if (!u_firstPass)
-  {
-    rgba += textureLod(u_readImageMip, uv, readImageMip);
-  }
+  vec4 rgba = texelFetch(s_targetRead, gid, 0);
 
-  if (!u_lastPass)
-  {
-    const mat3 blurWeights = 
-    {
-      { 1, 2, 1 },
-      { 2, 4, 2 },
-      { 1, 2, 1 }
-    };
+  vec4 blurSum = vec4(0);
+  blurSum += textureLod(s_source, uv + vec2(-1, -1) * texel * u_width, 0) * 1.0 / 16.0;
+  blurSum += textureLod(s_source, uv + vec2(0, -1)  * texel * u_width, 0) * 2.0 / 16.0;
+  blurSum += textureLod(s_source, uv + vec2(1, -1)  * texel * u_width, 0) * 1.0 / 16.0;
+  blurSum += textureLod(s_source, uv + vec2(-1, 0)  * texel * u_width, 0) * 2.0 / 16.0;
+  blurSum += textureLod(s_source, uv + vec2(0, 0)   * texel * u_width, 0) * 4.0 / 16.0;
+  blurSum += textureLod(s_source, uv + vec2(1, 0)   * texel * u_width, 0) * 2.0 / 16.0;
+  blurSum += textureLod(s_source, uv + vec2(-1, 1)  * texel * u_width, 0) * 1.0 / 16.0;
+  blurSum += textureLod(s_source, uv + vec2(0, 1)   * texel * u_width, 0) * 2.0 / 16.0;
+  blurSum += textureLod(s_source, uv + vec2(1, 1)   * texel * u_width, 0) * 1.0 / 16.0;
+  rgba += blurSum * u_strength;
 
-    vec4 blurSum = vec4(0);
-    for (int y = -1; y <= 1; y++)
-    {
-      for (int x = -1; x <= 1; x++)
-      {
-        blurSum += textureLod(u_readImageBlur, uv + vec2(x, y) * stepWidth * u_blurWidth, u_writeImageMip) * blurWeights[y + 1][x + 1];
-      }
-    }
-    rgba += blurSum / 16.0;
-  }
-  else
-  {
-    vec4 destColor = texelFetch(u_readImageMip, coords, u_writeImageMip);
-    rgba += destColor;
-  }
-
-  if (!u_firstPass)
-    rgba *= 0.5;
-
-  imageStore(u_writeImage, coords, rgba);
+  imageStore(i_targetWrite, gid, rgba);
 }

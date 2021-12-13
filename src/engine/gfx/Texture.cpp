@@ -232,6 +232,25 @@ namespace GFX
     glDeleteTextures(1, &id_);
   }
 
+  std::optional<TextureView> Texture::View() const
+  {
+    return TextureView::Create(*this);
+  }
+
+  std::optional<TextureView> Texture::MipView(uint32_t level) const
+  {
+    TextureViewCreateInfo createInfo
+    {
+      .viewType = createInfo_.imageType,
+      .format = createInfo_.format,
+      .minLevel = level,
+      .numLevels = 1,
+      .minLayer = 0,
+      .numLayers = createInfo_.arrayLayers
+    };
+    return TextureView::Create(createInfo, id_, createInfo_.extent);
+  }
+
   void Texture::SubImage(const TextureUpdateInfo& info)
   {
     subImage(id_, info);
@@ -319,18 +338,6 @@ namespace GFX
   TextureView::~TextureView()
   {
     glDeleteTextures(1, &id_);
-  }
-
-  void TextureView::Bind(uint32_t slot, const TextureSampler& sampler) const
-  {
-    glBindTextureUnit(slot, id_);
-    glBindSampler(slot, sampler.id_);
-  }
-
-  void TextureView::Unbind(uint32_t slot) const
-  {
-    glBindTextureUnit(slot, 0);
-    glBindSampler(slot, 0);
   }
 
   void TextureView::SubImage(const TextureUpdateInfo& info) const
@@ -508,8 +515,8 @@ namespace GFX
 
   void BindImage(uint32_t slot, const TextureView& textureView, uint32_t level)
   {
-    glBindImageTexture(slot, textureView.GetAPIHandle(), level, GL_FALSE, 0,
-      GL_READ_WRITE, formats[(int)textureView.GetCreateInfo().format]);
+    glBindImageTexture(slot, textureView.GetAPIHandle(), level, GL_TRUE, 0,
+      GL_READ_WRITE, formats[(int)textureView.CreateInfo().format]);
   }
 
   std::optional<Texture> CreateTexture2D(Extent2D size, Format format, std::string_view name)

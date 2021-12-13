@@ -7,6 +7,7 @@
 namespace GFX
 {
   class TextureSampler;
+  class Texture;
 
   struct TextureCreateInfo
   {
@@ -16,6 +17,16 @@ namespace GFX
     uint32_t mipLevels{};
     uint32_t arrayLayers{};
     SampleCount sampleCount{};
+  };
+
+  struct TextureViewCreateInfo
+  {
+    ImageType viewType{};
+    Format format{};
+    uint32_t minLevel{};
+    uint32_t numLevels{};
+    uint32_t minLayer{};
+    uint32_t numLayers{};
   };
 
   struct TextureUpdateInfo
@@ -29,38 +40,30 @@ namespace GFX
     void* pixels{};
   };
 
-  // serves as the physical storage for textures
-  // cannot be used directly for samplers
-  class Texture
+  struct SamplerState
   {
-  public:
-    [[nodiscard]] static std::optional<Texture> Create(const TextureCreateInfo& createInfo, std::string_view name = "");
-    Texture(Texture&& old) noexcept;
-    Texture& operator=(Texture&& old) noexcept;
-    ~Texture();
+    SamplerState() {};
+    union
+    {
+      struct
+      {
+        Filter magFilter : 2 = Filter::LINEAR;
+        Filter minFilter : 2 = Filter::LINEAR;
+        Filter mipmapFilter : 2 = Filter::NONE;
+        AddressMode addressModeU : 3 = AddressMode::CLAMP_TO_EDGE;
+        AddressMode addressModeV : 3 = AddressMode::CLAMP_TO_EDGE;
+        AddressMode addressModeW : 3 = AddressMode::CLAMP_TO_EDGE;
+        BorderColor borderColor : 3 = BorderColor::INT_OPAQUE_WHITE;
+        Anisotropy anisotropy : 3 = Anisotropy::SAMPLES_1;
+      }asBitField{};
+      uint32_t asUint32;
+    };
 
-    void SubImage(const TextureUpdateInfo& info);
-    void GenMipmaps();
-    [[nodiscard]] const TextureCreateInfo& CreateInfo() const { return createInfo_; }
-
-    Texture(const Texture&) = delete;
-    Texture& operator=(const Texture&) = delete;
-
-  private:
-    friend class TextureView;
-    Texture() {};
-    uint32_t id_{};
-    TextureCreateInfo createInfo_{};
-  };
-
-  struct TextureViewCreateInfo
-  {
-    ImageType viewType{};
-    Format format{};
-    uint32_t minLevel{};
-    uint32_t numLevels{};
-    uint32_t minLayer{};
-    uint32_t numLayers{};
+    // TODO: maybe add these later
+    //float mipLodBias{ 0 };
+    //CompareOp compareOp;
+    //float minLod;
+    //float maxLod;
   };
 
   // serves as lightweight view of an image, cheap to construct, copy, and meant to be passed around
@@ -79,16 +82,14 @@ namespace GFX
     TextureView& operator=(TextureView&& old) noexcept;
     ~TextureView();
 
-    // TODO: remove Bind() and Unbind() in favor of the free functions
-    void Bind(uint32_t slot, const TextureSampler& sampler) const;
-    void Unbind(uint32_t slot) const; // unfortunate, but necessary to prevent state leakage until everything is upgraded
     void SubImage(const TextureUpdateInfo& info) const;
     [[nodiscard]] uint32_t GetAPIHandle() const { return id_; }
-    [[nodiscard]] TextureViewCreateInfo GetCreateInfo() const { return createInfo_; }
-    [[nodiscard]] Extent3D GetExtent() const { return extent_; }
+    [[nodiscard]] TextureViewCreateInfo CreateInfo() const { return createInfo_; }
+    [[nodiscard]] Extent3D Extent() const { return extent_; }
 
   private:
     friend class Framebuffer;
+    friend class Texture;
     static std::optional<TextureView> Create(const TextureViewCreateInfo& createInfo, uint32_t texture, Extent3D extent, std::string_view name = "");
     TextureView() {};
     uint32_t id_{};
@@ -96,30 +97,30 @@ namespace GFX
     Extent3D extent_{};
   };
 
-  struct SamplerState
+  // serves as the physical storage for textures
+  // cannot be used directly for samplers
+  class Texture
   {
-    SamplerState() {};
-    union
-    {
-      struct
-      {
-        Filter magFilter         : 2 = Filter::LINEAR;
-        Filter minFilter         : 2 = Filter::LINEAR;
-        Filter mipmapFilter      : 2 = Filter::NONE;
-        AddressMode addressModeU : 3 = AddressMode::CLAMP_TO_EDGE;
-        AddressMode addressModeV : 3 = AddressMode::CLAMP_TO_EDGE;
-        AddressMode addressModeW : 3 = AddressMode::CLAMP_TO_EDGE;
-        BorderColor borderColor  : 3 = BorderColor::INT_OPAQUE_WHITE;
-        Anisotropy anisotropy    : 3 = Anisotropy::SAMPLES_1;
-      }asBitField{};
-      uint32_t asUint32;
-    };
+  public:
+    [[nodiscard]] static std::optional<Texture> Create(const TextureCreateInfo& createInfo, std::string_view name = "");
+    Texture(Texture&& old) noexcept;
+    Texture& operator=(Texture&& old) noexcept;
+    ~Texture();
 
-    // TODO: maybe add these later
-    //float mipLodBias{ 0 };
-    //CompareOp compareOp;
-    //float minLod;
-    //float maxLod;
+    void SubImage(const TextureUpdateInfo& info);
+    void GenMipmaps();
+    [[nodiscard]] std::optional<TextureView> View() const;
+    [[nodiscard]] std::optional<TextureView> MipView(uint32_t level) const;
+    [[nodiscard]] const TextureCreateInfo& CreateInfo() const { return createInfo_; }
+
+    Texture(const Texture&) = delete;
+    Texture& operator=(const Texture&) = delete;
+
+  private:
+    friend class TextureView;
+    Texture() {};
+    uint32_t id_{};
+    TextureCreateInfo createInfo_{};
   };
 
   // stores texture sampling parameters
@@ -139,7 +140,6 @@ namespace GFX
     [[nodiscard]] uint32_t GetAPIHandle() const { return id_; }
 
   private:
-    friend class TextureView;
     TextureSampler() {};
     void SetState(const SamplerState& samplerState, bool force);
 

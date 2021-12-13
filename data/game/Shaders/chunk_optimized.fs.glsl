@@ -7,6 +7,7 @@ layout(location = 4) uniform float u_ambientOcclusionStrength = 0.5;
 layout(binding = 0) uniform sampler2DArray u_diffuseTextures;
 layout(binding = 1) uniform sampler2DArray u_normalTextures;
 layout(binding = 2) uniform sampler2DArray u_PBRTextures;
+layout(binding = 3) uniform sampler2DArray u_emissiveTextures;
 
 // material properties
 layout(location = 0) in VS_OUT
@@ -78,13 +79,16 @@ void main()
   {
     discard;
   }
-
+  
   vec3 diffuse = texColor.rgb;
   vec3 envLight = fs_in.lighting.a * u_envColor;
   vec3 light = max(fs_in.lighting.rgb, envLight);
   light = max(light, vec3(u_minBrightness));
   vec3 shaded = diffuse * light;
   shaded = mix(shaded, shaded * CalculateAO(), u_ambientOcclusionStrength);
+
+  vec3 emissive = texture(u_emissiveTextures, fs_in.texCoord).rgb;
+  shaded += emissive * 100;
 
   vec3 pbr = texture(u_PBRTextures, fs_in.texCoord).xyz;
 //pbr.r += 1.0;

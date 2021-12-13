@@ -286,9 +286,7 @@ namespace GFX
     }fxaa;
   };
 
-  void GenerateTextureMipmapStable(const TextureView& readTexture, const TextureView& writeTexture, const TextureSampler& sampler);
-
-  void UpscaleMipChain(const TextureView& readTexture, const TextureView& writeTexture, const TextureSampler& sampler);
+  void ApplyBloom(const TextureView& target, uint32_t passes, float strength, Format format);
 
   void SetFramebufferDrawBuffersAuto(Framebuffer& framebuffer, const RenderInfo& renderInfo, size_t maxCount);
 }

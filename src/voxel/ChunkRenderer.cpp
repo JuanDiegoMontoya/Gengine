@@ -43,18 +43,18 @@ static GFX::Anisotropy getAnisotropy(cvar_float val)
   return GFX::Anisotropy::SAMPLES_1;
 }
 
-static std::vector<std::string> GetBlockTexturePaths(std::string_view type)
+static std::vector<std::string> GetBlockTexturePaths(std::string_view type, std::string_view extension)
 {
   std::vector<std::string> texs;
   for (const auto& prop : Voxels::Block::PropertiesTable)
   {
-    std::string path = "Voxel/" + std::string(prop.name) + "/" + std::string(type) + ".png";
+    std::string path = "Voxel/" + std::string(prop.name) + "/" + std::string(type) + std::string(extension);
     std::string realPath = std::string(TextureDir) + std::string(path);
     bool hasTex = std::filesystem::exists(realPath);
     if (!hasTex)
     {
       spdlog::warn("Texture {} does not exist, using fallback.", path);
-      path = "error/" + std::string(type) + ".png";
+      path = "error/" + std::string(type) + std::string(extension);
     }
     texs.push_back(path);
   }
@@ -92,9 +92,11 @@ namespace Voxels
     std::optional<GFX::Texture> blockDiffuseTextures;
     std::optional<GFX::Texture> blockNormalTextures;
     std::optional<GFX::Texture> blockPBRTextures;
+    std::optional<GFX::Texture> blockEmissiveTextures;
     std::optional<GFX::TextureView> blockDiffuseTexturesView;
     std::optional<GFX::TextureView> blockNormalTexturesView;
     std::optional<GFX::TextureView> blockPBRTexturesView;
+    std::optional<GFX::TextureView> blockEmissiveTexturesView;
     
     std::optional<GFX::TextureSampler> anisotropicNearestSampler;
     std::optional<GFX::TextureSampler> anisotropicLinearSampler;
@@ -144,18 +146,22 @@ namespace Voxels
     data->occlusionDib = std::make_unique<GFX::StaticBuffer>(&occlusionCullingCmd, sizeof(occlusionCullingCmd), GFX::BufferFlag::CLIENT_STORAGE);
 
     // assets
-    std::vector<std::string> texsDiffuse = GetBlockTexturePaths("diffuse");
-    std::vector<std::string> texsNormal = GetBlockTexturePaths("normal");
-    std::vector<std::string> texsPBR = GetBlockTexturePaths("pbr");
+    std::vector<std::string> texsDiffuse = GetBlockTexturePaths("diffuse", ".png");
+    std::vector<std::string> texsNormal = GetBlockTexturePaths("normal", ".png");
+    std::vector<std::string> texsPBR = GetBlockTexturePaths("pbr", ".png");
+    std::vector<std::string> texsEmissive = GetBlockTexturePaths("emissive", ".png");
     std::vector<std::string_view> texsDiffuseView(texsDiffuse.begin(), texsDiffuse.end());
     std::vector<std::string_view> texsNormalView(texsNormal.begin(), texsNormal.end());
     std::vector<std::string_view> texsPBRView(texsPBR.begin(), texsPBR.end());
+    std::vector<std::string_view> texsEmissiveView(texsEmissive.begin(), texsEmissive.end());
     data->blockDiffuseTextures = GFX::LoadTexture2DArray(texsDiffuseView);
     data->blockNormalTextures = GFX::LoadTexture2DArray(texsNormalView, 0, 0, GFX::Format::R8G8B8_UNORM);
     data->blockPBRTextures = GFX::LoadTexture2DArray(texsPBRView, 0, 0, GFX::Format::R8G8B8A8_UNORM);
+    data->blockEmissiveTextures = GFX::LoadTexture2DArray(texsEmissiveView, 0, 0, GFX::Format::R8G8B8_SRGB);
     data->blockDiffuseTexturesView = GFX::TextureView::Create(*data->blockDiffuseTextures);
     data->blockNormalTexturesView = GFX::TextureView::Create(*data->blockNormalTextures);
     data->blockPBRTexturesView = GFX::TextureView::Create(*data->blockPBRTextures);
+    data->blockEmissiveTexturesView = GFX::TextureView::Create(*data->blockEmissiveTextures);
 
     GFX::SamplerState ss;
     ss.asBitField.magFilter = GFX::Filter::NEAREST;
@@ -280,17 +286,19 @@ namespace Voxels
         continue;
 
       // we don't need as much quality for probe views
-      if (renderView->mask & GFX::RenderMaskBit::RenderVoxelsNear)
-      {
-        GFX::BindTextureView(0, *data->blockDiffuseTexturesView, *data->isotropicNearestSampler);
-        GFX::BindTextureView(1, *data->blockNormalTexturesView, *data->isotropicLinearSampler);
-        GFX::BindTextureView(2, *data->blockPBRTexturesView, *data->isotropicNearestSampler);
-      }
-      else
+      //if (renderView->mask & GFX::RenderMaskBit::RenderVoxelsNear)
+      //{
+      //  GFX::BindTextureView(0, *data->blockDiffuseTexturesView, *data->isotropicNearestSampler);
+      //  GFX::BindTextureView(1, *data->blockNormalTexturesView, *data->isotropicLinearSampler);
+      //  GFX::BindTextureView(2, *data->blockPBRTexturesView, *data->isotropicNearestSampler);
+      //  GFX::BindTextureView(3, *data->blockEmissiveTexturesView, *data->anisotropicNearestSampler);
+      //}
+      //else
       {
         GFX::BindTextureView(0, *data->blockDiffuseTexturesView, *data->anisotropicNearestSampler);
         GFX::BindTextureView(1, *data->blockNormalTexturesView, *data->anisotropicLinearSampler);
         GFX::BindTextureView(2, *data->blockPBRTexturesView, *data->anisotropicNearestSampler);
+        GFX::BindTextureView(3, *data->blockEmissiveTexturesView, *data->anisotropicNearestSampler);
       }
 
       GFX::SetViewport(renderView->renderInfo);

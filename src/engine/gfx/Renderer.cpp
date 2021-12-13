@@ -285,7 +285,7 @@ namespace GFX
 
     for (int i = 0; auto& [view, sampler] : material.viewSamplers)
     {
-      view.Bind(i++, sampler);
+      BindTextureView(i++, view, sampler);
     }
 
     // TODO: perform GPU culling somewhere around here
@@ -312,7 +312,7 @@ namespace GFX
 
     for (int i = 0; auto& [view, sampler] : material.viewSamplers)
     {
-      view.Unbind(i++);
+      UnbindTextureView(i++);
     }
   }
 
@@ -560,6 +560,9 @@ namespace GFX
     GFX::ShaderManager::Get()->AddShader("downscale",
       { { "downscale.cs.glsl", GFX::ShaderType::COMPUTE } });
 
+    GFX::ShaderManager::Get()->AddShader("downscale2",
+      { { "downscale2.cs.glsl", GFX::ShaderType::COMPUTE } });
+
     GFX::ShaderManager::Get()->AddShader("upscale",
       { { "upscale.cs.glsl", GFX::ShaderType::COMPUTE } });
   }
@@ -612,7 +615,7 @@ namespace GFX
     auto shdr = GFX::ShaderManager::Get()->GetShader("skybox");
     shdr->Bind();
     shdr->SetInt("u_skybox", 0);
-    env.skyboxView->Bind(0, *env.skyboxSampler);
+    BindTextureView(0, *env.skyboxView, *env.skyboxSampler);
 
     auto framebuffer = Framebuffer::Create();
     framebuffer->SetDrawBuffers({ { Attachment::COLOR_0 } });
@@ -639,7 +642,7 @@ namespace GFX
     //glDepthMask(GL_TRUE);
     glDepthFunc(GL_GEQUAL);
     glEnable(GL_CULL_FACE);
-    env.skyboxView->Unbind(0);
+    UnbindTextureView(0);
   }
 
   void Renderer::StartFrame()
@@ -768,12 +771,11 @@ namespace GFX
     GFX::DebugMarker endframeMarker("Postprocessing");
     MEASURE_GPU_TIMER_STAT(Postprocessing);
 
-    static bool enableBloom = false;
-    ImGui::Checkbox("Enable Bloom", &enableBloom);
+    static bool enableBloom = true;
+    ImGui::Checkbox("Enable bloom", &enableBloom);
     if (enableBloom)
     {
-      GenerateTextureMipmapStable(*gBuffer.colorTexView, *gBuffer.colorTexViewCopy, *linearMipmapNearestSampler);
-      UpscaleMipChain(*gBuffer.colorTexViewCopy, *gBuffer.colorTexView, *linearMipmapNearestSampler);
+      ApplyBloom(*gBuffer.colorTexView, 6, 1.0f / 64.0f, Format::R11G11B10_FLOAT);
     }
 
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -802,7 +804,7 @@ namespace GFX
         int xgroups = (computePixelsX + X_SIZE - 1) / X_SIZE;
         int ygroups = (computePixelsY + Y_SIZE - 1) / Y_SIZE;
         tonemap.histogramBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(0);
-        gBuffer.colorTexView->Bind(1, *defaultSampler);
+        BindTextureView(1, *gBuffer.colorTexView, *defaultSampler);
         //BindTextureView(1, *composited[frameNumber % 2].compositedTexView, *defaultSampler);
         glDispatchCompute(xgroups, ygroups, 1);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
@@ -843,9 +845,9 @@ namespace GFX
       shdr->SetFloat("u_exposureFactor", tonemap.exposure);
       shdr->SetBool("u_useDithering", tonemap.tonemapDither);
       shdr->SetBool("u_encodeSRGB", tonemap.gammaCorrection);
-      gBuffer.colorTexView->Bind(1, *defaultSampler);
+      BindTextureView(1, *gBuffer.colorTexView, *defaultSampler);
       //BindTextureView(1, *composited[frameNumber % 2].compositedTexView, *defaultSampler);
-      tonemap.blueNoiseView->Bind(2, *tonemap.blueNoiseSampler);
+      BindTextureView(2, *tonemap.blueNoiseView, *tonemap.blueNoiseSampler);
       glBindVertexArray(emptyVao);
       //glBindTextureUnit(1, fog.tex); // rebind because AMD drivers sus
       glDrawArrays(GL_TRIANGLES, 0, 3);
@@ -869,10 +871,6 @@ namespace GFX
     CompileShaders();
     InitTextures();
 
-    std::vector<int> zeros(tonemap.NUM_BUCKETS, 0);
-    tonemap.exposureBuffer = std::make_unique<GFX::StaticBuffer>(zeros.data(), 2 * sizeof(float));
-    tonemap.histogramBuffer = std::make_unique<GFX::StaticBuffer>(zeros.data(), tonemap.NUM_BUCKETS * sizeof(int));
-
     // enable debugging stuff
     glEnable(GL_DEBUG_OUTPUT);
     glDebugMessageCallback(GLerrorCB, NULL);
@@ -892,7 +890,11 @@ namespace GFX
   {
     Extent2D fboSize = { GetRenderWidth(), GetRenderHeight() };
 
-    const int levels = glm::min(7.0f, glm::floor(glm::log2(glm::max((float)fboSize.width, (float)fboSize.height))) + 1);
+    std::vector<int> zeros(tonemap.NUM_BUCKETS, 0);
+    tonemap.exposureBuffer = std::make_unique<GFX::StaticBuffer>(zeros.data(), 2 * sizeof(float));
+    tonemap.histogramBuffer = std::make_unique<GFX::StaticBuffer>(zeros.data(), tonemap.NUM_BUCKETS * sizeof(int));
+
+    const int levels = glm::floor(glm::log2(glm::max((float)fboSize.width, (float)fboSize.height))) + 1;
     
     gBuffer.colorTexMemory = CreateTexture2DMip(fboSize, Format::R16G16B16A16_FLOAT, levels, "GBuffer Color Texture");
     gBuffer.colorTexMemoryCopy = CreateTexture2DMip(fboSize, Format::R16G16B16A16_FLOAT, levels, "GBuffer Color Texture Copy");
@@ -942,12 +944,8 @@ namespace GFX
       .colorAttachments = { diffuseAttachment, normalAttachment, pbrAttachment },
       .depthAttachment = { depthAttachment },
     };
-    gBuffer.renderView = RenderView
-    {
-      .renderInfo = renderInfo,
-      .camera = &gBuffer.camera,
-      .mask = RenderMaskBit::None // set by the user
-    };
+    gBuffer.renderView.renderInfo = renderInfo;
+    gBuffer.renderView.camera = &gBuffer.camera;
 
     ldrColorTexMemory = CreateTexture2D(fboSize, Format::R8G8B8A8_UNORM, "LDR Color Texture");
     ldrColorTexView = TextureView::Create(*ldrColorTexMemory, "LDR Color View");
@@ -968,7 +966,7 @@ namespace GFX
     ss.asBitField.addressModeW = AddressMode::MIRRORED_REPEAT;
     defaultSampler.emplace(*TextureSampler::Create(ss, "Default Sampler"));
 
-    ss.asBitField.mipmapFilter = Filter::NEAREST;
+    ss.asBitField.mipmapFilter = Filter::LINEAR;
     linearMipmapNearestSampler = TextureSampler::Create(ss, "Linear Mipmap Nearest Sampler");
 
     ss.asBitField.minFilter = Filter::NEAREST;
@@ -1444,6 +1442,8 @@ namespace GFX
     // set the window dims here, although it won't necessarily be what we get
     windowWidth = videoMode->width;
     windowHeight = videoMode->height;
+
+    //CreateWindow(true);
     CreateWindow(isFullscreen);
 
     if (!window_)
@@ -1537,57 +1537,100 @@ namespace GFX
     InitReflectionFramebuffer();
   }
 
-  void GenerateTextureMipmapStable(const TextureView& readTexture, const TextureView& writeTexture, const TextureSampler& sampler)
+  void ApplyBloom(const TextureView& target, uint32_t passes, float strength, Format format)
   {
-    auto ds = GFX::ShaderManager::Get()->GetShader("downscale");
-    ds->Bind();
+    ASSERT(target.Extent().width >> passes > 0 && target.Extent().height >> passes > 0);
+
+    static float width = 1.0f;
+    ImGui::SliderFloat("Bloom width", &width, 0.1f, 5.0f);
+
+    auto tempTex = CreateTexture2DMip({ target.Extent().width / 2, target.Extent().height / 2 }, format, passes);
+    SamplerState ss{};
+    ss.asBitField.mipmapFilter = Filter::NEAREST;
+    auto sampler = TextureSampler::Create(ss);
+
+    auto downsampleKaris = GFX::ShaderManager::Get()->GetShader("downscale");
+    auto downsample = GFX::ShaderManager::Get()->GetShader("downscale2");
+
     const int local_size = 16;
-    Extent3D extent = writeTexture.GetExtent();
-    uint32_t width = extent.width;
-    uint32_t height = extent.height;
-    ASSERT(readTexture.GetCreateInfo().numLevels == writeTexture.GetCreateInfo().numLevels);
-    for (uint32_t readMip = 0; readMip < readTexture.GetCreateInfo().numLevels - 1; readMip++)
+    for (uint32_t i = 0; i < passes; i++)
     {
-      width >>= 1;
-      height >>= 1;
-      ASSERT(width > 0 && height > 0);
-      const int numGroupsX = (width + local_size - 1) / local_size;
-      const int numGroupsY = (height + local_size - 1) / local_size;
-      ds->SetInt("u_readImageMip", readMip);
-      BindTextureView(0, readMip == 0 ? readTexture : writeTexture, sampler);
-      BindImage(0, writeTexture, readMip + 1);
+      glm::ivec2 sourceDim{};
+      glm::ivec2 targetDim = { target.Extent().width >> (i + 1), target.Extent().height >> (i + 1) };
+
+      Shader* shader{ nullptr };
+      std::optional<TextureView> sourceView;
+
+      // first pass
+      if (i == 0)
+      {
+        shader = &downsampleKaris.value();
+        shader->Bind();
+
+        sourceView = target;
+        sourceDim = { target.Extent().width, target.Extent().height };
+      }
+      else
+      {
+        shader = &downsample.value();
+        shader->Bind();
+
+        sourceView = tempTex->MipView(i - 1);
+        sourceDim = { target.Extent().width >> i, target.Extent().height >> i };
+      }
+
+      auto targetView = tempTex->MipView(i);
+
+      BindTextureView(0, *sourceView, *sampler);
+      BindImage(0, *targetView, 0);
+
+      shader->SetIVec2("u_sourceDim", sourceDim);
+      shader->SetIVec2("u_targetDim", targetDim);
+
+      const int numGroupsX = (targetDim.x + local_size - 1) / local_size;
+      const int numGroupsY = (targetDim.y + local_size - 1) / local_size;
       glDispatchCompute(numGroupsX, numGroupsY, 1);
       glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
     }
-  }
 
-  void UpscaleMipChain(const TextureView& readTexture, const TextureView& writeTexture, const TextureSampler& sampler)
-  {
     auto us = GFX::ShaderManager::Get()->GetShader("upscale");
     us->Bind();
-    const int local_size = 16;
-    Extent3D extent = writeTexture.GetExtent();
-    const uint32_t baseWidth = extent.width;
-    const uint32_t baseHeight = extent.height;
-    bool first = true;
-    ASSERT(readTexture.GetCreateInfo().numLevels == writeTexture.GetCreateInfo().numLevels);
-    for (int32_t writeMip = writeTexture.GetCreateInfo().numLevels - 1; writeMip >= 0; writeMip--)
+    for (int32_t i = passes - 1; i >= 0; i--)
     {
-      uint32_t width = baseWidth >> writeMip;
-      uint32_t height = baseHeight >> writeMip;
-      ASSERT(width > 0 && height > 0);
-      const int numGroupsX = (width + local_size - 1) / local_size;
-      const int numGroupsY = (height + local_size - 1) / local_size;
-      us->SetInt("u_writeImageMip", writeMip);
-      us->SetInt("u_firstPass", first);
-      us->SetInt("u_lastPass", writeMip == 0);
-      us->SetFloat("u_blurWidth", 1.0f);
-      BindTextureView(0, readTexture, sampler);
-      BindTextureView(1, writeTexture, sampler);
-      BindImage(0, writeTexture, writeMip);
+      glm::ivec2 sourceDim = { target.Extent().width >> (i + 1), target.Extent().height >> (i + 1) };
+      glm::ivec2 targetDim{};
+      float realStrength = 1.0f;
+
+      std::optional<TextureView> targetView;
+
+      // final pass
+      if (i == 0)
+      {
+        realStrength = strength;
+        targetView = target;
+        targetDim = { target.Extent().width, target.Extent().height };
+      }
+      else
+      {
+        targetView = tempTex->MipView(i - 1);
+        targetDim = { target.Extent().width >> i, target.Extent().height >> i };
+      }
+      
+      auto sourceView = tempTex->MipView(i);
+
+      BindTextureView(0, *sourceView, *sampler);
+      BindTextureView(1, *targetView, *sampler);
+      BindImage(0, *targetView, 0);
+
+      us->SetIVec2("u_sourceDim", sourceDim);
+      us->SetIVec2("u_targetDim", targetDim);
+      us->SetFloat("u_width", width);
+      us->SetFloat("u_strength", realStrength);
+
+      const int numGroupsX = (targetDim.x + local_size - 1) / local_size;
+      const int numGroupsY = (targetDim.y + local_size - 1) / local_size;
       glDispatchCompute(numGroupsX, numGroupsY, 1);
       glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-      first = false;
     }
   }
 

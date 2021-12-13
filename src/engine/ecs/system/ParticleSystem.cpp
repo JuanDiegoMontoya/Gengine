@@ -258,7 +258,7 @@ void ParticleManager::BindEmitter(uint64_t handle)
 {
   auto& emitterData = data->handleToGPUParticleData_[handle];
 
-  emitterData->textureView->Bind(0, *emitterData->textureSampler);
+  GFX::BindTextureView(0, *emitterData->textureView, *emitterData->textureSampler);
   emitterData->particleSharedDataBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(0);
   emitterData->particleUpdateDataBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(1);
   emitterData->particleRenderDataBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(2);
