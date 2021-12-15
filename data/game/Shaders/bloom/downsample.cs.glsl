@@ -4,6 +4,7 @@ layout(binding = 0) uniform sampler2D s_source;
 layout(binding = 0) uniform writeonly image2D i_target;
 layout(location = 0) uniform ivec2 u_sourceDim;
 layout(location = 1) uniform ivec2 u_targetDim;
+layout(location = 2) uniform float u_sourceLod;
 
 float luma(vec3 c)
 {
@@ -52,19 +53,19 @@ void main()
   };
 
   vec3 samples[13];
-  samples[0 ] = textureLod(s_source, uv + texel * vec2(-2, -2), 0).rgb;
-  samples[1 ] = textureLod(s_source, uv + texel * vec2(0, -2) , 0).rgb;
-  samples[2 ] = textureLod(s_source, uv + texel * vec2(2, -2) , 0).rgb;
-  samples[3 ] = textureLod(s_source, uv + texel * vec2(-1, -1), 0).rgb;
-  samples[4 ] = textureLod(s_source, uv + texel * vec2(1, -1) , 0).rgb;
-  samples[5 ] = textureLod(s_source, uv + texel * vec2(-2, 0) , 0).rgb;
-  samples[6 ] = textureLod(s_source, uv + texel * vec2(0, 0)  , 0).rgb;
-  samples[7 ] = textureLod(s_source, uv + texel * vec2(2, 0)  , 0).rgb;
-  samples[8 ] = textureLod(s_source, uv + texel * vec2(-1, 1) , 0).rgb;
-  samples[9 ] = textureLod(s_source, uv + texel * vec2(1, 1)  , 0).rgb;
-  samples[10] = textureLod(s_source, uv + texel * vec2(-2, 2) , 0).rgb;
-  samples[11] = textureLod(s_source, uv + texel * vec2(0, 2)  , 0).rgb;
-  samples[12] = textureLod(s_source, uv + texel * vec2(2, 2)  , 0).rgb;
+  samples[0 ] = textureLod(s_source, uv + texel * vec2(-2, -2), u_sourceLod).rgb;
+  samples[1 ] = textureLod(s_source, uv + texel * vec2(0, -2) , u_sourceLod).rgb;
+  samples[2 ] = textureLod(s_source, uv + texel * vec2(2, -2) , u_sourceLod).rgb;
+  samples[3 ] = textureLod(s_source, uv + texel * vec2(-1, -1), u_sourceLod).rgb;
+  samples[4 ] = textureLod(s_source, uv + texel * vec2(1, -1) , u_sourceLod).rgb;
+  samples[5 ] = textureLod(s_source, uv + texel * vec2(-2, 0) , u_sourceLod).rgb;
+  samples[6 ] = textureLod(s_source, uv + texel * vec2(0, 0)  , u_sourceLod).rgb;
+  samples[7 ] = textureLod(s_source, uv + texel * vec2(2, 0)  , u_sourceLod).rgb;
+  samples[8 ] = textureLod(s_source, uv + texel * vec2(-1, 1) , u_sourceLod).rgb;
+  samples[9 ] = textureLod(s_source, uv + texel * vec2(1, 1)  , u_sourceLod).rgb;
+  samples[10] = textureLod(s_source, uv + texel * vec2(-2, 2) , u_sourceLod).rgb;
+  samples[11] = textureLod(s_source, uv + texel * vec2(0, 2)  , u_sourceLod).rgb;
+  samples[12] = textureLod(s_source, uv + texel * vec2(2, 2)  , u_sourceLod).rgb;
 
   vec3 filterSum = vec3(0);
   filterSum += karisAverage(samples[3], samples[4], samples[8 ], samples[9 ]) * 0.5;

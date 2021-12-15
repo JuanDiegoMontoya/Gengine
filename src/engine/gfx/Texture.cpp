@@ -345,6 +345,20 @@ namespace GFX
     subImage(id_, info);
   }
 
+  //std::optional<TextureView> TextureView::MipView(uint32_t level) const
+  //{
+  //  TextureViewCreateInfo createInfo
+  //  {
+  //    .viewType = createInfo_.imageType,
+  //    .format = createInfo_.format,
+  //    .minLevel = level,
+  //    .numLevels = 1,
+  //    .minLayer = 0,
+  //    .numLayers = createInfo_.arrayLayers
+  //  };
+  //  return TextureView::Create(createInfo, id_, extent_);
+  //}
+
 
 
   std::optional<TextureSampler> TextureSampler::Create(const SamplerState& state, std::string_view name)
@@ -405,16 +419,24 @@ namespace GFX
 
   void TextureSampler::SetState(const SamplerState& state, bool force)
   {
-    // early out
-    if (state.asUint32 == samplerState_.asUint32 && !force)
+    // early out if the new state is equal to the previous
+    if (state.asUint32 == samplerState_.asUint32 &&
+      state.lodBias == samplerState_.lodBias &&
+      state.minLod == samplerState_.minLod &&
+      state.maxLod == samplerState_.maxLod &&
+      !force)
+    {
       return;
+    }
 
     if (state.asBitField.magFilter != samplerState_.asBitField.magFilter || force)
     {
       GLint filter = state.asBitField.magFilter == Filter::LINEAR ? GL_LINEAR : GL_NEAREST;
       glSamplerParameteri(id_, GL_TEXTURE_MAG_FILTER, filter);
     }
-    if (state.asBitField.minFilter != samplerState_.asBitField.minFilter || force)
+    if (state.asBitField.minFilter != samplerState_.asBitField.minFilter ||
+      state.asBitField.mipmapFilter != samplerState_.asBitField.mipmapFilter ||
+      force)
     {
       GLint filter{};
       switch (state.asBitField.mipmapFilter)
@@ -488,9 +510,14 @@ namespace GFX
     }
 
     if (state.asBitField.anisotropy != samplerState_.asBitField.anisotropy || force)
-    {
       glSamplerParameterf(id_, GL_TEXTURE_MAX_ANISOTROPY, anisotropies[(int)state.asBitField.anisotropy]);
-    }
+
+    if (state.lodBias != samplerState_.lodBias || force)
+      glSamplerParameterf(id_, GL_TEXTURE_LOD_BIAS, state.lodBias);
+    if (state.minLod != samplerState_.minLod || force)
+      glSamplerParameterf(id_, GL_TEXTURE_MIN_LOD, state.minLod);
+    if (state.maxLod != samplerState_.maxLod || force)
+      glSamplerParameterf(id_, GL_TEXTURE_MAX_LOD, state.maxLod);
 
     samplerState_ = state;
   }

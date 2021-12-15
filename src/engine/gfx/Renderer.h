@@ -186,12 +186,10 @@ namespace GFX
       RenderView renderView{};
       Camera camera{};
       std::optional<Texture> colorTexMemory;
-      std::optional<Texture> colorTexMemoryCopy;
       std::optional<Texture> normalTexMemory;
       std::optional<Texture> depthTexMemory;
       std::optional<Texture> PBRTexMemory;
       std::optional<TextureView> colorTexView;
-      std::optional<TextureView> colorTexViewCopy;
       std::optional<TextureView> normalTexView;
       std::optional<TextureView> depthTexView;
       std::optional<TextureView> PBRTexView;
@@ -276,6 +274,17 @@ namespace GFX
       bool tonemapDither = true;
     }tonemap;
 
+    struct Bloom_t
+    {
+      bool enabled{ true };
+      float strength{ 1.0f / 64.0f };
+      float width{ 1.0f };
+      uint32_t passes{ 6 };
+      std::optional<Texture> scratchTex;
+      std::optional<TextureView> scratchTexView;
+      std::optional<TextureSampler> scratchSampler;
+    }bloom;
+
     struct FXAAParams_t
     {
       bool enabled{ true };
@@ -286,7 +295,8 @@ namespace GFX
     }fxaa;
   };
 
-  void ApplyBloom(const TextureView& target, uint32_t passes, float strength, Format format);
+  void ApplyBloom(const TextureView& target, uint32_t passes, float strength, float width,
+    const TextureView& scratchTexture, TextureSampler& scratchSampler);
 
   void SetFramebufferDrawBuffersAuto(Framebuffer& framebuffer, const RenderInfo& renderInfo, size_t maxCount);
 }

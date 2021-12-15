@@ -79,7 +79,7 @@ void main()
   {
     discard;
   }
-  
+
   vec3 diffuse = texColor.rgb;
   vec3 envLight = fs_in.lighting.a * u_envColor;
   vec3 light = max(fs_in.lighting.rgb, envLight);

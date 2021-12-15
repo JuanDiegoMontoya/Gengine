@@ -31,13 +31,14 @@
 
 #define LOG_PARTICLE_RENDER_TIME 0
 
-DECLARE_FLOAT_STAT(Postprocessing, GPU)
 DECLARE_FLOAT_STAT(LuminanceHistogram, GPU)
 DECLARE_FLOAT_STAT(CameraExposure, GPU)
 DECLARE_FLOAT_STAT(FXAA, GPU)
 DECLARE_FLOAT_STAT(ReflectionsTrace, GPU)
 DECLARE_FLOAT_STAT(ReflectionsDenoise, GPU)
 DECLARE_FLOAT_STAT(ReflectionsComposite, GPU)
+DECLARE_FLOAT_STAT(Bloom_GPU, GPU)
+DECLARE_FLOAT_STAT(Bloom_CPU, CPU)
 
 namespace GFX
 {
@@ -557,14 +558,14 @@ namespace GFX
         { "atrous.fs.glsl", GFX::ShaderType::FRAGMENT }
       });
 
-    GFX::ShaderManager::Get()->AddShader("downscale",
-      { { "downscale.cs.glsl", GFX::ShaderType::COMPUTE } });
+    GFX::ShaderManager::Get()->AddShader("bloom/downsampleLowPass",
+      { { "bloom/downsampleLowPass.cs.glsl", GFX::ShaderType::COMPUTE } });
 
-    GFX::ShaderManager::Get()->AddShader("downscale2",
-      { { "downscale2.cs.glsl", GFX::ShaderType::COMPUTE } });
+    GFX::ShaderManager::Get()->AddShader("bloom/downsample",
+      { { "bloom/downsample.cs.glsl", GFX::ShaderType::COMPUTE } });
 
-    GFX::ShaderManager::Get()->AddShader("upscale",
-      { { "upscale.cs.glsl", GFX::ShaderType::COMPUTE } });
+    GFX::ShaderManager::Get()->AddShader("bloom/upsample",
+      { { "bloom/upsample.cs.glsl", GFX::ShaderType::COMPUTE } });
   }
 
   void Renderer::DrawAxisIndicator(std::span<RenderView*> renderViews)
@@ -769,13 +770,19 @@ namespace GFX
   void Renderer::ApplyTonemap(float dt)
   {
     GFX::DebugMarker endframeMarker("Postprocessing");
-    MEASURE_GPU_TIMER_STAT(Postprocessing);
 
-    static bool enableBloom = true;
-    ImGui::Checkbox("Enable bloom", &enableBloom);
-    if (enableBloom)
+    ImGui::Checkbox("Enable bloom", &bloom.enabled);
+    ImGui::SliderFloat("Bloom width", &bloom.width, 0.1f, 5.0f);
+    ImGui::SliderFloat("Bloom strength", &bloom.strength, 0.01f, 1.0f, "%.4f", ImGuiSliderFlags_Logarithmic);
+    ImGui::SliderInt("Bloom passes", (int*)&bloom.passes, 1, 7);
+    
+    if (bloom.enabled)
     {
-      ApplyBloom(*gBuffer.colorTexView, 6, 1.0f / 64.0f, Format::R11G11B10_FLOAT);
+      GFX::DebugMarker bloomMarker("Bloom");
+      MEASURE_GPU_TIMER_STAT(Bloom_GPU);
+      MEASURE_CPU_TIMER_STAT(Bloom_CPU);
+      ApplyBloom(*gBuffer.colorTexView, bloom.passes, bloom.strength, bloom.width,
+        *bloom.scratchTexView, *bloom.scratchSampler);
     }
 
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -894,12 +901,10 @@ namespace GFX
     tonemap.exposureBuffer = std::make_unique<GFX::StaticBuffer>(zeros.data(), 2 * sizeof(float));
     tonemap.histogramBuffer = std::make_unique<GFX::StaticBuffer>(zeros.data(), tonemap.NUM_BUCKETS * sizeof(int));
 
-    const int levels = glm::floor(glm::log2(glm::max((float)fboSize.width, (float)fboSize.height))) + 1;
+    //const int levels = glm::floor(glm::log2(glm::max((float)fboSize.width, (float)fboSize.height))) + 1;
     
-    gBuffer.colorTexMemory = CreateTexture2DMip(fboSize, Format::R16G16B16A16_FLOAT, levels, "GBuffer Color Texture");
-    gBuffer.colorTexMemoryCopy = CreateTexture2DMip(fboSize, Format::R16G16B16A16_FLOAT, levels, "GBuffer Color Texture Copy");
+    gBuffer.colorTexMemory = CreateTexture2DMip(fboSize, Format::R16G16B16A16_FLOAT, 1, "GBuffer Color Texture");
     gBuffer.colorTexView = TextureView::Create(*gBuffer.colorTexMemory, "GBuffer Color View");
-    gBuffer.colorTexViewCopy = TextureView::Create(*gBuffer.colorTexMemoryCopy, "GBuffer Color View Copy");
     gBuffer.depthTexMemory = CreateTexture2D(fboSize, Format::D32_FLOAT, "GBuffer Depth Texture");
     gBuffer.depthTexView = TextureView::Create(*gBuffer.depthTexMemory, "GBuffer Depth View");
     gBuffer.PBRTexMemory = CreateTexture2D(fboSize, Format::R8G8_UNORM, "GBuffer PBR Texture");
@@ -956,6 +961,10 @@ namespace GFX
     composited.fbo = Framebuffer::Create();
     composited.fbo->SetAttachment(Attachment::COLOR_0, *gBuffer.colorTexView, 0);
     ASSERT(composited.fbo->IsValid());
+
+    bloom.scratchTex = CreateTexture2DMip({ fboSize.width / 2, fboSize.height / 2 }, Format::R11G11B10_FLOAT, bloom.passes);
+    bloom.scratchTexView = bloom.scratchTex->View();
+    bloom.scratchSampler = TextureSampler::Create({});
 
     SamplerState ss{};
     ss.asBitField.minFilter = Filter::LINEAR;
@@ -1537,37 +1546,43 @@ namespace GFX
     InitReflectionFramebuffer();
   }
 
-  void ApplyBloom(const TextureView& target, uint32_t passes, float strength, Format format)
+  void ApplyBloom(const TextureView& target, uint32_t passes, float strength, float width,
+    const TextureView& scratchTexture, TextureSampler& scratchSampler)
   {
     ASSERT(target.Extent().width >> passes > 0 && target.Extent().height >> passes > 0);
 
-    static float width = 1.0f;
-    ImGui::SliderFloat("Bloom width", &width, 0.1f, 5.0f);
+    SamplerState samplerState{};
+    samplerState.asBitField.minFilter = Filter::LINEAR;
+    samplerState.asBitField.magFilter = Filter::LINEAR;
+    samplerState.asBitField.mipmapFilter = Filter::NEAREST;
+    samplerState.asBitField.addressModeU = AddressMode::MIRRORED_REPEAT;
+    samplerState.asBitField.addressModeV = AddressMode::MIRRORED_REPEAT;
+    samplerState.lodBias = 0;
+    samplerState.minLod = -1000;
+    samplerState.maxLod = 1000;
+    scratchSampler.SetState(samplerState);
 
-    auto tempTex = CreateTexture2DMip({ target.Extent().width / 2, target.Extent().height / 2 }, format, passes);
-    SamplerState ss{};
-    ss.asBitField.mipmapFilter = Filter::NEAREST;
-    auto sampler = TextureSampler::Create(ss);
-
-    auto downsampleKaris = GFX::ShaderManager::Get()->GetShader("downscale");
-    auto downsample = GFX::ShaderManager::Get()->GetShader("downscale2");
+    auto downsampleLowPass = GFX::ShaderManager::Get()->GetShader("bloom/downsampleLowPass");
+    auto downsample = GFX::ShaderManager::Get()->GetShader("bloom/downsample");
 
     const int local_size = 16;
     for (uint32_t i = 0; i < passes; i++)
     {
-      glm::ivec2 sourceDim{};
-      glm::ivec2 targetDim = { target.Extent().width >> (i + 1), target.Extent().height >> (i + 1) };
+      Extent2D sourceDim{};
+      Extent2D targetDim = target.Extent() >> i + 1;
+      float sourceLod{};
 
       Shader* shader{ nullptr };
-      std::optional<TextureView> sourceView;
+      const TextureView* sourceView{ nullptr };
 
-      // first pass
+      // first pass, use downsampling with low-pass filter
       if (i == 0)
       {
-        shader = &downsampleKaris.value();
+        shader = &downsampleLowPass.value();
         shader->Bind();
 
-        sourceView = target;
+        sourceLod = 0;
+        sourceView = &target;
         sourceDim = { target.Extent().width, target.Extent().height };
       }
       else
@@ -1575,60 +1590,62 @@ namespace GFX
         shader = &downsample.value();
         shader->Bind();
 
-        sourceView = tempTex->MipView(i - 1);
-        sourceDim = { target.Extent().width >> i, target.Extent().height >> i };
+        sourceLod = i - 1;
+        sourceView = &scratchTexture;
+        sourceDim = target.Extent() >> i;
       }
 
-      auto targetView = tempTex->MipView(i);
+      BindTextureView(0, *sourceView, scratchSampler);
+      BindImage(0, scratchTexture, i);
 
-      BindTextureView(0, *sourceView, *sampler);
-      BindImage(0, *targetView, 0);
+      shader->SetIVec2("u_sourceDim", { sourceDim.width, sourceDim.height });
+      shader->SetIVec2("u_targetDim", { targetDim.width, targetDim.height });
+      shader->SetFloat("u_sourceLod", sourceLod);
 
-      shader->SetIVec2("u_sourceDim", sourceDim);
-      shader->SetIVec2("u_targetDim", targetDim);
-
-      const int numGroupsX = (targetDim.x + local_size - 1) / local_size;
-      const int numGroupsY = (targetDim.y + local_size - 1) / local_size;
+      const int numGroupsX = (targetDim.width + local_size - 1) / local_size;
+      const int numGroupsY = (targetDim.height + local_size - 1) / local_size;
       glDispatchCompute(numGroupsX, numGroupsY, 1);
       glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
     }
 
-    auto us = GFX::ShaderManager::Get()->GetShader("upscale");
+    auto us = GFX::ShaderManager::Get()->GetShader("bloom/upsample");
     us->Bind();
     for (int32_t i = passes - 1; i >= 0; i--)
     {
-      glm::ivec2 sourceDim = { target.Extent().width >> (i + 1), target.Extent().height >> (i + 1) };
-      glm::ivec2 targetDim{};
+      Extent2D sourceDim = target.Extent() >> i + 1;
+      Extent2D targetDim{};
+      const TextureView* targetView{ nullptr };
       float realStrength = 1.0f;
-
-      std::optional<TextureView> targetView;
+      float targetMip{};
 
       // final pass
       if (i == 0)
       {
         realStrength = strength;
-        targetView = target;
-        targetDim = { target.Extent().width, target.Extent().height };
+        targetMip = 0;
+        targetView = &target;
+        targetDim = target.Extent();
       }
       else
       {
-        targetView = tempTex->MipView(i - 1);
-        targetDim = { target.Extent().width >> i, target.Extent().height >> i };
+        targetMip = i - 1;
+        targetView = &scratchTexture;
+        targetDim = target.Extent() >> i;
       }
-      
-      auto sourceView = tempTex->MipView(i);
 
-      BindTextureView(0, *sourceView, *sampler);
-      BindTextureView(1, *targetView, *sampler);
-      BindImage(0, *targetView, 0);
+      BindTextureView(0, scratchTexture, scratchSampler);
+      BindTextureView(1, *targetView, scratchSampler);
+      BindImage(0, *targetView, targetMip);
 
-      us->SetIVec2("u_sourceDim", sourceDim);
-      us->SetIVec2("u_targetDim", targetDim);
+      us->SetIVec2("u_sourceDim", { sourceDim.width, sourceDim.height });
+      us->SetIVec2("u_targetDim", { targetDim.width, targetDim.height });
       us->SetFloat("u_width", width);
       us->SetFloat("u_strength", realStrength);
+      us->SetFloat("u_sourceLod", i);
+      us->SetFloat("u_targetLod", targetMip);
 
-      const int numGroupsX = (targetDim.x + local_size - 1) / local_size;
-      const int numGroupsY = (targetDim.y + local_size - 1) / local_size;
+      const int numGroupsX = (targetDim.width + local_size - 1) / local_size;
+      const int numGroupsY = (targetDim.height + local_size - 1) / local_size;
       glDispatchCompute(numGroupsX, numGroupsY, 1);
       glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
     }

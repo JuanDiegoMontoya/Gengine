@@ -59,11 +59,11 @@ namespace GFX
       uint32_t asUint32;
     };
 
-    // TODO: maybe add these later
-    //float mipLodBias{ 0 };
+    float lodBias{ 0 };
+    float minLod{ -1000 };
+    float maxLod{ 1000 };
+    // TODO: maybe add this later
     //CompareOp compareOp;
-    //float minLod;
-    //float maxLod;
   };
 
   // serves as lightweight view of an image, cheap to construct, copy, and meant to be passed around
@@ -86,6 +86,7 @@ namespace GFX
     [[nodiscard]] uint32_t GetAPIHandle() const { return id_; }
     [[nodiscard]] TextureViewCreateInfo CreateInfo() const { return createInfo_; }
     [[nodiscard]] Extent3D Extent() const { return extent_; }
+    //[[nodiscard]] std::optional<TextureView> MipView(uint32_t level) const;
 
   private:
     friend class Framebuffer;

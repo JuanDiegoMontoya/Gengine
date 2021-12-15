@@ -4,30 +4,45 @@
 
 namespace GFX
 {
+  struct Extent2D
+  {
+    uint32_t width{};
+    uint32_t height{};
+    bool operator==(const Extent2D&) const = default;
+    Extent2D operator+(const Extent2D& other) const { return { width + other.width, height + other.height }; }
+    Extent2D operator-(const Extent2D& other) const { return { width - other.width, height - other.height }; }
+    Extent2D operator*(const Extent2D& other) const { return { width * other.width, height * other.height }; }
+    Extent2D operator/(const Extent2D& other) const { return { width / other.width, height / other.height }; }
+    Extent2D operator>>(const Extent2D& other) const { return { width >> other.width, height >> other.height }; }
+    Extent2D operator<<(const Extent2D& other) const { return { width << other.width, height << other.height }; }
+    Extent2D operator+(uint32_t val) const { return *this + Extent2D{ val, val }; }
+    Extent2D operator-(uint32_t val) const { return *this - Extent2D{ val, val }; }
+    Extent2D operator*(uint32_t val) const { return *this * Extent2D{ val, val }; }
+    Extent2D operator/(uint32_t val) const { return *this / Extent2D{ val, val }; }
+    Extent2D operator>>(uint32_t val) const { return *this >> Extent2D{ val, val }; }
+    Extent2D operator<<(uint32_t val) const { return *this << Extent2D{ val, val }; }
+  };
+
   struct Extent3D
   {
     uint32_t width{};
     uint32_t height{};
     uint32_t depth{};
 
+    operator Extent2D() const { return { width, height }; }
     bool operator==(const Extent3D&) const = default;
-  };
-
-  struct Extent2D
-  {
-    uint32_t width{};
-    uint32_t height{};
-
-    bool operator==(const Extent2D&) const = default;
-  };
-
-  struct Offset3D
-  {
-    uint32_t x{};
-    uint32_t y{};
-    uint32_t z{};
-
-    bool operator==(const Offset3D&) const = default;
+    Extent3D operator+(const Extent3D& other) const { return { width + other.width, height + other.height, depth + other.depth }; }
+    Extent3D operator-(const Extent3D& other) const { return { width - other.width, height - other.height, depth - other.depth }; }
+    Extent3D operator*(const Extent3D& other) const { return { width * other.width, height * other.height, depth * other.depth }; }
+    Extent3D operator/(const Extent3D& other) const { return { width / other.width, height / other.height, depth / other.depth }; }
+    Extent3D operator>>(const Extent3D& other) const { return { width >> other.width, height >> other.height, depth >> other.depth }; }
+    Extent3D operator<<(const Extent3D& other) const { return { width << other.width, height << other.height, depth << other.depth }; }
+    Extent3D operator+(uint32_t val) const { return *this + Extent3D{ val, val, val }; }
+    Extent3D operator-(uint32_t val) const { return *this - Extent3D{ val, val, val }; }
+    Extent3D operator*(uint32_t val) const { return *this * Extent3D{ val, val, val }; }
+    Extent3D operator/(uint32_t val) const { return *this / Extent3D{ val, val, val }; }
+    Extent3D operator>>(uint32_t val) const { return *this >> Extent3D{ val, val, val }; }
+    Extent3D operator<<(uint32_t val) const { return *this << Extent3D{ val, val, val }; }
   };
 
   struct Offset2D
@@ -36,6 +51,40 @@ namespace GFX
     uint32_t y{};
 
     bool operator==(const Offset2D&) const = default;
+    Offset2D operator+(const Offset2D & other) const { return { x + other.x, y + other.y }; }
+    Offset2D operator-(const Offset2D & other) const { return { x - other.x, y - other.y }; }
+    Offset2D operator*(const Offset2D & other) const { return { x * other.x, y * other.y }; }
+    Offset2D operator/(const Offset2D & other) const { return { x / other.x, y / other.y }; }
+    Offset2D operator>>(const Offset2D & other) const { return { x >> other.x, y >> other.y }; }
+    Offset2D operator<<(const Offset2D & other) const { return { x << other.x, y << other.y }; }
+    Offset2D operator+(uint32_t val) const { return *this + Offset2D{ val, val }; }
+    Offset2D operator-(uint32_t val) const { return *this - Offset2D{ val, val }; }
+    Offset2D operator*(uint32_t val) const { return *this * Offset2D{ val, val }; }
+    Offset2D operator/(uint32_t val) const { return *this / Offset2D{ val, val }; }
+    Offset2D operator>>(uint32_t val) const { return *this >> Offset2D{ val, val }; }
+    Offset2D operator<<(uint32_t val) const { return *this << Offset2D{ val, val }; }
+  };
+
+  struct Offset3D
+  {
+    uint32_t x{};
+    uint32_t y{};
+    uint32_t z{};
+
+    operator Offset2D() const { return { x, y }; }
+    bool operator==(const Offset3D&) const = default;
+    Offset3D operator+(const Offset3D& other) const { return { x + other.x, y + other.y, z + other.z }; }
+    Offset3D operator-(const Offset3D& other) const { return { x - other.x, y - other.y, z - other.z }; }
+    Offset3D operator*(const Offset3D& other) const { return { x * other.x, y * other.y, z * other.z }; }
+    Offset3D operator/(const Offset3D& other) const { return { x / other.x, y / other.y, z / other.z }; }
+    Offset3D operator>>(const Offset3D& other) const { return { x >> other.x, y >> other.y, z >> other.z }; }
+    Offset3D operator<<(const Offset3D& other) const { return { x << other.x, y << other.y, z << other.z }; }
+    Offset3D operator+(uint32_t val) const { return *this + Offset3D{ val, val, val }; }
+    Offset3D operator-(uint32_t val) const { return *this - Offset3D{ val, val, val }; }
+    Offset3D operator*(uint32_t val) const { return *this * Offset3D{ val, val, val }; }
+    Offset3D operator/(uint32_t val) const { return *this / Offset3D{ val, val, val }; }
+    Offset3D operator>>(uint32_t val) const { return *this >> Offset3D{ val, val, val }; }
+    Offset3D operator<<(uint32_t val) const { return *this << Offset3D{ val, val, val }; }
   };
 
   enum class ImageType : uint8_t
