@@ -15,19 +15,12 @@
     <ClInclude Include="src\engine\ecs\system\ScriptSystem.h" />
     <ClInclude Include="src\engine\ecs\Entity.h" />
     <ClInclude Include="src\engine\gfx\AssimpUtils.h" />
-    <ClInclude Include="src\engine\gfx\DebugMarker.h" />
-    <ClInclude Include="src\engine\gfx\DynamicBuffer.h" />
-    <ClInclude Include="src\engine\gfx\Fence.h" />
     <ClInclude Include="src\engine\gfx\Frustum.h" />
-    <ClInclude Include="src\engine\gfx\Indirect.h" />
     <ClInclude Include="src\engine\gfx\Material.h" />
     <ClInclude Include="src\engine\gfx\Mesh.h" />
     <ClInclude Include="src\engine\gfx\MeshUtils.h" />
     <ClInclude Include="src\engine\gfx\Renderer.h" />
-    <ClInclude Include="src\engine\gfx\Shader.h" />
     <ClInclude Include="src\engine\gfx\ShaderManager.h" />
-    <ClInclude Include="src\engine\gfx\StaticBuffer.h" />
-    <ClInclude Include="src\engine\gfx\Texture.h" />
     <ClInclude Include="src\engine\gfx\TextureLoader.h" />
     <ClInclude Include="src\engine\gfx\TextureManager.h" />
     <ClInclude Include="src\engine\Application.h" />
@@ -150,11 +143,18 @@
     <ClInclude Include="src\engine\core\Statistics.h" />
     <ClInclude Include="src\engine\core\StatMacros.h" />
     <ClInclude Include="src\engine\gfx\Camera.h" />
-    <ClInclude Include="src\engine\gfx\Framebuffer.h" />
-    <ClInclude Include="src\engine\gfx\BasicTypes.h" />
     <ClInclude Include="src\utility\MathExtensions.h" />
     <ClInclude Include="src\engine\gfx\RenderView.h" />
     <ClInclude Include="src\engine\gfx\RenderInfo.h" />
+    <ClInclude Include="src\engine\gfx\api\BasicTypes.h" />
+    <ClInclude Include="src\engine\gfx\api\DebugMarker.h" />
+    <ClInclude Include="src\engine\gfx\api\DynamicBuffer.h" />
+    <ClInclude Include="src\engine\gfx\api\Fence.h" />
+    <ClInclude Include="src\engine\gfx\api\Framebuffer.h" />
+    <ClInclude Include="src\engine\gfx\api\Indirect.h" />
+    <ClInclude Include="src\engine\gfx\api\Shader.h" />
+    <ClInclude Include="src\engine\gfx\api\Buffer.h" />
+    <ClInclude Include="src\engine\gfx\api\Texture.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\engine\ecs\system\DebugSystem.cpp" />
@@ -164,16 +164,11 @@
     <ClCompile Include="src\engine\ecs\system\PhysicsSystem.cpp" />
     <ClCompile Include="src\engine\ecs\system\ScriptSystem.cpp" />
     <ClCompile Include="src\engine\ecs\Entity.cpp" />
-    <ClCompile Include="src\engine\gfx\DebugMarker.cpp" />
-    <ClCompile Include="src\engine\gfx\Fence.cpp" />
     <ClCompile Include="src\engine\gfx\Frustum.cpp" />
     <ClCompile Include="src\engine\gfx\Material.cpp" />
     <ClCompile Include="src\engine\gfx\Mesh.cpp" />
     <ClCompile Include="src\engine\gfx\Renderer.cpp" />
-    <ClCompile Include="src\engine\gfx\Shader.cpp" />
     <ClCompile Include="src\engine\gfx\ShaderManager.cpp" />
-    <ClCompile Include="src\engine\gfx\StaticBuffer.cpp" />
-    <ClCompile Include="src\engine\gfx\Texture.cpp" />
     <ClCompile Include="src\engine\gfx\TextureLoader.cpp" />
     <ClCompile Include="src\engine\gfx\TextureManager.cpp" />
     <ClCompile Include="src\engine\Application.cpp" />
@@ -215,7 +210,6 @@
     <ClCompile Include="src\utility\Timer.cpp" />
     <ClCompile Include="src\engine\core\Logging.cpp" />
     <ClCompile Include="src\engine\core\Statistics.cpp" />
-    <ClCompile Include="src\engine\gfx\Framebuffer.cpp" />
     <ClCompile Include="src\utility\MathExtensions.cpp" />
     <ClCompile Include="src\engine\gfx\Camera.cpp" />
     <ClCompile Include="src\game\FlyingPlayerController.cpp" />
@@ -223,9 +217,14 @@
     <ClCompile Include="src\game\KinematicPlayerController.cpp" />
     <ClCompile Include="src\engine\gfx\RenderView.cpp" />
     <ClCompile Include="src\engine\gfx\RenderInfo.cpp" />
+    <ClCompile Include="src\engine\gfx\api\Fence.cpp" />
+    <ClCompile Include="src\engine\gfx\api\Framebuffer.cpp" />
+    <ClCompile Include="src\engine\gfx\api\Shader.cpp" />
+    <ClCompile Include="src\engine\gfx\api\Buffer.cpp" />
+    <ClCompile Include="src\engine\gfx\api\Texture.cpp" />
+    <ClCompile Include="src\engine\gfx\api\DebugMarker.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="src\engine\gfx\DynamicBuffer.inl" />
     <None Include="src\utility\Palette.inl" />
     <None Include="src\voxel\BlockStorage.inl" />
     <None Include="src\voxel\ChunkHelpers.inl" />
@@ -265,5 +264,6 @@
     <None Include="data\game\Shaders\update_particle.cs.glsl" />
     <None Include="data\game\Shaders\update_particle_emitter.cs.glsl" />
     <None Include="data\game\Shaders\fog.fs.glsl" />
+    <None Include="src\engine\gfx\api\DynamicBuffer.cpp" />
   </ItemGroup>
 </Project>

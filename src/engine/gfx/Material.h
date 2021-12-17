@@ -3,8 +3,8 @@
 #include <unordered_map>
 #include <functional>
 #include <utility/HashedString.h>
-#include "Texture.h"
-#include "Shader.h"
+#include "api/Texture.h"
+#include "api/Shader.h"
 
 namespace GFX
 {

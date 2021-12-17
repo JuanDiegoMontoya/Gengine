@@ -6,7 +6,7 @@
 #include <engine/Application.h>
 #include <engine/gfx/Renderer.h>
 #include <engine/gfx/Mesh.h>
-#include <engine/gfx/Fence.h>
+#include <engine/gfx/api/Fence.h>
 #include <engine/gfx/RenderView.h>
 #include <engine/gfx/Camera.h>
 #include <engine/core/Statistics.h>

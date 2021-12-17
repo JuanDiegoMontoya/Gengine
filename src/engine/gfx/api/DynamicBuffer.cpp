@@ -1,4 +1,6 @@
+//#include "../../PCH.h"
 #pragma once
+#include "DynamicBuffer.h"
 #include <glad/glad.h>
 #include <glm/vec3.hpp>
 
@@ -12,7 +14,7 @@ namespace GFX
     size += (align_ - (size % align_)) % align_;
 
     // allocate uninitialized memory in VRAM
-    buffer = std::make_unique<StaticBuffer>(nullptr, size);
+    buffer = std::make_unique<Buffer>(nullptr, size);
 
     // make one big null allocation
     allocationData<UserT> phalloc;
@@ -221,7 +223,7 @@ namespace GFX
       alternator = !alternator;
     }
 
-    vbo_ = std::make_unique<StaticBuffer>(&data[0][0], sizeof(glm::vec3) * data.size());
+    vbo_ = std::make_unique<Buffer>(&data[0][0], sizeof(glm::vec3) * data.size());
 
     if (!vao_)
     {

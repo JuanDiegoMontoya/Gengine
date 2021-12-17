@@ -1,7 +1,7 @@
 #pragma once
 #include <utility/Flags.h>
 #include <cstdint>
-#include "BasicTypes.h"
+#include "api/BasicTypes.h"
 #include "RenderInfo.h"
 
 namespace GFX

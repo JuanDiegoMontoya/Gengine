@@ -11,7 +11,7 @@
 #include <voxel/ChunkSerialize.h>
 #include <voxel/ChunkRenderer.h>
 #include "WorldGen.h"
-#include <engine/gfx/Texture.h>
+#include <engine/gfx/api/Texture.h>
 #include <engine/gfx/TextureManager.h>
 #include <engine/gfx/TextureLoader.h>
 

@@ -1,5 +1,5 @@
 #pragma once
-#include <engine/gfx/Texture.h>
+#include <engine/gfx/api/Texture.h>
 #include <utility/HashedString.h>
 #include "../../Timestep.h"
 
@@ -8,7 +8,7 @@ struct ParticleManagerData;
 
 namespace GFX
 {
-  class StaticBuffer;
+  class Buffer;
   class Texture2D;
   class Renderer;
 }

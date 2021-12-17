@@ -28,19 +28,19 @@ namespace GFX
 
 
   // General-purpose immutable buffer storage
-  class StaticBuffer
+  class Buffer
   {
   public:
-    StaticBuffer(const void* data, size_t size, BufferFlags flags = BufferFlag::DYNAMIC_STORAGE);
+    Buffer(const void* data, size_t size, BufferFlags flags = BufferFlag::DYNAMIC_STORAGE);
 
     // copies another buffer's data store and contents
-    StaticBuffer(const StaticBuffer& other) = delete;
-    StaticBuffer(StaticBuffer&& other) noexcept;
-    StaticBuffer& operator=(StaticBuffer&& other) noexcept;
-    ~StaticBuffer();
+    Buffer(const Buffer& other) = delete;
+    Buffer(Buffer&& other) noexcept;
+    Buffer& operator=(Buffer&& other) noexcept;
+    ~Buffer();
 
-    StaticBuffer& operator=(const StaticBuffer&) = delete;
-    bool operator==(const StaticBuffer&) const = default;
+    Buffer& operator=(const Buffer&) = delete;
+    bool operator==(const Buffer&) const = default;
 
     // updates a subset of the buffer's data store
     void SubData(const void* data, size_t size, size_t offset = 0);

@@ -5,10 +5,10 @@
 
 #include "MeshUtils.h"
 #include "Material.h"
-#include "DynamicBuffer.h"
-#include "Indirect.h"
-#include "Texture.h"
-#include "Framebuffer.h"
+#include "api/DynamicBuffer.h"
+#include "api/Indirect.h"
+#include "api/Texture.h"
+#include "api/Framebuffer.h"
 #include "RenderView.h"
 #include "Camera.h"
 
@@ -163,7 +163,7 @@ namespace GFX
     uint32_t emptyVao{};
 
     uint32_t axisVao{};
-    std::optional<StaticBuffer> axisVbo;
+    std::optional<Buffer> axisVbo;
 
     std::optional<TextureSampler> defaultSampler;
     std::optional<TextureSampler> nearestSampler;
@@ -267,8 +267,8 @@ namespace GFX
       float targetLuminance = .22f;
       float adjustmentSpeed = 0.5f;
       bool gammaCorrection = true;
-      std::unique_ptr<GFX::StaticBuffer> exposureBuffer;
-      std::unique_ptr<GFX::StaticBuffer> histogramBuffer;
+      std::unique_ptr<GFX::Buffer> exposureBuffer;
+      std::unique_ptr<GFX::Buffer> histogramBuffer;
       const int NUM_BUCKETS = 128;
       std::optional<GFX::TextureView> blueNoiseView;
       std::optional<GFX::TextureSampler> blueNoiseSampler;

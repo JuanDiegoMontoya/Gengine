@@ -5,12 +5,12 @@
 #include <engine/gfx/Frustum.h>
 #include <engine/gfx/ShaderManager.h>
 #include <engine/gfx/TextureLoader.h>
-#include <engine/gfx/DebugMarker.h>
-#include <engine/gfx/Indirect.h>
-#include <engine/gfx/Fence.h>
-#include <engine/gfx/DynamicBuffer.h>
+#include <engine/gfx/api/DebugMarker.h>
+#include <engine/gfx/api/Indirect.h>
+#include <engine/gfx/api/Fence.h>
+#include <engine/gfx/api/DynamicBuffer.h>
 #include <engine/gfx/Camera.h>
-#include <engine/gfx/Framebuffer.h>
+#include <engine/gfx/api/Framebuffer.h>
 #include <engine/gfx/RenderView.h>
 #include <engine/gfx/TextureManager.h>
 #include <engine/gfx/Renderer.h>
@@ -72,8 +72,8 @@ namespace Voxels
 
     struct ViewData
     {
-      std::unique_ptr<GFX::StaticBuffer> drawIndirectBuffer;
-      std::unique_ptr<GFX::StaticBuffer> drawCountParameterBuffer;
+      std::unique_ptr<GFX::Buffer> drawIndirectBuffer;
+      std::unique_ptr<GFX::Buffer> drawCountParameterBuffer;
     };
 
     std::unordered_map<GFX::RenderView*, ViewData> perViewData;
@@ -82,11 +82,11 @@ namespace Voxels
     const int workGroupSize = 64; // defined in compact_batch.cs
 
     GLuint occlusionVao{};
-    std::unique_ptr<GFX::StaticBuffer> occlusionDib;
+    std::unique_ptr<GFX::Buffer> occlusionDib;
     GLsizei activeAllocs{};
     //std::pair<uint64_t, GLuint> stateInfo{ 0, 0 };
     bool dirtyAlloc = true;
-    std::unique_ptr<GFX::StaticBuffer> vertexAllocBuffer;
+    std::unique_ptr<GFX::Buffer> vertexAllocBuffer;
 
     // resources
     std::optional<GFX::Texture> blockDiffuseTextures;
@@ -143,7 +143,7 @@ namespace Voxels
       .baseVertex = 0,
       .baseInstance = 0
     };
-    data->occlusionDib = std::make_unique<GFX::StaticBuffer>(&occlusionCullingCmd, sizeof(occlusionCullingCmd), GFX::BufferFlag::CLIENT_STORAGE);
+    data->occlusionDib = std::make_unique<GFX::Buffer>(&occlusionCullingCmd, sizeof(occlusionCullingCmd), GFX::BufferFlag::CLIENT_STORAGE);
 
     // assets
     std::vector<std::string> texsDiffuse = GetBlockTexturePaths("diffuse", ".png");
@@ -233,7 +233,7 @@ namespace Voxels
 
       if (!data->perViewData.contains(renderView))
       {
-        data->perViewData[renderView].drawCountParameterBuffer = std::make_unique<GFX::StaticBuffer>(nullptr, sizeof(uint32_t));
+        data->perViewData[renderView].drawCountParameterBuffer = std::make_unique<GFX::Buffer>(nullptr, sizeof(uint32_t));
       }
     }
 
@@ -344,7 +344,7 @@ namespace Voxels
 
     if (data->dirtyAlloc)
     {
-      data->vertexAllocBuffer = std::make_unique<GFX::StaticBuffer>(vertexAllocs.data(), data->verticesAllocator->AllocSize() * vertexAllocs.size());
+      data->vertexAllocBuffer = std::make_unique<GFX::Buffer>(vertexAllocs.data(), data->verticesAllocator->AllocSize() * vertexAllocs.size());
       data->verticesAllocator->GenDrawData();
     }
 
@@ -382,7 +382,7 @@ namespace Voxels
       // only re-construct if allocator has been modified
       if (data->dirtyAlloc)
       {
-        drawIndirectBuffer = std::make_unique<GFX::StaticBuffer>(nullptr, data->verticesAllocator->ActiveAllocs() * sizeof(DrawArraysIndirectCommand));
+        drawIndirectBuffer = std::make_unique<GFX::Buffer>(nullptr, data->verticesAllocator->ActiveAllocs() * sizeof(DrawArraysIndirectCommand));
       }
 
       drawIndirectBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(1);

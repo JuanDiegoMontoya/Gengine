@@ -1,6 +1,6 @@
 #pragma once
-#include "Texture.h"
-#include "BasicTypes.h"
+#include "api/Texture.h"
+#include "api/BasicTypes.h"
 #include <array>
 #include <optional>
 

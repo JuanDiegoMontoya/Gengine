@@ -1,5 +1,5 @@
 #pragma once
-#include <engine/gfx/Fence.h>
+#include <engine/gfx/api/Fence.h>
 #include <engine/core/Statistics.h>
 #include <utility/Timer.h>
 #include <utility/Defer.h>

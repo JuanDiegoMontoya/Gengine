@@ -6,17 +6,17 @@
 
 #include "ShaderManager.h"
 #include "Mesh.h"
-#include "DebugMarker.h"
+#include "api/DebugMarker.h"
 
 #include <engine/ecs/system/ParticleSystem.h>
-#include "StaticBuffer.h"
+#include "api/Buffer.h"
 
 #include <engine/ecs/component/Transform.h>
 #include <engine/ecs/component/Rendering.h>
 #include <engine/ecs/component/ParticleEmitter.h>
 #include "TextureManager.h"
 #include "TextureLoader.h"
-#include "Fence.h"
+#include "api/Fence.h"
 
 #include <execution>
 #include <iostream>
@@ -246,7 +246,7 @@ namespace GFX
     DebugMarker marker(("Batch: " + std::string(material.shaderID)).c_str());
 
     // generate SSBO w/ uniforms
-    StaticBuffer uniformBuffer = GFX::StaticBuffer(uniforms.data(), uniforms.size() * sizeof(UniformData));
+    Buffer uniformBuffer = GFX::Buffer(uniforms.data(), uniforms.size() * sizeof(UniformData));
     uniformBuffer.Bind<GFX::Target::SHADER_STORAGE_BUFFER>(0);
 
     // generate DIB (one indirect command per mesh)
@@ -263,7 +263,7 @@ namespace GFX
           baseInstance += cmd.second.instanceCount;
         }
       });
-    GFX::StaticBuffer dib(commands.data(), commands.size() * sizeof(DrawElementsIndirectCommand));
+    GFX::Buffer dib(commands.data(), commands.size() * sizeof(DrawElementsIndirectCommand));
     dib.Bind<GFX::Target::DRAW_INDIRECT_BUFFER>();
 
     // clear instance count for next GL draw command
@@ -901,8 +901,8 @@ namespace GFX
     Extent2D fboSize = { GetRenderWidth(), GetRenderHeight() };
 
     std::vector<int> zeros(tonemap.NUM_BUCKETS, 0);
-    tonemap.exposureBuffer = std::make_unique<GFX::StaticBuffer>(zeros.data(), 2 * sizeof(float));
-    tonemap.histogramBuffer = std::make_unique<GFX::StaticBuffer>(zeros.data(), tonemap.NUM_BUCKETS * sizeof(int));
+    tonemap.exposureBuffer = std::make_unique<GFX::Buffer>(zeros.data(), 2 * sizeof(float));
+    tonemap.histogramBuffer = std::make_unique<GFX::Buffer>(zeros.data(), tonemap.NUM_BUCKETS * sizeof(int));
 
     //const int levels = glm::floor(glm::log2(glm::max((float)fboSize.width, (float)fboSize.height))) + 1;
     
