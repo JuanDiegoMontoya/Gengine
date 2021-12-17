@@ -89,6 +89,8 @@ void Application::Start()
   start(engine_->GetScene(0));
   engine_->updateCallback = update;
   engine_->drawOpaqueCallback = drawOpaque;
+  engine_->drawInterfacePrePostProcessingCallback = drawInterfacePrePostProcessingCallback;
+  engine_->drawInterfacePostPostProcessingCallback = drawInterfacePostPostProcessingCallback;
   engine_->Run();
 }
 

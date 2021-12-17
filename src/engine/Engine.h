@@ -44,6 +44,7 @@ private:
   void(*drawOpaqueCallback)(Scene*, Timestep) = nullptr;
   void(*drawPostShadingCallback)(Scene*, Timestep) = nullptr;
   void(*drawInterfacePrePostProcessingCallback)(Scene*, Timestep) = nullptr;
+  void(*drawInterfacePostPostProcessingCallback)(Scene*, Timestep) = nullptr;
 
   bool running_ = true;
   bool paused_ = false;

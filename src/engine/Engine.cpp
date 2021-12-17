@@ -136,7 +136,16 @@ void Engine::Run()
     graphicsSystem->DrawShading(*activeScene_);
     graphicsSystem->DrawFog(*activeScene_);
     graphicsSystem->DrawTransparent(*activeScene_);
-    graphicsSystem->EndFrame(*activeScene_, timestep);
+    if (drawInterfacePrePostProcessingCallback)
+    {
+      drawInterfacePrePostProcessingCallback(activeScene_, timestep);
+    }
+    graphicsSystem->Bloom();
+    if (drawInterfacePostPostProcessingCallback)
+    {
+      drawInterfacePostPostProcessingCallback(activeScene_, timestep);
+    }
+    graphicsSystem->EndFrame(timestep);
     debugSystem->EndFrame(*activeScene_); // render UI on top of everything else
     graphicsSystem->SwapBuffers();
   }

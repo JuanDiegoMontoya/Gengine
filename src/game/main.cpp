@@ -426,7 +426,13 @@ void OnDraw(Scene* scene, [[maybe_unused]] Timestep timestep)
   //ImGui::SliderFloat3("Pos", glm::value_ptr(vi.position), 0, 10);
   auto renderViews = scene->GetRenderViews();
   voxelManager->Draw();
+}
+
+void OnInterfaceDraw([[maybe_unused]] Scene* scene, [[maybe_unused]] Timestep timestep)
+{
+  auto renderViews = scene->GetRenderViews();
   GFX::Renderer::Get()->DrawAxisIndicator(renderViews);
+  voxelManager->DrawDebug();
 }
 
 int main()
@@ -436,6 +442,7 @@ int main()
   Application::SetStartCallback(OnStart);
   Application::SetUpdateCallback(OnUpdate);
   Application::SetDrawOpaqueCallback(OnDraw);
+  Application::SetDrawInterfacePostPostProcessingCallback(OnInterfaceDraw);
 
   Application::Start();
   voxelManager.reset();

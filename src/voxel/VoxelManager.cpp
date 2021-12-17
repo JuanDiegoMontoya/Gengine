@@ -30,8 +30,13 @@ namespace Voxels
   {
     auto renderViews = scene_->GetRenderViews();
     chunkRenderer_->Draw(renderViews);
-    chunkRenderer_->DrawBuffers(renderViews);
     editor_->Update(scene_);
+  }
+
+  void VoxelManager::DrawDebug()
+  {
+    auto renderViews = scene_->GetRenderViews();
+    chunkRenderer_->DrawBuffers(renderViews);
   }
 
   void VoxelManager::UpdateBlock(const glm::ivec3& wpos, Block block)

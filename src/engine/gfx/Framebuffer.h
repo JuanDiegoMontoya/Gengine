@@ -28,9 +28,9 @@ namespace GFX
     [[nodiscard]] uint32_t GetAPIHandle() const { return handle_; }
     [[nodiscard]] uint32_t GetAttachmentAPIHandle(Attachment slot) const;
 
-    static void Blit(const Framebuffer& source, Framebuffer& destination,
+    static void Blit(const Framebuffer& source, const Framebuffer& target,
       Offset2D sourceStart, Offset2D sourceEnd,
-      Offset2D destinationStart, Offset2D destinationEnd,
+      Offset2D targetStart, Offset2D targetEnd,
       AspectMaskBits mask, Filter filter);
 
   private:

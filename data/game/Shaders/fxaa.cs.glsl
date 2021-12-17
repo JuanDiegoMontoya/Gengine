@@ -18,33 +18,36 @@
   #define EDGE_GUESS 12
 #endif
 
-layout (location = 0) in vec2 vTexCoord;
+layout(binding = 0) uniform sampler2D s_source;
+layout(location = 1) uniform ivec2 u_targetDim;
+layout(location = 2) uniform float u_contrastThreshold = .0312; // .0833, .0625, .0312 from lowest to best quality
+layout(location = 3) uniform float u_relativeThreshold = .125; // .250, .166, .125
+layout(location = 4) uniform float u_pixelBlendStrength = 1.0;
+layout(location = 5) uniform float u_edgeBlendStrength = 1.0;
 
-layout (binding = 0) uniform sampler2D colorTex;
-layout (location = 1) uniform vec2 u_invScreenSize;
-layout (location = 2) uniform float u_contrastThreshold = .0312; // .0833, .0625, .0312 from lowest to best quality
-layout (location = 3) uniform float u_relativeThreshold = .125; // .250, .166, .125
-layout (location = 4) uniform float u_pixelBlendStrength = 1.0;
-layout (location = 5) uniform float u_edgeBlendStrength = 1.0;
-
-layout (location = 0) out vec4 fragColor;
+layout(binding = 0) uniform writeonly image2D i_target;
 
 float ColorToLum(vec3 c)
 {
   //return sqrt(dot(c, vec3(0.299, 0.587, 0.114)));
-  return dot(c, vec3(0.213,  0.715, 0.072)); // sRGB luminance calculation
+  return dot(c, vec3(0.213,  0.715, 0.072)); // sRGB luminance calculation since we do this after tonemapping
 }
 
 const float edgeSteps[EDGE_STEP_COUNT] = { EDGE_STEPS };
 
+layout(local_size_x = 16, local_size_y = 16) in;
 vec3 ComputeFXAA()
 {
+  ivec2 gid = ivec2(gl_GlobalInvocationID.xy);
+  vec2 uv = (vec2(gid) + 0.5) / u_targetDim;
+  vec2 texel = 1.0 / u_targetDim;
+
   // get immediate neighborhood
-  vec3 colorCenter = textureOffset(colorTex, vTexCoord, ivec2(0, 0)).rgb;
-  vec3 colorN = textureOffset(colorTex, vTexCoord, ivec2(0, 1)).rgb;
-  vec3 colorS = textureOffset(colorTex, vTexCoord, ivec2(0, -1)).rgb;
-  vec3 colorW = textureOffset(colorTex, vTexCoord, ivec2(-1, 0)).rgb;
-  vec3 colorE = textureOffset(colorTex, vTexCoord, ivec2(1, 0)).rgb;
+  vec3 colorCenter = textureLod(s_source, uv + texel * ivec2( 0, 0), 0).rgb;
+  vec3 colorN =      textureLod(s_source, uv + texel * ivec2( 0, 1), 0).rgb;
+  vec3 colorS =      textureLod(s_source, uv + texel * ivec2( 0,-1), 0).rgb;
+  vec3 colorW =      textureLod(s_source, uv + texel * ivec2(-1, 0), 0).rgb;
+  vec3 colorE =      textureLod(s_source, uv + texel * ivec2( 1, 0), 0).rgb;
   float lumCenter = ColorToLum(colorCenter);
   float lumN = ColorToLum(colorN);
   float lumS = ColorToLum(colorS);
@@ -63,10 +66,10 @@ vec3 ComputeFXAA()
   }
 
   // get diagonal neighborhood
-  vec3 colorNW = textureOffset(colorTex, vTexCoord, ivec2(-1, 1)).rgb;
-  vec3 colorNE = textureOffset(colorTex, vTexCoord, ivec2(1, 1)).rgb;
-  vec3 colorSW = textureOffset(colorTex, vTexCoord, ivec2(-1, -1)).rgb;
-  vec3 colorSE = textureOffset(colorTex, vTexCoord, ivec2(1, -1)).rgb;
+  vec3 colorNW = textureLod(s_source, uv + texel * ivec2(-1, 1), 0).rgb;
+  vec3 colorNE = textureLod(s_source, uv + texel * ivec2( 1, 1), 0).rgb;
+  vec3 colorSW = textureLod(s_source, uv + texel * ivec2(-1,-1), 0).rgb;
+  vec3 colorSE = textureLod(s_source, uv + texel * ivec2( 1,-1), 0).rgb;
   float lumNW = ColorToLum(colorNW);
   float lumNE = ColorToLum(colorNE);
   float lumSW = ColorToLum(colorSW);
@@ -78,7 +81,6 @@ vec3 ComputeFXAA()
   pixelBlend = abs(pixelBlend - lumCenter);
   pixelBlend = clamp(pixelBlend / lumContrast, 0.0, 1.0);
   pixelBlend = smoothstep(0.0, 1.0, pixelBlend);
-  pixelBlend *= pixelBlend;
   pixelBlend *= u_pixelBlendStrength;
 
   // determine direction to blend
@@ -97,7 +99,7 @@ vec3 ComputeFXAA()
   float posGrad = abs(posLum - lumCenter);
   float negGrad = abs(negLum - lumCenter);
 
-  float pixelStep = isEdgeHorizontal ? u_invScreenSize.y : u_invScreenSize.x;
+  float pixelStep = isEdgeHorizontal ? texel.y : texel.x;
   float oppLum;
   float gradient;
   if (posGrad < negGrad)
@@ -112,17 +114,17 @@ vec3 ComputeFXAA()
     gradient = posGrad;
   }
   
-  vec2 uvEdge = vTexCoord;
+  vec2 uvEdge = uv;
   vec2 edgeStep;
   if (isEdgeHorizontal)
   {
     uvEdge.y += pixelStep * 0.5;
-    edgeStep = vec2(u_invScreenSize.x, 0.0);
+    edgeStep = vec2(texel.x, 0.0);
   }
   else
   {
     uvEdge.x += pixelStep * 0.5;
-    edgeStep = vec2(0.0, u_invScreenSize.y);
+    edgeStep =vec2(0.0, texel.y);
   }
 
   float edgeLum = (lumCenter + oppLum) / 2.0;
@@ -130,12 +132,12 @@ vec3 ComputeFXAA()
 
   // positive edge stepping
   vec2 posUV = uvEdge + edgeStep * edgeSteps[0];
-  float posLumDelta = ColorToLum(texture(colorTex, posUV).rgb) - edgeLum;
+  float posLumDelta = ColorToLum(textureLod(s_source, posUV, 0).rgb) - edgeLum;
   bool posAtEnd = abs(posLumDelta) >= gradientThreshold;
   for (uint i = 0; i < EDGE_STEP_COUNT && !posAtEnd; i++)
   {
     posUV += edgeStep * edgeSteps[i];
-    posLumDelta = ColorToLum(texture(colorTex, posUV).rgb) - edgeLum;
+    posLumDelta = ColorToLum(textureLod(s_source, posUV, 0).rgb) - edgeLum;
     posAtEnd = abs(posLumDelta) >= gradientThreshold;
   }
   if (!posAtEnd)
@@ -145,12 +147,12 @@ vec3 ComputeFXAA()
 
   // negative edge stepping
   vec2 negUV = uvEdge - edgeStep * edgeSteps[0];
-  float negLumDelta = ColorToLum(texture(colorTex, negUV).rgb) - edgeLum;
+  float negLumDelta = ColorToLum(textureLod(s_source, negUV, 0).rgb) - edgeLum;
   bool negAtEnd = abs(negLumDelta) >= gradientThreshold;
   for (uint i = 0; i < EDGE_STEP_COUNT && !negAtEnd; i++)
   {
     negUV -= edgeStep * edgeSteps[i];
-    negLumDelta = ColorToLum(texture(colorTex, negUV).rgb) - edgeLum;
+    negLumDelta = ColorToLum(textureLod(s_source, negUV, 0).rgb) - edgeLum;
     negAtEnd = abs(negLumDelta) >= gradientThreshold;
   }
   if (!negAtEnd)
@@ -162,13 +164,13 @@ vec3 ComputeFXAA()
   float negDist;
   if (isEdgeHorizontal)
   {
-    posDist = posUV.x - vTexCoord.x;
-    negDist = vTexCoord.x - negUV.x;
+    posDist = posUV.x - uv.x;
+    negDist = uv.x - negUV.x;
   }
   else
   {
-    posDist = posUV.y - vTexCoord.y;
-    negDist = vTexCoord.y - negUV.y;
+    posDist = posUV.y - uv.y;
+    negDist = uv.y - negUV.y;
   }
 
   float shortestDist;
@@ -206,13 +208,16 @@ vec3 ComputeFXAA()
   {
     offset = vec2(pixelStep * finalBlendFactor, 0.0);
   }
-  vec2 uv = vTexCoord + offset;
+  vec2 uvFinal = uv + offset;
 
-  return textureLod(colorTex, uv, 0).rgb;
-  //return textureLod(colorTex, uv, 0).rgb * .0001 + vec3(finalBlendFactor);
+  return texture(s_source, uvFinal).rgb;
+  //return textureLod(s_source, uvFinal, 0).rgb * .0001 + vec3(finalBlendFactor);
 }
 
 void main()
 {
-  fragColor = vec4(ComputeFXAA(), 1.0);
+  ivec2 gid = ivec2(gl_GlobalInvocationID.xy);
+  if (any(greaterThanEqual(gid, u_targetDim)))
+    return;
+  imageStore(i_target, gid, vec4(ComputeFXAA(), 1.0));
 }

@@ -55,7 +55,9 @@ namespace GFX
     void StartFrame();
     void ClearFramebuffers(std::span<RenderView*> renderViews);
     void ApplyShading();
-    void AntialiasAndWriteSwapchain();
+    void ApplyAntialiasing();
+    void WriteSwapchain();
+    void Bloom();
     void ApplyTonemap(float dt);
 
     // feel free to modify the camera and/or the render mask, but not the render info of the returned RenderView
@@ -167,10 +169,10 @@ namespace GFX
     std::optional<TextureSampler> nearestSampler;
     std::optional<TextureSampler> linearMipmapNearestSampler;
 
-    // HDR inverse-z framebuffer stuff
-    std::optional<Framebuffer> ldrFbo;
     std::optional<Texture> ldrColorTexMemory;
     std::optional<TextureView> ldrColorTexView;
+    std::optional<Texture> postAATexMemory;
+    std::optional<TextureView> postAATexView;
     uint32_t windowWidth{ 1 };
     uint32_t windowHeight{ 1 };
     uint32_t renderWidth{ 1 };
@@ -178,7 +180,6 @@ namespace GFX
     float renderScale{ 1.0f }; // 1.0 means render resolution will match window
     uint32_t GetRenderWidth() const { return renderWidth; }
     uint32_t GetRenderHeight() const { return renderHeight; }
-    uint64_t frameNumber{ 0 };
 
     struct GBuffer
     {
@@ -292,8 +293,13 @@ namespace GFX
       float relativeThreshold = 0.125;
       float pixelBlendStrength = 0.2;
       float edgeBlendStrength = 1.0;
+      std::optional<TextureSampler> scratchSampler;
     }fxaa;
   };
+
+  void ApplyFXAA(const TextureView& source, const TextureView& target, 
+    float contrastThreshold, float relativeThreshold, float pixelBlendStrength, float edgeBlendStrength, 
+    TextureSampler& scratchSampler);
 
   void ApplyBloom(const TextureView& target, uint32_t passes, float strength, float width,
     const TextureView& scratchTexture, TextureSampler& scratchSampler);

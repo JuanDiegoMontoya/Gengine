@@ -125,11 +125,16 @@ void GraphicsSystem::DrawTransparent(Scene& scene)
   GFX::Renderer::Get()->RenderEmitters(renderViews);
 }
 
-void GraphicsSystem::EndFrame(Scene& scene, Timestep timestep)
+void GraphicsSystem::Bloom()
 {
-  auto renderViews = scene.GetRenderViews();
+  GFX::Renderer::Get()->Bloom();
+}
+
+void GraphicsSystem::EndFrame(Timestep timestep)
+{
   GFX::Renderer::Get()->ApplyTonemap(timestep.dt_effective);
-  GFX::Renderer::Get()->AntialiasAndWriteSwapchain();
+  GFX::Renderer::Get()->ApplyAntialiasing();
+  GFX::Renderer::Get()->WriteSwapchain();
 }
 
 void GraphicsSystem::SwapBuffers()

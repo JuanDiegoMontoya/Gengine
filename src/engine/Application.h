@@ -5,6 +5,7 @@
 class Engine;
 class Scene;
 
+// TODO: this class sucks and is kinda pointless
 class Application
 {
 public:
@@ -24,6 +25,8 @@ public:
   static void SetLoadSceneCallback(void(*fn)(unsigned)) { loadSceneIndex = fn; }
   static void SetUnloadSceneCallback(void(*fn)(const char*)) { unloadSceneStr = fn; }
   static void SetUnloadSceneCallback(void(*fn)(unsigned)) { unloadSceneIndex = fn; }
+  static void SetDrawInterfacePrePostProcessingCallback(void(*fn)(Scene*, Timestep)) { drawInterfacePrePostProcessingCallback = fn; }
+  static void SetDrawInterfacePostPostProcessingCallback(void(*fn)(Scene*, Timestep)) { drawInterfacePostPostProcessingCallback = fn; }
 
 private:
   static inline void(*start)(Scene*) = nullptr;
@@ -33,6 +36,8 @@ private:
   static inline void(*loadSceneIndex)(unsigned) = nullptr;
   static inline void(*unloadSceneStr)(const char*) = nullptr;
   static inline void(*unloadSceneIndex)(unsigned) = nullptr;
+  static inline void(*drawInterfacePrePostProcessingCallback)(Scene*, Timestep) = nullptr;
+  static inline void(*drawInterfacePostPostProcessingCallback)(Scene*, Timestep) = nullptr;
 
   static inline bool isPlaying_ = false;
 

@@ -23,6 +23,7 @@ namespace GFX
 
     GLenum glFilter[] =
     {
+      0,
       GL_NEAREST,
       GL_LINEAR,
     };
@@ -112,14 +113,14 @@ namespace GFX
     return static_cast<uint32_t>(params);
   }
 
-  void Framebuffer::Blit(const Framebuffer& source, Framebuffer& destination,
+  void Framebuffer::Blit(const Framebuffer& source, const Framebuffer& target,
     Offset2D sourceStart, Offset2D sourceEnd,
-    Offset2D destinationStart, Offset2D destinationEnd,
+    Offset2D targetStart, Offset2D targetEnd,
     AspectMaskBits mask, Filter filter)
   {
-    glBlitNamedFramebuffer(source.handle_, destination.handle_,
+    glBlitNamedFramebuffer(source.handle_, target.handle_,
       sourceStart.x, sourceStart.y, sourceEnd.x, sourceEnd.y,
-      destinationStart.x, destinationStart.y, destinationEnd.x, destinationEnd.y,
+      targetStart.x, targetStart.y, targetEnd.x, targetEnd.y,
       getAspectMask(mask), glFilter[static_cast<uint32_t>(filter)]);
   }
 }

@@ -532,8 +532,7 @@ namespace GFX
     //  });
     GFX::ShaderManager::Get()->AddShader("fxaa",
       {
-        { "fullscreen_tri.vs.glsl", GFX::ShaderType::VERTEX },
-        { "fxaa.fs.glsl", GFX::ShaderType::FRAGMENT }
+        { "fxaa.cs.glsl", GFX::ShaderType::COMPUTE }
       });
     GFX::ShaderManager::Get()->AddShader("specular_cube_trace",
       {
@@ -731,51 +730,50 @@ namespace GFX
     glEnable(GL_DEPTH_TEST);
   }
 
-  void Renderer::AntialiasAndWriteSwapchain()
+  void Renderer::ApplyAntialiasing()
   {
-    GFX::DebugMarker marker0("Write to swapchain");
-
     if (fxaa.enabled)
     {
       GFX::DebugMarker marker1("FXAA");
       MEASURE_GPU_TIMER_STAT(FXAA);
-
-      BindTextureView(0, *ldrColorTexView, *defaultSampler);
-      auto shdr = GFX::ShaderManager::Get()->GetShader("fxaa");
-      shdr->Bind();
-      shdr->SetVec2("u_invScreenSize", { 1.0f / GetRenderWidth(), 1.0f / GetRenderHeight() });
-      shdr->SetFloat("u_contrastThreshold", fxaa.contrastThreshold);
-      shdr->SetFloat("u_relativeThreshold", fxaa.relativeThreshold);
-      shdr->SetFloat("u_pixelBlendStrength", fxaa.pixelBlendStrength);
-      shdr->SetFloat("u_edgeBlendStrength", fxaa.edgeBlendStrength);
-      glBindVertexArray(emptyVao);
-      glDepthMask(GL_FALSE);
-      glDisable(GL_CULL_FACE);
-      glDrawArrays(GL_TRIANGLES, 0, 3);
-      glDepthMask(GL_TRUE);
-      glEnable(GL_CULL_FACE);
-      glBindSampler(0, 0);
+      ApplyFXAA(*ldrColorTexView, *postAATexView, fxaa.contrastThreshold, fxaa.relativeThreshold,
+        fxaa.pixelBlendStrength, fxaa.edgeBlendStrength, *fxaa.scratchSampler);
     }
     else
     {
-      glBlitNamedFramebuffer(ldrFbo->GetAPIHandle(), 0,
-        0, 0, GetRenderWidth(), GetRenderHeight(),
-        0, 0, windowWidth, windowHeight,
-        GL_COLOR_BUFFER_BIT, GL_LINEAR);
+      GFX::DebugMarker marker1("Blit");
+      auto fbo1 = Framebuffer::Create();
+      auto fbo2 = Framebuffer::Create();
+      fbo1->SetAttachment(Attachment::COLOR_0, *ldrColorTexView, 0);
+      fbo2->SetAttachment(Attachment::COLOR_0, *postAATexView, 0);
+      auto ext1 = ldrColorTexView->Extent();
+      auto ext2 = postAATexView->Extent();
+      Framebuffer::Blit(*fbo1, *fbo2,
+        { 0, 0 }, { ext1.width, ext1.height },
+        { 0, 0 }, { ext2.width, ext2.height },
+        AspectMaskBit::COLOR_BUFFER_BIT, Filter::LINEAR);
     }
-
-    frameNumber++;
   }
 
-  void Renderer::ApplyTonemap(float dt)
+  void Renderer::WriteSwapchain()
   {
-    GFX::DebugMarker endframeMarker("Postprocessing");
+    GFX::DebugMarker marker0("Write to swapchain");
 
+    auto framebuffer = Framebuffer::Create();
+    framebuffer->SetAttachment(Attachment::COLOR_0, *postAATexView, 0);
+    glBlitNamedFramebuffer(framebuffer->GetAPIHandle(), 0,
+      0, 0, GetRenderWidth(), GetRenderHeight(),
+      0, 0, windowWidth, windowHeight,
+      GL_COLOR_BUFFER_BIT, GL_LINEAR);
+  }
+
+  void Renderer::Bloom()
+  {
     ImGui::Checkbox("Enable bloom", &bloom.enabled);
     ImGui::SliderFloat("Bloom width", &bloom.width, 0.1f, 5.0f);
     ImGui::SliderFloat("Bloom strength", &bloom.strength, 0.01f, 1.0f, "%.4f", ImGuiSliderFlags_Logarithmic);
     ImGui::SliderInt("Bloom passes", (int*)&bloom.passes, 1, 7);
-    
+
     if (bloom.enabled)
     {
       GFX::DebugMarker bloomMarker("Bloom");
@@ -784,10 +782,15 @@ namespace GFX
       ApplyBloom(*gBuffer.colorTexView, bloom.passes, bloom.strength, bloom.width,
         *bloom.scratchTexView, *bloom.scratchSampler);
     }
+  }
 
+  void Renderer::ApplyTonemap(float dt)
+  {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    ldrFbo->Bind();
+    auto framebuffer = Framebuffer::Create();
+    framebuffer->SetAttachment(Attachment::COLOR_0, *ldrColorTexView, 0);
+    framebuffer->Bind();
 
     {
       GFX::DebugMarker tonemappingMarker("Tone mapping");
@@ -916,29 +919,28 @@ namespace GFX
     gBuffer.fbo->SetAttachment(Attachment::COLOR_1, *gBuffer.normalTexView, 0);
     gBuffer.fbo->SetAttachment(Attachment::COLOR_2, *gBuffer.PBRTexView, 0);
     gBuffer.fbo->SetAttachment(Attachment::DEPTH, *gBuffer.depthTexView, 0);
-    Attachment drawBuffers[] = { Attachment::COLOR_0, Attachment::COLOR_1, Attachment::COLOR_2 };
-    gBuffer.fbo->SetDrawBuffers(drawBuffers);
+    gBuffer.fbo->SetDrawBuffers({ { Attachment::COLOR_0, Attachment::COLOR_1, Attachment::COLOR_2 } });
     ASSERT(gBuffer.fbo->IsValid());
 
     RenderAttachment diffuseAttachment
     {
-      .textureView = &*gBuffer.colorTexView,
+      .textureView = &gBuffer.colorTexView.value(),
       .clearEachFrame = false
     };
     RenderAttachment normalAttachment
     {
-      .textureView = &*gBuffer.normalTexView,
+      .textureView = &gBuffer.normalTexView.value(),
       .clearEachFrame = false
     };
     RenderAttachment pbrAttachment
     {
-      .textureView = &*gBuffer.PBRTexView,
+      .textureView = &gBuffer.PBRTexView.value(),
       .clearEachFrame = true,
       .clearValue = { .color = { .f = { 1, 0, 0, 0 } } }
     };
     RenderAttachment depthAttachment
     {
-      .textureView = &*gBuffer.depthTexView,
+      .textureView = &gBuffer.depthTexView.value(),
       .clearEachFrame = true,
       .clearValue = { .depthStencil = { .depth = 0.0 } }
     };
@@ -954,9 +956,8 @@ namespace GFX
 
     ldrColorTexMemory = CreateTexture2D(fboSize, Format::R8G8B8A8_UNORM, "LDR Color Texture");
     ldrColorTexView = TextureView::Create(*ldrColorTexMemory, "LDR Color View");
-    ldrFbo = Framebuffer::Create();
-    ldrFbo->SetAttachment(Attachment::COLOR_0, *ldrColorTexView, 0);
-    ASSERT(ldrFbo->IsValid());
+    postAATexMemory = CreateTexture2D(fboSize, Format::R8G8B8A8_UNORM, "Post AA Texture");
+    postAATexView = TextureView::Create(*postAATexMemory, "Post AA View");
 
     composited.fbo = Framebuffer::Create();
     composited.fbo->SetAttachment(Attachment::COLOR_0, *gBuffer.colorTexView, 0);
@@ -965,6 +966,8 @@ namespace GFX
     bloom.scratchTex = CreateTexture2DMip({ fboSize.width / 2, fboSize.height / 2 }, Format::R11G11B10_FLOAT, bloom.passes);
     bloom.scratchTexView = bloom.scratchTex->View();
     bloom.scratchSampler = TextureSampler::Create({});
+
+    fxaa.scratchSampler = TextureSampler::Create({});
 
     SamplerState ss{};
     ss.asBitField.minFilter = Filter::LINEAR;
@@ -1544,6 +1547,40 @@ namespace GFX
     reflect.fboSize.width = glm::max(static_cast<uint32_t>(renderWidth * scale), 1u);
     reflect.fboSize.height = glm::max(static_cast<uint32_t>(renderHeight * scale), 1u);
     InitReflectionFramebuffer();
+  }
+
+  void ApplyFXAA(const TextureView& source, const TextureView& target,
+    float contrastThreshold, float relativeThreshold, float pixelBlendStrength, float edgeBlendStrength,
+    TextureSampler& scratchSampler)
+  {
+    SamplerState samplerState{};
+    samplerState.asBitField.minFilter = Filter::LINEAR;
+    samplerState.asBitField.magFilter = Filter::LINEAR;
+    samplerState.asBitField.mipmapFilter = Filter::LINEAR;
+    samplerState.asBitField.addressModeU = AddressMode::MIRRORED_REPEAT;
+    samplerState.asBitField.addressModeV = AddressMode::MIRRORED_REPEAT;
+    samplerState.lodBias = 0;
+    samplerState.minLod = -1000;
+    samplerState.maxLod = 1000;
+    scratchSampler.SetState(samplerState);
+    Extent2D targetDim = target.Extent();
+
+    auto shader = GFX::ShaderManager::Get()->GetShader("fxaa");
+    shader->Bind();
+    shader->SetIVec2("u_targetDim", { targetDim.width, targetDim.height });
+    shader->SetFloat("u_contrastThreshold", contrastThreshold);
+    shader->SetFloat("u_relativeThreshold", relativeThreshold);
+    shader->SetFloat("u_pixelBlendStrength", pixelBlendStrength);
+    shader->SetFloat("u_edgeBlendStrength", edgeBlendStrength);
+
+    BindTextureView(0, source, scratchSampler);
+    BindImage(0, target, 0);
+
+    const int local_size = 16;
+    const int numGroupsX = (targetDim.width + local_size - 1) / local_size;
+    const int numGroupsY = (targetDim.height + local_size - 1) / local_size;
+    glDispatchCompute(numGroupsX, numGroupsY, 1);
+    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
   }
 
   void ApplyBloom(const TextureView& target, uint32_t passes, float strength, float width,

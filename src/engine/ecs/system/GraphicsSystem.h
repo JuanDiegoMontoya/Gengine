@@ -17,7 +17,8 @@ public:
   void DrawShading(Scene& scene);
   void DrawFog(Scene& scene);
   void DrawEarlyFog(Scene& scene);
-  void EndFrame(Scene& scene, Timestep timestep);
+  void Bloom();
+  void EndFrame(Timestep timestep);
   void SwapBuffers();
 
   GLFWwindow* const* GetWindow() { return window; }
