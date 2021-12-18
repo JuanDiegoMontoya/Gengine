@@ -55,6 +55,8 @@
     <ClInclude Include="src\engine\gfx\api\Buffer.h" />
     <ClInclude Include="src\engine\gfx\api\Texture.h" />
     <ClInclude Include="src\engine\gfx\Camera.h" />
+    <ClInclude Include="src\engine\gfx\fx\Bloom.h" />
+    <ClInclude Include="src\engine\gfx\fx\FXAA.h" />
     <ClInclude Include="src\engine\gfx\MeshManager.h" />
     <ClInclude Include="src\engine\gfx\RenderInfo.h" />
     <ClInclude Include="src\engine\gfx\RenderView.h" />
@@ -297,6 +299,8 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">../PCH.h</PrecompiledHeaderFile>
     </ClCompile>
+    <ClCompile Include="src\engine\gfx\fx\Bloom.cpp" />
+    <ClCompile Include="src\engine\gfx\fx\FXAA.cpp" />
     <ClCompile Include="src\engine\gfx\Material.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../PCH.h</PrecompiledHeaderFile>

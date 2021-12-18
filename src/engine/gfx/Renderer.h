@@ -297,12 +297,5 @@ namespace GFX
     }fxaa;
   };
 
-  void ApplyFXAA(const TextureView& source, const TextureView& target, 
-    float contrastThreshold, float relativeThreshold, float pixelBlendStrength, float edgeBlendStrength, 
-    TextureSampler& scratchSampler);
-
-  void ApplyBloom(const TextureView& target, uint32_t passes, float strength, float width,
-    const TextureView& scratchTexture, TextureSampler& scratchSampler);
-
   void SetFramebufferDrawBuffersAuto(Framebuffer& framebuffer, const RenderInfo& renderInfo, size_t maxCount);
 }

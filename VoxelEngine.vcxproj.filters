@@ -155,6 +155,8 @@
     <ClInclude Include="src\engine\gfx\api\Shader.h" />
     <ClInclude Include="src\engine\gfx\api\Buffer.h" />
     <ClInclude Include="src\engine\gfx\api\Texture.h" />
+    <ClInclude Include="src\engine\gfx\fx\FXAA.h" />
+    <ClInclude Include="src\engine\gfx\fx\Bloom.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\engine\ecs\system\DebugSystem.cpp" />
@@ -223,6 +225,8 @@
     <ClCompile Include="src\engine\gfx\api\Buffer.cpp" />
     <ClCompile Include="src\engine\gfx\api\Texture.cpp" />
     <ClCompile Include="src\engine\gfx\api\DebugMarker.cpp" />
+    <ClCompile Include="src\engine\gfx\fx\FXAA.cpp" />
+    <ClCompile Include="src\engine\gfx\fx\Bloom.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="src\utility\Palette.inl" />

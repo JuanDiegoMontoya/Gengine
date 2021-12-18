@@ -27,6 +27,9 @@
 #include "Camera.h"
 #include "../../utility/MathExtensions.h"
 
+#include "fx/FXAA.h"
+#include "fx/Bloom.h"
+
 #include <imgui/imgui.h>
 
 #define LOG_PARTICLE_RENDER_TIME 0
@@ -736,7 +739,7 @@ namespace GFX
     {
       GFX::DebugMarker marker1("FXAA");
       MEASURE_GPU_TIMER_STAT(FXAA);
-      ApplyFXAA(*ldrColorTexView, *postAATexView, fxaa.contrastThreshold, fxaa.relativeThreshold,
+      FX::ApplyFXAA(*ldrColorTexView, *postAATexView, fxaa.contrastThreshold, fxaa.relativeThreshold,
         fxaa.pixelBlendStrength, fxaa.edgeBlendStrength, *fxaa.scratchSampler);
     }
     else
@@ -779,7 +782,7 @@ namespace GFX
       GFX::DebugMarker bloomMarker("Bloom");
       MEASURE_GPU_TIMER_STAT(Bloom_GPU);
       MEASURE_CPU_TIMER_STAT(Bloom_CPU);
-      ApplyBloom(*gBuffer.colorTexView, bloom.passes, bloom.strength, bloom.width,
+      FX::ApplyBloom(*gBuffer.colorTexView, bloom.passes, bloom.strength, bloom.width,
         *bloom.scratchTexView, *bloom.scratchSampler);
     }
   }
@@ -1547,145 +1550,6 @@ namespace GFX
     reflect.fboSize.width = glm::max(static_cast<uint32_t>(renderWidth * scale), 1u);
     reflect.fboSize.height = glm::max(static_cast<uint32_t>(renderHeight * scale), 1u);
     InitReflectionFramebuffer();
-  }
-
-  void ApplyFXAA(const TextureView& source, const TextureView& target,
-    float contrastThreshold, float relativeThreshold, float pixelBlendStrength, float edgeBlendStrength,
-    TextureSampler& scratchSampler)
-  {
-    SamplerState samplerState{};
-    samplerState.asBitField.minFilter = Filter::LINEAR;
-    samplerState.asBitField.magFilter = Filter::LINEAR;
-    samplerState.asBitField.mipmapFilter = Filter::LINEAR;
-    samplerState.asBitField.addressModeU = AddressMode::MIRRORED_REPEAT;
-    samplerState.asBitField.addressModeV = AddressMode::MIRRORED_REPEAT;
-    samplerState.lodBias = 0;
-    samplerState.minLod = -1000;
-    samplerState.maxLod = 1000;
-    scratchSampler.SetState(samplerState);
-    Extent2D targetDim = target.Extent();
-
-    auto shader = GFX::ShaderManager::Get()->GetShader("fxaa");
-    shader->Bind();
-    shader->SetIVec2("u_targetDim", { targetDim.width, targetDim.height });
-    shader->SetFloat("u_contrastThreshold", contrastThreshold);
-    shader->SetFloat("u_relativeThreshold", relativeThreshold);
-    shader->SetFloat("u_pixelBlendStrength", pixelBlendStrength);
-    shader->SetFloat("u_edgeBlendStrength", edgeBlendStrength);
-
-    BindTextureView(0, source, scratchSampler);
-    BindImage(0, target, 0);
-
-    const int local_size = 16;
-    const int numGroupsX = (targetDim.width + local_size - 1) / local_size;
-    const int numGroupsY = (targetDim.height + local_size - 1) / local_size;
-    glDispatchCompute(numGroupsX, numGroupsY, 1);
-    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-  }
-
-  void ApplyBloom(const TextureView& target, uint32_t passes, float strength, float width,
-    const TextureView& scratchTexture, TextureSampler& scratchSampler)
-  {
-    ASSERT(target.Extent().width >> passes > 0 && target.Extent().height >> passes > 0);
-
-    SamplerState samplerState{};
-    samplerState.asBitField.minFilter = Filter::LINEAR;
-    samplerState.asBitField.magFilter = Filter::LINEAR;
-    samplerState.asBitField.mipmapFilter = Filter::NEAREST;
-    samplerState.asBitField.addressModeU = AddressMode::MIRRORED_REPEAT;
-    samplerState.asBitField.addressModeV = AddressMode::MIRRORED_REPEAT;
-    samplerState.lodBias = 0;
-    samplerState.minLod = -1000;
-    samplerState.maxLod = 1000;
-    scratchSampler.SetState(samplerState);
-
-    auto downsampleLowPass = GFX::ShaderManager::Get()->GetShader("bloom/downsampleLowPass");
-    auto downsample = GFX::ShaderManager::Get()->GetShader("bloom/downsample");
-
-    const int local_size = 16;
-    for (uint32_t i = 0; i < passes; i++)
-    {
-      Extent2D sourceDim{};
-      Extent2D targetDim = target.Extent() >> i + 1;
-      float sourceLod{};
-
-      Shader* shader{ nullptr };
-      const TextureView* sourceView{ nullptr };
-
-      // first pass, use downsampling with low-pass filter
-      if (i == 0)
-      {
-        shader = &downsampleLowPass.value();
-        shader->Bind();
-
-        sourceLod = 0;
-        sourceView = &target;
-        sourceDim = { target.Extent().width, target.Extent().height };
-      }
-      else
-      {
-        shader = &downsample.value();
-        shader->Bind();
-
-        sourceLod = i - 1;
-        sourceView = &scratchTexture;
-        sourceDim = target.Extent() >> i;
-      }
-
-      BindTextureView(0, *sourceView, scratchSampler);
-      BindImage(0, scratchTexture, i);
-
-      shader->SetIVec2("u_sourceDim", { sourceDim.width, sourceDim.height });
-      shader->SetIVec2("u_targetDim", { targetDim.width, targetDim.height });
-      shader->SetFloat("u_sourceLod", sourceLod);
-
-      const int numGroupsX = (targetDim.width + local_size - 1) / local_size;
-      const int numGroupsY = (targetDim.height + local_size - 1) / local_size;
-      glDispatchCompute(numGroupsX, numGroupsY, 1);
-      glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-    }
-
-    auto us = GFX::ShaderManager::Get()->GetShader("bloom/upsample");
-    us->Bind();
-    for (int32_t i = passes - 1; i >= 0; i--)
-    {
-      Extent2D sourceDim = target.Extent() >> i + 1;
-      Extent2D targetDim{};
-      const TextureView* targetView{ nullptr };
-      float realStrength = 1.0f;
-      float targetMip{};
-
-      // final pass
-      if (i == 0)
-      {
-        realStrength = strength;
-        targetMip = 0;
-        targetView = &target;
-        targetDim = target.Extent();
-      }
-      else
-      {
-        targetMip = i - 1;
-        targetView = &scratchTexture;
-        targetDim = target.Extent() >> i;
-      }
-
-      BindTextureView(0, scratchTexture, scratchSampler);
-      BindTextureView(1, *targetView, scratchSampler);
-      BindImage(0, *targetView, targetMip);
-
-      us->SetIVec2("u_sourceDim", { sourceDim.width, sourceDim.height });
-      us->SetIVec2("u_targetDim", { targetDim.width, targetDim.height });
-      us->SetFloat("u_width", width);
-      us->SetFloat("u_strength", realStrength);
-      us->SetFloat("u_sourceLod", i);
-      us->SetFloat("u_targetLod", targetMip);
-
-      const int numGroupsX = (targetDim.width + local_size - 1) / local_size;
-      const int numGroupsY = (targetDim.height + local_size - 1) / local_size;
-      glDispatchCompute(numGroupsX, numGroupsY, 1);
-      glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-    }
   }
 
   void SetFramebufferDrawBuffersAuto(Framebuffer& framebuffer, const RenderInfo& renderInfo, size_t maxCount)
