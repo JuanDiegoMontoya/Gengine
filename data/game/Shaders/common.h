@@ -25,25 +25,7 @@ vec3 oct_to_float32x3(vec2 e)
   return normalize(v);
 }
 
-// also works for View space by passing in inverse projection
-vec3 WorldPosFromDepth(float depth, vec2 screenSize, mat4 invViewProj)
-{
-#ifndef DEPTH_ZERO_TO_ONE
-  float z = depth * 2.0 - 1.0; // [0, 1] -> [-1, 1]
-#else
-  float z = depth;
-#endif
-  vec2 normalized = gl_FragCoord.xy / screenSize; // [0.5, u_viewPortSize] -> [0, 1]
-  vec4 clipSpacePosition = vec4(normalized * 2.0 - 1.0, z, 1.0); // [0, 1] -> [-1, 1]
-
-  // undo view + projection
-  vec4 worldSpacePosition = invViewProj * clipSpacePosition;
-  worldSpacePosition /= worldSpacePosition.w;
-
-  return worldSpacePosition.xyz;
-}
-
-vec3 WorldPosFromDepthUV(float depth, vec2 uv, mat4 invViewProj)
+vec3 UnprojectUV(float depth, vec2 uv, mat4 invXProj)
 {
 #ifndef DEPTH_ZERO_TO_ONE
   float z = depth * 2.0 - 1.0; // [0, 1] -> [-1, 1]
@@ -53,7 +35,7 @@ vec3 WorldPosFromDepthUV(float depth, vec2 uv, mat4 invViewProj)
   vec4 clipSpacePosition = vec4(uv * 2.0 - 1.0, z, 1.0); // [0, 1] -> [-1, 1]
 
   // undo view + projection
-  vec4 worldSpacePosition = invViewProj * clipSpacePosition;
+  vec4 worldSpacePosition = invXProj * clipSpacePosition;
   worldSpacePosition /= worldSpacePosition.w;
 
   return worldSpacePosition.xyz;

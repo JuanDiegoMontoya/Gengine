@@ -1,7 +1,7 @@
 #include "../PCH.h"
 #include "TextureManager.h"
 #include <unordered_map>
-#include "Texture.h"
+#include "api/Texture.h"
 
 namespace GFX
 {

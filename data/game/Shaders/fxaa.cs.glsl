@@ -25,7 +25,7 @@ layout(location = 3) uniform float u_relativeThreshold = .125; // .250, .166, .1
 layout(location = 4) uniform float u_pixelBlendStrength = 1.0;
 layout(location = 5) uniform float u_edgeBlendStrength = 1.0;
 
-layout(binding = 0) uniform writeonly image2D i_target;
+layout(binding = 0) uniform writeonly restrict image2D i_target;
 
 float ColorToLum(vec3 c)
 {

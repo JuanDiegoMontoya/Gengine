@@ -7,7 +7,7 @@
 #include <voxel/VoxelManager.h>
 
 #include <engine/gfx/Vertices.h>
-#include <engine/gfx/DynamicBuffer.h>
+#include <engine/gfx/api/DynamicBuffer.h>
 #include <engine/Physics.h>
 #include <engine/CVar.h>
 

@@ -429,7 +429,6 @@ namespace GFX
         continue;
 
       SetViewport(renderView->renderInfo);
-      shader.SetIVec2("u_viewportSize", { renderView->renderInfo.size.width, renderView->renderInfo.size.height });
       shader.SetMat4("u_invViewProj", glm::inverse(renderView->camera->GetViewProj()));
 
       // yes, we are reading from the render target while drawing to it
@@ -556,8 +555,7 @@ namespace GFX
 
     GFX::ShaderManager::Get()->AddShader("atrous_reflection",
       {
-        { "fullscreen_tri.vs.glsl", GFX::ShaderType::VERTEX },
-        { "atrous.fs.glsl", GFX::ShaderType::FRAGMENT }
+        { "reflections/denoise_atrous.cs.glsl", GFX::ShaderType::COMPUTE }
       });
 
     GFX::ShaderManager::Get()->AddShader("bloom/downsampleLowPass",
@@ -1019,7 +1017,7 @@ namespace GFX
     return false;
   }
 
-  std::vector<std::string>& Renderer::GetAllOpenGLExtensions()
+  const std::vector<std::string>& Renderer::GetAllOpenGLExtensions()
   {
     return openglExtensions;
   }
@@ -1315,15 +1313,18 @@ namespace GFX
       BindTextureView(3, *gBuffer.PBRTexView, *nearestSampler);
       auto shader = ShaderManager::Get()->GetShader("atrous_reflection");
       shader->Bind();
-      shader->SetFloat("n_phi", reflect.atrous.n_phi);
-      shader->SetFloat("p_phi", reflect.atrous.p_phi);
-      shader->SetFloat("stepwidth", reflect.atrous.step_width);
+      shader->SetFloat("u_nPhi", reflect.atrous.n_phi);
+      shader->SetFloat("u_pPhi", reflect.atrous.p_phi);
+      shader->SetFloat("u_stepwidth", reflect.atrous.step_width);
       shader->SetMat4("u_invViewProj", glm::inverse(gBuffer.camera.GetViewProj()));
-      shader->SetIVec2("u_resolution", { reflect.fboSize.width, reflect.fboSize.height });
-      shader->Set1FloatArray("kernel[0]", reflect.atrous.kernel);
-      shader->Set1FloatArray("offsets[0]", reflect.atrous.offsets);
+      shader->SetIVec2("u_targetDim", { reflect.fboSize.width, reflect.fboSize.height });
+      shader->Set1FloatArray("u_kernel[0]", reflect.atrous.kernel);
+      shader->Set1FloatArray("u_offsets[0]", reflect.atrous.offsets);
 
-      reflect.fbo->Bind();
+      const int local_size = 16;
+      const int numGroupsX = (reflect.fboSize.width + local_size - 1) / local_size;
+      const int numGroupsY = (reflect.fboSize.height + local_size - 1) / local_size;
+
       for (int i = 0; i < reflect.atrous.num_passes; i++)
       {
         float offsets2[5];
@@ -1334,16 +1335,18 @@ namespace GFX
 
         // fake separable a-trous wavelet filter
         // technically incorrect, but looks good enough
-        shader->Set1FloatArray("offsets[0]", offsets2);
+        shader->Set1FloatArray("u_offsets[0]", offsets2);
         shader->SetBool("u_horizontal", false);
-        BindTextureView(0, *reflect.texView[0], *nearestSampler);
-        reflect.fbo->SetAttachment(Attachment::COLOR_0, *reflect.texView[1], 0);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        BindTextureView(0, *reflect.texView[0], *defaultSampler);
+        BindImage(0, *reflect.texView[1], 0);
+        glDispatchCompute(numGroupsX, numGroupsY, 1);
+        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
         shader->SetBool("u_horizontal", true);
-        BindTextureView(0, *reflect.texView[1], *nearestSampler);
-        reflect.fbo->SetAttachment(Attachment::COLOR_0, *reflect.texView[0], 0);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        BindTextureView(0, *reflect.texView[1], *defaultSampler);
+        BindImage(0, *reflect.texView[0], 0);
+        glDispatchCompute(numGroupsX, numGroupsY, 1);
+        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
       }
     }
   }

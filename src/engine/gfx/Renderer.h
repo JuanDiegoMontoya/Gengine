@@ -95,7 +95,7 @@ namespace GFX
     void InitReflectionFramebuffer();
 
     bool QueryOpenGLExtensionStatus(std::string_view extensionName);
-    std::vector<std::string>& GetAllOpenGLExtensions();
+    const std::vector<std::string>& GetAllOpenGLExtensions();
 
     void SetProbePosition(glm::vec3 worldPos);
     void SetProbeRenderMask(RenderMask mask);

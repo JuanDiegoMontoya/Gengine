@@ -1,4 +1,4 @@
-#include "../PCH.h"
+#include "../../PCH.h"
 #include "Texture.h"
 #include <glad/glad.h>
 #include <utility>
@@ -542,6 +542,7 @@ namespace GFX
 
   void BindImage(uint32_t slot, const TextureView& textureView, uint32_t level)
   {
+    ASSERT(level < textureView.CreateInfo().numLevels);
     glBindImageTexture(slot, textureView.GetAPIHandle(), level, GL_TRUE, 0,
       GL_READ_WRITE, formats[(int)textureView.CreateInfo().format]);
   }

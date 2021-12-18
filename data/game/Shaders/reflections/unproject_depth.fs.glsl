@@ -13,5 +13,5 @@ layout(location = 0) out float depth;
 void main()
 {
   float depthSample = texelFetch(u_depthTex, ivec2(gl_FragCoord.xy), 0).x;
-  depth = distance(u_viewPos, WorldPosFromDepthUV(depthSample, vTexCoord, u_invViewProj));
+  depth = distance(u_viewPos, UnprojectUV(depthSample, vTexCoord, u_invViewProj));
 }

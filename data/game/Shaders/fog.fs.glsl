@@ -8,7 +8,6 @@ layout (location = 0) in vec2 vTexCoord;
 layout(binding = 0) uniform sampler2D u_hdrColor;
 layout(binding = 1) uniform sampler2D u_hdrDepth;
 layout(location = 2) uniform mat4 u_invViewProj;
-layout(location = 3) uniform ivec2 u_viewportSize;
 layout(location = 4) uniform float u_distanceScale = 0.10;
 layout(location = 5) uniform float u_heightOffset = -40.0;
 layout(location = 6) uniform float u_hfIntensity = 1.0;
@@ -26,8 +25,8 @@ void main()
 {
   const vec3 hdrColor = texelFetch(u_hdrColor, ivec2(gl_FragCoord.xy), 0).xyz;
   const float depth = texelFetch(u_hdrDepth, ivec2(gl_FragCoord.xy), 0).r;
-  vec3 rayEnd = WorldPosFromDepth(max(depth, .00001), u_viewportSize, u_invViewProj);
-  vec3 rayStart = WorldPosFromDepth(1.0, u_viewportSize, u_invViewProj);
+  vec3 rayEnd = UnprojectUV(max(depth, .00001), vTexCoord, u_invViewProj);
+  vec3 rayStart = UnprojectUV(1.0, vTexCoord, u_invViewProj);
   vec3 rayDir = normalize(rayEnd - rayStart);
   const float totalDistance = distance(rayStart, rayEnd);
 

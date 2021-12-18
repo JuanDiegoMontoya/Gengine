@@ -74,7 +74,7 @@ void main()
 
   // reconstruct position in view space rather than world space
   // this is important for ensuring partial derivatives have maximum precision
-  vec3 gBufferViewPos = WorldPosFromDepthUV(gBufferDepth, vTexCoord, u_invProj);
+  vec3 gBufferViewPos = UnprojectUV(gBufferDepth, vTexCoord, u_invProj);
   vec3 gBufferWorldPos = (u_invView * vec4(gBufferViewPos, 1.0)).xyz;
   
 
