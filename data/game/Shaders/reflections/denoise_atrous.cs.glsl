@@ -2,7 +2,7 @@
 #include "../common.h"
 #define KERNEL_SIZE 5
 
-layout(binding = 0) uniform sampler2D s_reflectionColor;
+layout(binding = 0) uniform sampler2D s_specularIrradiance;
 layout(binding = 1) uniform sampler2D s_gBufferDepth;
 layout(binding = 2) uniform sampler2D s_gBufferNormal;
 layout(binding = 3) uniform sampler2D s_gBufferPBR;
@@ -35,7 +35,7 @@ void main()
     return;
   }
 
-  vec4 cval = textureLod(s_reflectionColor, uv, 0);
+  vec4 cval = textureLod(s_specularIrradiance, uv, 0);
 
   if (roughness <= 0.03)
   {
@@ -58,9 +58,9 @@ void main()
       continue;
     }
 
-    vec4 ctmp = textureLod(s_reflectionColor, newUV, 0);
+    vec4 ctmp = textureLod(s_specularIrradiance, newUV, 0);
 
-    vec4 ntmp = vec4(oct_to_float32x3(textureLod(s_gBufferNormal, newUV, 0).xy), 0.0);
+    vec4 ntmp = vec4(textureLod(s_gBufferNormal, newUV, 0).xyz, 0.0);
     vec4 t = nval - ntmp;
     float dist2 = max(dot(t, t) / (u_stepwidth * u_stepwidth), 0.0);
     float n_w = min(exp(-(dist2) / u_nPhi), 1.0);

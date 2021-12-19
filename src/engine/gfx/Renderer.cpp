@@ -538,8 +538,7 @@ namespace GFX
       });
     GFX::ShaderManager::Get()->AddShader("specular_cube_trace",
       {
-        { "fullscreen_tri.vs.glsl", GFX::ShaderType::VERTEX },
-        { "reflections/specular_cube_trace.fs.glsl", GFX::ShaderType::FRAGMENT }
+        { "reflections/specular_cube_trace.cs.glsl", GFX::ShaderType::COMPUTE }
       });
     GFX::ShaderManager::Get()->AddShader("unproject_depth",
       {
@@ -1263,23 +1262,26 @@ namespace GFX
     shader->SetMat4("u_invProj", glm::inverse(gBuffer.camera.proj));
     shader->SetMat4("u_invView", glm::inverse(gBuffer.camera.viewInfo.GetViewMatrix()));
     shader->SetVec3("u_viewPos", gBuffer.camera.viewInfo.position);
-    //shader->SetIVec2("u_screenSize", { renderWidth, renderHeight });
-    //shader->SetMat4("u_invViewProj", glm::inverse(mainCamera.GetViewProj()));
+    shader->SetIVec2("u_targetDim", { reflect.fboSize.width, reflect.fboSize.height });
 
     auto probeColor = TextureView::Create(*probeData.colorCube);
     auto probeDistance = TextureView::Create(*probeData.distanceCube);
 
     BindTextureView(0, *gBuffer.depthTexView, *nearestSampler);
-    BindTextureView(1, *gBuffer.PBRTexView, *nearestSampler);
-    BindTextureView(2, *probeColor, *nearestSampler);
-    BindTextureView(3, *probeDistance, *nearestSampler);
-    BindTextureView(4, *env.skyboxView, *defaultSampler);
-    BindTextureView(5, *blueNoiseBigView, *tonemap.blueNoiseSampler);
-    BindTextureView(6, *gBuffer.normalTexView, *nearestSampler);
-    BindTextureView(7, *gBuffer.colorTexView, *nearestSampler);
-    reflect.fbo->Bind();
+    BindTextureView(1, *gBuffer.colorTexView, *nearestSampler);
+    BindTextureView(2, *gBuffer.normalTexView, *nearestSampler);
+    BindTextureView(3, *gBuffer.PBRTexView, *nearestSampler);
+    BindTextureView(4, *probeColor, *nearestSampler);
+    BindTextureView(5, *probeDistance, *nearestSampler);
+    BindTextureView(6, *env.skyboxView, *defaultSampler);
+    BindTextureView(7, *blueNoiseBigView, *tonemap.blueNoiseSampler);
+    BindImage(0, *reflect.texView[0], 0);
 
-    glDrawArrays(GL_TRIANGLES, 0, 3);
+    const int local_size = 16;
+    const int numGroupsX = (reflect.fboSize.width + local_size - 1) / local_size;
+    const int numGroupsY = (reflect.fboSize.height + local_size - 1) / local_size;
+    glDispatchCompute(numGroupsX, numGroupsY, 1);
+    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
     UnbindTextureView(7);
     UnbindTextureView(6);
