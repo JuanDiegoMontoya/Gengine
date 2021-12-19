@@ -542,8 +542,7 @@ namespace GFX
       });
     GFX::ShaderManager::Get()->AddShader("unproject_depth",
       {
-        { "fullscreen_tri.vs.glsl", GFX::ShaderType::VERTEX },
-        { "reflections/unproject_depth.fs.glsl", GFX::ShaderType::FRAGMENT }
+        { "reflections/unproject_depth.cs.glsl", GFX::ShaderType::COMPUTE }
       });
 
     GFX::ShaderManager::Get()->AddShader("specular_composite",
@@ -1239,24 +1238,20 @@ namespace GFX
     // read each face of the cube depth, unproject to get the distance to the camera, and write it to an RXX_FLOAT cube texture face
     auto shader0 = ShaderManager::Get()->GetShader("unproject_depth");
     shader0->Bind();
-    shader0->SetVec3("u_viewPos", probeData.cameras[0].viewInfo.position);
-    auto framebuffer = Framebuffer::Create();
-    framebuffer->SetDrawBuffers({ { Attachment::COLOR_0 } });
-    framebuffer->Bind();
 
-    glViewport(0, 0, probeData.imageSize.width, probeData.imageSize.height);
-    glBlendFunc(GL_ONE, GL_ZERO);
+    const int local_sizeaaa = 16;
+    const int numGroupsXa = (probeData.imageSize.width + local_sizeaaa - 1) / local_sizeaaa;
+    const int numGroupsYa = (probeData.imageSize.height + local_sizeaaa - 1) / local_sizeaaa;
     for (size_t i = 0; i < 6; i++)
     {
-      framebuffer->SetAttachment(Attachment::COLOR_0, *probeData.distanceViews[i], 0);
       BindTextureView(0, *probeData.depthViews[i], *linearSampler);
-      shader0->SetInt("u_depthTex", 0);
-      shader0->SetMat4("u_invViewProj", glm::inverse(probeData.cameras[i].GetViewProj()));
-      glDrawArrays(GL_TRIANGLES, 0, 3);
+      BindImage(0, *probeData.distanceViews[i], 0);
+      shader0->SetMat4("u_invProj", glm::inverse(probeData.cameras[i].proj));
+      shader0->SetIVec2("u_targetDim", { probeData.imageSize.width, probeData.imageSize.height });
+      glDispatchCompute(numGroupsXa, numGroupsYa, 1);
     }
+    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
-    glViewport(0, 0, reflect.fboSize.width, reflect.fboSize.height);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     auto shader = ShaderManager::Get()->GetShader("specular_cube_trace");
     shader->Bind();
     shader->SetMat4("u_invProj", glm::inverse(gBuffer.camera.proj));
