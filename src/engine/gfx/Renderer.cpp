@@ -547,8 +547,7 @@ namespace GFX
 
     GFX::ShaderManager::Get()->AddShader("specular_composite",
       {
-        { "fullscreen_tri.vs.glsl", GFX::ShaderType::VERTEX },
-        { "reflections/specular_composite.fs.glsl", GFX::ShaderType::FRAGMENT }
+        { "reflections/specular_composite.cs.glsl", GFX::ShaderType::COMPUTE }
       });
 
     GFX::ShaderManager::Get()->AddShader("atrous_reflection",
@@ -1233,8 +1232,6 @@ namespace GFX
     ps.asBitField.mipmapFilter = Filter::NEAREST;
     auto linearSampler = TextureSampler::Create(ps, "probe sampler");
 
-    glBindVertexArray(emptyVao);
-
     // read each face of the cube depth, unproject to get the distance to the camera, and write it to an RXX_FLOAT cube texture face
     auto shader0 = ShaderManager::Get()->GetShader("unproject_depth");
     shader0->Bind();
@@ -1358,21 +1355,22 @@ namespace GFX
     shader->SetMat4("u_invProj", glm::inverse(gBuffer.camera.proj));
     shader->SetMat4("u_invView", glm::inverse(gBuffer.camera.viewInfo.GetViewMatrix()));
     shader->SetVec3("u_viewPos", gBuffer.camera.viewInfo.position);
+    shader->SetIVec2("u_targetDim", { GetRenderWidth(), GetRenderHeight() });
 
     BindTextureView(0, *gBuffer.depthTexView, *nearestSampler);
     BindTextureView(1, *gBuffer.PBRTexView, *defaultSampler);
     BindTextureView(2, *gBuffer.normalTexView, *defaultSampler);
     BindTextureView(3, *gBuffer.colorTexView, *defaultSampler);
     BindTextureView(4, *reflect.texView[0], *nearestSampler);
+    BindImage(0, *gBuffer.colorTexView, 0);
 
-    composited.fbo->Bind();
+    const int local_size = 16;
+    const int numGroupsX = (GetRenderWidth() + local_size - 1) / local_size;
+    const int numGroupsY = (GetRenderHeight() + local_size - 1) / local_size;
+    glDispatchCompute(numGroupsX, numGroupsY, 1);
+    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
-    glBlendFunc(GL_ONE, GL_ZERO);
-    glViewport(0, 0, GetRenderWidth(), GetRenderHeight());
-    glBindVertexArray(emptyVao);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
-    glTextureBarrier();
-
+    UnbindTextureView(4);
     UnbindTextureView(3);
     UnbindTextureView(2);
     UnbindTextureView(1);
