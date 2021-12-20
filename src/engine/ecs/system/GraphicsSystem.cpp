@@ -89,7 +89,7 @@ void GraphicsSystem::DrawSky(Scene& scene)
 void GraphicsSystem::DrawShading(Scene& scene)
 {
   auto renderViews = scene.GetRenderViews();
-  GFX::Renderer::Get()->ApplyShading();
+  GFX::Renderer::Get()->DrawReflections();
 }
 
 void GraphicsSystem::DrawFog(Scene& scene)

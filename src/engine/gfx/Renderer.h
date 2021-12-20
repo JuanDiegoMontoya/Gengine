@@ -2,6 +2,7 @@
 #include <vector>
 #include <map>
 #include <span>
+#include <array>
 
 #include "MeshUtils.h"
 #include "Material.h"
@@ -54,7 +55,7 @@ namespace GFX
 
     void StartFrame();
     void ClearFramebuffers(std::span<RenderView*> renderViews);
-    void ApplyShading();
+    void DrawReflections();
     void ApplyAntialiasing();
     void WriteSwapchain();
     void Bloom();
@@ -110,11 +111,6 @@ namespace GFX
     void CompileShaders();
     void InitTextures();
 
-    void DrawReflections();
-    void DrawReflectionsTrace();
-    void DrawReflectionsSample();
-    void DenoiseReflections();
-    void CompositeReflections();
 
     GLFWwindow* window_{};
     bool isFullscreen{ false };
@@ -205,14 +201,16 @@ namespace GFX
       std::optional<Framebuffer> fbo;
       std::optional<Texture> texMemory[2];
       std::optional<TextureView> texView[2];
+      std::optional<TextureSampler> scratchSampler;
+      std::optional<TextureSampler> scratchSampler2;
       float renderScale{};
       Extent2D fboSize{};
 
       struct
       {
-        float kernel[5] = { 0.0625f, 0.25f, 0.375f, 0.25f, 0.0625f };
-        float offsets[5] = { -2.0f, -1.0f, 0.0f, 1.0f, 2.0f };
-        int num_passes{ 1 };
+        std::array<float, 5> kernel = { 0.0625f, 0.25f, 0.375f, 0.25f, 0.0625f };
+        std::array<float, 5> offsets = { -2.0f, -1.0f, 0.0f, 1.0f, 2.0f };
+        uint32_t num_passes{ 1 };
         float n_phi{ 1 };
         float p_phi{ 1 };
         float step_width{ 1.0f };
@@ -221,14 +219,16 @@ namespace GFX
 
     struct ProbeData_t
     {
-      RenderView renderViews[6];
-      Camera cameras[6];
-      std::optional<TextureView> colorViews[6];
-      std::optional<TextureView> depthViews[6];
-      std::optional<TextureView> distanceViews[6];
+      std::array<RenderView, 6> renderViews;
+      std::array<Camera, 6> cameras;
+      std::array<std::optional<TextureView>, 6> colorViews;
+      std::array<std::optional<TextureView>, 6> depthViews;
+      std::array<std::optional<TextureView>, 6> distanceViews;
       std::optional<Texture> colorCube;
       std::optional<Texture> depthCube;
       std::optional<Texture> distanceCube;
+      std::optional<TextureView> colorCubeView;
+      std::optional<TextureView> distanceCubeView;
       Format colorFormat = Format::R11G11B10_FLOAT;
       Format depthFormat = Format::D16_UNORM;
       Format distanceFormat = Format::R16_FLOAT;

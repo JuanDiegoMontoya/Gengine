@@ -29,6 +29,7 @@
 
 #include "fx/FXAA.h"
 #include "fx/Bloom.h"
+#include "fx/CubemapReflections.h"
 
 #include <imgui/imgui.h>
 
@@ -532,37 +533,9 @@ namespace GFX
     //    { "flat_color.vs.glsl", GFX::ShaderType::VERTEX },
     //    { "flat_color.fs.glsl", GFX::ShaderType::FRAGMENT }
     //  });
-    GFX::ShaderManager::Get()->AddShader("fxaa",
-      {
-        { "fxaa.cs.glsl", GFX::ShaderType::COMPUTE }
-      });
-    GFX::ShaderManager::Get()->AddShader("specular_cube_trace",
-      {
-        { "reflections/specular_cube_trace.cs.glsl", GFX::ShaderType::COMPUTE }
-      });
-    GFX::ShaderManager::Get()->AddShader("unproject_depth",
-      {
-        { "reflections/unproject_depth.cs.glsl", GFX::ShaderType::COMPUTE }
-      });
-
-    GFX::ShaderManager::Get()->AddShader("specular_composite",
-      {
-        { "reflections/specular_composite.cs.glsl", GFX::ShaderType::COMPUTE }
-      });
-
-    GFX::ShaderManager::Get()->AddShader("atrous_reflection",
-      {
-        { "reflections/denoise_atrous.cs.glsl", GFX::ShaderType::COMPUTE }
-      });
-
-    GFX::ShaderManager::Get()->AddShader("bloom/downsampleLowPass",
-      { { "bloom/downsampleLowPass.cs.glsl", GFX::ShaderType::COMPUTE } });
-
-    GFX::ShaderManager::Get()->AddShader("bloom/downsample",
-      { { "bloom/downsample.cs.glsl", GFX::ShaderType::COMPUTE } });
-
-    GFX::ShaderManager::Get()->AddShader("bloom/upsample",
-      { { "bloom/upsample.cs.glsl", GFX::ShaderType::COMPUTE } });
+    FX::CompileFXAAShader();
+    FX::CompileReflectionShaders();
+    FX::CompileBloomShaders();
   }
 
   void Renderer::DrawAxisIndicator(std::span<RenderView*> renderViews)
@@ -714,18 +687,6 @@ namespace GFX
     }
 
     GL_ResetState();
-  }
-
-  void Renderer::ApplyShading()
-  {
-    GFX::DebugMarker marker("Apply shading (reflections)");
-    glDisable(GL_DEPTH_TEST);
-    glDisable(GL_CULL_FACE);
-    DrawReflections();
-    DenoiseReflections();
-    CompositeReflections();
-    glEnable(GL_CULL_FACE);
-    glEnable(GL_DEPTH_TEST);
   }
 
   void Renderer::ApplyAntialiasing()
@@ -999,6 +960,8 @@ namespace GFX
     reflect.fbo = Framebuffer::Create();
     reflect.fbo->SetAttachment(Attachment::COLOR_0, *reflect.texView[0], 0);
     reflect.fbo->SetDrawBuffers({ { Attachment::COLOR_0 } });
+    reflect.scratchSampler = TextureSampler::Create({});
+    reflect.scratchSampler2 = TextureSampler::Create({});
     ASSERT(reflect.fbo->IsValid());
   }
 
@@ -1131,12 +1094,14 @@ namespace GFX
     };
     //cubeMemInfo.mipLevels = glm::floor(glm::log2(glm::max((float)cubeMemInfo.extent.width, (float)cubeMemInfo.extent.height))) + 1;
     probeData.colorCube = GFX::Texture::Create(cubeMemInfo, "Cube Color");
+    probeData.colorCubeView = TextureView::Create(*probeData.colorCube, "Cube Color View");
 
     cubeMemInfo.format = probeData.depthFormat;
     probeData.depthCube = GFX::Texture::Create(cubeMemInfo, "Cube Depth");
 
     cubeMemInfo.format = probeData.distanceFormat;
     probeData.distanceCube = GFX::Texture::Create(cubeMemInfo, "Cube Depth Distance");
+    probeData.distanceCubeView = TextureView::Create(*probeData.distanceCube, "Cube Depth Distance View");
 
     const glm::vec3 faceDirs[6] =
     {
@@ -1207,174 +1172,81 @@ namespace GFX
 
   void Renderer::DrawReflections()
   {
-    DebugMarker marker("Draw reflections");
+    DebugMarker markerRefl("Draw reflections");
+
+    FX::ReflectionsCommonParameters commonParams
+    {
+      .gbDepth = *gBuffer.depthTexView,
+      .gbColor = *gBuffer.colorTexView,
+      .gbNormal = *gBuffer.normalTexView,
+      .gbPBR = *gBuffer.PBRTexView,
+      .scratchSampler = *reflect.scratchSampler,
+      .scratchSampler2 = *reflect.scratchSampler2,
+      .camera = gBuffer.camera
+    };
 
     reflect.fbo->SetAttachment(Attachment::COLOR_0, *reflect.texView[0], 0);
     if (reflectionsHighQualityCvar.Get() != 0)
     {
-      DrawReflectionsTrace();
+      DebugMarker marker("Cube Traced Reflections");
+      MEASURE_GPU_TIMER_STAT(ReflectionsTrace);
+
+      FX::TraceCubemapReflectionsParameters traceParams
+      {
+        .common = commonParams,
+        .target = *reflect.texView[0],
+        .cameras = probeData.cameras,
+        .probeColor = *probeData.colorCubeView,
+        .probeDistance = *probeData.distanceCubeView,
+        .depthViews = probeData.depthViews,
+        .distanceViews = probeData.distanceViews,
+        .skybox = *env.skyboxView,
+        .blueNoise = *blueNoiseBigView
+      };
+      FX::TraceCubemapReflections(traceParams);
     }
     else
     {
-      DrawReflectionsSample();
+      DebugMarker marker("Cube Sampled Reflections");
     }
-  }
 
-  // expensive reflections
-  void Renderer::DrawReflectionsTrace()
-  {
-    DebugMarker marker("Cube Traced Reflections");
-    MEASURE_GPU_TIMER_STAT(ReflectionsTrace);
-
-    SamplerState ps{};
-    ps.asBitField.minFilter = Filter::NEAREST;
-    ps.asBitField.magFilter = Filter::NEAREST;
-    ps.asBitField.mipmapFilter = Filter::NEAREST;
-    auto linearSampler = TextureSampler::Create(ps, "probe sampler");
-
-    // read each face of the cube depth, unproject to get the distance to the camera, and write it to an RXX_FLOAT cube texture face
-    auto shader0 = ShaderManager::Get()->GetShader("unproject_depth");
-    shader0->Bind();
-
-    const int local_sizeaaa = 16;
-    const int numGroupsXa = (probeData.imageSize.width + local_sizeaaa - 1) / local_sizeaaa;
-    const int numGroupsYa = (probeData.imageSize.height + local_sizeaaa - 1) / local_sizeaaa;
-    for (size_t i = 0; i < 6; i++)
     {
-      BindTextureView(0, *probeData.depthViews[i], *linearSampler);
-      BindImage(0, *probeData.distanceViews[i], 0);
-      shader0->SetMat4("u_invProj", glm::inverse(probeData.cameras[i].proj));
-      shader0->SetIVec2("u_targetDim", { probeData.imageSize.width, probeData.imageSize.height });
-      glDispatchCompute(numGroupsXa, numGroupsYa, 1);
-    }
-    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+      DebugMarker marker("Denoise reflections");
+      MEASURE_GPU_TIMER_STAT(ReflectionsDenoise);
 
-    auto shader = ShaderManager::Get()->GetShader("specular_cube_trace");
-    shader->Bind();
-    shader->SetMat4("u_invProj", glm::inverse(gBuffer.camera.proj));
-    shader->SetMat4("u_invView", glm::inverse(gBuffer.camera.viewInfo.GetViewMatrix()));
-    shader->SetVec3("u_viewPos", gBuffer.camera.viewInfo.position);
-    shader->SetIVec2("u_targetDim", { reflect.fboSize.width, reflect.fboSize.height });
-
-    auto probeColor = TextureView::Create(*probeData.colorCube);
-    auto probeDistance = TextureView::Create(*probeData.distanceCube);
-
-    BindTextureView(0, *gBuffer.depthTexView, *nearestSampler);
-    BindTextureView(1, *gBuffer.colorTexView, *nearestSampler);
-    BindTextureView(2, *gBuffer.normalTexView, *nearestSampler);
-    BindTextureView(3, *gBuffer.PBRTexView, *nearestSampler);
-    BindTextureView(4, *probeColor, *nearestSampler);
-    BindTextureView(5, *probeDistance, *nearestSampler);
-    BindTextureView(6, *env.skyboxView, *defaultSampler);
-    BindTextureView(7, *blueNoiseBigView, *tonemap.blueNoiseSampler);
-    BindImage(0, *reflect.texView[0], 0);
-
-    const int local_size = 16;
-    const int numGroupsX = (reflect.fboSize.width + local_size - 1) / local_size;
-    const int numGroupsY = (reflect.fboSize.height + local_size - 1) / local_size;
-    glDispatchCompute(numGroupsX, numGroupsY, 1);
-    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-
-    UnbindTextureView(7);
-    UnbindTextureView(6);
-    UnbindTextureView(5);
-    UnbindTextureView(4);
-    UnbindTextureView(3);
-    UnbindTextureView(2);
-    UnbindTextureView(1);
-    UnbindTextureView(0);
-
-    //GLint swizzleMask[] = { GL_RED, GL_GREEN, GL_BLUE, GL_ONE };
-    //glTextureParameteriv(hdrPBRTexView->GetAPIHandle(), GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
-    //ImGui::Image((ImTextureID)hdrPBRTexView->GetAPIHandle(), { 128 * GetWindowAspectRatio(), 128 });
-  }
-
-  // cheap reflections
-  void Renderer::DrawReflectionsSample()
-  {
-    DebugMarker marker("Cube Sampled Reflections");
-  }
-
-  void Renderer::DenoiseReflections()
-  {
-    DebugMarker marker("Denoise reflections");
-    MEASURE_GPU_TIMER_STAT(ReflectionsDenoise);
-
-    if (reflect.atrous.num_passes > 0)
-    {
-      BindTextureView(1, *gBuffer.depthTexView, *nearestSampler);
-      BindTextureView(2, *gBuffer.normalTexView, *nearestSampler);
-      BindTextureView(3, *gBuffer.PBRTexView, *nearestSampler);
-      auto shader = ShaderManager::Get()->GetShader("atrous_reflection");
-      shader->Bind();
-      shader->SetFloat("u_nPhi", reflect.atrous.n_phi);
-      shader->SetFloat("u_pPhi", reflect.atrous.p_phi);
-      shader->SetFloat("u_stepwidth", reflect.atrous.step_width);
-      shader->SetMat4("u_invViewProj", glm::inverse(gBuffer.camera.GetViewProj()));
-      shader->SetIVec2("u_targetDim", { reflect.fboSize.width, reflect.fboSize.height });
-      shader->Set1FloatArray("u_kernel[0]", reflect.atrous.kernel);
-      shader->Set1FloatArray("u_offsets[0]", reflect.atrous.offsets);
-
-      const int local_size = 16;
-      const int numGroupsX = (reflect.fboSize.width + local_size - 1) / local_size;
-      const int numGroupsY = (reflect.fboSize.height + local_size - 1) / local_size;
-
-      for (int i = 0; i < reflect.atrous.num_passes; i++)
+      if (reflect.atrous.num_passes > 0)
       {
-        float offsets2[5];
-        for (int j = 0; j < 5; j++)
+        FX::DenoiseReflectionsParameters denoiseParams
         {
-          offsets2[j] = reflect.atrous.offsets[j] * glm::pow(2.0f, i);
-        }
-
-        // fake separable a-trous wavelet filter
-        // technically incorrect, but looks good enough
-        shader->Set1FloatArray("u_offsets[0]", offsets2);
-        shader->SetBool("u_horizontal", false);
-        BindTextureView(0, *reflect.texView[0], *defaultSampler);
-        BindImage(0, *reflect.texView[1], 0);
-        glDispatchCompute(numGroupsX, numGroupsY, 1);
-        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-
-        shader->SetBool("u_horizontal", true);
-        BindTextureView(0, *reflect.texView[1], *defaultSampler);
-        BindImage(0, *reflect.texView[0], 0);
-        glDispatchCompute(numGroupsX, numGroupsY, 1);
-        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+          .common = commonParams,
+          .target = *reflect.texView[0],
+          .scratchTexture = *reflect.texView[1],
+          .atrousParams
+          {
+            .passes = reflect.atrous.num_passes,
+            .nPhi = reflect.atrous.n_phi,
+            .pPhi = reflect.atrous.p_phi,
+            .stepWidth = reflect.atrous.step_width,
+            .kernel = reflect.atrous.kernel,
+            .offsets = reflect.atrous.offsets
+          }
+        };
+        FX::DenoiseReflections(denoiseParams);
       }
     }
-  }
 
-  void Renderer::CompositeReflections()
-  {
-    DebugMarker marker("Composite reflections");
-    MEASURE_GPU_TIMER_STAT(ReflectionsComposite);
+    {
+      DebugMarker marker("Composite reflections");
+      MEASURE_GPU_TIMER_STAT(ReflectionsComposite);
 
-    auto shader = ShaderManager::Get()->GetShader("specular_composite");
-    shader->Bind();
-    shader->SetMat4("u_invProj", glm::inverse(gBuffer.camera.proj));
-    shader->SetMat4("u_invView", glm::inverse(gBuffer.camera.viewInfo.GetViewMatrix()));
-    shader->SetVec3("u_viewPos", gBuffer.camera.viewInfo.position);
-    shader->SetIVec2("u_targetDim", { GetRenderWidth(), GetRenderHeight() });
-
-    BindTextureView(0, *gBuffer.depthTexView, *nearestSampler);
-    BindTextureView(1, *gBuffer.PBRTexView, *defaultSampler);
-    BindTextureView(2, *gBuffer.normalTexView, *defaultSampler);
-    BindTextureView(3, *gBuffer.colorTexView, *defaultSampler);
-    BindTextureView(4, *reflect.texView[0], *nearestSampler);
-    BindImage(0, *gBuffer.colorTexView, 0);
-
-    const int local_size = 16;
-    const int numGroupsX = (GetRenderWidth() + local_size - 1) / local_size;
-    const int numGroupsY = (GetRenderHeight() + local_size - 1) / local_size;
-    glDispatchCompute(numGroupsX, numGroupsY, 1);
-    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-
-    UnbindTextureView(4);
-    UnbindTextureView(3);
-    UnbindTextureView(2);
-    UnbindTextureView(1);
-    UnbindTextureView(0);
+      FX::CompositeReflectionsParameters compositeParams
+      {
+        .common = commonParams,
+        .source = *reflect.texView[0],
+        .target = *gBuffer.colorTexView
+      };
+      FX::CompositeReflections(compositeParams);
+    }
   }
 
   void Renderer::GL_ResetState()

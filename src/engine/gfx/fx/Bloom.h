@@ -1,11 +1,9 @@
 #pragma once
 #include "../api/Texture.h"
 
-namespace GFX
+namespace GFX::FX
 {
-  namespace FX
-  {
-    void ApplyBloom(const TextureView& target, uint32_t passes, float strength, float width,
-      const TextureView& scratchTexture, TextureSampler& scratchSampler);
-  }
+  void CompileBloomShaders();
+  void ApplyBloom(const TextureView& target, uint32_t passes, float strength, float width,
+    const TextureView& scratchTexture, TextureSampler& scratchSampler);
 }
