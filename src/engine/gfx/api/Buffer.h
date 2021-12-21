@@ -17,14 +17,14 @@ namespace GFX
 
   enum class BufferFlag : uint32_t
   {
-      NONE = 1 << 0,
-      DYNAMIC_STORAGE = 1 << 1,
-      CLIENT_STORAGE = 1 << 2,
+    NONE = 1 << 0,
+    DYNAMIC_STORAGE = 1 << 1,
+    CLIENT_STORAGE = 1 << 2,
 
-      MAP_READ = 1 << 3,
-      MAP_WRITE = 1 << 4,
-      MAP_PERSISTENT = 1 << 5,
-      MAP_COHERENT = 1 << 6,
+    MAP_READ = 1 << 3,
+    MAP_WRITE = 1 << 4,
+    MAP_PERSISTENT = 1 << 5,
+    MAP_COHERENT = 1 << 6,
   };
   DECLARE_FLAG_TYPE(BufferFlags, BufferFlag, uint32_t)
 
@@ -32,13 +32,13 @@ namespace GFX
   class Buffer
   {
   public:
-    [[nodiscard]] static std::optional<Buffer> Create(size_t size, BufferFlags flags = BufferFlag::DYNAMIC_STORAGE)
+    [[nodiscard]] static std::optional<Buffer> Create(size_t size, BufferFlags flags = BufferFlag::NONE)
     {
       return CreateInternal(nullptr, size, flags);
     }
 
     template<typename T>
-    [[nodiscard]] static std::optional<Buffer> Create(std::span<T> data, BufferFlags flags = BufferFlag::DYNAMIC_STORAGE)
+    [[nodiscard]] static std::optional<Buffer> Create(std::span<T> data, BufferFlags flags = BufferFlag::NONE)
     {
       return CreateInternal(data.data(), data.size_bytes(), flags);
     }

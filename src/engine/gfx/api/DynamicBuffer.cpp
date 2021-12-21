@@ -13,7 +13,7 @@ namespace GFX
     // align
     size += (align_ - (size % align_)) % align_;
 
-    buffer = Buffer::Create(size);
+    buffer = Buffer::Create(size, BufferFlag::DYNAMIC_STORAGE);
 
     // make one big null allocation
     allocationData<UserT> phalloc;

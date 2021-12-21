@@ -251,8 +251,7 @@ namespace GFX
 
     // generate SSBO w/ uniforms
     //Buffer uniformBuffer = GFX::Buffer(uniforms.data(), uniforms.size() * sizeof(UniformData));
-    auto uniformBuffer = Buffer::Create(uniforms.size() * sizeof(UniformData));
-    uniformBuffer->SubData(std::span(uniforms), 0);
+    auto uniformBuffer = Buffer::Create(std::span(uniforms));
     uniformBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(0);
 
     // generate DIB (one indirect command per mesh)
@@ -270,8 +269,7 @@ namespace GFX
         }
       });
     //GFX::Buffer dib(commands.data(), commands.size() * sizeof(DrawElementsIndirectCommand));
-    auto drawIndirectBuffer = Buffer::Create(commands.size() * sizeof(DrawElementsIndirectCommand));
-    drawIndirectBuffer->SubData(std::span(commands), 0);
+    auto drawIndirectBuffer = Buffer::Create(std::span(commands));
     drawIndirectBuffer->Bind<GFX::Target::DRAW_INDIRECT_BUFFER>();
 
     // clear instance count for next GL draw command
