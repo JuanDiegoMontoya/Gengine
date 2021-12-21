@@ -6,9 +6,9 @@ namespace GFX::FX
 {
   void CompileFXAAShader()
   {
-    GFX::ShaderManager::Get()->AddShader("fxaa",
+    ShaderManager::Get()->AddShader("fxaa",
       {
-        { "fxaa.cs.glsl", GFX::ShaderType::COMPUTE }
+        { "fxaa.cs.glsl", ShaderType::COMPUTE }
       });
   }
 

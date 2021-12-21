@@ -20,9 +20,9 @@ layout(location = 3) uniform ivec2 u_sourceDim;
 layout(location = 4) uniform ivec2 u_targetDim;
 
 // interpolates up to 4 of neighbor texels' specular irradiance
-vec3 fixupSpecularIrradiance(vec2 uv, vec2 texel)
+vec3 fixupSpecularIrradiance(ivec2 gid)
 {
-  const vec2 offsets[4] = {
+  const ivec2 offsets[4] = {
     { -1, 0 },
     { 0, 1 },
     { 1, 0 },
@@ -33,8 +33,7 @@ vec3 fixupSpecularIrradiance(vec2 uv, vec2 texel)
   float weight = 0;
   for (int i = 0; i < 4; i++)
   {
-    vec2 newUV = uv + offsets[i] * texel;
-    vec3 neighborSample = textureLod(s_specularIrradiance, newUV, 0).rgb;
+    vec3 neighborSample = texelFetch(s_specularIrradiance, gid + offsets[i], 0).rgb;
     if (neighborSample != vec3(0))
     {
       accumColor += neighborSample;
@@ -44,7 +43,7 @@ vec3 fixupSpecularIrradiance(vec2 uv, vec2 texel)
 
   if (weight > 0)
     return accumColor / weight;
-  return vec3(1.0);
+  return vec3(0.0);
 }
 
 void main()
@@ -54,6 +53,7 @@ void main()
     return;
   vec2 uv = (vec2(gid) + 0.5) / u_targetDim;
   vec2 texel = 1.0 / u_sourceDim;
+  vec2 ratio = vec2(u_targetDim) / vec2(u_sourceDim);
 
   vec3 pbr = texelFetch(s_gBufferPBR, gid, 0).xyz;
   float roughness = pbr.x;
@@ -62,14 +62,13 @@ void main()
   float gBufferDepth = texelFetch(s_gBufferDepth, gid, 0).x;
 
   vec3 gBufferDiffuse = texelFetch(s_gBufferDiffuse, gid, 0).rgb;
-  vec3 specularIrradiance = textureLod(s_specularIrradiance, uv, 0).rgb;
+  vec3 specularIrradiance = texelFetch(s_specularIrradiance, ivec2(gid / ratio), 0).rgb;
 
-  // we have a fragment that should receive a reflected color, but isn't because the irradiance map is low res
-  // attempt fixup by interpolating neighbors
-  if (specularIrradiance == vec3(0) && roughness <= ROUGHNESS_DISCARD_THRESHOLD && 
-      u_targetDim != textureSize(s_specularIrradiance, 0))
+  if (specularIrradiance == vec3(0) && roughness <= ROUGHNESS_DISCARD_THRESHOLD)
   {
-    specularIrradiance = fixupSpecularIrradiance(uv, texel);
+    //imageStore(i_target, gid, vec4(1, 0, 0, 0));
+    //return;
+    specularIrradiance = fixupSpecularIrradiance(ivec2(gid / ratio));
   }
 
   if (gBufferDepth == 0.0 || gBufferDepth == 1.0 || roughness > ROUGHNESS_DISCARD_THRESHOLD || specularIrradiance == vec3(0))
@@ -83,7 +82,6 @@ void main()
   vec3 gBufferViewPos = UnprojectUV(gBufferDepth, uv, u_invProj);
   vec3 gBufferWorldPos = (u_invView * vec4(gBufferViewPos, 1.0)).xyz;
   
-
   vec3 N = texelFetch(s_gBufferNormal, gid, 0).xyz;
 
   vec3 V = normalize(gBufferWorldPos - u_viewPos);
