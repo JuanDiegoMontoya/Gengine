@@ -267,8 +267,8 @@ namespace GFX
       float targetLuminance = .22f;
       float adjustmentSpeed = 0.5f;
       bool gammaCorrection = true;
-      std::unique_ptr<GFX::Buffer> exposureBuffer;
-      std::unique_ptr<GFX::Buffer> histogramBuffer;
+      std::optional<GFX::Buffer> exposureBuffer;
+      std::optional<GFX::Buffer> histogramBuffer;
       const int NUM_BUCKETS = 128;
       std::optional<GFX::TextureView> blueNoiseView;
       std::optional<GFX::TextureSampler> blueNoiseSampler;

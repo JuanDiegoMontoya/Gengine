@@ -13,8 +13,7 @@ namespace GFX
     // align
     size += (align_ - (size % align_)) % align_;
 
-    // allocate uninitialized memory in VRAM
-    buffer = std::make_unique<Buffer>(nullptr, size);
+    buffer = Buffer::Create(size);
 
     // make one big null allocation
     allocationData<UserT> phalloc;
@@ -64,7 +63,7 @@ namespace GFX
     else
       allocs_.insert(small, newAlloc);
 
-    buffer->SubData(data, newAlloc.size, newAlloc.offset);
+    buffer->SubData(std::span<const std::byte>(reinterpret_cast<const std::byte*>(data), newAlloc.size), newAlloc.offset);
     //glNamedBufferSubData(gpuHandle, newAlloc.offset, newAlloc.size, data);
     ++numActiveAllocs_;
     stateChanged();
@@ -223,7 +222,8 @@ namespace GFX
       alternator = !alternator;
     }
 
-    vbo_ = std::make_unique<Buffer>(&data[0][0], sizeof(glm::vec3) * data.size());
+    //vbo_ = std::make_unique<Buffer>(&data[0][0], sizeof(glm::vec3) * data.size());
+    vbo_ = Buffer::Create(std::span(data));
 
     if (!vao_)
     {

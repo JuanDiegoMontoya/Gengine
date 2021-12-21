@@ -33,15 +33,17 @@ namespace GFX
     };
   }
 
-
-  Buffer::Buffer(const void* data, size_t size, BufferFlags flags)
-    : size_(std::max(size, 1ull))
+  std::optional<Buffer> Buffer::CreateInternal(const void* data, size_t size, BufferFlags flags)
   {
-    GLbitfield glflags{};
+    size = std::max(size, 1ull);
+    GLbitfield glflags = 0;
     for (int i = 1; i < _countof(bufferFlags); i++)
       glflags |= bufferFlags[getSetBit((uint32_t)flags, i)];
-    glCreateBuffers(1, &rendererID_);
-    glNamedBufferStorage(rendererID_, size_, data, glflags);
+    Buffer buffer{};
+    buffer.size_ = size;
+    glCreateBuffers(1, &buffer.id_);
+    glNamedBufferStorage(buffer.id_, size, data, glflags);
+    return buffer;
   }
 
   Buffer::Buffer(Buffer&& old) noexcept
@@ -52,48 +54,47 @@ namespace GFX
   Buffer& Buffer::operator=(Buffer&& old) noexcept
   {
     if (&old == this) return *this;
-    rendererID_ = std::exchange(old.rendererID_, 0);
+    this->~Buffer();
+    id_ = std::exchange(old.id_, 0);
     size_ = std::exchange(old.size_, 0);
+    isMapped_ = std::exchange(old.isMapped_, false);
     return *this;
   }
 
   Buffer::~Buffer()
   {
-    ASSERT_MSG(!IsMapped(), "Buffer should not be mapped at time of destruction.");
-    glDeleteBuffers(1, &rendererID_);
+    ASSERT_MSG(!IsMapped(), "Buffers must not be mapped at time of destruction");
+    if (id_)
+    {
+      glDeleteBuffers(1, &id_);
+    }
   }
 
   void Buffer::SubData(const void* data, size_t size, size_t offset)
   {
-    glNamedBufferSubData(rendererID_, static_cast<GLuint>(offset), static_cast<GLuint>(size), data);
+    glNamedBufferSubData(id_, static_cast<GLuint>(offset), static_cast<GLuint>(size), data);
   }
 
-  void* Buffer::Map()
+  void* Buffer::GetMappedPointer()
   {
-    return glMapNamedBuffer(rendererID_, GL_READ_WRITE);
+    isMapped_ = true;
+    return glMapNamedBuffer(id_, GL_READ_WRITE);
   }
 
-  void Buffer::Unmap()
+  void Buffer::UnmapPointer()
   {
-    ASSERT_MSG(IsMapped(), "The buffer is not mapped.");
-    glUnmapNamedBuffer(rendererID_);
-  }
-
-  bool Buffer::IsMapped()
-  {
-    if (!rendererID_) return false;
-    GLint mapped{ GL_FALSE };
-    glGetNamedBufferParameteriv(rendererID_, GL_BUFFER_MAPPED, &mapped);
-    return mapped;
+    ASSERT_MSG(IsMapped(), "Buffers that aren't mapped cannot be unmapped");
+    isMapped_ = false;
+    glUnmapNamedBuffer(id_);
   }
 
   void Buffer::BindBuffer(uint32_t target)
   {
-    glBindBuffer(targets[target], rendererID_);
+    glBindBuffer(targets[target], id_);
   }
 
   void Buffer::BindBufferBase(uint32_t target, uint32_t slot)
   {
-    glBindBufferBase(targets[target], slot, rendererID_);
+    glBindBufferBase(targets[target], slot, id_);
   }
 }

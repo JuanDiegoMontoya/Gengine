@@ -115,7 +115,7 @@ namespace GFX
     const auto& GetAlloc(uint64_t handle) { return *std::find_if(allocs_.begin(), allocs_.end(), [=](const auto& alloc) { return alloc.handle == handle; }); }
     const auto& GetAllocs() { return allocs_; }
     uint32_t ActiveAllocs() { return numActiveAllocs_; }
-    uint32_t GetID() { return buffer->GetID(); }
+    uint32_t GetID() { return buffer->GetAPIHandle(); }
     uint32_t GetAllocOffset(uint64_t handle) { for (uint32_t i = 0; i < allocs_.size(); i++) if (handle == allocs_[i].handle) return i; UNREACHABLE; }
 
     // compare return values of this func to see if the state has change
@@ -167,7 +167,7 @@ namespace GFX
     // verifies the buffer has no errors, debug only
     void dbgVerify();
 
-    std::unique_ptr<Buffer> buffer;
+    std::optional<Buffer> buffer;
     uint64_t nextHandle = 1;
     uint32_t numActiveAllocs_ = 0;
     const uint32_t capacity_; // for fixed size buffers
@@ -188,7 +188,7 @@ namespace GFX
 
   private:
     uint32_t vao_{};
-    std::unique_ptr<Buffer> vbo_;
+    std::optional<Buffer> vbo_;
   };
 }
 

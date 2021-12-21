@@ -78,12 +78,12 @@ namespace
 
 struct InternalEmitterData
 {
-  std::unique_ptr<GFX::Buffer> particleSharedDataBuffer{};
-  std::unique_ptr<GFX::Buffer> particleUpdateDataBuffer{};
-  std::unique_ptr<GFX::Buffer> particleRenderDataBuffer{};
-  std::unique_ptr<GFX::Buffer> freeStackBuffer{};
-  std::unique_ptr<GFX::Buffer> indirectDrawBuffer{};
-  std::unique_ptr<GFX::Buffer> indicesBuffer{};
+  std::optional<GFX::Buffer> particleSharedDataBuffer{};
+  std::optional<GFX::Buffer> particleUpdateDataBuffer{};
+  std::optional<GFX::Buffer> particleRenderDataBuffer{};
+  std::optional<GFX::Buffer> freeStackBuffer{};
+  std::optional<GFX::Buffer> indirectDrawBuffer{};
+  std::optional<GFX::Buffer> indicesBuffer{};
   std::optional<GFX::TextureView> textureView;
   std::optional<GFX::TextureSampler> textureSampler;
   uint32_t maxParticles{}; // const
@@ -214,7 +214,7 @@ void ParticleSystem::Update(Scene& scene, Timestep timestep)
       ASSERT(emitterData);
 
       uint32_t zero{ 0 };
-      glClearNamedBufferSubData(emitterData->indirectDrawBuffer->GetID(), GL_R32UI, offsetof(DrawArraysIndirectCommand, instanceCount),
+      glClearNamedBufferSubData(emitterData->indirectDrawBuffer->GetAPIHandle(), GL_R32UI, offsetof(DrawArraysIndirectCommand, instanceCount),
         sizeof(GLuint), GL_RED, GL_UNSIGNED_INT, &zero);
 
       emitterData->particleSharedDataBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(0);
@@ -276,9 +276,9 @@ uint64_t ParticleManager::MakeParticleEmitter(uint32_t maxp, const GFX::TextureV
   auto tps = std::make_unique<ParticleSharedData[]>(maxp);
   auto tpu = std::make_unique<ParticleUpdateData[]>(maxp);
   auto tpr = std::make_unique<ParticleRenderData[]>(maxp);
-  newEmitter->particleSharedDataBuffer = std::make_unique<GFX::Buffer>(tps.get(), sizeof(ParticleSharedData) * maxp, GFX::BufferFlag::NONE);
-  newEmitter->particleUpdateDataBuffer = std::make_unique<GFX::Buffer>(tpu.get(), sizeof(ParticleUpdateData) * maxp, GFX::BufferFlag::NONE);
-  newEmitter->particleRenderDataBuffer = std::make_unique<GFX::Buffer>(tpr.get(), sizeof(ParticleRenderData) * maxp, GFX::BufferFlag::NONE);
+  newEmitter->particleSharedDataBuffer = GFX::Buffer::Create(std::span(tps.get(), maxp));
+  newEmitter->particleUpdateDataBuffer = GFX::Buffer::Create(std::span(tpu.get(), maxp));
+  newEmitter->particleRenderDataBuffer = GFX::Buffer::Create(std::span(tpr.get(), maxp));
 
   const size_t bytes = sizeof(int32_t) + maxp * sizeof(int32_t);
   uint8_t* mem = new uint8_t[bytes];
@@ -288,7 +288,7 @@ uint64_t ParticleManager::MakeParticleEmitter(uint32_t maxp, const GFX::TextureV
   {
     reinterpret_cast<int32_t&>(mem[i]) = val++;
   }
-  newEmitter->freeStackBuffer = std::make_unique<GFX::Buffer>(mem, bytes, GFX::BufferFlag::NONE);
+  newEmitter->freeStackBuffer = GFX::Buffer::Create(std::span(mem, bytes));
   delete[] mem;
 
   DrawArraysIndirectCommand cmd
@@ -298,8 +298,8 @@ uint64_t ParticleManager::MakeParticleEmitter(uint32_t maxp, const GFX::TextureV
     .first = 0,
     .baseInstance = 0
   };
-  newEmitter->indirectDrawBuffer = std::make_unique<GFX::Buffer>(&cmd, sizeof(cmd));
-  newEmitter->indicesBuffer = std::make_unique<GFX::Buffer>(nullptr, sizeof(GLuint) * maxp);
+  newEmitter->indirectDrawBuffer = GFX::Buffer::Create(std::span(&cmd, 1));
+  newEmitter->indicesBuffer = GFX::Buffer::Create(sizeof(GLuint) * maxp);
 
   newEmitter->textureView = texView;
   newEmitter->textureSampler = sampler;

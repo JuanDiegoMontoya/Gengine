@@ -72,8 +72,8 @@ namespace Voxels
 
     struct ViewData
     {
-      std::unique_ptr<GFX::Buffer> drawIndirectBuffer;
-      std::unique_ptr<GFX::Buffer> drawCountParameterBuffer;
+      std::optional<GFX::Buffer> drawIndirectBuffer;
+      std::optional<GFX::Buffer> drawCountParameterBuffer;
     };
 
     std::unordered_map<GFX::RenderView*, ViewData> perViewData;
@@ -82,11 +82,12 @@ namespace Voxels
     const int workGroupSize = 64; // defined in compact_batch.cs
 
     GLuint occlusionVao{};
-    std::unique_ptr<GFX::Buffer> occlusionDib;
+    std::optional<GFX::Buffer> occlusionDib;
+    //GLuint occlusionDib{};
     GLsizei activeAllocs{};
     //std::pair<uint64_t, GLuint> stateInfo{ 0, 0 };
     bool dirtyAlloc = true;
-    std::unique_ptr<GFX::Buffer> vertexAllocBuffer;
+    std::optional<GFX::Buffer> vertexAllocBuffer;
 
     // resources
     std::optional<GFX::Texture> blockDiffuseTextures;
@@ -143,7 +144,9 @@ namespace Voxels
       .baseVertex = 0,
       .baseInstance = 0
     };
-    data->occlusionDib = std::make_unique<GFX::Buffer>(&occlusionCullingCmd, sizeof(occlusionCullingCmd), GFX::BufferFlag::CLIENT_STORAGE);
+    data->occlusionDib = GFX::Buffer::Create(std::span(&occlusionCullingCmd, 1), GFX::BufferFlag::DYNAMIC_STORAGE | GFX::BufferFlag::CLIENT_STORAGE);
+    //glCreateBuffers(1, &data->occlusionDib);
+    //glNamedBufferData(data->occlusionDib, sizeof(DrawElementsIndirectCommand), &occlusionCullingCmd, GL_STATIC_COPY);
 
     // assets
     std::vector<std::string> texsDiffuse = GetBlockTexturePaths("diffuse", ".png");
@@ -233,7 +236,7 @@ namespace Voxels
 
       if (!data->perViewData.contains(renderView))
       {
-        data->perViewData[renderView].drawCountParameterBuffer = std::make_unique<GFX::Buffer>(nullptr, sizeof(uint32_t));
+        data->perViewData[renderView].drawCountParameterBuffer = GFX::Buffer::Create(sizeof(uint32_t), GFX::BufferFlag::NONE);
       }
     }
 
@@ -344,7 +347,7 @@ namespace Voxels
 
     if (data->dirtyAlloc)
     {
-      data->vertexAllocBuffer = std::make_unique<GFX::Buffer>(vertexAllocs.data(), data->verticesAllocator->AllocSize() * vertexAllocs.size());
+      data->vertexAllocBuffer = GFX::Buffer::Create(std::span(vertexAllocs), GFX::BufferFlag::NONE);
       data->verticesAllocator->GenDrawData();
     }
 
@@ -376,13 +379,16 @@ namespace Voxels
         sdr->Set1FloatArray(hashed_string(uname.c_str()), std::span<float, 4>(fr.GetData()[i]));
       }
 
-      constexpr uint32_t zero = 0;
-      parameterBuffer->SubData(&zero, sizeof(uint32_t));
+      //constexpr uint32_t zero = 0;
+      //parameterBuffer->SubData(std::span(&zero, 1), 0);
+      uint32_t zero{ 0 };
+      glClearNamedBufferSubData(parameterBuffer->GetAPIHandle(), GL_R32UI, 0,
+        sizeof(GLuint), GL_RED, GL_UNSIGNED_INT, &zero);
 
       // only re-construct if allocator has been modified
       if (data->dirtyAlloc)
       {
-        drawIndirectBuffer = std::make_unique<GFX::Buffer>(nullptr, data->verticesAllocator->ActiveAllocs() * sizeof(DrawArraysIndirectCommand));
+        drawIndirectBuffer = GFX::Buffer::Create(data->verticesAllocator->ActiveAllocs() * sizeof(DrawArraysIndirectCommand));
       }
 
       drawIndirectBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(1);
@@ -456,9 +462,11 @@ namespace Voxels
 
       // copy # of chunks being drawn (parameter buffer) to instance count (DIB)
       data->occlusionDib->Bind<GFX::Target::DRAW_INDIRECT_BUFFER>();
+      //glBindBuffer(GL_DRAW_INDIRECT_BUFFER, data->occlusionDib);
       glBindVertexArray(data->occlusionVao);
       constexpr GLint offset = offsetof(DrawArraysIndirectCommand, instanceCount);
-      glCopyNamedBufferSubData(parameterBuffer->GetID(), data->occlusionDib->GetID(), 0, offset, sizeof(uint32_t));
+      glCopyNamedBufferSubData(parameterBuffer->GetAPIHandle(), data->occlusionDib->GetAPIHandle(), 0, offset, sizeof(uint32_t));
+      //glCopyNamedBufferSubData(parameterBuffer->GetAPIHandle(), data->occlusionDib, 0, offset, sizeof(uint32_t));
       glDrawArraysIndirect(GL_TRIANGLE_STRIP, 0);
     }
 

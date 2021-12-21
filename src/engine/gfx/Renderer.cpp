@@ -250,8 +250,10 @@ namespace GFX
     DebugMarker marker(("Batch: " + std::string(material.shaderID)).c_str());
 
     // generate SSBO w/ uniforms
-    Buffer uniformBuffer = GFX::Buffer(uniforms.data(), uniforms.size() * sizeof(UniformData));
-    uniformBuffer.Bind<GFX::Target::SHADER_STORAGE_BUFFER>(0);
+    //Buffer uniformBuffer = GFX::Buffer(uniforms.data(), uniforms.size() * sizeof(UniformData));
+    auto uniformBuffer = Buffer::Create(uniforms.size() * sizeof(UniformData));
+    uniformBuffer->SubData(std::span(uniforms), 0);
+    uniformBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(0);
 
     // generate DIB (one indirect command per mesh)
     std::vector<DrawElementsIndirectCommand> commands;
@@ -267,8 +269,10 @@ namespace GFX
           baseInstance += cmd.second.instanceCount;
         }
       });
-    GFX::Buffer dib(commands.data(), commands.size() * sizeof(DrawElementsIndirectCommand));
-    dib.Bind<GFX::Target::DRAW_INDIRECT_BUFFER>();
+    //GFX::Buffer dib(commands.data(), commands.size() * sizeof(DrawElementsIndirectCommand));
+    auto drawIndirectBuffer = Buffer::Create(commands.size() * sizeof(DrawElementsIndirectCommand));
+    drawIndirectBuffer->SubData(std::span(commands), 0);
+    drawIndirectBuffer->Bind<GFX::Target::DRAW_INDIRECT_BUFFER>();
 
     // clear instance count for next GL draw command
     for (auto& info : meshBufferInfo)
@@ -860,8 +864,8 @@ namespace GFX
     Extent2D fboSize = { GetRenderWidth(), GetRenderHeight() };
 
     std::vector<int> zeros(tonemap.NUM_BUCKETS, 0);
-    tonemap.exposureBuffer = std::make_unique<GFX::Buffer>(zeros.data(), 2 * sizeof(float));
-    tonemap.histogramBuffer = std::make_unique<GFX::Buffer>(zeros.data(), tonemap.NUM_BUCKETS * sizeof(int));
+    tonemap.exposureBuffer = Buffer::Create(std::span(zeros.data(), 2));
+    tonemap.histogramBuffer = Buffer::Create(std::span(zeros));
 
     //const int levels = glm::floor(glm::log2(glm::max((float)fboSize.width, (float)fboSize.height))) + 1;
     
@@ -1014,7 +1018,7 @@ namespace GFX
       0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, // z-axis
       0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f
     };
-    axisVbo.emplace(indicatorVertices, sizeof(indicatorVertices));
+    axisVbo = Buffer::Create(std::span(indicatorVertices, sizeof(indicatorVertices)));
   }
 
   void Renderer::InitVertexLayouts()
@@ -1044,7 +1048,7 @@ namespace GFX
     glVertexArrayAttribBinding(axisVao, 1, 0);
     glVertexArrayAttribFormat(axisVao, 0, 3, GL_FLOAT, GL_FALSE, 0);
     glVertexArrayAttribFormat(axisVao, 1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float));
-    glVertexArrayVertexBuffer(axisVao, 0, axisVbo->GetID(), 0, 6 * sizeof(float));
+    glVertexArrayVertexBuffer(axisVao, 0, axisVbo->GetAPIHandle(), 0, 6 * sizeof(float));
   }
 
   void Renderer::InitTextures()
