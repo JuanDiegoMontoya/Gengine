@@ -39,6 +39,7 @@ DECLARE_FLOAT_STAT(LuminanceHistogram, GPU)
 DECLARE_FLOAT_STAT(CameraExposure, GPU)
 DECLARE_FLOAT_STAT(FXAA, GPU)
 DECLARE_FLOAT_STAT(ReflectionsTrace, GPU)
+DECLARE_FLOAT_STAT(ReflectionsSample, GPU)
 DECLARE_FLOAT_STAT(ReflectionsDenoise, GPU)
 DECLARE_FLOAT_STAT(ReflectionsComposite, GPU)
 DECLARE_FLOAT_STAT(Bloom_GPU, GPU)
@@ -111,7 +112,7 @@ namespace GFX
   AutoCVar<cvar_float> vsyncCvar("r.vsync", "- Whether vertical sync is enabled", 0, 0, 1, CVarFlag::NONE, vsyncCallback);
   AutoCVar<cvar_float> renderScaleCvar("r.scale", "- Internal rendering resolution scale", 1.0, 0.1, 2.0, CVarFlag::NONE, setRenderScale);
   AutoCVar<cvar_float> reflectionsScaleCvar("r.reflections.scale", "- Internal reflections resolution scale", 1.0, 0.1, 1.0, CVarFlag::NONE, setReflectionScale);
-  AutoCVar<cvar_float> reflectionsHighQualityCvar("r.reflections.highQuality", "- If true, use high quality reflections", 1.0);
+  AutoCVar<cvar_float> reflectionsModeCvar("r.reflections.mode", "- Reflections mode. 0: skybox, 1: probe, 2: parallax correct probe", 2.0, 0.0, 2.0);
   //AutoCVar<cvar_float> fullscreenCvar("r.fullscreen", "- Whether the window is fullscreen", 0, 0, 1, CVarFlag::NONE, fullscreenCallback);
 
   static void GLAPIENTRY GLerrorCB(
@@ -1188,7 +1189,7 @@ namespace GFX
     };
 
     reflect.fbo->SetAttachment(Attachment::COLOR_0, *reflect.texView[0], 0);
-    if (reflectionsHighQualityCvar.Get() != 0)
+    if (reflectionsModeCvar.Get() >= Reflections_t::MODE_PARALLAX_CUBE_THRESHOLD)
     {
       DebugMarker marker("Cube Traced Reflections");
       MEASURE_GPU_TIMER_STAT(ReflectionsTrace);
@@ -1210,6 +1211,16 @@ namespace GFX
     else
     {
       DebugMarker marker("Cube Sampled Reflections");
+      MEASURE_GPU_TIMER_STAT(ReflectionsSample);
+
+      FX::SampleCubemapReflectionsParameters sampleParams
+      {
+        .common = commonParams,
+        .target = *reflect.texView[0],
+        .env = reflectionsModeCvar.Get() >= Reflections_t::MODE_CUBE_THRESHOLD ? *probeData.colorCubeView : *env.skyboxView,
+        .blueNoise = *blueNoiseBigView
+      };
+      FX::SampleCubemapReflections(sampleParams);
     }
 
     {

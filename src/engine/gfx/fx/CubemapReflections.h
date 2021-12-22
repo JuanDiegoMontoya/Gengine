@@ -30,6 +30,14 @@ namespace GFX::FX
     const TextureView& blueNoise;
   };
 
+  struct SampleCubemapReflectionsParameters
+  {
+    ReflectionsCommonParameters common;
+    const TextureView& target;
+    const TextureView& env;
+    const TextureView& blueNoise;
+  };
+
   struct DenoiseReflectionsParameters
   {
     ReflectionsCommonParameters common;
@@ -55,6 +63,7 @@ namespace GFX::FX
 
   void CompileReflectionShaders();
 
+  void SampleCubemapReflections(SampleCubemapReflectionsParameters params);
   void TraceCubemapReflections(TraceCubemapReflectionsParameters params);
   void DenoiseReflections(DenoiseReflectionsParameters params);
   void CompositeReflections(CompositeReflectionsParameters params);

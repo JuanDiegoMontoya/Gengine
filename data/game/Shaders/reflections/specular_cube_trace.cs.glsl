@@ -117,7 +117,7 @@ float TraceCubemap(vec3 rayStart, vec3 N, vec3 V, vec3 reflectDir, out vec3 cube
   return 0.0;
 }
 
-vec3 ComputeSpecularRadiance(vec3 rayStart, vec3 N, vec3 V, vec3 F0, float roughness)
+vec3 ComputeSpecularIrradiance(vec3 rayStart, vec3 N, vec3 V, vec3 F0, float roughness)
 {
   ivec2 gid = ivec2(gl_GlobalInvocationID.xy);
   float NoV = abs(dot(N, V));
@@ -193,6 +193,6 @@ void main()
 
   vec3 F0 = mix(vec3(0.04), diffuse, metalness);
 
-  imageStore(i_target, gid, ComputeSpecularRadiance(gBufferWorldPos, N, V, F0, min(roughness, 0.10)).rgbb);
+  imageStore(i_target, gid, ComputeSpecularIrradiance(gBufferWorldPos, N, V, F0, min(roughness, 0.10)).rgbb);
   //o_specularIrradiance.rgb = o_specularIrradiance.rgb * .00001 + (N * .5 + .5);
 }

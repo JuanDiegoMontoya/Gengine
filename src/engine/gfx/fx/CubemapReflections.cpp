@@ -11,6 +11,10 @@ namespace GFX::FX
       {
         { "reflections/specular_cube_trace.cs.glsl", ShaderType::COMPUTE }
       });
+    ShaderManager::Get()->AddShader("specular_cube_sample",
+      {
+        { "reflections/specular_cube_sample.cs.glsl", ShaderType::COMPUTE }
+      });
     ShaderManager::Get()->AddShader("unproject_depth",
       {
         { "reflections/unproject_depth.cs.glsl", ShaderType::COMPUTE }
@@ -23,6 +27,40 @@ namespace GFX::FX
       {
         { "reflections/denoise_atrous.cs.glsl", ShaderType::COMPUTE }
       });
+  }
+
+  void SampleCubemapReflections(SampleCubemapReflectionsParameters p)
+  {
+    SamplerState samplerState{};
+    samplerState.asBitField.minFilter = Filter::LINEAR;
+    samplerState.asBitField.magFilter = Filter::LINEAR;
+    samplerState.asBitField.mipmapFilter = Filter::NONE;
+    samplerState.asBitField.addressModeU = AddressMode::REPEAT;
+    samplerState.asBitField.addressModeV = AddressMode::REPEAT;
+    p.common.scratchSampler.SetState(samplerState);
+
+    Extent2D targetDim = p.target.Extent();
+    auto shader = ShaderManager::Get()->GetShader("specular_cube_sample");
+    shader->Bind();
+
+    shader->SetMat4("u_invProj", glm::inverse(p.common.camera.proj));
+    shader->SetMat4("u_invView", glm::inverse(p.common.camera.viewInfo.GetViewMatrix()));
+    shader->SetVec3("u_viewPos", p.common.camera.viewInfo.position);
+    shader->SetIVec2("u_targetDim", { targetDim.width, targetDim.height });
+
+    BindTextureView(0, p.common.gbDepth, p.common.scratchSampler);
+    BindTextureView(1, p.common.gbColor, p.common.scratchSampler);
+    BindTextureView(2, p.common.gbNormal, p.common.scratchSampler);
+    BindTextureView(3, p.common.gbPBR, p.common.scratchSampler);
+    BindTextureView(4, p.env, p.common.scratchSampler);
+    BindTextureView(5, p.blueNoise, p.common.scratchSampler);
+    BindImage(0, p.target, 0);
+
+    const int local_size = 16;
+    const int numGroupsX = (targetDim.width + local_size - 1) / local_size;
+    const int numGroupsY = (targetDim.height + local_size - 1) / local_size;
+    glDispatchCompute(numGroupsX, numGroupsY, 1);
+    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
   }
 
   void TraceCubemapReflections(TraceCubemapReflectionsParameters p)
@@ -141,7 +179,7 @@ namespace GFX::FX
     }
   }
 
-  void CompositeReflections(GFX::FX::CompositeReflectionsParameters p)
+  void CompositeReflections(CompositeReflectionsParameters p)
   {
     Extent2D sourceDim = p.source.Extent();
     Extent2D targetDim = p.target.Extent();
