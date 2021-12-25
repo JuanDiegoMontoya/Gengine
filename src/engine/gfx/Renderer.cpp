@@ -108,11 +108,16 @@ namespace GFX
     Renderer::Get()->SetReflectionsRenderScale(static_cast<float>(scale));
   }
 
+  void setReflectionsModeCallback(const char*, cvar_float scale)
+  {
+    Renderer::Get()->SetUpdateProbes(scale < Renderer::REFLECTION_MODE_CUBE_THRESHOLD);
+  }
 
   AutoCVar<cvar_float> vsyncCvar("r.vsync", "- Whether vertical sync is enabled", 0, 0, 1, CVarFlag::NONE, vsyncCallback);
   AutoCVar<cvar_float> renderScaleCvar("r.scale", "- Internal rendering resolution scale", 1.0, 0.1, 2.0, CVarFlag::NONE, setRenderScale);
   AutoCVar<cvar_float> reflectionsScaleCvar("r.reflections.scale", "- Internal reflections resolution scale", 1.0, 0.1, 1.0, CVarFlag::NONE, setReflectionScale);
   AutoCVar<cvar_float> reflectionsModeCvar("r.reflections.mode", "- Reflections mode. 0: skybox, 1: probe, 2: parallax correct probe", 2.0, 0.0, 2.0);
+  AutoCVar<cvar_float> reflectionsDenoiseEnableCvar("r.reflections.denoiseEnable", "- If true, reflections will receive spatial denoising", 1.0, 0.0, 1.0);
   //AutoCVar<cvar_float> fullscreenCvar("r.fullscreen", "- Whether the window is fullscreen", 0, 0, 1, CVarFlag::NONE, fullscreenCallback);
 
   static void GLAPIENTRY GLerrorCB(
@@ -1001,6 +1006,19 @@ namespace GFX
     }
   }
 
+  // TODO: this function
+  void Renderer::SetUpdateProbes(bool b)
+  {
+    if (b)
+    {
+
+    }
+    else
+    {
+
+    }
+  }
+
   void Renderer::InitVertexBuffers()
   {
     // TODO: use dynamically sized buffer
@@ -1189,7 +1207,7 @@ namespace GFX
     };
 
     reflect.fbo->SetAttachment(Attachment::COLOR_0, *reflect.texView[0], 0);
-    if (reflectionsModeCvar.Get() >= Reflections_t::MODE_PARALLAX_CUBE_THRESHOLD)
+    if (reflectionsModeCvar.Get() >= REFLECTION_MODE_PARALLAX_CUBE_THRESHOLD)
     {
       DebugMarker marker("Cube Traced Reflections");
       MEASURE_GPU_TIMER_STAT(ReflectionsTrace);
@@ -1217,7 +1235,7 @@ namespace GFX
       {
         .common = commonParams,
         .target = *reflect.texView[0],
-        .env = reflectionsModeCvar.Get() >= Reflections_t::MODE_CUBE_THRESHOLD ? *probeData.colorCubeView : *env.skyboxView,
+        .env = reflectionsModeCvar.Get() >= REFLECTION_MODE_CUBE_THRESHOLD ? *probeData.colorCubeView : *env.skyboxView,
         .blueNoise = *blueNoiseBigView
       };
       FX::SampleCubemapReflections(sampleParams);
@@ -1227,7 +1245,7 @@ namespace GFX
       DebugMarker marker("Denoise reflections");
       MEASURE_GPU_TIMER_STAT(ReflectionsDenoise);
 
-      if (reflect.atrous.num_passes > 0)
+      if (reflect.atrous.num_passes > 0 && reflectionsDenoiseEnableCvar.Get() != 0.0f)
       {
         FX::DenoiseReflectionsParameters denoiseParams
         {

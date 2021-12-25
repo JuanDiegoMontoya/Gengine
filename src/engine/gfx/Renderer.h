@@ -100,6 +100,10 @@ namespace GFX
 
     void SetProbePosition(glm::vec3 worldPos);
     void SetProbeRenderMask(RenderMask mask);
+    void SetUpdateProbes(bool b); // if true, probes will be updated (expensive)
+
+    static inline constexpr float REFLECTION_MODE_PARALLAX_CUBE_THRESHOLD = 2.0f;
+    static inline constexpr float REFLECTION_MODE_CUBE_THRESHOLD = 1.0f;
 
   private:
     Renderer() {};
@@ -198,8 +202,6 @@ namespace GFX
 
     struct Reflections_t
     {
-      static inline constexpr float MODE_PARALLAX_CUBE_THRESHOLD = 2.0f;
-      static inline constexpr float MODE_CUBE_THRESHOLD = 1.0f;
       std::optional<Framebuffer> fbo;
       std::optional<Texture> texMemory[2];
       std::optional<TextureView> texView[2];
