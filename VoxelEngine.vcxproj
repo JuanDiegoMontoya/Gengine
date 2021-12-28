@@ -57,6 +57,7 @@
     <ClInclude Include="src\engine\gfx\Camera.h" />
     <ClInclude Include="src\engine\gfx\fx\Bloom.h" />
     <ClInclude Include="src\engine\gfx\fx\CubemapReflections.h" />
+    <ClInclude Include="src\engine\gfx\fx\Fog.h" />
     <ClInclude Include="src\engine\gfx\fx\FXAA.h" />
     <ClInclude Include="src\engine\gfx\MeshManager.h" />
     <ClInclude Include="src\engine\gfx\RenderInfo.h" />
@@ -302,6 +303,7 @@
     </ClCompile>
     <ClCompile Include="src\engine\gfx\fx\Bloom.cpp" />
     <ClCompile Include="src\engine\gfx\fx\CubemapReflections.cpp" />
+    <ClCompile Include="src\engine\gfx\fx\Fog.cpp" />
     <ClCompile Include="src\engine\gfx\fx\FXAA.cpp" />
     <ClCompile Include="src\engine\gfx\Material.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>

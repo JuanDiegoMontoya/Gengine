@@ -158,6 +158,7 @@
     <ClInclude Include="src\engine\gfx\fx\FXAA.h" />
     <ClInclude Include="src\engine\gfx\fx\Bloom.h" />
     <ClInclude Include="src\engine\gfx\fx\CubemapReflections.h" />
+    <ClInclude Include="src\engine\gfx\fx\Fog.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\engine\ecs\system\DebugSystem.cpp" />
@@ -229,6 +230,7 @@
     <ClCompile Include="src\engine\gfx\fx\FXAA.cpp" />
     <ClCompile Include="src\engine\gfx\fx\Bloom.cpp" />
     <ClCompile Include="src\engine\gfx\fx\CubemapReflections.cpp" />
+    <ClCompile Include="src\engine\gfx\fx\Fog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="src\utility\Palette.inl" />

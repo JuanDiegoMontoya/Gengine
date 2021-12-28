@@ -30,6 +30,7 @@
 #include "fx/FXAA.h"
 #include "fx/Bloom.h"
 #include "fx/CubemapReflections.h"
+#include "fx/Fog.h"
 
 #include <imgui/imgui.h>
 
@@ -409,25 +410,6 @@ namespace GFX
   {
     GFX::DebugMarker fogMarker("Fog");
 
-    Shader shader = *ShaderManager::Get()->GetShader("fog");
-    shader.Bind();
-    shader.SetFloat("u_a", fog.u_a);
-    shader.SetFloat("u_b", fog.u_b);
-    shader.SetFloat("u_heightOffset", fog.u_heightOffset);
-    shader.SetFloat("u_fog2Density", fog.u_fog2Density);
-    shader.SetVec3("u_envColor", fog.albedo);
-    shader.SetFloat("u_beer", fog.u_beer);
-    shader.SetFloat("u_powder", fog.u_powder);
-    
-    glBindVertexArray(emptyVao);
-    glDepthMask(GL_FALSE);
-    glDisable(GL_CULL_FACE);
-    glBlendFunc(GL_ONE, GL_ZERO);
-
-    auto framebuffer = Framebuffer::Create();
-    framebuffer->SetDrawBuffers({ { Attachment::COLOR_0 } });
-    framebuffer->Bind();
-
     for (auto& renderView : renderViews)
     {
       if (!(renderView->mask & RenderMaskBit::RenderFog || renderView->mask & RenderMaskBit::RenderEarlyFog))
@@ -437,27 +419,26 @@ namespace GFX
       if (!earlyFogPass && (renderView->mask & RenderMaskBit::RenderEarlyFog))
         continue;
 
-      SetViewport(renderView->renderInfo);
-      shader.SetMat4("u_invViewProj", glm::inverse(renderView->camera->GetViewProj()));
-
-      // yes, we are reading from the render target while drawing to it
-      // this use case is valid under ARB_texture_barrier (core as of 4.5)
-      // see here: https://www.khronos.org/registry/OpenGL/extensions/ARB/ARB_texture_barrier.txt
       ASSERT(renderView->renderInfo.colorAttachments[0].has_value());
       ASSERT(renderView->renderInfo.depthAttachment.has_value());
-      framebuffer->SetAttachment(Attachment::COLOR_0, *renderView->renderInfo.colorAttachments[0]->textureView, 0);
-      framebuffer->SetAttachment(Attachment::DEPTH, *renderView->renderInfo.depthAttachment->textureView, 0);
 
-      BindTextureView(0, *renderView->renderInfo.colorAttachments[0]->textureView, *nearestSampler);
-      BindTextureView(1, *renderView->renderInfo.depthAttachment->textureView, *nearestSampler);
-      //GFX::BindTextureViewNative(0,
-      //  renderView->renderTarget->GetAttachmentAPIHandle(Attachment::COLOR_0),
-      //  defaultSampler->GetAPIHandle());
-      //GFX::BindTextureViewNative(1,
-      //  renderView->renderTarget->GetAttachmentAPIHandle(Attachment::DEPTH),
-      //  defaultSampler->GetAPIHandle());
+      FX::FogParameters params
+      {
+        .sourceColor = *renderView->renderInfo.colorAttachments[0]->textureView,
+        .sourceDepth = *renderView->renderInfo.depthAttachment->textureView,
+        .targetColor = *renderView->renderInfo.colorAttachments[0]->textureView,
+        .scratchSampler = *reflect.scratchSampler,
+        .camera = gBuffer.camera,
+        .a = fog.u_a,
+        .b = fog.u_b,
+        .heightOffset = fog.u_heightOffset,
+        .fog2Density = fog.u_fog2Density,
+        .albedo = fog.albedo,
+        .beer = fog.u_beer,
+        .powder = fog.u_powder
+      };
 
-      glDrawArrays(GL_TRIANGLES, 0, 3);
+      FX::ApplyFog(params);
     }
   }
 
@@ -516,11 +497,6 @@ namespace GFX
         { "fullscreen_tri.vs.glsl", GFX::ShaderType::VERTEX },
         { "tonemap.fs.glsl", GFX::ShaderType::FRAGMENT }
       });
-    GFX::ShaderManager::Get()->AddShader("fog",
-      {
-        { "fullscreen_tri.vs.glsl", GFX::ShaderType::VERTEX },
-        { "fog.fs.glsl", GFX::ShaderType::FRAGMENT }
-      });
     GFX::ShaderManager::Get()->AddShader("calc_exposure",
       { { "calc_exposure.cs.glsl", GFX::ShaderType::COMPUTE } });
     GFX::ShaderManager::Get()->AddShader("generate_histogram",
@@ -544,6 +520,7 @@ namespace GFX
     FX::CompileFXAAShader();
     FX::CompileReflectionShaders();
     FX::CompileBloomShaders();
+    FX::CompileFogShader();
   }
 
   void Renderer::DrawAxisIndicator(std::span<RenderView*> renderViews)
