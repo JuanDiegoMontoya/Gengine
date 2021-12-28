@@ -10,7 +10,6 @@ namespace GFX
 {
   class Buffer;
   class Texture2D;
-  class Renderer;
 }
 
 class ParticleManager
@@ -20,13 +19,12 @@ public:
   [[nodiscard]] uint64_t MakeParticleEmitter(uint32_t maxp, hashed_string textureName);
   [[nodiscard]] uint64_t MakeParticleEmitter(uint32_t maxp, const GFX::TextureView& texView, const GFX::TextureSampler& sampler);
   void DestroyParticleEmitter(uint64_t handle);
+  void BindEmitter(uint64_t handle);
 
 private:
   friend class ParticleSystem;
-  friend class GFX::Renderer;
 
   ParticleManager();
-  void BindEmitter(uint64_t handle);
   ParticleManagerData* data{};
 };
 

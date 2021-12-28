@@ -1,3 +1,4 @@
+#include "../../PCH.h"
 #include "CubemapReflections.h"
 #include "../ShaderManager.h"
 #include "../../GAssert.h"

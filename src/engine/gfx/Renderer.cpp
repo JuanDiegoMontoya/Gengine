@@ -20,12 +20,17 @@
 
 #include <execution>
 #include <iostream>
+#include <vector>
+#include <array>
 #include "../CVar.h"
 #include "../Console.h"
 #include "../Parser.h"
 #include <engine/core/StatMacros.h>
-#include "Camera.h"
 #include "../../utility/MathExtensions.h"
+#include "MeshUtils.h"
+#include "Material.h"
+#include "api/Texture.h"
+#include "api/Framebuffer.h"
 
 #include "fx/FXAA.h"
 #include "fx/Bloom.h"
@@ -58,15 +63,15 @@ namespace GFX
   void fullscreenCallback(const char*, cvar_float val)
   {
     bool fullscreen{ val != 0 };
-    if (fullscreen == Renderer::Get()->GetIsFullscreen())
+    if (fullscreen == Renderer::GetIsFullscreen())
       return;
-    Renderer::Get()->CreateWindow(fullscreen);
-    Renderer::Get()->InitFramebuffers();
+    Renderer::CreateWindow(fullscreen);
+    Renderer::InitFramebuffers();
   }
 
   void setRenderScale([[maybe_unused]] const char* cvar, cvar_float scale)
   {
-    Renderer::Get()->SetRenderingScale(static_cast<float>(scale));
+    Renderer::SetRenderingScale(static_cast<float>(scale));
   }
 
   void logShaderNames(const char*)
@@ -106,12 +111,12 @@ namespace GFX
 
   void setReflectionScale([[maybe_unused]] const char* cvar, cvar_float scale)
   {
-    Renderer::Get()->SetReflectionsRenderScale(static_cast<float>(scale));
+    Renderer::SetReflectionsRenderScale(static_cast<float>(scale));
   }
 
   void setReflectionsModeCallback(const char*, cvar_float scale)
   {
-    Renderer::Get()->SetUpdateProbes(scale < Renderer::REFLECTION_MODE_CUBE_THRESHOLD);
+    Renderer::SetUpdateProbes(scale < Renderer::REFLECTION_MODE_CUBE_THRESHOLD);
   }
 
   AutoCVar<cvar_float> vsyncCvar("r.vsync", "- Whether vertical sync is enabled", 0, 0, 1, CVarFlag::NONE, vsyncCallback);
@@ -186,1248 +191,1486 @@ namespace GFX
     }
   }
 
-  void Renderer::BeginObjects(size_t maxDraws)
+  namespace Renderer
   {
-    cmdIndex = 0;
-    userCommands.resize(maxDraws);
-  }
-
-  void Renderer::SubmitObject(const Component::Model& model, const Component::BatchedMesh& mesh, const Component::Material& mat)
-  {
-    auto index = cmdIndex.fetch_add(1, std::memory_order::memory_order_acq_rel);
-    userCommands[index] = BatchDrawCommand{ .mesh = mesh.handle, .material = mat.handle, .modelUniform = model.matrix };
-  }
-
-  void Renderer::RenderObjects(std::span<RenderView*> renderViews)
-  {
-    GFX::DebugMarker marker("Draw batched objects");
-
-    userCommands.resize(cmdIndex);
-    if (userCommands.empty())
+    namespace
     {
-      return;
-    }
+      GLFWwindow* window_{};
+      bool isFullscreen{ false };
 
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glDepthMask(GL_TRUE);
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
-    glFrontFace(GL_CCW);
+      std::vector<std::string> openglExtensions;
 
-    // NOTE: mesh order MUST match meshBufferInfo's
-    std::sort(std::execution::par, userCommands.begin(), userCommands.end(),
-      [](const auto& lhs, const auto& rhs)
+
+      // particle rendering
+      struct EmitterDrawCommand
       {
-        if (lhs.material != rhs.material)
-          return lhs.material < rhs.material;
-        else
-          return lhs.mesh < rhs.mesh;
-      });
+        const Component::ParticleEmitter* emitter;
+        glm::mat4 modelUniform;
+      };
+      std::atomic_uint32_t emitterDrawIndex = 0;
+      std::vector<EmitterDrawCommand> emitterDrawCommands;
 
-    // accumulate per-material draws and uniforms
-    std::vector<UniformData> uniforms;
-    uniforms.reserve(userCommands.size());
-    MaterialID curMat = userCommands[0].material;
-    for (size_t i = 0; i < userCommands.size(); i++)
-    {
-      const auto& draw = userCommands[i];
-      if (draw.material != curMat)
+      // std140
+      struct UniformData
       {
-        RenderBatchHelper(renderViews, curMat, uniforms); // submit draw when material is done
-        curMat = draw.material;
-        uniforms.clear();
-      }
-
-      meshBufferInfo[draw.mesh].instanceCount++;
-      uniforms.push_back(UniformData{ .model = draw.modelUniform });
-    }
-    if (uniforms.size() > 0)
-    {
-      RenderBatchHelper(renderViews, curMat, uniforms);
-    }
-
-    userCommands.clear();
-  }
-
-  void Renderer::RenderBatchHelper(std::span<RenderView*> renderViews, MaterialID mat, const std::vector<UniformData>& uniforms)
-  {
-    ASSERT(MaterialManager::Get()->materials_.contains(mat));
-    auto& [id, material] = *MaterialManager::Get()->materials_.find(mat);
-    DebugMarker marker(("Batch: " + std::string(material.shaderID)).c_str());
-
-    // generate SSBO w/ uniforms
-    //Buffer uniformBuffer = GFX::Buffer(uniforms.data(), uniforms.size() * sizeof(UniformData));
-    auto uniformBuffer = Buffer::Create(std::span(uniforms));
-    uniformBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(0);
-
-    // generate DIB (one indirect command per mesh)
-    std::vector<DrawElementsIndirectCommand> commands;
-    GLuint baseInstance = 0;
-    std::for_each(meshBufferInfo.begin(), meshBufferInfo.end(),
-      [&commands, &baseInstance](auto& cmd)
-      {
-        if (cmd.second.instanceCount != 0)
-        {
-          cmd.second.baseInstance = baseInstance;
-          //cmd.second.instanceCount += baseInstance;
-          commands.push_back(cmd.second);
-          baseInstance += cmd.second.instanceCount;
-        }
-      });
-    //GFX::Buffer dib(commands.data(), commands.size() * sizeof(DrawElementsIndirectCommand));
-    auto drawIndirectBuffer = Buffer::Create(std::span(commands));
-    drawIndirectBuffer->Bind<GFX::Target::DRAW_INDIRECT_BUFFER>();
-
-    // clear instance count for next GL draw command
-    for (auto& info : meshBufferInfo)
-    {
-      info.second.instanceCount = 0;
-    }
-
-    // do the actual draw
-    auto shader = GFX::ShaderManager::Get()->GetShader(material.shaderID);
-    shader->Bind();
-
-    for (auto& customUniform : material.materialUniforms)
-    {
-      if (customUniform.Setter)
-      {
-        customUniform.Setter(customUniform.id, *shader);
-      }
-    }
-
-    for (int i = 0; auto& [view, sampler] : material.viewSamplers)
-    {
-      BindTextureView(i++, view, sampler);
-    }
-
-    // TODO: perform GPU culling somewhere around here
-
-    auto framebuffer = Framebuffer::Create();
-    framebuffer->Bind();
-
-    for (auto& renderView : renderViews)
-    {
-      if (!(renderView->mask & RenderMaskBit::RenderObjects))
-        continue;
-
-      SetFramebufferDrawBuffersAuto(*framebuffer, renderView->renderInfo, 3);
-
-      ASSERT(renderView->renderInfo.depthAttachment.has_value());
-      framebuffer->SetAttachment(Attachment::DEPTH, *renderView->renderInfo.depthAttachment->textureView, 0);
-
-      shader->SetMat4("u_viewProj", renderView->camera->GetViewProj());
-
-      SetViewport(renderView->renderInfo);
-      glBindVertexArray(batchVAO);
-      glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, (void*)0, static_cast<GLsizei>(commands.size()), 0);
-    }
-
-    for (int i = 0; auto& [view, sampler] : material.viewSamplers)
-    {
-      UnbindTextureView(i++);
-    }
-  }
-
-  void Renderer::BeginEmitters(size_t maxDraws)
-  {
-    emitterDrawIndex = 0;
-    emitterDrawCommands.resize(maxDraws);
-  }
-
-  void Renderer::SubmitEmitter(const Component::ParticleEmitter& emitter, const Component::Transform& model)
-  {
-    auto index = emitterDrawIndex.fetch_add(1);
-    emitterDrawCommands[index] = { &emitter, model.GetModel() };
-  }
-
-  void Renderer::RenderEmitters(std::span<RenderView*> renderViews)
-  {
-    emitterDrawCommands.resize(emitterDrawIndex);
-    if (emitterDrawCommands.empty())
-    {
-      return;
-    }
-
-    glDepthMask(GL_FALSE);
-    glDisable(GL_CULL_FACE);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-    glBindVertexArray(emptyVao);
-    auto shader = GFX::ShaderManager::Get()->GetShader("particle");
-    shader->Bind();
-
-    auto framebuffer = Framebuffer::Create();
-    framebuffer->SetDrawBuffers({ { Attachment::COLOR_0 } });
-    framebuffer->Bind();
-
-    for (auto& renderView : renderViews)
-    {
-      if (!(renderView->mask & RenderMaskBit::RenderEmitters))
-        continue;
-
-      SetViewport(renderView->renderInfo);
-      ASSERT(renderView->renderInfo.colorAttachments[0].has_value());
-      ASSERT(renderView->renderInfo.depthAttachment.has_value());
-      framebuffer->SetAttachment(Attachment::COLOR_0, *renderView->renderInfo.colorAttachments[0]->textureView, 0);
-      framebuffer->SetAttachment(Attachment::DEPTH, *renderView->renderInfo.depthAttachment->textureView, 0);
-
-      auto compare = [&renderView](const EmitterDrawCommand& p1, EmitterDrawCommand& p2)
-      {
-        auto pos1 = glm::vec3(p1.modelUniform[3]);
-        auto pos2 = glm::vec3(p2.modelUniform[3]);
-        if (pos1 != pos2)
-        {
-          auto len = glm::length2(pos1 - renderView->camera->viewInfo.position) -
-            glm::length2(pos2 - renderView->camera->viewInfo.position);
-          if (glm::abs(len) > 0.001f)
-          {
-            return len > 0.0f;
-          }
-        }
-
-        return p1.emitter < p2.emitter;
+        glm::mat4 model;
       };
 
-      std::sort(emitterDrawCommands.begin(), emitterDrawCommands.end(), compare);
+      // batched+instanced rendering stuff (ONE MATERIAL SUPPORTED ATM)
+      std::unique_ptr<GFX::DynamicBuffer<>> vertexBuffer;
+      std::unique_ptr<GFX::DynamicBuffer<>> indexBuffer;
 
-      auto v = renderView->camera->viewInfo.GetViewMatrix();
-      shader->SetMat4("u_viewProj", renderView->camera->GetViewProj());
-      shader->SetVec3("u_cameraRight", { v[0][0], v[1][0], v[2][0] });
-      shader->SetVec3("u_cameraUp", { v[0][1], v[1][1], v[2][1] });
+      // per-vertex layout
+      uint32_t batchVAO{};
 
-      for (auto& [emitter, model] : emitterDrawCommands)
+      // maps handles to VERTEX and INDEX information in the respective dynamic buffers
+      // used to retrieve important offset and size info for meshes
+      std::map<uint32_t, DrawElementsIndirectCommand> meshBufferInfo;
+
+      struct BatchDrawCommand
       {
-        // TODO: perform culling on the emitter, run the per-particle culling compute shader
-        //if () // special path for if particles move in local space rather than world space
-        ParticleManager::Get().BindEmitter(emitter->handle);
-        glDrawArraysIndirect(GL_TRIANGLE_FAN, 0);
-      }
-    }
-  }
-
-  void Renderer::DrawFog(std::span<RenderView*> renderViews, bool earlyFogPass)
-  {
-    GFX::DebugMarker fogMarker("Fog");
-
-    for (auto& renderView : renderViews)
-    {
-      if (!(renderView->mask & RenderMaskBit::RenderFog || renderView->mask & RenderMaskBit::RenderEarlyFog))
-        continue;
-      if (earlyFogPass && !(renderView->mask & RenderMaskBit::RenderEarlyFog))
-        continue;
-      if (!earlyFogPass && (renderView->mask & RenderMaskBit::RenderEarlyFog))
-        continue;
-
-      ASSERT(renderView->renderInfo.colorAttachments[0].has_value());
-      ASSERT(renderView->renderInfo.depthAttachment.has_value());
-
-      FX::FogParameters params
-      {
-        .sourceColor = *renderView->renderInfo.colorAttachments[0]->textureView,
-        .sourceDepth = *renderView->renderInfo.depthAttachment->textureView,
-        .targetColor = *renderView->renderInfo.colorAttachments[0]->textureView,
-        .scratchSampler = *reflect.scratchSampler,
-        .camera = gBuffer.camera,
-        .a = fog.u_a,
-        .b = fog.u_b,
-        .heightOffset = fog.u_heightOffset,
-        .fog2Density = fog.u_fog2Density,
-        .albedo = fog.albedo,
-        .beer = fog.u_beer,
-        .powder = fog.u_powder
+        MeshID mesh;
+        MaterialID material;
+        glm::mat4 modelUniform;
       };
+      std::vector<BatchDrawCommand> userCommands;
+      std::atomic_uint32_t cmdIndex{ 0 };
 
-      FX::ApplyFog(params);
-    }
-  }
+      uint32_t emptyVao{};
 
-  Renderer* Renderer::Get()
-  {
-    static Renderer renderer{};
-    return &renderer;
-  }
+      uint32_t axisVao{};
+      std::optional<Buffer> axisVbo;
 
-  void Renderer::CompileShaders()
-  {
-    GFX::ShaderManager::Get()->AddShader("batched",
+      std::optional<TextureSampler> defaultSampler;
+      std::optional<TextureSampler> nearestSampler;
+      std::optional<TextureSampler> linearMipmapNearestSampler;
+
+      std::optional<Texture> ldrColorTexMemory;
+      std::optional<TextureView> ldrColorTexView;
+      std::optional<Texture> postAATexMemory;
+      std::optional<TextureView> postAATexView;
+      uint32_t windowWidth{ 1 };
+      uint32_t windowHeight{ 1 };
+      uint32_t renderWidth{ 1 };
+      uint32_t renderHeight{ 1 };
+      float renderScale{ 1.0f }; // 1.0 means render resolution will match window
+
+      struct GBuffer
       {
-        { "TexturedMeshBatched.vs.glsl", GFX::ShaderType::VERTEX },
-        { "TexturedMesh.fs.glsl", GFX::ShaderType::FRAGMENT }
-      });
+        std::optional<Framebuffer> fbo;
+        RenderView renderView{};
+        Camera camera{};
+        std::optional<Texture> colorTexMemory;
+        std::optional<Texture> normalTexMemory;
+        std::optional<Texture> depthTexMemory;
+        std::optional<Texture> PBRTexMemory;
+        std::optional<TextureView> colorTexView;
+        std::optional<TextureView> normalTexView;
+        std::optional<TextureView> depthTexView;
+        std::optional<TextureView> PBRTexView;
+      }gBuffer;
 
-    GFX::ShaderManager::Get()->AddShader("chunk_optimized",
+      std::optional<TextureView> blueNoiseRView;
+
+      std::optional<TextureView> blueNoiseBigView;
+
+      struct Reflections_t
       {
-        { "chunk_optimized.vs.glsl", GFX::ShaderType::VERTEX },
-        { "chunk_optimized.fs.glsl", GFX::ShaderType::FRAGMENT }
-      });
-    GFX::ShaderManager::Get()->AddShader("compact_batch",
-      { { "compact_batch.cs.glsl", GFX::ShaderType::COMPUTE } });
-    GFX::ShaderManager::Get()->AddShader("update_particle_emitter",
-      { { "update_particle_emitter.cs.glsl", GFX::ShaderType::COMPUTE } });
-    GFX::ShaderManager::Get()->AddShader("update_particle",
-      { { "update_particle.cs.glsl", GFX::ShaderType::COMPUTE } });
-    GFX::ShaderManager::Get()->AddShader("textured_array",
-      {
-        { "textured_array.vs.glsl", GFX::ShaderType::VERTEX },
-        { "textured_array.fs.glsl", GFX::ShaderType::FRAGMENT }
-      });
-    GFX::ShaderManager::Get()->AddShader("buffer_vis",
-      {
-        { "buffer_vis.fs.glsl", GFX::ShaderType::FRAGMENT },
-        { "buffer_vis.vs.glsl", GFX::ShaderType::VERTEX }
-      });
-    GFX::ShaderManager::Get()->AddShader("chunk_render_cull",
-      {
-        { "chunk_render_cull.vs.glsl", GFX::ShaderType::VERTEX },
-        { "chunk_render_cull.fs.glsl", GFX::ShaderType::FRAGMENT }
-      });
-    GFX::ShaderManager::Get()->AddShader("particle",
-      {
-        { "particle.vs.glsl", GFX::ShaderType::VERTEX },
-        { "particle.fs.glsl", GFX::ShaderType::FRAGMENT }
-      });
-    GFX::ShaderManager::Get()->AddShader("skybox",
-      {
-        { "skybox.vs.glsl", GFX::ShaderType::VERTEX },
-        { "skybox.fs.glsl", GFX::ShaderType::FRAGMENT }
-      });
-    GFX::ShaderManager::Get()->AddShader("tonemap",
-      {
-        { "fullscreen_tri.vs.glsl", GFX::ShaderType::VERTEX },
-        { "tonemap.fs.glsl", GFX::ShaderType::FRAGMENT }
-      });
-    GFX::ShaderManager::Get()->AddShader("calc_exposure",
-      { { "calc_exposure.cs.glsl", GFX::ShaderType::COMPUTE } });
-    GFX::ShaderManager::Get()->AddShader("generate_histogram",
-      { { "generate_histogram.cs.glsl", GFX::ShaderType::COMPUTE } });
+        std::optional<Framebuffer> fbo;
+        std::optional<Texture> texMemory[2];
+        std::optional<TextureView> texView[2];
+        std::optional<TextureSampler> scratchSampler;
+        std::optional<TextureSampler> scratchSampler2;
+        float renderScale{};
+        Extent2D fboSize{};
 
-    //GFX::ShaderManager::Get()->AddShader("sun",
-    //  {
-    //    { "flat_sun.vs.glsl", GFX::ShaderType::VERTEX },
-    //    { "flat_sun.fs.glsl", GFX::ShaderType::FRAGMENT }
-    //  });
-    GFX::ShaderManager::Get()->AddShader("axis",
-      {
-        { "axis.vs.glsl", GFX::ShaderType::VERTEX },
-        { "axis.fs.glsl", GFX::ShaderType::FRAGMENT }
-      });
-    //GFX::ShaderManager::Get()->AddShader("flat_color",
-    //  {
-    //    { "flat_color.vs.glsl", GFX::ShaderType::VERTEX },
-    //    { "flat_color.fs.glsl", GFX::ShaderType::FRAGMENT }
-    //  });
-    FX::CompileFXAAShader();
-    FX::CompileReflectionShaders();
-    FX::CompileBloomShaders();
-    FX::CompileFogShader();
-  }
-
-  void Renderer::DrawAxisIndicator(std::span<RenderView*> renderViews)
-  {
-    GFX::DebugMarker marker("Draw axis indicator");
-
-    glDepthFunc(GL_ALWAYS); // allows indicator to always be rendered
-    glBlendFunc(GL_ONE, GL_ZERO);
-    glLineWidth(2.f);
-    glBindVertexArray(axisVao);
-
-    auto currShader = GFX::ShaderManager::Get()->GetShader("axis");
-    currShader->Bind();
-
-    auto framebuffer = Framebuffer::Create();
-    framebuffer->SetDrawBuffers({ { Attachment::COLOR_0 } });
-    framebuffer->Bind();
-
-    for (auto& renderView : renderViews)
-    {
-      if (!(renderView->mask & GFX::RenderMaskBit::RenderScreenElements))
-        continue;
-
-      SetViewport(renderView->renderInfo);
-      ASSERT(renderView->renderInfo.colorAttachments[0].has_value());
-      framebuffer->SetAttachment(Attachment::COLOR_0, *renderView->renderInfo.colorAttachments[0]->textureView, 0);
-
-      const Camera& c = *renderView->camera;
-      currShader->SetMat4("u_model", glm::translate(glm::mat4(1), c.viewInfo.position + c.viewInfo.GetForwardDir() * 10.f)); // add scaling factor (larger # = smaller visual)
-      currShader->SetMat4("u_view", c.viewInfo.GetViewMatrix());
-      currShader->SetMat4("u_proj", c.proj);
-      glDrawArrays(GL_LINES, 0, 6);
-    }
-
-    glDepthFunc(GL_GEQUAL);
-    glBindVertexArray(0);
-  }
-
-  void Renderer::DrawSky(std::span<RenderView*> renderViews)
-  {
-    GFX::DebugMarker marker("Draw skybox");
-
-    //glDepthMask(GL_FALSE);
-    glDepthFunc(GL_EQUAL);
-    glDisable(GL_CULL_FACE);
-    glBindVertexArray(emptyVao);
-
-    auto shdr = GFX::ShaderManager::Get()->GetShader("skybox");
-    shdr->Bind();
-    shdr->SetInt("u_skybox", 0);
-    BindTextureView(0, *env.skyboxView, *env.skyboxSampler);
-
-    auto framebuffer = Framebuffer::Create();
-    framebuffer->SetDrawBuffers({ { Attachment::COLOR_0 } });
-    framebuffer->Bind();
-
-    for (auto& renderView : renderViews)
-    {
-      if (!(renderView->mask & GFX::RenderMaskBit::RenderSky))
-        continue;
-
-      SetViewport(renderView->renderInfo);
-      ASSERT(renderView->renderInfo.colorAttachments[0].has_value());
-      ASSERT(renderView->renderInfo.depthAttachment.has_value());
-      framebuffer->SetAttachment(Attachment::COLOR_0, *renderView->renderInfo.colorAttachments[0]->textureView, 0);
-      framebuffer->SetAttachment(Attachment::DEPTH, *renderView->renderInfo.depthAttachment->textureView, 0);
-
-      const auto& c = *renderView->camera;
-      shdr->SetMat4("u_proj", c.proj);
-      shdr->SetMat4("u_modview", glm::translate(c.viewInfo.GetViewMatrix(), c.viewInfo.position));
-      glDrawArrays(GL_TRIANGLE_STRIP, 0, 14);
-      glTextureBarrier();
-    }
-
-    //glDepthMask(GL_TRUE);
-    glDepthFunc(GL_GEQUAL);
-    glEnable(GL_CULL_FACE);
-    UnbindTextureView(0);
-  }
-
-  void Renderer::StartFrame()
-  {
-    glClearColor(0, 0, 0, 0);
-
-    reflect.fbo->Bind();
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    gBuffer.fbo->Bind();
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    GL_ResetState();
-    
-    ImGui::Begin("Tonemapping");
-    ImGui::Checkbox("FXAA", &fxaa.enabled);
-    ImGui::Checkbox("Dither", &tonemap.tonemapDither);
-    ImGui::Checkbox("Gamma Correction", &tonemap.gammaCorrection);
-    ImGui::SliderFloat("Exposure Factor", &tonemap.exposure, .5f, 2.0f, "%.2f");
-    ImGui::SliderFloat("Min Exposure", &tonemap.minExposure, .01f, 30.0f, "%.2f", ImGuiSliderFlags_Logarithmic);
-    ImGui::SliderFloat("Max Exposure", &tonemap.maxExposure, .01f, 30.0f, "%.2f", ImGuiSliderFlags_Logarithmic);
-    ImGui::SliderFloat("Target Luminance", &tonemap.targetLuminance, .1f, 10.0f, "%.2f", ImGuiSliderFlags_Logarithmic);
-    ImGui::SliderFloat("Adjustment Speed", &tonemap.adjustmentSpeed, .1f, 10.0f, "%.2f");
-
-    ImGui::Separator();
-    ImGui::Text("Fog");
-    ImGui::SliderFloat("u_a", &fog.u_a, 0, 1.0f, "%.5f", ImGuiSliderFlags_Logarithmic);
-    ImGui::SliderFloat("u_b", &fog.u_b, 1.0f, 30000.0f, "%.3f", ImGuiSliderFlags_Logarithmic);
-    ImGui::SliderFloat("u_heightOffset", &fog.u_heightOffset, -100.0f, 0);
-    ImGui::SliderFloat("u_fog2Density", &fog.u_fog2Density, 0, 1.0f, "%.5f", ImGuiSliderFlags_Logarithmic);
-    ImGui::SliderFloat("u_beer", &fog.u_beer, 0, 5.0f);
-    ImGui::SliderFloat("u_powder", &fog.u_powder, 0, 5.0f);
-    ImGui::End();
-  }
-
-  void Renderer::ClearFramebuffers(std::span<RenderView*> renderViews)
-  {
-    auto framebuffer = Framebuffer::Create();
-    framebuffer->SetDrawBuffers({ { Attachment::COLOR_0 } });
-    framebuffer->Bind();
-
-    for (auto& renderView : renderViews)
-    {
-      for (size_t i = 0; i < RenderInfo::maxColorAttachments; i++)
-      {
-        const auto& attachment = renderView->renderInfo.colorAttachments[i];
-        if (attachment && attachment->clearEachFrame)
+        struct
         {
-          framebuffer->SetAttachment(Attachment::COLOR_0, *attachment->textureView, 0);
-          ASSERT(framebuffer->IsValid());
-          const auto& f = attachment->clearValue.color.f;
-          glClearColor(f[0], f[1], f[2], f[3]);
-          glClear(GL_COLOR_BUFFER_BIT);
-        }
-        framebuffer->ResetAttachment(Attachment::COLOR_0);
-      }
+          std::array<float, 5> kernel = { 0.0625f, 0.25f, 0.375f, 0.25f, 0.0625f };
+          std::array<float, 5> offsets = { -2.0f, -1.0f, 0.0f, 1.0f, 2.0f };
+          uint32_t num_passes{ 1 };
+          float n_phi{ 1 };
+          float p_phi{ 1 };
+          float step_width{ 1.0f };
+        }atrous;
+      }reflect;
 
-      if (const auto& depthAttachment = renderView->renderInfo.depthAttachment; depthAttachment && depthAttachment->clearEachFrame)
+      struct ProbeData_t
       {
-        framebuffer->SetAttachment(Attachment::DEPTH, *depthAttachment->textureView, 0);
-        glClearNamedFramebufferfv(framebuffer->GetAPIHandle(), GL_DEPTH, 0, &depthAttachment->clearValue.depthStencil.depth);
-        framebuffer->ResetAttachment(Attachment::DEPTH);
-      }
+        std::array<RenderView, 6> renderViews;
+        std::array<Camera, 6> cameras;
+        std::array<std::optional<TextureView>, 6> colorViews;
+        std::array<std::optional<TextureView>, 6> depthViews;
+        std::array<std::optional<TextureView>, 6> distanceViews;
+        std::optional<Texture> colorCube;
+        std::optional<Texture> depthCube;
+        std::optional<Texture> distanceCube;
+        std::optional<TextureView> colorCubeView;
+        std::optional<TextureView> distanceCubeView;
+        Format colorFormat = Format::R11G11B10_FLOAT;
+        Format depthFormat = Format::D16_UNORM;
+        Format distanceFormat = Format::R16_FLOAT;
+        Extent2D imageSize{ 512, 512 };
+      }probeData;
 
-      if (const auto& stencilAttachment = renderView->renderInfo.stencilAttachment; stencilAttachment && stencilAttachment->clearEachFrame)
+      struct Composited_t
       {
-        framebuffer->SetAttachment(Attachment::DEPTH, *stencilAttachment->textureView, 0);
-        glClearNamedFramebufferiv(framebuffer->GetAPIHandle(), GL_STENCIL, 0, &stencilAttachment->clearValue.depthStencil.stencil);
-        framebuffer->ResetAttachment(Attachment::STENCIL);
-      }
+        // post-shading
+        std::optional<Framebuffer> fbo;
+      }composited;
+
+      struct Environment_t
+      {
+        std::optional<Texture> skyboxMemory;
+        std::optional<TextureView> skyboxView;
+        std::optional<TextureSampler> skyboxSampler;
+      }env;
+
+      struct FogParams_t
+      {
+        glm::vec3 albedo{ 1.0 };
+        float u_a = 0.005f;
+        float u_b = 10000.0f;
+        float u_heightOffset = -40.0f;
+        float u_fog2Density = 0.005f;
+        float u_beer = 1.0f;
+        float u_powder = 1.0f;
+      }fog;
+
+      struct TonemapperParams_t
+      {
+        float exposure = 1.0f;
+        float minExposure = 0.1f;
+        float maxExposure = 10.0f;
+        float targetLuminance = .22f;
+        float adjustmentSpeed = 0.5f;
+        bool gammaCorrection = true;
+        std::optional<GFX::Buffer> exposureBuffer;
+        std::optional<GFX::Buffer> histogramBuffer;
+        const int NUM_BUCKETS = 128;
+        std::optional<GFX::TextureView> blueNoiseView;
+        std::optional<GFX::TextureSampler> blueNoiseSampler;
+        bool tonemapDither = true;
+      }tonemap;
+
+      struct Bloom_t
+      {
+        bool enabled{ true };
+        float strength{ 1.0f / 64.0f };
+        float width{ 1.0f };
+        uint32_t passes{ 6 };
+        std::optional<Texture> scratchTex;
+        std::optional<TextureView> scratchTexView;
+        std::optional<TextureSampler> scratchSampler;
+      }bloom;
+
+      struct FXAAParams_t
+      {
+        bool enabled{ true };
+        float contrastThreshold = 0.0312;
+        float relativeThreshold = 0.125;
+        float pixelBlendStrength = 0.2;
+        float edgeBlendStrength = 1.0;
+        std::optional<TextureSampler> scratchSampler;
+      }fxaa;
     }
 
-    GL_ResetState();
-  }
+    GLFWwindow* InitContext();
+    void InitVertexBuffers();
+    void InitVertexLayouts();
+    void CompileShaders();
+    void InitTextures();
+    // resets the GL state to something predictable
+    void GL_ResetState();
+    void RenderBatchHelper(std::span<RenderView*> renderViews, MaterialID material, const std::vector<UniformData>& uniformBuffer);
 
-  void Renderer::ApplyAntialiasing()
-  {
-    if (fxaa.enabled)
+    DynamicBuffer<>* GetVertexBuffer()
     {
-      GFX::DebugMarker marker1("FXAA");
-      MEASURE_GPU_TIMER_STAT(FXAA);
-      FX::ApplyFXAA(*ldrColorTexView, *postAATexView, fxaa.contrastThreshold, fxaa.relativeThreshold,
-        fxaa.pixelBlendStrength, fxaa.edgeBlendStrength, *fxaa.scratchSampler);
+      return vertexBuffer.get();
     }
-    else
+
+    DynamicBuffer<>* GetIndexBuffer()
     {
-      GFX::DebugMarker marker1("Blit");
-      auto fbo1 = Framebuffer::Create();
-      auto fbo2 = Framebuffer::Create();
-      fbo1->SetAttachment(Attachment::COLOR_0, *ldrColorTexView, 0);
-      fbo2->SetAttachment(Attachment::COLOR_0, *postAATexView, 0);
-      auto ext1 = ldrColorTexView->Extent();
-      auto ext2 = postAATexView->Extent();
-      Framebuffer::Blit(*fbo1, *fbo2,
-        { 0, 0 }, { ext1.width, ext1.height },
-        { 0, 0 }, { ext2.width, ext2.height },
-        AspectMaskBit::COLOR_BUFFER_BIT, Filter::LINEAR);
+      return indexBuffer.get();
     }
-  }
 
-  void Renderer::WriteSwapchain()
-  {
-    GFX::DebugMarker marker0("Write to swapchain");
-
-    auto framebuffer = Framebuffer::Create();
-    framebuffer->SetAttachment(Attachment::COLOR_0, *postAATexView, 0);
-    glBlitNamedFramebuffer(framebuffer->GetAPIHandle(), 0,
-      0, 0, GetRenderWidth(), GetRenderHeight(),
-      0, 0, windowWidth, windowHeight,
-      GL_COLOR_BUFFER_BIT, GL_LINEAR);
-  }
-
-  void Renderer::Bloom()
-  {
-    ImGui::Checkbox("Enable bloom", &bloom.enabled);
-    ImGui::SliderFloat("Bloom width", &bloom.width, 0.1f, 5.0f);
-    ImGui::SliderFloat("Bloom strength", &bloom.strength, 0.01f, 1.0f, "%.4f", ImGuiSliderFlags_Logarithmic);
-    ImGui::SliderInt("Bloom passes", (int*)&bloom.passes, 1, 7);
-
-    if (bloom.enabled)
+    std::map<uint32_t, DrawElementsIndirectCommand>* GetMeshBufferInfos()
     {
-      GFX::DebugMarker bloomMarker("Bloom");
-      MEASURE_GPU_TIMER_STAT(Bloom_GPU);
-      MEASURE_CPU_TIMER_STAT(Bloom_CPU);
-      FX::ApplyBloom(*gBuffer.colorTexView, bloom.passes, bloom.strength, bloom.width,
-        *bloom.scratchTexView, *bloom.scratchSampler);
+      return &meshBufferInfo;
     }
-  }
 
-  void Renderer::ApplyTonemap(float dt)
-  {
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    auto framebuffer = Framebuffer::Create();
-    framebuffer->SetAttachment(Attachment::COLOR_0, *ldrColorTexView, 0);
-    framebuffer->Bind();
-
+    float GetWindowAspectRatio()
     {
-      GFX::DebugMarker tonemappingMarker("Tone mapping");
+      return static_cast<float>(windowWidth) / static_cast<float>(windowHeight);
+    }
 
-      const float logLowLum = glm::log(tonemap.targetLuminance / tonemap.maxExposure);
-      const float logMaxLum = glm::log(tonemap.targetLuminance / tonemap.minExposure);
-      const int computePixelsX = glm::ceil(GetRenderWidth() / 4.0f);
-      const int computePixelsY = glm::ceil(GetRenderHeight() / 4.0f);
+    Extent2D GetWindowDimensions()
+    {
+      return { renderWidth, renderHeight };
+    }
 
+    RenderView* GetProbeRenderView(size_t index)
+    {
+      ASSERT(index < 6); return &probeData.renderViews[index];
+    }
+
+    RenderView* GetMainRenderView()
+    {
+      return &gBuffer.renderView;
+    }
+
+    bool GetIsFullscreen()
+    {
+      return isFullscreen;
+    }
+
+    uint32_t GetRenderWidth()
+    {
+      return renderWidth;
+    }
+
+    uint32_t GetRenderHeight()
+    {
+      return renderHeight;
+    }
+
+    void BeginObjects(size_t maxDraws)
+    {
+      cmdIndex = 0;
+      userCommands.resize(maxDraws);
+    }
+
+    void SubmitObject(const Component::Model& model, const Component::BatchedMesh& mesh, const Component::Material& mat)
+    {
+      auto index = cmdIndex.fetch_add(1, std::memory_order::memory_order_acq_rel);
+      userCommands[index] = BatchDrawCommand{ .mesh = mesh.handle, .material = mat.handle, .modelUniform = model.matrix };
+    }
+
+    void RenderObjects(std::span<RenderView*> renderViews)
+    {
+      GFX::DebugMarker marker("Draw batched objects");
+
+      userCommands.resize(cmdIndex);
+      if (userCommands.empty())
       {
-        //GFX::TimerQuery timerQuery;
-        GFX::DebugMarker marker("Generate luminance histogram");
-        MEASURE_GPU_TIMER_STAT(LuminanceHistogram);
-        auto hshdr = GFX::ShaderManager::Get()->GetShader("generate_histogram");
-        hshdr->Bind();
-        hshdr->SetInt("u_hdrBuffer", 1);
-        hshdr->SetFloat("u_logLowLum", logLowLum);
-        hshdr->SetFloat("u_logMaxLum", logMaxLum);
-        const int X_SIZE = 16;
-        const int Y_SIZE = 8;
-        int xgroups = (computePixelsX + X_SIZE - 1) / X_SIZE;
-        int ygroups = (computePixelsY + Y_SIZE - 1) / Y_SIZE;
-        tonemap.histogramBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(0);
-        BindTextureView(1, *gBuffer.colorTexView, *defaultSampler);
-        //BindTextureView(1, *composited[frameNumber % 2].compositedTexView, *defaultSampler);
-        glDispatchCompute(xgroups, ygroups, 1);
-        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-        //printf("Histogram time: %f ms\n", (double)timerQuery.Elapsed_ns() / 1000000.0);
+        return;
       }
 
-      //float expo{};
-      //glGetNamedBufferSubData(exposureBuffer->GetID(), 0, sizeof(float), &expo);
-      //printf("Exposure: %f\n", expo);
-
-      {
-        GFX::DebugMarker marker("Compute camera exposure");
-        MEASURE_GPU_TIMER_STAT(CameraExposure);
-        //glGenerateTextureMipmap(color);
-        tonemap.exposureBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(0);
-        tonemap.histogramBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(1);
-        //floatBufferOut->Bind<GFX::Target::SSBO>(1);
-        auto cshdr = GFX::ShaderManager::Get()->GetShader("calc_exposure");
-        cshdr->Bind();
-        //cshdr->setFloat("u_targetLuminance", targetLuminance);
-        cshdr->SetFloat("u_dt", glm::clamp(dt, 0.001f, 1.0f));
-        cshdr->SetFloat("u_adjustmentSpeed", tonemap.adjustmentSpeed);
-        cshdr->SetFloat("u_logLowLum", logLowLum);
-        cshdr->SetFloat("u_logMaxLum", logMaxLum);
-        cshdr->SetFloat("u_targetLuminance", tonemap.targetLuminance);
-        cshdr->SetInt("u_numPixels", computePixelsX * computePixelsY);
-        glDispatchCompute(1, 1, 1);
-        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-      }
-
-      GFX::DebugMarker marker("Apply tone mapping");
-      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-      glViewport(0, 0, GetRenderWidth(), GetRenderHeight());
-      auto shdr = GFX::ShaderManager::Get()->GetShader("tonemap");
-      glDepthMask(GL_FALSE);
-      glDisable(GL_CULL_FACE);
-      shdr->Bind();
-      shdr->SetFloat("u_exposureFactor", tonemap.exposure);
-      shdr->SetBool("u_useDithering", tonemap.tonemapDither);
-      shdr->SetBool("u_encodeSRGB", tonemap.gammaCorrection);
-      BindTextureView(1, *gBuffer.colorTexView, *defaultSampler);
-      //BindTextureView(1, *composited[frameNumber % 2].compositedTexView, *defaultSampler);
-      BindTextureView(2, *tonemap.blueNoiseView, *tonemap.blueNoiseSampler);
-      glBindVertexArray(emptyVao);
-      //glBindTextureUnit(1, fog.tex); // rebind because AMD drivers sus
-      glDrawArrays(GL_TRIANGLES, 0, 3);
+      glEnable(GL_BLEND);
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
       glDepthMask(GL_TRUE);
       glEnable(GL_CULL_FACE);
-      UnbindTextureView(2);
-      UnbindTextureView(1);
-    }
+      glCullFace(GL_BACK);
+      glFrontFace(GL_CCW);
 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glViewport(0, 0, windowWidth, windowHeight);
-  }
+      // NOTE: mesh order MUST match meshBufferInfo's
+      std::sort(std::execution::par, userCommands.begin(), userCommands.end(),
+        [](const auto& lhs, const auto& rhs)
+        {
+          if (lhs.material != rhs.material)
+            return lhs.material < rhs.material;
+          else
+            return lhs.mesh < rhs.mesh;
+        });
 
-  GLFWwindow* const* Renderer::Init()
-  {
-    window_ = InitContext();
-
-    InitVertexBuffers();
-    InitFramebuffers();
-    InitVertexLayouts();
-    CompileShaders();
-    InitTextures();
-
-    // enable debugging stuff
-    glEnable(GL_DEBUG_OUTPUT);
-    glDebugMessageCallback(GLerrorCB, NULL);
-    glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-    glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
-
-    GL_ResetState();
-
-    Console::Get()->RegisterCommand("showShaders", "- Lists all shader names", logShaderNames);
-    Console::Get()->RegisterCommand("recompile", "- Recompiles a named shader", recompileShader);
-    vsyncCvar.Set(0);
-
-    return &window_;
-  }
-
-  void Renderer::InitFramebuffers()
-  {
-    Extent2D fboSize = { GetRenderWidth(), GetRenderHeight() };
-
-    std::vector<int> zeros(tonemap.NUM_BUCKETS, 0);
-    tonemap.exposureBuffer = Buffer::Create(std::span(zeros.data(), 2));
-    tonemap.histogramBuffer = Buffer::Create(std::span(zeros));
-
-    //const int levels = glm::floor(glm::log2(glm::max((float)fboSize.width, (float)fboSize.height))) + 1;
-    
-    gBuffer.colorTexMemory = CreateTexture2DMip(fboSize, Format::R16G16B16A16_FLOAT, 1, "GBuffer Color Texture");
-    gBuffer.colorTexView = TextureView::Create(*gBuffer.colorTexMemory, "GBuffer Color View");
-    gBuffer.depthTexMemory = CreateTexture2D(fboSize, Format::D32_FLOAT, "GBuffer Depth Texture");
-    gBuffer.depthTexView = TextureView::Create(*gBuffer.depthTexMemory, "GBuffer Depth View");
-    gBuffer.PBRTexMemory = CreateTexture2D(fboSize, Format::R8G8_UNORM, "GBuffer PBR Texture");
-    gBuffer.PBRTexView = TextureView::Create(*gBuffer.PBRTexMemory, "GBuffer PBR View");
-    gBuffer.normalTexMemory = CreateTexture2D(fboSize, Format::R16G16B16_SNORM, "GBuffer Normal Texture");
-    gBuffer.normalTexView = TextureView::Create(*gBuffer.normalTexMemory, "GBuffer Normal View");
-    gBuffer.fbo = Framebuffer::Create();
-    gBuffer.fbo->SetAttachment(Attachment::COLOR_0, *gBuffer.colorTexView, 0);
-    gBuffer.fbo->SetAttachment(Attachment::COLOR_1, *gBuffer.normalTexView, 0);
-    gBuffer.fbo->SetAttachment(Attachment::COLOR_2, *gBuffer.PBRTexView, 0);
-    gBuffer.fbo->SetAttachment(Attachment::DEPTH, *gBuffer.depthTexView, 0);
-    gBuffer.fbo->SetDrawBuffers({ { Attachment::COLOR_0, Attachment::COLOR_1, Attachment::COLOR_2 } });
-    ASSERT(gBuffer.fbo->IsValid());
-
-    RenderAttachment diffuseAttachment
-    {
-      .textureView = &gBuffer.colorTexView.value(),
-      .clearEachFrame = false
-    };
-    RenderAttachment normalAttachment
-    {
-      .textureView = &gBuffer.normalTexView.value(),
-      .clearEachFrame = false
-    };
-    RenderAttachment pbrAttachment
-    {
-      .textureView = &gBuffer.PBRTexView.value(),
-      .clearEachFrame = true,
-      .clearValue = { .color = { .f = { 1, 0, 0, 0 } } }
-    };
-    RenderAttachment depthAttachment
-    {
-      .textureView = &gBuffer.depthTexView.value(),
-      .clearEachFrame = true,
-      .clearValue = { .depthStencil = { .depth = 0.0 } }
-    };
-    RenderInfo renderInfo
-    {
-      .offset = { 0, 0 },
-      .size = fboSize,
-      .colorAttachments = { diffuseAttachment, normalAttachment, pbrAttachment },
-      .depthAttachment = { depthAttachment },
-    };
-    gBuffer.renderView.renderInfo = renderInfo;
-    gBuffer.renderView.camera = &gBuffer.camera;
-
-    ldrColorTexMemory = CreateTexture2D(fboSize, Format::R8G8B8A8_UNORM, "LDR Color Texture");
-    ldrColorTexView = TextureView::Create(*ldrColorTexMemory, "LDR Color View");
-    postAATexMemory = CreateTexture2D(fboSize, Format::R8G8B8A8_UNORM, "Post AA Texture");
-    postAATexView = TextureView::Create(*postAATexMemory, "Post AA View");
-
-    composited.fbo = Framebuffer::Create();
-    composited.fbo->SetAttachment(Attachment::COLOR_0, *gBuffer.colorTexView, 0);
-    ASSERT(composited.fbo->IsValid());
-
-    bloom.scratchTex = CreateTexture2DMip({ fboSize.width / 2, fboSize.height / 2 }, Format::R11G11B10_FLOAT, bloom.passes);
-    bloom.scratchTexView = bloom.scratchTex->View();
-    bloom.scratchSampler = TextureSampler::Create({});
-
-    fxaa.scratchSampler = TextureSampler::Create({});
-
-    SamplerState ss{};
-    ss.asBitField.minFilter = Filter::LINEAR;
-    ss.asBitField.magFilter = Filter::LINEAR;
-    ss.asBitField.mipmapFilter = Filter::LINEAR;
-    ss.asBitField.addressModeU = AddressMode::MIRRORED_REPEAT;
-    ss.asBitField.addressModeV = AddressMode::MIRRORED_REPEAT;
-    ss.asBitField.addressModeW = AddressMode::MIRRORED_REPEAT;
-    defaultSampler.emplace(*TextureSampler::Create(ss, "Default Sampler"));
-
-    ss.asBitField.mipmapFilter = Filter::LINEAR;
-    linearMipmapNearestSampler = TextureSampler::Create(ss, "Linear Mipmap Nearest Sampler");
-
-    ss.asBitField.minFilter = Filter::NEAREST;
-    ss.asBitField.magFilter = Filter::NEAREST;
-    ss.asBitField.mipmapFilter = Filter::NEAREST;
-    nearestSampler.emplace(*TextureSampler::Create(ss, "Nearest Sampler"));
-
-    SetReflectionsRenderScale(0.5f);
-
-    glViewport(0, 0, GetRenderWidth(), GetRenderHeight());
-  }
-
-  void Renderer::InitReflectionFramebuffer()
-  {
-    for (int i = 0; i < 2; i++)
-    {
-      reflect.texMemory[i] = CreateTexture2D(reflect.fboSize, Format::R16G16B16A16_FLOAT, ("Reflection Texture " + std::to_string(i)).c_str());
-      reflect.texView[i] = TextureView::Create(*reflect.texMemory[i], ("Reflection View " + std::to_string(i)).c_str());
-    }
-    reflect.fbo = Framebuffer::Create();
-    reflect.fbo->SetAttachment(Attachment::COLOR_0, *reflect.texView[0], 0);
-    reflect.fbo->SetDrawBuffers({ { Attachment::COLOR_0 } });
-    reflect.scratchSampler = TextureSampler::Create({});
-    reflect.scratchSampler2 = TextureSampler::Create({});
-    ASSERT(reflect.fbo->IsValid());
-  }
-
-  bool Renderer::QueryOpenGLExtensionStatus(std::string_view extensionName)
-  {
-    for (const auto& extension : openglExtensions)
-    {
-      if (extension == extensionName)
+      // accumulate per-material draws and uniforms
+      std::vector<UniformData> uniforms;
+      uniforms.reserve(userCommands.size());
+      MaterialID curMat = userCommands[0].material;
+      for (size_t i = 0; i < userCommands.size(); i++)
       {
-        return true;
+        const auto& draw = userCommands[i];
+        if (draw.material != curMat)
+        {
+          RenderBatchHelper(renderViews, curMat, uniforms); // submit draw when material is done
+          curMat = draw.material;
+          uniforms.clear();
+        }
+
+        meshBufferInfo[draw.mesh].instanceCount++;
+        uniforms.push_back(UniformData{ .model = draw.modelUniform });
+      }
+      if (uniforms.size() > 0)
+      {
+        RenderBatchHelper(renderViews, curMat, uniforms);
+      }
+
+      userCommands.clear();
+    }
+
+    void RenderBatchHelper(std::span<RenderView*> renderViews, MaterialID mat, const std::vector<UniformData>& uniforms)
+    {
+      //ASSERT(MaterialManager::Get()->materials_.contains(mat));
+      auto& [id, material] = *MaterialManager::Get()->GetMaterialInfo(mat);
+      DebugMarker marker(("Batch: " + std::string(material.shaderID)).c_str());
+
+      // generate SSBO w/ uniforms
+      //Buffer uniformBuffer = GFX::Buffer(uniforms.data(), uniforms.size() * sizeof(UniformData));
+      auto uniformBuffer = Buffer::Create(std::span(uniforms));
+      uniformBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(0);
+
+      // generate DIB (one indirect command per mesh)
+      std::vector<DrawElementsIndirectCommand> commands;
+      GLuint baseInstance = 0;
+      std::for_each(meshBufferInfo.begin(), meshBufferInfo.end(),
+        [&commands, &baseInstance](auto& cmd)
+        {
+          if (cmd.second.instanceCount != 0)
+          {
+            cmd.second.baseInstance = baseInstance;
+            //cmd.second.instanceCount += baseInstance;
+            commands.push_back(cmd.second);
+            baseInstance += cmd.second.instanceCount;
+          }
+        });
+      //GFX::Buffer dib(commands.data(), commands.size() * sizeof(DrawElementsIndirectCommand));
+      auto drawIndirectBuffer = Buffer::Create(std::span(commands));
+      drawIndirectBuffer->Bind<GFX::Target::DRAW_INDIRECT_BUFFER>();
+
+      // clear instance count for next GL draw command
+      for (auto& info : meshBufferInfo)
+      {
+        info.second.instanceCount = 0;
+      }
+
+      // do the actual draw
+      auto shader = GFX::ShaderManager::Get()->GetShader(material.shaderID);
+      shader->Bind();
+
+      for (auto& customUniform : material.materialUniforms)
+      {
+        if (customUniform.Setter)
+        {
+          customUniform.Setter(customUniform.id, *shader);
+        }
+      }
+
+      for (int i = 0; auto & [view, sampler] : material.viewSamplers)
+      {
+        BindTextureView(i++, view, sampler);
+      }
+
+      // TODO: perform GPU culling somewhere around here
+
+      auto framebuffer = Framebuffer::Create();
+      framebuffer->Bind();
+
+      for (auto& renderView : renderViews)
+      {
+        if (!(renderView->mask & RenderMaskBit::RenderObjects))
+          continue;
+
+        SetFramebufferDrawBuffersAuto(*framebuffer, renderView->renderInfo, 3);
+
+        ASSERT(renderView->renderInfo.depthAttachment.has_value());
+        framebuffer->SetAttachment(Attachment::DEPTH, *renderView->renderInfo.depthAttachment->textureView, 0);
+
+        shader->SetMat4("u_viewProj", renderView->camera->GetViewProj());
+
+        SetViewport(renderView->renderInfo);
+        glBindVertexArray(batchVAO);
+        glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, (void*)0, static_cast<GLsizei>(commands.size()), 0);
+      }
+
+      for (int i = 0; auto & [view, sampler] : material.viewSamplers)
+      {
+        UnbindTextureView(i++);
       }
     }
-    return false;
-  }
 
-  const std::vector<std::string>& Renderer::GetAllOpenGLExtensions()
-  {
-    return openglExtensions;
-  }
-
-  void Renderer::SetProbePosition(glm::vec3 worldPos)
-  {
-    for (size_t i = 0; i < 6; i++)
+    void BeginEmitters(size_t maxDraws)
     {
-      probeData.cameras[i].viewInfo.position = worldPos;
+      emitterDrawIndex = 0;
+      emitterDrawCommands.resize(maxDraws);
     }
-  }
 
-  void Renderer::SetProbeRenderMask(RenderMask mask)
-  {
-    for (size_t i = 0; i < 6; i++)
+    void SubmitEmitter(const Component::ParticleEmitter& emitter, const Component::Transform& model)
     {
-      probeData.renderViews[i].mask = mask;
+      auto index = emitterDrawIndex.fetch_add(1);
+      emitterDrawCommands[index] = { &emitter, model.GetModel() };
     }
-  }
 
-  // TODO: this function
-  void Renderer::SetUpdateProbes(bool b)
-  {
-    if (b)
+    void RenderEmitters(std::span<RenderView*> renderViews)
     {
-
-    }
-    else
-    {
-
-    }
-  }
-
-  void Renderer::InitVertexBuffers()
-  {
-    // TODO: use dynamically sized buffer
-    vertexBuffer = std::make_unique<GFX::DynamicBuffer<>>(100'000'000, sizeof(Vertex));
-    indexBuffer = std::make_unique<GFX::DynamicBuffer<>>(100'000'000, sizeof(GLuint));
-
-    constexpr float indicatorVertices[] =
-    {
-      // positions      // colors
-      0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // x-axis
-      1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-      0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, // y-axis
-      0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-      0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, // z-axis
-      0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f
-    };
-    axisVbo = Buffer::Create(std::span(indicatorVertices, sizeof(indicatorVertices)));
-  }
-
-  void Renderer::InitVertexLayouts()
-  {
-    // setup VAO for batched drawing (ONE VERTEX LAYOUT ATM)
-    glCreateVertexArrays(1, &batchVAO);
-    glEnableVertexArrayAttrib(batchVAO, 0); // pos
-    glEnableVertexArrayAttrib(batchVAO, 1); // normal
-    glEnableVertexArrayAttrib(batchVAO, 2); // uv
-    glVertexArrayAttribFormat(batchVAO, 0, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex, position));
-    glVertexArrayAttribFormat(batchVAO, 1, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex, normal));
-    glVertexArrayAttribFormat(batchVAO, 2, 2, GL_FLOAT, GL_FALSE, offsetof(Vertex, texCoord));
-    glVertexArrayAttribBinding(batchVAO, 0, 0);
-    glVertexArrayAttribBinding(batchVAO, 1, 0);
-    glVertexArrayAttribBinding(batchVAO, 2, 0);
-    glVertexArrayVertexBuffer(batchVAO, 0, vertexBuffer->GetID(), 0, sizeof(Vertex));
-    glVertexArrayElementBuffer(batchVAO, indexBuffer->GetID());
-
-    // empty VAO for bufferless drawing
-    glCreateVertexArrays(1, &emptyVao);
-
-    // VAO for rendering the axis indicator
-    glCreateVertexArrays(1, &axisVao);
-    glEnableVertexArrayAttrib(axisVao, 0); // pos
-    glEnableVertexArrayAttrib(axisVao, 1); // color
-    glVertexArrayAttribBinding(axisVao, 0, 0);
-    glVertexArrayAttribBinding(axisVao, 1, 0);
-    glVertexArrayAttribFormat(axisVao, 0, 3, GL_FLOAT, GL_FALSE, 0);
-    glVertexArrayAttribFormat(axisVao, 1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float));
-    glVertexArrayVertexBuffer(axisVao, 0, axisVbo->GetAPIHandle(), 0, 6 * sizeof(float));
-  }
-
-  void Renderer::InitTextures()
-  {
-    // these are some commonly used blue noise textures
-    TextureManager::Get()->AddTexture("blueNoiseRGB",
-      *LoadTexture2D("BlueNoise/16_16/LDR_RGB1_0.png", Format::R8G8B8A8_UNORM));
-    tonemap.blueNoiseView = TextureView::Create(*TextureManager::Get()->GetTexture("blueNoiseRGB"), "BlueNoiseRGBView");
-    TextureManager::Get()->AddTexture("blueNoiseR",
-      *LoadTexture2D("BlueNoise/32_32/HDR_L_0.png", Format::R16_UNORM));
-    TextureManager::Get()->AddTexture("blueNoiseBig",
-      *LoadTexture2D("BlueNoise/1024_1024/LDR_RGBA_0.png", Format::R16G16B16A16_UNORM));
-    blueNoiseRView = TextureView::Create(*TextureManager::Get()->GetTexture("blueNoiseR"));
-    blueNoiseBigView = TextureView::Create(*TextureManager::Get()->GetTexture("blueNoiseBig"));
-    SamplerState samplerState{};
-    samplerState.asBitField.addressModeU = AddressMode::REPEAT;
-    samplerState.asBitField.addressModeV = AddressMode::REPEAT;
-    tonemap.blueNoiseSampler.emplace(*TextureSampler::Create(samplerState, "BlueNoiseRGBSampler"));
-
-    // TODO: temp, inits the skybox cubemap
-    const std::string_view faces[6] =
-    {
-      "autumn_sky_hdr/px.hdr",
-      "autumn_sky_hdr/nx.hdr",
-      "autumn_sky_hdr/py.hdr",
-      "autumn_sky_hdr/ny.hdr",
-      "autumn_sky_hdr/pz.hdr",
-      "autumn_sky_hdr/nz.hdr",
-    };
-    env.skyboxMemory = GFX::LoadTextureCube(faces, 0, 0, true);
-    env.skyboxMemory->GenMipmaps();
-    env.skyboxView = TextureView::Create(*env.skyboxMemory, "skycube view");
-    SamplerState cubesamplerState{};
-    cubesamplerState.asBitField.addressModeU = AddressMode::MIRRORED_REPEAT;
-    cubesamplerState.asBitField.addressModeV = AddressMode::MIRRORED_REPEAT;
-    cubesamplerState.asBitField.addressModeW = AddressMode::MIRRORED_REPEAT;
-    env.skyboxSampler = TextureSampler::Create(cubesamplerState, "skycube sampler");
-
-    // init the reflection probe textures
-    GFX::TextureCreateInfo cubeMemInfo
-    {
-      .imageType = GFX::ImageType::TEX_CUBEMAP,
-      .format = probeData.colorFormat,
-      .extent = { probeData.imageSize.width, probeData.imageSize.height, 1 },
-      .mipLevels = 1,
-      .arrayLayers = 6
-    };
-    //cubeMemInfo.mipLevels = glm::floor(glm::log2(glm::max((float)cubeMemInfo.extent.width, (float)cubeMemInfo.extent.height))) + 1;
-    probeData.colorCube = GFX::Texture::Create(cubeMemInfo, "Cube Color");
-    probeData.colorCubeView = TextureView::Create(*probeData.colorCube, "Cube Color View");
-
-    cubeMemInfo.format = probeData.depthFormat;
-    probeData.depthCube = GFX::Texture::Create(cubeMemInfo, "Cube Depth");
-
-    cubeMemInfo.format = probeData.distanceFormat;
-    probeData.distanceCube = GFX::Texture::Create(cubeMemInfo, "Cube Depth Distance");
-    probeData.distanceCubeView = TextureView::Create(*probeData.distanceCube, "Cube Depth Distance View");
-
-    const glm::vec3 faceDirs[6] =
-    {
-      { 1, 0, 0 },
-      { -1, 0, 0 },
-      { 0, 1, 0 },
-      { 0, -1, 0 },
-      { 0, 0, 1 },
-      { 0, 0, -1 }
-    };
-    const GFX::Constants::CardinalNames upDirs[6] =
-    {
-      GFX::Constants::CardinalNames::NegY,
-      GFX::Constants::CardinalNames::NegY,
-      GFX::Constants::CardinalNames::PosZ,
-      GFX::Constants::CardinalNames::NegZ,
-      GFX::Constants::CardinalNames::NegY,
-      GFX::Constants::CardinalNames::NegY,
-    };
-    for (uint32_t i = 0; i < 6; i++)
-    {
-      GFX::TextureViewCreateInfo cubeViewInfo
+      emitterDrawCommands.resize(emitterDrawIndex);
+      if (emitterDrawCommands.empty())
       {
-        .viewType = GFX::ImageType::TEX_2D,
-        .format = probeData.colorFormat,
-        .minLevel = 0,
-        .numLevels = 1,
-        .minLayer = i,
-        .numLayers = 1
+        return;
+      }
+
+      glDepthMask(GL_FALSE);
+      glDisable(GL_CULL_FACE);
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+      glBindVertexArray(emptyVao);
+      auto shader = GFX::ShaderManager::Get()->GetShader("particle");
+      shader->Bind();
+
+      auto framebuffer = Framebuffer::Create();
+      framebuffer->SetDrawBuffers({ { Attachment::COLOR_0 } });
+      framebuffer->Bind();
+
+      for (auto& renderView : renderViews)
+      {
+        if (!(renderView->mask & RenderMaskBit::RenderEmitters))
+          continue;
+
+        SetViewport(renderView->renderInfo);
+        ASSERT(renderView->renderInfo.colorAttachments[0].has_value());
+        ASSERT(renderView->renderInfo.depthAttachment.has_value());
+        framebuffer->SetAttachment(Attachment::COLOR_0, *renderView->renderInfo.colorAttachments[0]->textureView, 0);
+        framebuffer->SetAttachment(Attachment::DEPTH, *renderView->renderInfo.depthAttachment->textureView, 0);
+
+        auto compare = [&renderView](const EmitterDrawCommand& p1, EmitterDrawCommand& p2)
+        {
+          auto pos1 = glm::vec3(p1.modelUniform[3]);
+          auto pos2 = glm::vec3(p2.modelUniform[3]);
+          if (pos1 != pos2)
+          {
+            auto len = glm::length2(pos1 - renderView->camera->viewInfo.position) -
+              glm::length2(pos2 - renderView->camera->viewInfo.position);
+            if (glm::abs(len) > 0.001f)
+            {
+              return len > 0.0f;
+            }
+          }
+
+          return p1.emitter < p2.emitter;
+        };
+
+        std::sort(emitterDrawCommands.begin(), emitterDrawCommands.end(), compare);
+
+        auto v = renderView->camera->viewInfo.GetViewMatrix();
+        shader->SetMat4("u_viewProj", renderView->camera->GetViewProj());
+        shader->SetVec3("u_cameraRight", { v[0][0], v[1][0], v[2][0] });
+        shader->SetVec3("u_cameraUp", { v[0][1], v[1][1], v[2][1] });
+
+        for (auto& [emitter, model] : emitterDrawCommands)
+        {
+          // TODO: perform culling on the emitter, run the per-particle culling compute shader
+          //if () // special path for if particles move in local space rather than world space
+          ParticleManager::Get().BindEmitter(emitter->handle);
+          glDrawArraysIndirect(GL_TRIANGLE_FAN, 0);
+        }
+      }
+    }
+
+    void DrawFog(std::span<RenderView*> renderViews, bool earlyFogPass)
+    {
+      GFX::DebugMarker fogMarker("Fog");
+
+      for (auto& renderView : renderViews)
+      {
+        if (!(renderView->mask & RenderMaskBit::RenderFog || renderView->mask & RenderMaskBit::RenderEarlyFog))
+          continue;
+        if (earlyFogPass && !(renderView->mask & RenderMaskBit::RenderEarlyFog))
+          continue;
+        if (!earlyFogPass && (renderView->mask & RenderMaskBit::RenderEarlyFog))
+          continue;
+
+        ASSERT(renderView->renderInfo.colorAttachments[0].has_value());
+        ASSERT(renderView->renderInfo.depthAttachment.has_value());
+
+        FX::FogParameters params
+        {
+          .sourceColor = *renderView->renderInfo.colorAttachments[0]->textureView,
+          .sourceDepth = *renderView->renderInfo.depthAttachment->textureView,
+          .targetColor = *renderView->renderInfo.colorAttachments[0]->textureView,
+          .scratchSampler = *reflect.scratchSampler,
+          .camera = gBuffer.camera,
+          .a = fog.u_a,
+          .b = fog.u_b,
+          .heightOffset = fog.u_heightOffset,
+          .fog2Density = fog.u_fog2Density,
+          .albedo = fog.albedo,
+          .beer = fog.u_beer,
+          .powder = fog.u_powder
+        };
+
+        FX::ApplyFog(params);
+      }
+    }
+
+    void CompileShaders()
+    {
+      GFX::ShaderManager::Get()->AddShader("batched",
+        {
+          { "TexturedMeshBatched.vs.glsl", GFX::ShaderType::VERTEX },
+          { "TexturedMesh.fs.glsl", GFX::ShaderType::FRAGMENT }
+        });
+
+      GFX::ShaderManager::Get()->AddShader("chunk_optimized",
+        {
+          { "chunk_optimized.vs.glsl", GFX::ShaderType::VERTEX },
+          { "chunk_optimized.fs.glsl", GFX::ShaderType::FRAGMENT }
+        });
+      GFX::ShaderManager::Get()->AddShader("compact_batch",
+        { { "compact_batch.cs.glsl", GFX::ShaderType::COMPUTE } });
+      GFX::ShaderManager::Get()->AddShader("update_particle_emitter",
+        { { "update_particle_emitter.cs.glsl", GFX::ShaderType::COMPUTE } });
+      GFX::ShaderManager::Get()->AddShader("update_particle",
+        { { "update_particle.cs.glsl", GFX::ShaderType::COMPUTE } });
+      GFX::ShaderManager::Get()->AddShader("textured_array",
+        {
+          { "textured_array.vs.glsl", GFX::ShaderType::VERTEX },
+          { "textured_array.fs.glsl", GFX::ShaderType::FRAGMENT }
+        });
+      GFX::ShaderManager::Get()->AddShader("buffer_vis",
+        {
+          { "buffer_vis.fs.glsl", GFX::ShaderType::FRAGMENT },
+          { "buffer_vis.vs.glsl", GFX::ShaderType::VERTEX }
+        });
+      GFX::ShaderManager::Get()->AddShader("chunk_render_cull",
+        {
+          { "chunk_render_cull.vs.glsl", GFX::ShaderType::VERTEX },
+          { "chunk_render_cull.fs.glsl", GFX::ShaderType::FRAGMENT }
+        });
+      GFX::ShaderManager::Get()->AddShader("particle",
+        {
+          { "particle.vs.glsl", GFX::ShaderType::VERTEX },
+          { "particle.fs.glsl", GFX::ShaderType::FRAGMENT }
+        });
+      GFX::ShaderManager::Get()->AddShader("skybox",
+        {
+          { "skybox.vs.glsl", GFX::ShaderType::VERTEX },
+          { "skybox.fs.glsl", GFX::ShaderType::FRAGMENT }
+        });
+      GFX::ShaderManager::Get()->AddShader("tonemap",
+        {
+          { "fullscreen_tri.vs.glsl", GFX::ShaderType::VERTEX },
+          { "tonemap.fs.glsl", GFX::ShaderType::FRAGMENT }
+        });
+      GFX::ShaderManager::Get()->AddShader("calc_exposure",
+        { { "calc_exposure.cs.glsl", GFX::ShaderType::COMPUTE } });
+      GFX::ShaderManager::Get()->AddShader("generate_histogram",
+        { { "generate_histogram.cs.glsl", GFX::ShaderType::COMPUTE } });
+
+      //GFX::ShaderManager::Get()->AddShader("sun",
+      //  {
+      //    { "flat_sun.vs.glsl", GFX::ShaderType::VERTEX },
+      //    { "flat_sun.fs.glsl", GFX::ShaderType::FRAGMENT }
+      //  });
+      GFX::ShaderManager::Get()->AddShader("axis",
+        {
+          { "axis.vs.glsl", GFX::ShaderType::VERTEX },
+          { "axis.fs.glsl", GFX::ShaderType::FRAGMENT }
+        });
+      //GFX::ShaderManager::Get()->AddShader("flat_color",
+      //  {
+      //    { "flat_color.vs.glsl", GFX::ShaderType::VERTEX },
+      //    { "flat_color.fs.glsl", GFX::ShaderType::FRAGMENT }
+      //  });
+      FX::CompileFXAAShader();
+      FX::CompileReflectionShaders();
+      FX::CompileBloomShaders();
+      FX::CompileFogShader();
+    }
+
+    void DrawAxisIndicator(std::span<RenderView*> renderViews)
+    {
+      GFX::DebugMarker marker("Draw axis indicator");
+
+      glDepthFunc(GL_ALWAYS); // allows indicator to always be rendered
+      glBlendFunc(GL_ONE, GL_ZERO);
+      glLineWidth(2.f);
+      glBindVertexArray(axisVao);
+
+      auto currShader = GFX::ShaderManager::Get()->GetShader("axis");
+      currShader->Bind();
+
+      auto framebuffer = Framebuffer::Create();
+      framebuffer->SetDrawBuffers({ { Attachment::COLOR_0 } });
+      framebuffer->Bind();
+
+      for (auto& renderView : renderViews)
+      {
+        if (!(renderView->mask & GFX::RenderMaskBit::RenderScreenElements))
+          continue;
+
+        SetViewport(renderView->renderInfo);
+        ASSERT(renderView->renderInfo.colorAttachments[0].has_value());
+        framebuffer->SetAttachment(Attachment::COLOR_0, *renderView->renderInfo.colorAttachments[0]->textureView, 0);
+
+        const Camera& c = *renderView->camera;
+        currShader->SetMat4("u_model", glm::translate(glm::mat4(1), c.viewInfo.position + c.viewInfo.GetForwardDir() * 10.f)); // add scaling factor (larger # = smaller visual)
+        currShader->SetMat4("u_view", c.viewInfo.GetViewMatrix());
+        currShader->SetMat4("u_proj", c.proj);
+        glDrawArrays(GL_LINES, 0, 6);
+      }
+
+      glDepthFunc(GL_GEQUAL);
+      glBindVertexArray(0);
+    }
+
+    void DrawSky(std::span<RenderView*> renderViews)
+    {
+      GFX::DebugMarker marker("Draw skybox");
+
+      //glDepthMask(GL_FALSE);
+      glDepthFunc(GL_EQUAL);
+      glDisable(GL_CULL_FACE);
+      glBindVertexArray(emptyVao);
+
+      auto shdr = GFX::ShaderManager::Get()->GetShader("skybox");
+      shdr->Bind();
+      shdr->SetInt("u_skybox", 0);
+      BindTextureView(0, *env.skyboxView, *env.skyboxSampler);
+
+      auto framebuffer = Framebuffer::Create();
+      framebuffer->SetDrawBuffers({ { Attachment::COLOR_0 } });
+      framebuffer->Bind();
+
+      for (auto& renderView : renderViews)
+      {
+        if (!(renderView->mask & GFX::RenderMaskBit::RenderSky))
+          continue;
+
+        SetViewport(renderView->renderInfo);
+        ASSERT(renderView->renderInfo.colorAttachments[0].has_value());
+        ASSERT(renderView->renderInfo.depthAttachment.has_value());
+        framebuffer->SetAttachment(Attachment::COLOR_0, *renderView->renderInfo.colorAttachments[0]->textureView, 0);
+        framebuffer->SetAttachment(Attachment::DEPTH, *renderView->renderInfo.depthAttachment->textureView, 0);
+
+        const auto& c = *renderView->camera;
+        shdr->SetMat4("u_proj", c.proj);
+        shdr->SetMat4("u_modview", glm::translate(c.viewInfo.GetViewMatrix(), c.viewInfo.position));
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 14);
+        glTextureBarrier();
+      }
+
+      //glDepthMask(GL_TRUE);
+      glDepthFunc(GL_GEQUAL);
+      glEnable(GL_CULL_FACE);
+      UnbindTextureView(0);
+    }
+
+    void StartFrame()
+    {
+      glClearColor(0, 0, 0, 0);
+
+      reflect.fbo->Bind();
+      glClear(GL_COLOR_BUFFER_BIT);
+
+      gBuffer.fbo->Bind();
+      glClear(GL_COLOR_BUFFER_BIT);
+
+      GL_ResetState();
+
+      ImGui::Begin("Tonemapping");
+      ImGui::Checkbox("FXAA", &fxaa.enabled);
+      ImGui::Checkbox("Dither", &tonemap.tonemapDither);
+      ImGui::Checkbox("Gamma Correction", &tonemap.gammaCorrection);
+      ImGui::SliderFloat("Exposure Factor", &tonemap.exposure, .5f, 2.0f, "%.2f");
+      ImGui::SliderFloat("Min Exposure", &tonemap.minExposure, .01f, 30.0f, "%.2f", ImGuiSliderFlags_Logarithmic);
+      ImGui::SliderFloat("Max Exposure", &tonemap.maxExposure, .01f, 30.0f, "%.2f", ImGuiSliderFlags_Logarithmic);
+      ImGui::SliderFloat("Target Luminance", &tonemap.targetLuminance, .1f, 10.0f, "%.2f", ImGuiSliderFlags_Logarithmic);
+      ImGui::SliderFloat("Adjustment Speed", &tonemap.adjustmentSpeed, .1f, 10.0f, "%.2f");
+
+      ImGui::Separator();
+      ImGui::Text("Fog");
+      ImGui::SliderFloat("u_a", &fog.u_a, 0, 1.0f, "%.5f", ImGuiSliderFlags_Logarithmic);
+      ImGui::SliderFloat("u_b", &fog.u_b, 1.0f, 30000.0f, "%.3f", ImGuiSliderFlags_Logarithmic);
+      ImGui::SliderFloat("u_heightOffset", &fog.u_heightOffset, -100.0f, 0);
+      ImGui::SliderFloat("u_fog2Density", &fog.u_fog2Density, 0, 1.0f, "%.5f", ImGuiSliderFlags_Logarithmic);
+      ImGui::SliderFloat("u_beer", &fog.u_beer, 0, 5.0f);
+      ImGui::SliderFloat("u_powder", &fog.u_powder, 0, 5.0f);
+      ImGui::End();
+    }
+
+    void ClearFramebuffers(std::span<RenderView*> renderViews)
+    {
+      auto framebuffer = Framebuffer::Create();
+      framebuffer->SetDrawBuffers({ { Attachment::COLOR_0 } });
+      framebuffer->Bind();
+
+      for (auto& renderView : renderViews)
+      {
+        for (size_t i = 0; i < RenderInfo::maxColorAttachments; i++)
+        {
+          const auto& attachment = renderView->renderInfo.colorAttachments[i];
+          if (attachment && attachment->clearEachFrame)
+          {
+            framebuffer->SetAttachment(Attachment::COLOR_0, *attachment->textureView, 0);
+            ASSERT(framebuffer->IsValid());
+            const auto& f = attachment->clearValue.color.f;
+            glClearColor(f[0], f[1], f[2], f[3]);
+            glClear(GL_COLOR_BUFFER_BIT);
+          }
+          framebuffer->ResetAttachment(Attachment::COLOR_0);
+        }
+
+        if (const auto& depthAttachment = renderView->renderInfo.depthAttachment; depthAttachment && depthAttachment->clearEachFrame)
+        {
+          framebuffer->SetAttachment(Attachment::DEPTH, *depthAttachment->textureView, 0);
+          glClearNamedFramebufferfv(framebuffer->GetAPIHandle(), GL_DEPTH, 0, &depthAttachment->clearValue.depthStencil.depth);
+          framebuffer->ResetAttachment(Attachment::DEPTH);
+        }
+
+        if (const auto& stencilAttachment = renderView->renderInfo.stencilAttachment; stencilAttachment && stencilAttachment->clearEachFrame)
+        {
+          framebuffer->SetAttachment(Attachment::DEPTH, *stencilAttachment->textureView, 0);
+          glClearNamedFramebufferiv(framebuffer->GetAPIHandle(), GL_STENCIL, 0, &stencilAttachment->clearValue.depthStencil.stencil);
+          framebuffer->ResetAttachment(Attachment::STENCIL);
+        }
+      }
+
+      GL_ResetState();
+    }
+
+    void ApplyAntialiasing()
+    {
+      if (fxaa.enabled)
+      {
+        GFX::DebugMarker marker1("FXAA");
+        MEASURE_GPU_TIMER_STAT(FXAA);
+        FX::ApplyFXAA(*ldrColorTexView, *postAATexView, fxaa.contrastThreshold, fxaa.relativeThreshold,
+          fxaa.pixelBlendStrength, fxaa.edgeBlendStrength, *fxaa.scratchSampler);
+      }
+      else
+      {
+        GFX::DebugMarker marker1("Blit");
+        auto fbo1 = Framebuffer::Create();
+        auto fbo2 = Framebuffer::Create();
+        fbo1->SetAttachment(Attachment::COLOR_0, *ldrColorTexView, 0);
+        fbo2->SetAttachment(Attachment::COLOR_0, *postAATexView, 0);
+        auto ext1 = ldrColorTexView->Extent();
+        auto ext2 = postAATexView->Extent();
+        Framebuffer::Blit(*fbo1, *fbo2,
+          { 0, 0 }, { ext1.width, ext1.height },
+          { 0, 0 }, { ext2.width, ext2.height },
+          AspectMaskBit::COLOR_BUFFER_BIT, Filter::LINEAR);
+      }
+    }
+
+    void WriteSwapchain()
+    {
+      GFX::DebugMarker marker0("Write to swapchain");
+
+      auto framebuffer = Framebuffer::Create();
+      framebuffer->SetAttachment(Attachment::COLOR_0, *postAATexView, 0);
+      glBlitNamedFramebuffer(framebuffer->GetAPIHandle(), 0,
+        0, 0, GetRenderWidth(), GetRenderHeight(),
+        0, 0, windowWidth, windowHeight,
+        GL_COLOR_BUFFER_BIT, GL_LINEAR);
+    }
+
+    void Bloom()
+    {
+      ImGui::Checkbox("Enable bloom", &bloom.enabled);
+      ImGui::SliderFloat("Bloom width", &bloom.width, 0.1f, 5.0f);
+      ImGui::SliderFloat("Bloom strength", &bloom.strength, 0.01f, 1.0f, "%.4f", ImGuiSliderFlags_Logarithmic);
+      ImGui::SliderInt("Bloom passes", (int*)&bloom.passes, 1, 7);
+
+      if (bloom.enabled)
+      {
+        GFX::DebugMarker bloomMarker("Bloom");
+        MEASURE_GPU_TIMER_STAT(Bloom_GPU);
+        MEASURE_CPU_TIMER_STAT(Bloom_CPU);
+        FX::ApplyBloom(*gBuffer.colorTexView, bloom.passes, bloom.strength, bloom.width,
+          *bloom.scratchTexView, *bloom.scratchSampler);
+      }
+    }
+
+    void ApplyTonemap(float dt)
+    {
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+      auto framebuffer = Framebuffer::Create();
+      framebuffer->SetAttachment(Attachment::COLOR_0, *ldrColorTexView, 0);
+      framebuffer->Bind();
+
+      {
+        GFX::DebugMarker tonemappingMarker("Tone mapping");
+
+        const float logLowLum = glm::log(tonemap.targetLuminance / tonemap.maxExposure);
+        const float logMaxLum = glm::log(tonemap.targetLuminance / tonemap.minExposure);
+        const int computePixelsX = glm::ceil(GetRenderWidth() / 4.0f);
+        const int computePixelsY = glm::ceil(GetRenderHeight() / 4.0f);
+
+        {
+          //GFX::TimerQuery timerQuery;
+          GFX::DebugMarker marker("Generate luminance histogram");
+          MEASURE_GPU_TIMER_STAT(LuminanceHistogram);
+          auto hshdr = GFX::ShaderManager::Get()->GetShader("generate_histogram");
+          hshdr->Bind();
+          hshdr->SetInt("u_hdrBuffer", 1);
+          hshdr->SetFloat("u_logLowLum", logLowLum);
+          hshdr->SetFloat("u_logMaxLum", logMaxLum);
+          const int X_SIZE = 16;
+          const int Y_SIZE = 8;
+          int xgroups = (computePixelsX + X_SIZE - 1) / X_SIZE;
+          int ygroups = (computePixelsY + Y_SIZE - 1) / Y_SIZE;
+          tonemap.histogramBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(0);
+          BindTextureView(1, *gBuffer.colorTexView, *defaultSampler);
+          //BindTextureView(1, *composited[frameNumber % 2].compositedTexView, *defaultSampler);
+          glDispatchCompute(xgroups, ygroups, 1);
+          glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+          //printf("Histogram time: %f ms\n", (double)timerQuery.Elapsed_ns() / 1000000.0);
+        }
+
+        //float expo{};
+        //glGetNamedBufferSubData(exposureBuffer->GetID(), 0, sizeof(float), &expo);
+        //printf("Exposure: %f\n", expo);
+
+        {
+          GFX::DebugMarker marker("Compute camera exposure");
+          MEASURE_GPU_TIMER_STAT(CameraExposure);
+          //glGenerateTextureMipmap(color);
+          tonemap.exposureBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(0);
+          tonemap.histogramBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(1);
+          //floatBufferOut->Bind<GFX::Target::SSBO>(1);
+          auto cshdr = GFX::ShaderManager::Get()->GetShader("calc_exposure");
+          cshdr->Bind();
+          //cshdr->setFloat("u_targetLuminance", targetLuminance);
+          cshdr->SetFloat("u_dt", glm::clamp(dt, 0.001f, 1.0f));
+          cshdr->SetFloat("u_adjustmentSpeed", tonemap.adjustmentSpeed);
+          cshdr->SetFloat("u_logLowLum", logLowLum);
+          cshdr->SetFloat("u_logMaxLum", logMaxLum);
+          cshdr->SetFloat("u_targetLuminance", tonemap.targetLuminance);
+          cshdr->SetInt("u_numPixels", computePixelsX * computePixelsY);
+          glDispatchCompute(1, 1, 1);
+          glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+        }
+
+        GFX::DebugMarker marker("Apply tone mapping");
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        glViewport(0, 0, GetRenderWidth(), GetRenderHeight());
+        auto shdr = GFX::ShaderManager::Get()->GetShader("tonemap");
+        glDepthMask(GL_FALSE);
+        glDisable(GL_CULL_FACE);
+        shdr->Bind();
+        shdr->SetFloat("u_exposureFactor", tonemap.exposure);
+        shdr->SetBool("u_useDithering", tonemap.tonemapDither);
+        shdr->SetBool("u_encodeSRGB", tonemap.gammaCorrection);
+        BindTextureView(1, *gBuffer.colorTexView, *defaultSampler);
+        //BindTextureView(1, *composited[frameNumber % 2].compositedTexView, *defaultSampler);
+        BindTextureView(2, *tonemap.blueNoiseView, *tonemap.blueNoiseSampler);
+        glBindVertexArray(emptyVao);
+        //glBindTextureUnit(1, fog.tex); // rebind because AMD drivers sus
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glDepthMask(GL_TRUE);
+        glEnable(GL_CULL_FACE);
+        UnbindTextureView(2);
+        UnbindTextureView(1);
+      }
+
+      glBindFramebuffer(GL_FRAMEBUFFER, 0);
+      glViewport(0, 0, windowWidth, windowHeight);
+    }
+
+    GLFWwindow* const* Init()
+    {
+      window_ = InitContext();
+
+      InitVertexBuffers();
+      InitFramebuffers();
+      InitVertexLayouts();
+      CompileShaders();
+      InitTextures();
+
+      // enable debugging stuff
+      glEnable(GL_DEBUG_OUTPUT);
+      glDebugMessageCallback(GLerrorCB, NULL);
+      glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+      glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+
+      GL_ResetState();
+
+      Console::Get()->RegisterCommand("showShaders", "- Lists all shader names", logShaderNames);
+      Console::Get()->RegisterCommand("recompile", "- Recompiles a named shader", recompileShader);
+      vsyncCvar.Set(0);
+
+      return &window_;
+    }
+
+    void InitFramebuffers()
+    {
+      Extent2D fboSize = { GetRenderWidth(), GetRenderHeight() };
+
+      std::vector<int> zeros(tonemap.NUM_BUCKETS, 0);
+      tonemap.exposureBuffer = Buffer::Create(std::span(zeros.data(), 2));
+      tonemap.histogramBuffer = Buffer::Create(std::span(zeros));
+
+      //const int levels = glm::floor(glm::log2(glm::max((float)fboSize.width, (float)fboSize.height))) + 1;
+
+      gBuffer.colorTexMemory = CreateTexture2DMip(fboSize, Format::R16G16B16A16_FLOAT, 1, "GBuffer Color Texture");
+      gBuffer.colorTexView = TextureView::Create(*gBuffer.colorTexMemory, "GBuffer Color View");
+      gBuffer.depthTexMemory = CreateTexture2D(fboSize, Format::D32_FLOAT, "GBuffer Depth Texture");
+      gBuffer.depthTexView = TextureView::Create(*gBuffer.depthTexMemory, "GBuffer Depth View");
+      gBuffer.PBRTexMemory = CreateTexture2D(fboSize, Format::R8G8_UNORM, "GBuffer PBR Texture");
+      gBuffer.PBRTexView = TextureView::Create(*gBuffer.PBRTexMemory, "GBuffer PBR View");
+      gBuffer.normalTexMemory = CreateTexture2D(fboSize, Format::R16G16B16_SNORM, "GBuffer Normal Texture");
+      gBuffer.normalTexView = TextureView::Create(*gBuffer.normalTexMemory, "GBuffer Normal View");
+      gBuffer.fbo = Framebuffer::Create();
+      gBuffer.fbo->SetAttachment(Attachment::COLOR_0, *gBuffer.colorTexView, 0);
+      gBuffer.fbo->SetAttachment(Attachment::COLOR_1, *gBuffer.normalTexView, 0);
+      gBuffer.fbo->SetAttachment(Attachment::COLOR_2, *gBuffer.PBRTexView, 0);
+      gBuffer.fbo->SetAttachment(Attachment::DEPTH, *gBuffer.depthTexView, 0);
+      gBuffer.fbo->SetDrawBuffers({ { Attachment::COLOR_0, Attachment::COLOR_1, Attachment::COLOR_2 } });
+      ASSERT(gBuffer.fbo->IsValid());
+
+      RenderAttachment diffuseAttachment
+      {
+        .textureView = &gBuffer.colorTexView.value(),
+        .clearEachFrame = false
       };
-      probeData.colorViews[i].emplace(*GFX::TextureView::Create(cubeViewInfo, *probeData.colorCube));
-
-      cubeViewInfo.format = probeData.depthFormat;
-      probeData.depthViews[i].emplace(*GFX::TextureView::Create(cubeViewInfo, *probeData.depthCube));
-
-      cubeViewInfo.format = probeData.distanceFormat;
-      probeData.distanceViews[i].emplace(*TextureView::Create(cubeViewInfo, *probeData.distanceCube));
-
-      probeData.cameras[i].proj = MakeInfReversedZProjRH(glm::radians(90.0f), 1.0f, 0.1f);
-      probeData.cameras[i].viewInfo.SetForwardDir(faceDirs[i]);
-      probeData.cameras[i].viewInfo.upDir = upDirs[i];
-      RenderAttachment colorAttachment
+      RenderAttachment normalAttachment
       {
-        .textureView = &*probeData.colorViews[i],
-        .clearEachFrame = false,
+        .textureView = &gBuffer.normalTexView.value(),
+        .clearEachFrame = false
+      };
+      RenderAttachment pbrAttachment
+      {
+        .textureView = &gBuffer.PBRTexView.value(),
+        .clearEachFrame = true,
+        .clearValue = {.color = {.f = { 1, 0, 0, 0 } } }
       };
       RenderAttachment depthAttachment
       {
-        .textureView = &*probeData.depthViews[i],
+        .textureView = &gBuffer.depthTexView.value(),
         .clearEachFrame = true,
-        .clearValue = ClearValue {.depthStencil = {.depth = 0.0f } }
+        .clearValue = {.depthStencil = {.depth = 0.0 } }
       };
-      probeData.renderViews[i] = RenderView
+      RenderInfo renderInfo
       {
-        .renderInfo = RenderInfo
+        .offset = { 0, 0 },
+        .size = fboSize,
+        .colorAttachments = { diffuseAttachment, normalAttachment, pbrAttachment },
+        .depthAttachment = { depthAttachment },
+      };
+      gBuffer.renderView.renderInfo = renderInfo;
+      gBuffer.renderView.camera = &gBuffer.camera;
+
+      ldrColorTexMemory = CreateTexture2D(fboSize, Format::R8G8B8A8_UNORM, "LDR Color Texture");
+      ldrColorTexView = TextureView::Create(*ldrColorTexMemory, "LDR Color View");
+      postAATexMemory = CreateTexture2D(fboSize, Format::R8G8B8A8_UNORM, "Post AA Texture");
+      postAATexView = TextureView::Create(*postAATexMemory, "Post AA View");
+
+      composited.fbo = Framebuffer::Create();
+      composited.fbo->SetAttachment(Attachment::COLOR_0, *gBuffer.colorTexView, 0);
+      ASSERT(composited.fbo->IsValid());
+
+      bloom.scratchTex = CreateTexture2DMip({ fboSize.width / 2, fboSize.height / 2 }, Format::R11G11B10_FLOAT, bloom.passes);
+      bloom.scratchTexView = bloom.scratchTex->View();
+      bloom.scratchSampler = TextureSampler::Create({});
+
+      fxaa.scratchSampler = TextureSampler::Create({});
+
+      SamplerState ss{};
+      ss.asBitField.minFilter = Filter::LINEAR;
+      ss.asBitField.magFilter = Filter::LINEAR;
+      ss.asBitField.mipmapFilter = Filter::LINEAR;
+      ss.asBitField.addressModeU = AddressMode::MIRRORED_REPEAT;
+      ss.asBitField.addressModeV = AddressMode::MIRRORED_REPEAT;
+      ss.asBitField.addressModeW = AddressMode::MIRRORED_REPEAT;
+      defaultSampler.emplace(*TextureSampler::Create(ss, "Default Sampler"));
+
+      ss.asBitField.mipmapFilter = Filter::LINEAR;
+      linearMipmapNearestSampler = TextureSampler::Create(ss, "Linear Mipmap Nearest Sampler");
+
+      ss.asBitField.minFilter = Filter::NEAREST;
+      ss.asBitField.magFilter = Filter::NEAREST;
+      ss.asBitField.mipmapFilter = Filter::NEAREST;
+      nearestSampler.emplace(*TextureSampler::Create(ss, "Nearest Sampler"));
+
+      SetReflectionsRenderScale(0.5f);
+
+      glViewport(0, 0, GetRenderWidth(), GetRenderHeight());
+    }
+
+    void InitReflectionFramebuffer()
+    {
+      for (int i = 0; i < 2; i++)
+      {
+        reflect.texMemory[i] = CreateTexture2D(reflect.fboSize, Format::R16G16B16A16_FLOAT, ("Reflection Texture " + std::to_string(i)).c_str());
+        reflect.texView[i] = TextureView::Create(*reflect.texMemory[i], ("Reflection View " + std::to_string(i)).c_str());
+      }
+      reflect.fbo = Framebuffer::Create();
+      reflect.fbo->SetAttachment(Attachment::COLOR_0, *reflect.texView[0], 0);
+      reflect.fbo->SetDrawBuffers({ { Attachment::COLOR_0 } });
+      reflect.scratchSampler = TextureSampler::Create({});
+      reflect.scratchSampler2 = TextureSampler::Create({});
+      ASSERT(reflect.fbo->IsValid());
+    }
+
+    bool QueryOpenGLExtensionStatus(std::string_view extensionName)
+    {
+      for (const auto& extension : openglExtensions)
+      {
+        if (extension == extensionName)
         {
-          .offset = { 0, 0 },
-          .size = probeData.imageSize,
-          .colorAttachments = { colorAttachment },
-          .depthAttachment = depthAttachment
-        },
-        .camera = &probeData.cameras[i],
-        .mask = RenderMaskBit::None
-      };
-      //scene->RegisterRenderView("ProbeFace" + std::to_string(i), testView);
-    }
-  }
-
-  void Renderer::DrawReflections()
-  {
-    DebugMarker markerRefl("Draw reflections");
-
-    FX::ReflectionsCommonParameters commonParams
-    {
-      .gbDepth = *gBuffer.depthTexView,
-      .gbColor = *gBuffer.colorTexView,
-      .gbNormal = *gBuffer.normalTexView,
-      .gbPBR = *gBuffer.PBRTexView,
-      .scratchSampler = *reflect.scratchSampler,
-      .scratchSampler2 = *reflect.scratchSampler2,
-      .camera = gBuffer.camera
-    };
-
-    reflect.fbo->SetAttachment(Attachment::COLOR_0, *reflect.texView[0], 0);
-    if (reflectionsModeCvar.Get() >= REFLECTION_MODE_PARALLAX_CUBE_THRESHOLD)
-    {
-      DebugMarker marker("Cube Traced Reflections");
-      MEASURE_GPU_TIMER_STAT(ReflectionsTrace);
-
-      FX::TraceCubemapReflectionsParameters traceParams
-      {
-        .common = commonParams,
-        .target = *reflect.texView[0],
-        .cameras = probeData.cameras,
-        .probeColor = *probeData.colorCubeView,
-        .probeDistance = *probeData.distanceCubeView,
-        .depthViews = probeData.depthViews,
-        .distanceViews = probeData.distanceViews,
-        .skybox = *env.skyboxView,
-        .blueNoise = *blueNoiseBigView
-      };
-      FX::TraceCubemapReflections(traceParams);
-    }
-    else
-    {
-      DebugMarker marker("Cube Sampled Reflections");
-      MEASURE_GPU_TIMER_STAT(ReflectionsSample);
-
-      FX::SampleCubemapReflectionsParameters sampleParams
-      {
-        .common = commonParams,
-        .target = *reflect.texView[0],
-        .env = reflectionsModeCvar.Get() >= REFLECTION_MODE_CUBE_THRESHOLD ? *probeData.colorCubeView : *env.skyboxView,
-        .blueNoise = *blueNoiseBigView
-      };
-      FX::SampleCubemapReflections(sampleParams);
+          return true;
+        }
+      }
+      return false;
     }
 
+    const std::vector<std::string>& GetAllOpenGLExtensions()
     {
-      DebugMarker marker("Denoise reflections");
-      MEASURE_GPU_TIMER_STAT(ReflectionsDenoise);
+      return openglExtensions;
+    }
 
-      if (reflect.atrous.num_passes > 0 && reflectionsDenoiseEnableCvar.Get() != 0.0f)
+    void SetProbePosition(glm::vec3 worldPos)
+    {
+      for (size_t i = 0; i < 6; i++)
       {
-        FX::DenoiseReflectionsParameters denoiseParams
-        {
-          .common = commonParams,
-          .target = *reflect.texView[0],
-          .scratchTexture = *reflect.texView[1],
-          .atrousParams
-          {
-            .passes = reflect.atrous.num_passes,
-            .nPhi = reflect.atrous.n_phi,
-            .pPhi = reflect.atrous.p_phi,
-            .stepWidth = reflect.atrous.step_width,
-            .kernel = reflect.atrous.kernel,
-            .offsets = reflect.atrous.offsets
-          }
-        };
-        FX::DenoiseReflections(denoiseParams);
+        probeData.cameras[i].viewInfo.position = worldPos;
       }
     }
 
+    void SetProbeRenderMask(RenderMask mask)
     {
-      DebugMarker marker("Composite reflections");
-      MEASURE_GPU_TIMER_STAT(ReflectionsComposite);
-
-      FX::CompositeReflectionsParameters compositeParams
+      for (size_t i = 0; i < 6; i++)
       {
-        .common = commonParams,
-        .source = *reflect.texView[0],
-        .target = *gBuffer.colorTexView
+        probeData.renderViews[i].mask = mask;
+      }
+    }
+
+    // TODO: this function
+    void SetUpdateProbes(bool b)
+    {
+      if (b)
+      {
+
+      }
+      else
+      {
+
+      }
+    }
+
+    void InitVertexBuffers()
+    {
+      // TODO: use dynamically sized buffer
+      vertexBuffer = std::make_unique<GFX::DynamicBuffer<>>(100'000'000, sizeof(Vertex));
+      indexBuffer = std::make_unique<GFX::DynamicBuffer<>>(100'000'000, sizeof(GLuint));
+
+      constexpr float indicatorVertices[] =
+      {
+        // positions      // colors
+        0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // x-axis
+        1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, // y-axis
+        0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, // z-axis
+        0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f
       };
-      FX::CompositeReflections(compositeParams);
+      axisVbo = Buffer::Create(std::span(indicatorVertices, sizeof(indicatorVertices)));
     }
-  }
 
-  void Renderer::GL_ResetState()
-  {
-    // texture unit and sampler bindings (first 8, hopefully more than we'll ever need)
-    for (int i = 0; i < 8; i++)
+    void InitVertexLayouts()
     {
-      glBindSampler(i, 0);
-      glBindTextureUnit(i, 0);
+      // setup VAO for batched drawing (ONE VERTEX LAYOUT ATM)
+      glCreateVertexArrays(1, &batchVAO);
+      glEnableVertexArrayAttrib(batchVAO, 0); // pos
+      glEnableVertexArrayAttrib(batchVAO, 1); // normal
+      glEnableVertexArrayAttrib(batchVAO, 2); // uv
+      glVertexArrayAttribFormat(batchVAO, 0, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex, position));
+      glVertexArrayAttribFormat(batchVAO, 1, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex, normal));
+      glVertexArrayAttribFormat(batchVAO, 2, 2, GL_FLOAT, GL_FALSE, offsetof(Vertex, texCoord));
+      glVertexArrayAttribBinding(batchVAO, 0, 0);
+      glVertexArrayAttribBinding(batchVAO, 1, 0);
+      glVertexArrayAttribBinding(batchVAO, 2, 0);
+      glVertexArrayVertexBuffer(batchVAO, 0, vertexBuffer->GetID(), 0, sizeof(Vertex));
+      glVertexArrayElementBuffer(batchVAO, indexBuffer->GetID());
+
+      // empty VAO for bufferless drawing
+      glCreateVertexArrays(1, &emptyVao);
+
+      // VAO for rendering the axis indicator
+      glCreateVertexArrays(1, &axisVao);
+      glEnableVertexArrayAttrib(axisVao, 0); // pos
+      glEnableVertexArrayAttrib(axisVao, 1); // color
+      glVertexArrayAttribBinding(axisVao, 0, 0);
+      glVertexArrayAttribBinding(axisVao, 1, 0);
+      glVertexArrayAttribFormat(axisVao, 0, 3, GL_FLOAT, GL_FALSE, 0);
+      glVertexArrayAttribFormat(axisVao, 1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float));
+      glVertexArrayVertexBuffer(axisVao, 0, axisVbo->GetAPIHandle(), 0, 6 * sizeof(float));
     }
-    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
-    // triangle winding
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
-    glFrontFace(GL_CCW);
-
-    // depth test
-    glEnable(GL_DEPTH_TEST);
-    glDepthMask(GL_TRUE);
-    glDepthFunc(GL_GEQUAL);
-
-    // blending
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glBlendEquation(GL_FUNC_ADD);
-
-    // buffer bindings
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, 0);
-    glBindBuffer(GL_DISPATCH_INDIRECT_BUFFER, 0);
-    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-    glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
-    // vertex array binding
-    glBindVertexArray(0);
-
-    // shader program binding
-    glUseProgram(0);
-
-    // viewport+clipping
-    glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
-
-    // rasterizer
-    glLineWidth(1.0f);
-    glPointSize(1.0f);
-    glDisable(GL_SCISSOR_TEST);
-    glViewport(0, 0, GetRenderWidth(), GetRenderHeight());
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-    // framebuffer
-    glClearDepth(0.0);
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    gBuffer.fbo->Bind();
-  }
-
-  GLFWwindow* Renderer::InitContext()
-  {
-    if (!glfwInit())
+    void InitTextures()
     {
-      return nullptr;
-    }
+      // these are some commonly used blue noise textures
+      TextureManager::Get()->AddTexture("blueNoiseRGB",
+        *LoadTexture2D("BlueNoise/16_16/LDR_RGB1_0.png", Format::R8G8B8A8_UNORM));
+      tonemap.blueNoiseView = TextureView::Create(*TextureManager::Get()->GetTexture("blueNoiseRGB"), "BlueNoiseRGBView");
+      TextureManager::Get()->AddTexture("blueNoiseR",
+        *LoadTexture2D("BlueNoise/32_32/HDR_L_0.png", Format::R16_UNORM));
+      TextureManager::Get()->AddTexture("blueNoiseBig",
+        *LoadTexture2D("BlueNoise/1024_1024/LDR_RGBA_0.png", Format::R16G16B16A16_UNORM));
+      blueNoiseRView = TextureView::Create(*TextureManager::Get()->GetTexture("blueNoiseR"));
+      blueNoiseBigView = TextureView::Create(*TextureManager::Get()->GetTexture("blueNoiseBig"));
+      SamplerState samplerState{};
+      samplerState.asBitField.addressModeU = AddressMode::REPEAT;
+      samplerState.asBitField.addressModeV = AddressMode::REPEAT;
+      tonemap.blueNoiseSampler.emplace(*TextureSampler::Create(samplerState, "BlueNoiseRGBSampler"));
 
-    glfwSetErrorCallback([](int, const char* description)
+      // TODO: temp, inits the skybox cubemap
+      const std::string_view faces[6] =
       {
-        spdlog::error("GLFW error: {}", description);
-      });
+        "autumn_sky_hdr/px.hdr",
+        "autumn_sky_hdr/nx.hdr",
+        "autumn_sky_hdr/py.hdr",
+        "autumn_sky_hdr/ny.hdr",
+        "autumn_sky_hdr/pz.hdr",
+        "autumn_sky_hdr/nz.hdr",
+      };
+      env.skyboxMemory = GFX::LoadTextureCube(faces, 0, 0, true);
+      env.skyboxMemory->GenMipmaps();
+      env.skyboxView = TextureView::Create(*env.skyboxMemory, "skycube view");
+      SamplerState cubesamplerState{};
+      cubesamplerState.asBitField.addressModeU = AddressMode::MIRRORED_REPEAT;
+      cubesamplerState.asBitField.addressModeV = AddressMode::MIRRORED_REPEAT;
+      cubesamplerState.asBitField.addressModeW = AddressMode::MIRRORED_REPEAT;
+      env.skyboxSampler = TextureSampler::Create(cubesamplerState, "skycube sampler");
 
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
-    glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
-
-    const GLFWvidmode* videoMode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-    // set the window dims here, although it won't necessarily be what we get
-    windowWidth = videoMode->width;
-    windowHeight = videoMode->height;
-
-    //CreateWindow(true);
-    CreateWindow(isFullscreen);
-
-    if (!window_)
-    {
-      spdlog::critical("Failed to create GLFW window");
-    }
-
-    glfwMakeContextCurrent(window_);
-    glfwSetFramebufferSizeCallback(window_, [](GLFWwindow*, int width, int height)
+      // init the reflection probe textures
+      GFX::TextureCreateInfo cubeMemInfo
       {
-        Renderer::Get()->SetFramebufferSize(static_cast<uint32_t>(width), static_cast<uint32_t>(height));
-      });
+        .imageType = GFX::ImageType::TEX_CUBEMAP,
+        .format = probeData.colorFormat,
+        .extent = { probeData.imageSize.width, probeData.imageSize.height, 1 },
+        .mipLevels = 1,
+        .arrayLayers = 6
+      };
+      //cubeMemInfo.mipLevels = glm::floor(glm::log2(glm::max((float)cubeMemInfo.extent.width, (float)cubeMemInfo.extent.height))) + 1;
+      probeData.colorCube = GFX::Texture::Create(cubeMemInfo, "Cube Color");
+      probeData.colorCubeView = TextureView::Create(*probeData.colorCube, "Cube Color View");
 
-    // load OpenGL function pointers
-    if (!gladLoadGL())
-    {
-      spdlog::critical("Failed to initialize GLAD");
+      cubeMemInfo.format = probeData.depthFormat;
+      probeData.depthCube = GFX::Texture::Create(cubeMemInfo, "Cube Depth");
+
+      cubeMemInfo.format = probeData.distanceFormat;
+      probeData.distanceCube = GFX::Texture::Create(cubeMemInfo, "Cube Depth Distance");
+      probeData.distanceCubeView = TextureView::Create(*probeData.distanceCube, "Cube Depth Distance View");
+
+      const glm::vec3 faceDirs[6] =
+      {
+        { 1, 0, 0 },
+        { -1, 0, 0 },
+        { 0, 1, 0 },
+        { 0, -1, 0 },
+        { 0, 0, 1 },
+        { 0, 0, -1 }
+      };
+      const GFX::Constants::CardinalNames upDirs[6] =
+      {
+        GFX::Constants::CardinalNames::NegY,
+        GFX::Constants::CardinalNames::NegY,
+        GFX::Constants::CardinalNames::PosZ,
+        GFX::Constants::CardinalNames::NegZ,
+        GFX::Constants::CardinalNames::NegY,
+        GFX::Constants::CardinalNames::NegY,
+      };
+      for (uint32_t i = 0; i < 6; i++)
+      {
+        GFX::TextureViewCreateInfo cubeViewInfo
+        {
+          .viewType = GFX::ImageType::TEX_2D,
+          .format = probeData.colorFormat,
+          .minLevel = 0,
+          .numLevels = 1,
+          .minLayer = i,
+          .numLayers = 1
+        };
+        probeData.colorViews[i].emplace(*GFX::TextureView::Create(cubeViewInfo, *probeData.colorCube));
+
+        cubeViewInfo.format = probeData.depthFormat;
+        probeData.depthViews[i].emplace(*GFX::TextureView::Create(cubeViewInfo, *probeData.depthCube));
+
+        cubeViewInfo.format = probeData.distanceFormat;
+        probeData.distanceViews[i].emplace(*TextureView::Create(cubeViewInfo, *probeData.distanceCube));
+
+        probeData.cameras[i].proj = MakeInfReversedZProjRH(glm::radians(90.0f), 1.0f, 0.1f);
+        probeData.cameras[i].viewInfo.SetForwardDir(faceDirs[i]);
+        probeData.cameras[i].viewInfo.upDir = upDirs[i];
+        RenderAttachment colorAttachment
+        {
+          .textureView = &*probeData.colorViews[i],
+          .clearEachFrame = false,
+        };
+        RenderAttachment depthAttachment
+        {
+          .textureView = &*probeData.depthViews[i],
+          .clearEachFrame = true,
+          .clearValue = ClearValue {.depthStencil = {.depth = 0.0f } }
+        };
+        probeData.renderViews[i] = RenderView
+        {
+          .renderInfo = RenderInfo
+          {
+            .offset = { 0, 0 },
+            .size = probeData.imageSize,
+            .colorAttachments = { colorAttachment },
+            .depthAttachment = depthAttachment
+          },
+          .camera = &probeData.cameras[i],
+          .mask = RenderMaskBit::None
+        };
+        //scene->RegisterRenderView("ProbeFace" + std::to_string(i), testView);
+      }
     }
 
-    // query all available extensions
-    openglExtensions.clear();
-    GLint extensionCount = 0;
-    glGetIntegerv(GL_NUM_EXTENSIONS, &extensionCount);
-    for (int i = 0; i < extensionCount; i++)
+    void DrawReflections()
     {
-      // spoopy
-      openglExtensions.push_back(reinterpret_cast<const char*>(glGetStringi(GL_EXTENSIONS, i)));
+      DebugMarker markerRefl("Draw reflections");
+
+      FX::ReflectionsCommonParameters commonParams
+      {
+        .gbDepth = *gBuffer.depthTexView,
+        .gbColor = *gBuffer.colorTexView,
+        .gbNormal = *gBuffer.normalTexView,
+        .gbPBR = *gBuffer.PBRTexView,
+        .scratchSampler = *reflect.scratchSampler,
+        .scratchSampler2 = *reflect.scratchSampler2,
+        .camera = gBuffer.camera
+      };
+
+      reflect.fbo->SetAttachment(Attachment::COLOR_0, *reflect.texView[0], 0);
+      if (reflectionsModeCvar.Get() >= REFLECTION_MODE_PARALLAX_CUBE_THRESHOLD)
+      {
+        DebugMarker marker("Cube Traced Reflections");
+        MEASURE_GPU_TIMER_STAT(ReflectionsTrace);
+
+        FX::TraceCubemapReflectionsParameters traceParams
+        {
+          .common = commonParams,
+          .target = *reflect.texView[0],
+          .cameras = probeData.cameras,
+          .probeColor = *probeData.colorCubeView,
+          .probeDistance = *probeData.distanceCubeView,
+          .depthViews = probeData.depthViews,
+          .distanceViews = probeData.distanceViews,
+          .skybox = *env.skyboxView,
+          .blueNoise = *blueNoiseBigView
+        };
+        FX::TraceCubemapReflections(traceParams);
+      }
+      else
+      {
+        DebugMarker marker("Cube Sampled Reflections");
+        MEASURE_GPU_TIMER_STAT(ReflectionsSample);
+
+        FX::SampleCubemapReflectionsParameters sampleParams
+        {
+          .common = commonParams,
+          .target = *reflect.texView[0],
+          .env = reflectionsModeCvar.Get() >= REFLECTION_MODE_CUBE_THRESHOLD ? *probeData.colorCubeView : *env.skyboxView,
+          .blueNoise = *blueNoiseBigView
+        };
+        FX::SampleCubemapReflections(sampleParams);
+      }
+
+      {
+        DebugMarker marker("Denoise reflections");
+        MEASURE_GPU_TIMER_STAT(ReflectionsDenoise);
+
+        if (reflect.atrous.num_passes > 0 && reflectionsDenoiseEnableCvar.Get() != 0.0f)
+        {
+          FX::DenoiseReflectionsParameters denoiseParams
+          {
+            .common = commonParams,
+            .target = *reflect.texView[0],
+            .scratchTexture = *reflect.texView[1],
+            .atrousParams
+            {
+              .passes = reflect.atrous.num_passes,
+              .nPhi = reflect.atrous.n_phi,
+              .pPhi = reflect.atrous.p_phi,
+              .stepWidth = reflect.atrous.step_width,
+              .kernel = reflect.atrous.kernel,
+              .offsets = reflect.atrous.offsets
+            }
+          };
+          FX::DenoiseReflections(denoiseParams);
+        }
+      }
+
+      {
+        DebugMarker marker("Composite reflections");
+        MEASURE_GPU_TIMER_STAT(ReflectionsComposite);
+
+        FX::CompositeReflectionsParameters compositeParams
+        {
+          .common = commonParams,
+          .source = *reflect.texView[0],
+          .target = *gBuffer.colorTexView
+        };
+        FX::CompositeReflections(compositeParams);
+      }
     }
 
-    Console::Get()->Log("%zu OpenGL extensions supported", openglExtensions.size());
-    //for (const auto& extension : openglExtensions)
-    //{
-    //  Console::Get()->Log("%s", extension.c_str());
-    //}
-
-    return window_;
-  }
-
-  // call when the window needs to be recreated, like when full screen mode is toggled
-  GLFWwindow* Renderer::CreateWindow(bool fullscreen)
-  {
-    if (window_)
+    void GL_ResetState()
     {
-      glfwDestroyWindow(window_);
+      // texture unit and sampler bindings (first 8, hopefully more than we'll ever need)
+      for (int i = 0; i < 8; i++)
+      {
+        glBindSampler(i, 0);
+        glBindTextureUnit(i, 0);
+      }
+      glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+
+      // triangle winding
+      glEnable(GL_CULL_FACE);
+      glCullFace(GL_BACK);
+      glFrontFace(GL_CCW);
+
+      // depth test
+      glEnable(GL_DEPTH_TEST);
+      glDepthMask(GL_TRUE);
+      glDepthFunc(GL_GEQUAL);
+
+      // blending
+      glEnable(GL_BLEND);
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+      glBlendEquation(GL_FUNC_ADD);
+
+      // buffer bindings
+      glBindBuffer(GL_ARRAY_BUFFER, 0);
+      glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, 0);
+      glBindBuffer(GL_DISPATCH_INDIRECT_BUFFER, 0);
+      glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
+      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+      glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+      glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+      // vertex array binding
+      glBindVertexArray(0);
+
+      // shader program binding
+      glUseProgram(0);
+
+      // viewport+clipping
+      glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
+
+      // rasterizer
+      glLineWidth(1.0f);
+      glPointSize(1.0f);
+      glDisable(GL_SCISSOR_TEST);
+      glViewport(0, 0, GetRenderWidth(), GetRenderHeight());
+      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+      // framebuffer
+      glClearDepth(0.0);
+      glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+      gBuffer.fbo->Bind();
     }
 
-    isFullscreen = fullscreen;
-
-    if (fullscreen)
+    GLFWwindow* InitContext()
     {
-      GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
-      const GLFWvidmode* videoMode = glfwGetVideoMode(primaryMonitor);
-      window_ = glfwCreateWindow(videoMode->width, videoMode->height, "Gengine", primaryMonitor, nullptr);
+      if (!glfwInit())
+      {
+        return nullptr;
+      }
+
+      glfwSetErrorCallback([](int, const char* description)
+        {
+          spdlog::error("GLFW error: {}", description);
+        });
+
+      glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+      glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+      glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+      glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
+      glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
+
+      const GLFWvidmode* videoMode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+      // set the window dims here, although it won't necessarily be what we get
+      windowWidth = videoMode->width;
+      windowHeight = videoMode->height;
+
+      //CreateWindow(true);
+      CreateWindow(isFullscreen);
+
+      if (!window_)
+      {
+        spdlog::critical("Failed to create GLFW window");
+      }
+
+      glfwMakeContextCurrent(window_);
+      glfwSetFramebufferSizeCallback(window_, [](GLFWwindow*, int width, int height)
+        {
+          Renderer::SetFramebufferSize(static_cast<uint32_t>(width), static_cast<uint32_t>(height));
+        });
+
+      // load OpenGL function pointers
+      if (!gladLoadGL())
+      {
+        spdlog::critical("Failed to initialize GLAD");
+      }
+
+      // query all available extensions
+      openglExtensions.clear();
+      GLint extensionCount = 0;
+      glGetIntegerv(GL_NUM_EXTENSIONS, &extensionCount);
+      for (int i = 0; i < extensionCount; i++)
+      {
+        // spoopy
+        openglExtensions.push_back(reinterpret_cast<const char*>(glGetStringi(GL_EXTENSIONS, i)));
+      }
+
+      Console::Get()->Log("%zu OpenGL extensions supported", openglExtensions.size());
+      //for (const auto& extension : openglExtensions)
+      //{
+      //  Console::Get()->Log("%s", extension.c_str());
+      //}
+
+      return window_;
     }
-    else
+
+    // call when the window needs to be recreated, like when full screen mode is toggled
+    GLFWwindow* CreateWindow(bool fullscreen)
     {
-      window_ = glfwCreateWindow(windowWidth, windowHeight, "Gengine", nullptr, nullptr);
+      if (window_)
+      {
+        glfwDestroyWindow(window_);
+      }
+
+      isFullscreen = fullscreen;
+
+      if (fullscreen)
+      {
+        GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
+        const GLFWvidmode* videoMode = glfwGetVideoMode(primaryMonitor);
+        window_ = glfwCreateWindow(videoMode->width, videoMode->height, "Gengine", primaryMonitor, nullptr);
+      }
+      else
+      {
+        window_ = glfwCreateWindow(windowWidth, windowHeight, "Gengine", nullptr, nullptr);
+      }
+
+      // set the window dims to what we actually got
+      int width, height;
+      glfwGetFramebufferSize(window_, &width, &height);
+      windowWidth = width;
+      windowHeight = height;
+
+      renderWidth = glm::max(static_cast<uint32_t>(windowWidth * renderScale), 1u);
+      renderHeight = glm::max(static_cast<uint32_t>(windowHeight * renderScale), 1u);
+      return window_;
     }
 
-    // set the window dims to what we actually got
-    int width, height;
-    glfwGetFramebufferSize(window_, &width, &height);
-    windowWidth = width;
-    windowHeight = height;
+    void SetFramebufferSize(uint32_t width, uint32_t height)
+    {
+      windowWidth = glm::max(width, 1u);
+      windowHeight = glm::max(height, 1u);
+      InitFramebuffers();
+    }
 
-    renderWidth = glm::max(static_cast<uint32_t>(windowWidth * renderScale), 1u);
-    renderHeight = glm::max(static_cast<uint32_t>(windowHeight * renderScale), 1u);
-    return window_;
-  }
+    void SetRenderingScale(float scale)
+    {
+      renderScale = scale;
+      renderWidth = glm::max(static_cast<uint32_t>(windowWidth * renderScale), 1u);
+      renderHeight = glm::max(static_cast<uint32_t>(windowHeight * renderScale), 1u);
+      InitFramebuffers();
+    }
 
-  void Renderer::SetFramebufferSize(uint32_t width, uint32_t height)
-  {
-    windowWidth = glm::max(width, 1u);
-    windowHeight = glm::max(height, 1u);
-    InitFramebuffers();
-  }
-
-  void Renderer::SetRenderingScale(float scale)
-  {
-    renderScale = scale;
-    renderWidth = glm::max(static_cast<uint32_t>(windowWidth * renderScale), 1u);
-    renderHeight = glm::max(static_cast<uint32_t>(windowHeight * renderScale), 1u);
-    InitFramebuffers();
-  }
-
-  void Renderer::SetReflectionsRenderScale(float scale)
-  {
-    reflect.renderScale = scale;
-    reflect.fboSize.width = glm::max(static_cast<uint32_t>(renderWidth * scale), 1u);
-    reflect.fboSize.height = glm::max(static_cast<uint32_t>(renderHeight * scale), 1u);
-    InitReflectionFramebuffer();
+    void SetReflectionsRenderScale(float scale)
+    {
+      reflect.renderScale = scale;
+      reflect.fboSize.width = glm::max(static_cast<uint32_t>(renderWidth * scale), 1u);
+      reflect.fboSize.height = glm::max(static_cast<uint32_t>(renderHeight * scale), 1u);
+      InitReflectionFramebuffer();
+    }
   }
 
   void SetFramebufferDrawBuffersAuto(Framebuffer& framebuffer, const RenderInfo& renderInfo, size_t maxCount)

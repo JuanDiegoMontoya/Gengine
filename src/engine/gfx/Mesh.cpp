@@ -56,8 +56,8 @@ MeshID MeshManager::GetMeshBatched(hashed_string name)
 
 void MeshManager::GenBatchedHandle_GL(hashed_string handle, const std::vector<uint32_t>& indices, const std::vector<Vertex>& vertices)
 {
-  auto* vb = GFX::Renderer::Get()->GetVertexBuffer();
-  auto* ib = GFX::Renderer::Get()->GetIndexBuffer();
+  auto* vb = GFX::Renderer::GetVertexBuffer();
+  auto* ib = GFX::Renderer::GetIndexBuffer();
 
 	// never freed
 	auto vh = vb->Allocate(vertices.data(), vertices.size() * sizeof(Vertex));
@@ -73,7 +73,7 @@ void MeshManager::GenBatchedHandle_GL(hashed_string handle, const std::vector<ui
 	cmd.count = static_cast<uint32_t>(indices.size());
 	cmd.firstIndex = iinfo.offset / ib->align_;
 	//cmd.baseInstance = ?; // only knowable after all user draw calls are submitted
-  GFX::Renderer::Get()->GetMeshBufferInfos()->operator[](handle) = cmd;
+  GFX::Renderer::GetMeshBufferInfos()->operator[](handle) = cmd;
 }
 
 //void MeshManager::DestroyBatchedMesh(MeshID handle)

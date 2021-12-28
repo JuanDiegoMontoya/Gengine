@@ -37,10 +37,10 @@ Scene::Scene(std::string_view name, Engine* engine)
   data_->name_ = name;
   data_->engine_ = engine;
 
-  data_->renderViews_.emplace("main", GFX::Renderer::Get()->GetMainRenderView());
+  data_->renderViews_.emplace("main", GFX::Renderer::GetMainRenderView());
   for (size_t i = 0; i < 6; i++)
   {
-    data_->renderViews_.emplace("probe" + std::to_string(i), GFX::Renderer::Get()->GetProbeRenderView(i));
+    data_->renderViews_.emplace("probe" + std::to_string(i), GFX::Renderer::GetProbeRenderView(i));
   }
 }
 

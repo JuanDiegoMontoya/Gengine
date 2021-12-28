@@ -34,14 +34,14 @@ namespace GFX
 
     // TODO: add ways to query material info here
     //static const MaterialInfo& GetMaterialInfo(Material material);
+    auto GetMaterialInfo(MaterialID mat) const { return materials_.find(mat); }
 
   private:
     friend class GraphicsSystem;
-    friend class Renderer;
 
     // There may be an argument to make this mapping public and switch to hashed strings
     // In the meantime, we'll see how this works
-    std::unordered_map<uint32_t, MaterialCreateInfo> materials_;
+    std::unordered_map<MaterialID, MaterialCreateInfo> materials_;
 
     // 0 is reserved for invalid materials
     //static inline MaterialHandle nextKey = 1;

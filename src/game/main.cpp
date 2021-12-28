@@ -108,12 +108,12 @@ void OnStart(Scene* scene)
     RMB::RenderScreenElements |
     RMB::RenderVoxels;
 
-  auto* mainRenderView = GFX::Renderer::Get()->GetMainRenderView();
-  mainRenderView->camera->proj = MakeInfReversedZProjRH(glm::radians(70.0f), GFX::Renderer::Get()->GetWindowAspectRatio(), 0.1f);
+  auto* mainRenderView = GFX::Renderer::GetMainRenderView();
+  mainRenderView->camera->proj = MakeInfReversedZProjRH(glm::radians(70.0f), GFX::Renderer::GetWindowAspectRatio(), 0.1f);
   mainRenderView->camera->viewInfo.position = { 0, 2, 0 };
   mainRenderView->mask = mask;
   mainRenderView->renderInfo.offset = { 0, 0 };
-  mainRenderView->renderInfo.size = GFX::Renderer::Get()->GetWindowDimensions();
+  mainRenderView->renderInfo.size = GFX::Renderer::GetWindowDimensions();
 
   GFX::RenderMask probeMask =
     RMB::RenderSky |
@@ -121,7 +121,7 @@ void OnStart(Scene* scene)
     RMB::RenderVoxels |
     RMB::RenderVoxelsNear |
     RMB::RenderObjects;
-  GFX::Renderer::Get()->SetProbeRenderMask(probeMask);
+  GFX::Renderer::SetProbeRenderMask(probeMask);
 
   //auto view2 = *GFX::TextureView::Create(*probeFaces[0].colorMemory);
   //auto sampler2 = *GFX::TextureSampler::Create({});
@@ -419,7 +419,7 @@ void OnDraw(Scene* scene, [[maybe_unused]] Timestep timestep)
   {
     glm::vec3 pos = scene->GetEntity("player").GetComponent<Component::Transform>().GetTranslation();
     pos.y += 0.65f;
-    GFX::Renderer::Get()->SetProbePosition(pos);
+    GFX::Renderer::SetProbePosition(pos);
   }
   //ImGui::SliderFloat("Pitch", &vi.pitch, -glm::pi<float>() / 2, glm::pi<float>() / 2);
   //ImGui::SliderFloat("Yaw", &vi.yaw, 0, 6.28);
@@ -431,7 +431,7 @@ void OnDraw(Scene* scene, [[maybe_unused]] Timestep timestep)
 void OnInterfaceDraw([[maybe_unused]] Scene* scene, [[maybe_unused]] Timestep timestep)
 {
   auto renderViews = scene->GetRenderViews();
-  GFX::Renderer::Get()->DrawAxisIndicator(renderViews);
+  GFX::Renderer::DrawAxisIndicator(renderViews);
   voxelManager->DrawDebug();
 }
 

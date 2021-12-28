@@ -29,7 +29,7 @@ DECLARE_FLOAT_STAT(SwapBuffers_CPU, CPU)
 
 void GraphicsSystem::Init()
 {
-  window = GFX::Renderer::Get()->Init();
+  window = GFX::Renderer::Init();
 }
 
 void GraphicsSystem::Shutdown()
@@ -40,8 +40,8 @@ void GraphicsSystem::Shutdown()
 void GraphicsSystem::StartFrame(Scene& scene)
 {
   auto renderViews = scene.GetRenderViews();
-  GFX::Renderer::Get()->StartFrame();
-  GFX::Renderer::Get()->ClearFramebuffers(renderViews);
+  GFX::Renderer::StartFrame();
+  GFX::Renderer::ClearFramebuffers(renderViews);
 
   ImGui::Begin("Graphics");
   ImGui::Text("Loaded Meshes");
@@ -68,40 +68,40 @@ void GraphicsSystem::DrawOpaque(Scene& scene)
   // draw batched objects in the scene
   using namespace Component;
   auto group = scene.GetRegistry().group<BatchedMesh>(entt::get<Model, Material>);
-  GFX::Renderer::Get()->BeginObjects(group.size());
+  GFX::Renderer::BeginObjects(group.size());
 
   std::for_each(std::execution::par, group.begin(), group.end(),
     [&group](entt::entity entity)
     {
       auto [mesh, model, material] = group.get<BatchedMesh, Model, Material>(entity);
-      GFX::Renderer::Get()->SubmitObject(model, mesh, material);
+      GFX::Renderer::SubmitObject(model, mesh, material);
     });
 
-  GFX::Renderer::Get()->RenderObjects(renderViews);
+  GFX::Renderer::RenderObjects(renderViews);
 }
 
 void GraphicsSystem::DrawSky(Scene& scene)
 {
   auto renderViews = scene.GetRenderViews();
-  GFX::Renderer::Get()->DrawSky(renderViews);
+  GFX::Renderer::DrawSky(renderViews);
 }
 
 void GraphicsSystem::DrawShading(Scene& scene)
 {
   auto renderViews = scene.GetRenderViews();
-  GFX::Renderer::Get()->DrawReflections();
+  GFX::Renderer::DrawReflections();
 }
 
 void GraphicsSystem::DrawFog(Scene& scene)
 {
   auto renderViews = scene.GetRenderViews();
-  GFX::Renderer::Get()->DrawFog(renderViews, false);
+  GFX::Renderer::DrawFog(renderViews, false);
 }
 
 void GraphicsSystem::DrawEarlyFog(Scene& scene)
 {
   auto renderViews = scene.GetRenderViews();
-  GFX::Renderer::Get()->DrawFog(renderViews, true);
+  GFX::Renderer::DrawFog(renderViews, true);
 }
 
 void GraphicsSystem::DrawTransparent(Scene& scene)
@@ -113,28 +113,28 @@ void GraphicsSystem::DrawTransparent(Scene& scene)
 
   using namespace Component;
   auto view = scene.GetRegistry().view<ParticleEmitter, Transform>();
-  GFX::Renderer::Get()->BeginEmitters(view.size_hint()); // multi-component views only know the maximum possible size
+  GFX::Renderer::BeginEmitters(view.size_hint()); // multi-component views only know the maximum possible size
 
   std::for_each(std::execution::par, view.begin(), view.end(),
     [&view](entt::entity entity)
     {
       auto [emitter, transform] = view.get<ParticleEmitter, Transform>(entity);
-      GFX::Renderer::Get()->SubmitEmitter(emitter, transform);
+      GFX::Renderer::SubmitEmitter(emitter, transform);
     });
 
-  GFX::Renderer::Get()->RenderEmitters(renderViews);
+  GFX::Renderer::RenderEmitters(renderViews);
 }
 
 void GraphicsSystem::Bloom()
 {
-  GFX::Renderer::Get()->Bloom();
+  GFX::Renderer::Bloom();
 }
 
 void GraphicsSystem::EndFrame(Timestep timestep)
 {
-  GFX::Renderer::Get()->ApplyTonemap(timestep.dt_effective);
-  GFX::Renderer::Get()->ApplyAntialiasing();
-  GFX::Renderer::Get()->WriteSwapchain();
+  GFX::Renderer::ApplyTonemap(timestep.dt_effective);
+  GFX::Renderer::ApplyAntialiasing();
+  GFX::Renderer::WriteSwapchain();
 }
 
 void GraphicsSystem::SwapBuffers()

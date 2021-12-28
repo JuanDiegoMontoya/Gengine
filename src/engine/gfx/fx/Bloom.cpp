@@ -1,3 +1,4 @@
+#include "../../PCH.h"
 #include "Bloom.h"
 #include <glad/glad.h>
 #include "../ShaderManager.h"
