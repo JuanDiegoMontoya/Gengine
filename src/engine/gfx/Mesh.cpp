@@ -1,100 +1,21 @@
 #include "../PCH.h"
-#include <glad/glad.h>
-
 #include "Mesh.h"
 #include "AssimpUtils.h"
 #include <engine/gfx/Renderer.h>
 
 #include <algorithm>
 #include <iostream>
+#include <vector>
 
-
-namespace MeshManager
+namespace GFX::MeshManager
 {
-  static Assimp::Importer importer;
-  static std::unordered_map<hashed_string, std::pair<uint64_t, uint64_t>> IDMap_;
-  static std::unordered_map<hashed_string, MeshID> handleMap_;
-
-  MeshID CreateMeshBatched(const std::string& filename, hashed_string name)
+  namespace
   {
-    const aiScene* scene = importer.ReadFile(filename.c_str(), aiProcessPreset_TargetRealtime_Fast);
-
-    if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
-    {
-      std::string rre = importer.GetErrorString();
-      std::cout << "ERROR::ASSIMP::" << rre << std::endl;
-    }
-
-    if (scene->HasAnimations())
-    {
-      printf("Animation loading not supported by this function.\n");
-    }
-    if (scene->mMeshes[0]->HasBones())
-    {
-      printf("Bone loading not supported by this function.\n");
-    }
-
-    std::vector<MeshID> meshHandles;
-
-    if (scene->mNumMeshes == 0)
-    {
-      printf("File does not contain a mesh.\n");
-    }
-    if (scene->mNumMeshes > 1)
-    {
-      printf("Multiple mesh loading not supported.\n");
-    }
-
-    std::vector<Vertex> vertices;
-    std::vector<uint32_t> indices;
-    LoadMesh(scene, scene->mMeshes[0], indices, vertices);
-
-    GenBatchedHandle_GL(name, indices, vertices);
-    handleMap_[name] = name;
-    return name;
+    static Assimp::Importer importer;
+    static std::unordered_map<hashed_string, MeshID> handleMap_;
   }
 
-  MeshID GetMeshBatched(hashed_string name)
-  {
-    return handleMap_[name];
-  }
-
-  void GenBatchedHandle_GL(hashed_string handle, const std::vector<uint32_t>& indices, const std::vector<Vertex>& vertices)
-  {
-    auto* vb = GFX::Renderer::GetVertexBuffer();
-    auto* ib = GFX::Renderer::GetIndexBuffer();
-
-    // never freed
-    auto vh = vb->Allocate(vertices.data(), vertices.size() * sizeof(Vertex));
-    auto ih = ib->Allocate(indices.data(), indices.size() * sizeof(uint32_t));
-    const auto& vinfo = vb->GetAlloc(vh);
-    const auto& iinfo = ib->GetAlloc(ih);
-    IDMap_[handle] = { vh, ih };
-
-    // generate an indirect draw command with most of the info needed to draw this mesh
-    DrawElementsIndirectCommand cmd{};
-    cmd.baseVertex = vinfo.offset / vb->align_;
-    cmd.instanceCount = 0;
-    cmd.count = static_cast<uint32_t>(indices.size());
-    cmd.firstIndex = iinfo.offset / ib->align_;
-    //cmd.baseInstance = ?; // only knowable after all user draw calls are submitted
-    GFX::Renderer::GetMeshBufferInfos()->operator[](handle) = cmd;
-  }
-
-  //void MeshManager::DestroyBatchedMesh(MeshID handle)
-  //{
-  //  auto [vh, ih] = std::find_if(IDMap_.begin(), IDMap_.end(), [&](const auto& elem) { return elem.first.value() == handle; })->second;
-  //  //auto [vh, ih] = IDMap_[handle];
-  //	Renderer::vertexBuffer->Free(vh);
-  //	Renderer::indexBuffer->Free(ih);
-  //	Renderer::meshBufferInfo.erase(handle);
-  //  IDMap_.erase(std::find_if(IDMap_.begin(), IDMap_.end(), [&](const auto& elem) { return elem.first.value() == handle; }));
-  //  handleMap_.erase(std::find_if(handleMap_.begin(), handleMap_.end(), [&](const auto& elem) { return elem.first.value() == handle; }));
-  //	//IDMap_.erase(handle);
-  //	//handleMap_.erase(handle);
-  //}
-
-  void LoadMesh([[maybe_unused]] const aiScene* scene, aiMesh* mesh, std::vector<uint32_t>& indices, std::vector<Vertex>& vertices)
+  void LoadMesh([[maybe_unused]] const aiScene* scene, aiMesh* mesh, std::vector<Index>& indices, std::vector<Vertex>& vertices)
   {
     for (unsigned i = 0; i < mesh->mNumVertices; i++)
     {
@@ -134,5 +55,49 @@ namespace MeshManager
         indices.push_back(face.mIndices[j]);
       }
     }
+  }
+
+  MeshID CreateMeshBatched(std::string_view filename, hashed_string name)
+  {
+    const aiScene* scene = importer.ReadFile(filename.data(), aiProcessPreset_TargetRealtime_Fast);
+
+    if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
+    {
+      std::string rre = importer.GetErrorString();
+      std::cout << "ERROR::ASSIMP::" << rre << std::endl;
+    }
+
+    if (scene->HasAnimations())
+    {
+      printf("Animation loading not supported by this function.\n");
+    }
+    if (scene->mMeshes[0]->HasBones())
+    {
+      printf("Bone loading not supported by this function.\n");
+    }
+
+    std::vector<MeshID> meshHandles;
+
+    if (scene->mNumMeshes == 0)
+    {
+      printf("File does not contain a mesh.\n");
+    }
+    if (scene->mNumMeshes > 1)
+    {
+      printf("Multiple mesh loading not supported.\n");
+    }
+
+    std::vector<Vertex> vertices;
+    std::vector<Index> indices;
+    LoadMesh(scene, scene->mMeshes[0], indices, vertices);
+
+    handleMap_[name] = name;
+    Renderer::AddBatchedMesh(GetMeshBatched(name), vertices, indices);
+    return name;
+  }
+
+  MeshID GetMeshBatched(hashed_string name)
+  {
+    return handleMap_[name];
   }
 }

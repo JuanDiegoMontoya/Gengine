@@ -1,27 +1,30 @@
 #pragma once
-
+#include <string_view>
 #include <vector>
-#include <string>
 
-#include "MeshUtils.h"
-
-#include "../utilities.h"
-
-struct aiMesh;
-struct aiScene;
-
-struct Vertex;
-struct VertexAnim;
-
-namespace MeshManager
+namespace GFX
 {
-	MeshID CreateMeshBatched(const std::string& filename, hashed_string name);
-	MeshID GetMeshBatched(hashed_string name);
+	using MeshID = uint32_t;
+	using Index = uint32_t;
 
-	// TODO: functions to load skeletal meshes
+	struct Vertex
+	{
+		glm::vec3 position;
+		glm::vec3 normal;
+		glm::vec2 texCoord;
+	};
 
-	void GenBatchedHandle_GL(hashed_string handle, const std::vector<uint32_t>& indices, const std::vector<Vertex>& vertices);
+	struct Mesh
+	{
+		std::vector<Vertex> vertices;
+		std::vector<Index> indices;
+	};
 
-	void LoadMesh(const aiScene* scene, aiMesh* mesh, std::vector<uint32_t>& indices, std::vector<Vertex>& vertices);
-	void LoadMesh(const aiScene* scene, aiMesh* mesh, std::vector<uint32_t>& indices, std::vector<VertexAnim>& vertices);
-};
+	namespace MeshManager
+	{
+		MeshID CreateMeshBatched(std::string_view filename, hashed_string name);
+		MeshID GetMeshBatched(hashed_string name);
+
+		// TODO: function(s) to load skeletal meshes
+	};
+}

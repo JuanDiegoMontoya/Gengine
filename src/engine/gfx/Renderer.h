@@ -6,6 +6,7 @@
 #include "api/Indirect.h"
 #include "RenderView.h"
 #include "Camera.h"
+#include "Mesh.h"
 
 namespace Component
 {
@@ -52,15 +53,13 @@ namespace GFX
     [[nodiscard]] RenderView* GetProbeRenderView(size_t index);
     [[nodiscard]] Extent2D GetWindowDimensions();
 
-    [[nodiscard]] GFX::DynamicBuffer<>* GetVertexBuffer();
-
-    [[nodiscard]] GFX::DynamicBuffer<>* GetIndexBuffer();
-
     [[nodiscard]] std::map<uint32_t, DrawElementsIndirectCommand>* GetMeshBufferInfos();
 
     [[nodiscard]] float GetWindowAspectRatio();
 
     [[nodiscard]] bool GetIsFullscreen();
+
+    void AddBatchedMesh(MeshID id, const std::vector<Vertex>& vertices, const std::vector<Index>& indices);
 
     void SetFramebufferSize(uint32_t width, uint32_t height);
     void SetRenderingScale(float scale);

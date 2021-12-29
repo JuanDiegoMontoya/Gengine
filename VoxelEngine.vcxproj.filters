@@ -18,7 +18,6 @@
     <ClInclude Include="src\engine\gfx\Frustum.h" />
     <ClInclude Include="src\engine\gfx\Material.h" />
     <ClInclude Include="src\engine\gfx\Mesh.h" />
-    <ClInclude Include="src\engine\gfx\MeshUtils.h" />
     <ClInclude Include="src\engine\gfx\Renderer.h" />
     <ClInclude Include="src\engine\gfx\ShaderManager.h" />
     <ClInclude Include="src\engine\gfx\TextureLoader.h" />
@@ -132,7 +131,6 @@
     <ClInclude Include="third_party\imgui\imstb_textedit.h" />
     <ClInclude Include="third_party\imgui\imstb_truetype.h" />
     <ClInclude Include="src\utility\Defer.h" />
-    <ClInclude Include="src\engine\gfx\MeshManager.h" />
     <ClInclude Include="src\engine\Timestep.h" />
     <ClInclude Include="data\game\Shaders\indirect.h.glsl" />
     <ClInclude Include="data\game\Shaders\noise.h" />
@@ -159,6 +157,7 @@
     <ClInclude Include="src\engine\gfx\fx\Bloom.h" />
     <ClInclude Include="src\engine\gfx\fx\CubemapReflections.h" />
     <ClInclude Include="src\engine\gfx\fx\Fog.h" />
+    <ClInclude Include="src\engine\gfx\api\LinearBufferAllocator.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\engine\ecs\system\DebugSystem.cpp" />
@@ -210,7 +209,6 @@
     <ClCompile Include="third_party\imgui\imgui_impl_opengl3.cpp" />
     <ClCompile Include="third_party\imgui\imgui_tables.cpp" />
     <ClCompile Include="third_party\imgui\imgui_widgets.cpp" />
-    <ClCompile Include="src\engine\gfx\MeshManager.cpp" />
     <ClCompile Include="src\utility\Timer.cpp" />
     <ClCompile Include="src\engine\core\Logging.cpp" />
     <ClCompile Include="src\engine\core\Statistics.cpp" />
@@ -231,6 +229,7 @@
     <ClCompile Include="src\engine\gfx\fx\Bloom.cpp" />
     <ClCompile Include="src\engine\gfx\fx\CubemapReflections.cpp" />
     <ClCompile Include="src\engine\gfx\fx\Fog.cpp" />
+    <ClCompile Include="src\engine\gfx\api\LinearBufferAllocator.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="src\utility\Palette.inl" />

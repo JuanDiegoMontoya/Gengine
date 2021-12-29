@@ -27,10 +27,10 @@
 #include "../Parser.h"
 #include <engine/core/StatMacros.h>
 #include "../../utility/MathExtensions.h"
-#include "MeshUtils.h"
 #include "Material.h"
 #include "api/Texture.h"
 #include "api/Framebuffer.h"
+#include "api/LinearBufferAllocator.h"
 
 #include "fx/FXAA.h"
 #include "fx/Bloom.h"
@@ -217,15 +217,17 @@ namespace GFX
       };
 
       // batched+instanced rendering stuff (ONE MATERIAL SUPPORTED ATM)
-      std::unique_ptr<DynamicBuffer<>> vertexBuffer;
-      std::unique_ptr<DynamicBuffer<>> indexBuffer;
+      std::optional<Buffer> vertexBuffer;
+      std::optional<Buffer> indexBuffer;
+      std::optional<LinearBufferAllocator> vertexBufferAlloc;
+      std::optional<LinearBufferAllocator> indexBufferAlloc;
 
       // per-vertex layout
       uint32_t batchVAO{};
 
       // maps handles to VERTEX and INDEX information in the respective dynamic buffers
       // used to retrieve important offset and size info for meshes
-      std::map<uint32_t, DrawElementsIndirectCommand> meshBufferInfo;
+      std::map<MeshID, DrawElementsIndirectCommand> meshBufferInfo;
 
       struct BatchDrawCommand
       {
@@ -503,19 +505,18 @@ namespace GFX
       gBuffer.fbo->Bind();
     }
 
-    DynamicBuffer<>* GetVertexBuffer()
+    void AddBatchedMesh(MeshID id, const std::vector<Vertex>& vertices, const std::vector<Index>& indices)
     {
-      return vertexBuffer.get();
-    }
-
-    DynamicBuffer<>* GetIndexBuffer()
-    {
-      return indexBuffer.get();
-    }
-
-    std::map<uint32_t, DrawElementsIndirectCommand>* GetMeshBufferInfos()
-    {
-      return &meshBufferInfo;
+      auto vOffset = vertexBufferAlloc->Allocate(std::span(vertices), sizeof(Vertex));
+      auto iOffset = indexBufferAlloc->Allocate(std::span(indices), sizeof(Index));
+      // generate an indirect draw command with most of the info needed to draw this mesh
+      DrawElementsIndirectCommand cmd{};
+      cmd.baseVertex = vOffset / sizeof(Vertex);
+      cmd.instanceCount = 0;
+      cmd.count = static_cast<uint32_t>(indices.size());
+      cmd.firstIndex = iOffset / sizeof(Index);
+      //cmd.baseInstance = ?; // only knowable after all user draw calls are submitted
+      meshBufferInfo[id] = cmd;
     }
 
     float GetWindowAspectRatio()
@@ -1324,9 +1325,10 @@ namespace GFX
 
     void InitVertexBuffers()
     {
-      // TODO: use dynamically sized buffer
-      vertexBuffer = std::make_unique<DynamicBuffer<>>(100'000'000, sizeof(Vertex));
-      indexBuffer = std::make_unique<DynamicBuffer<>>(100'000'000, sizeof(GLuint));
+      vertexBuffer = Buffer::Create(10'000'000, BufferFlag::DYNAMIC_STORAGE);
+      indexBuffer = Buffer::Create(10'000'000, BufferFlag::DYNAMIC_STORAGE);
+      vertexBufferAlloc = LinearBufferAllocator::Create(&vertexBuffer.value());
+      indexBufferAlloc = LinearBufferAllocator::Create(&indexBuffer.value());
 
       constexpr float indicatorVertices[] =
       {
@@ -1354,8 +1356,8 @@ namespace GFX
       glVertexArrayAttribBinding(batchVAO, 0, 0);
       glVertexArrayAttribBinding(batchVAO, 1, 0);
       glVertexArrayAttribBinding(batchVAO, 2, 0);
-      glVertexArrayVertexBuffer(batchVAO, 0, vertexBuffer->GetID(), 0, sizeof(Vertex));
-      glVertexArrayElementBuffer(batchVAO, indexBuffer->GetID());
+      glVertexArrayVertexBuffer(batchVAO, 0, vertexBuffer->GetAPIHandle(), 0, sizeof(Vertex));
+      glVertexArrayElementBuffer(batchVAO, indexBuffer->GetAPIHandle());
 
       // empty VAO for bufferless drawing
       glCreateVertexArrays(1, &emptyVao);

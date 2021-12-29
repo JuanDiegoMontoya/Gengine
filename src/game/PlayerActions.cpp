@@ -57,7 +57,7 @@ void PlayerActions::OnUpdate(Timestep timestep)
     Entity ent = CreateEntity("Arrow");
     ent.AddComponent<Component::Transform>().SetTranslation(vi.position + (vi.GetForwardDir() * 1.5f));
     ent.AddComponent<Component::Model>();
-    ent.AddComponent<Component::BatchedMesh>().handle = MeshManager::GetMeshBatched("big_cube");
+    ent.AddComponent<Component::BatchedMesh>().handle = GFX::MeshManager::GetMeshBatched("big_cube");
     ent.AddComponent<Component::Material>().handle = GFX::MaterialManager::GetMaterial("batchMaterial");
     ent.AddComponent<Component::InterpolatedPhysics>();
     auto collider = Physics::BoxCollider(glm::vec3(.5f));
@@ -115,7 +115,7 @@ void PlayerActions::OnUpdate(Timestep timestep)
   {
     Entity ent = CreateEntity("SpawnedEmitter");
     ent.AddComponent<Component::Transform>().SetTranslation(vi.position + (vi.GetForwardDir() * 1.5f));
-    ent.AddComponent<Component::BatchedMesh>().handle = MeshManager::GetMeshBatched("big_cube");
+    ent.AddComponent<Component::BatchedMesh>().handle = GFX::MeshManager::GetMeshBatched("big_cube");
     ent.AddComponent<Component::Material>().handle = GFX::MaterialManager::GetMaterial("batchMaterial");
     ent.AddComponent<Component::Model>();
     auto collider = Physics::BoxCollider(glm::vec3(.5f));

@@ -162,16 +162,16 @@ void OnStart(Scene* scene)
 
     //auto notbatch = MeshManager::CreateMesh("./Resources/Models/sphere.obj", l, o)[0];
 
-    std::vector<MeshID> meshes;
-    meshes.push_back(MeshManager::CreateMeshBatched(std::string(ModelDir) + "big_cube.obj", "big_cube"));
-    meshes.push_back(MeshManager::CreateMeshBatched(std::string(ModelDir) + "bunny.obj", "bunny"));
-    meshes.push_back(MeshManager::CreateMeshBatched(std::string(ModelDir) + "goodSphere.obj", "sphere"));
-    meshes.push_back(MeshManager::CreateMeshBatched(std::string(ModelDir) + "teapot.obj", "teapot"));
+    std::vector<GFX::MeshID> meshes;
+    meshes.push_back(GFX::MeshManager::CreateMeshBatched(std::string(ModelDir) + "big_cube.obj", "big_cube"));
+    meshes.push_back(GFX::MeshManager::CreateMeshBatched(std::string(ModelDir) + "bunny.obj", "bunny"));
+    meshes.push_back(GFX::MeshManager::CreateMeshBatched(std::string(ModelDir) + "goodSphere.obj", "sphere"));
+    meshes.push_back(GFX::MeshManager::CreateMeshBatched(std::string(ModelDir) + "teapot.obj", "teapot"));
 
     Entity testCam = scene->CreateEntity("testCam");
     testCam.AddComponent<Component::Transform>().SetTranslation({ 0, 0, 0 });
     testCam.AddComponent<Component::Model>();
-    testCam.AddComponent<Component::BatchedMesh>().handle = MeshManager::GetMeshBatched("big_cube");
+    testCam.AddComponent<Component::BatchedMesh>().handle = GFX::MeshManager::GetMeshBatched("big_cube");
     testCam.AddComponent<Component::Material>(batchMaterial);
 
     if (0) // creating a really tall parenting chain of objects
@@ -183,7 +183,7 @@ void OnStart(Scene* scene)
       parent.AddComponent<Component::NativeScriptComponent>().Bind<TestObj>();
       //parent.AddComponent<Components::Mesh>().meshHandle = bunny;
       //parent.AddComponent<Components::Material>(userMaterial);
-      parent.AddComponent<Component::BatchedMesh>().handle = MeshManager::GetMeshBatched("big_cube");
+      parent.AddComponent<Component::BatchedMesh>().handle = GFX::MeshManager::GetMeshBatched("big_cube");
       parent.AddComponent<Component::Material>(GFX::MaterialManager::GetMaterial("batchMaterial"));
 
       for (int i = 0; i < 1000; i++)
@@ -197,7 +197,7 @@ void OnStart(Scene* scene)
         child.GetComponent<Component::LocalTransform>().transform.SetScale({ .95, .95, .95 });
         //child.AddComponent<Components::Mesh>().meshHandle = bunny;
         //child.AddComponent<Components::Material>(userMaterial);
-        child.AddComponent<Component::BatchedMesh>().handle = MeshManager::GetMeshBatched("big_cube");
+        child.AddComponent<Component::BatchedMesh>().handle = GFX::MeshManager::GetMeshBatched("big_cube");
         child.AddComponent<Component::Material>().handle = batchMaterial;
         parent = child;
       }
@@ -243,7 +243,7 @@ void OnStart(Scene* scene)
         //entity.AddComponent<Components::Transform>().SetTranslation({ -15, 50, 10 });
         glm::vec3 scale{ 1, .4f, glm::clamp(1 + i * (.02f), .1f, 10.f) };
         entity.GetComponent<Component::Transform>().SetScale(scale);
-        entity.AddComponent<Component::BatchedMesh>().handle = MeshManager::GetMeshBatched("big_cube");
+        entity.AddComponent<Component::BatchedMesh>().handle = GFX::MeshManager::GetMeshBatched("big_cube");
         entity.AddComponent<Component::Material>().handle = GFX::MaterialManager::GetMaterial("batchMaterial");
         entity.AddComponent<Component::Model>();
         entity.AddComponent<Component::InterpolatedPhysics>();
@@ -314,7 +314,7 @@ void OnStart(Scene* scene)
       auto& tr = entity.AddComponent<Component::Transform>();
       tr.SetTranslation({ 2, 0, -2 });
       tr.SetScale({ 1, 1, 1 });
-      entity.AddComponent<Component::BatchedMesh>().handle = MeshManager::GetMeshBatched("teapot");
+      entity.AddComponent<Component::BatchedMesh>().handle = GFX::MeshManager::GetMeshBatched("teapot");
       //mesh.renderFlag = (uint64_t)RenderFlags::NoRender;
       entity.AddComponent<Component::Material>().handle = batchMaterial;
       entity.AddComponent<Component::Model>();

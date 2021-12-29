@@ -1,13 +1,13 @@
 #pragma once
-#include <cinttypes>
+#include <cstdint>
+#include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
-#include <engine/gfx/MeshUtils.h>
+#include <glm/vec4.hpp>
 
 namespace Component
 {
   struct ParticleEmitter
   {
-    uint64_t renderFlag = (uint64_t)RenderFlags::Default;
     uint64_t handle{};
 
     struct ParticleEmitterParams
