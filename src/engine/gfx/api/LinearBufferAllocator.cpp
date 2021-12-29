@@ -4,6 +4,14 @@
 
 namespace GFX
 {
+  std::optional<LinearBufferAllocator> LinearBufferAllocator::Create(Buffer* backingBuffer)
+  {
+    ASSERT(backingBuffer);
+    LinearBufferAllocator alloc;
+    alloc.buffer_ = backingBuffer;
+    return alloc;
+  }
+
   size_t LinearBufferAllocator::Allocate(size_t size, size_t alignment, const void* data)
   {
     ASSERT(alignment > 0);

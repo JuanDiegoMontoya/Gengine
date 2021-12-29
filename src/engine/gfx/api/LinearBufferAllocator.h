@@ -10,9 +10,10 @@ namespace GFX
   class LinearBufferAllocator
   {
   public:
-    LinearBufferAllocator() = delete;
     LinearBufferAllocator(const LinearBufferAllocator&) = delete;
+    LinearBufferAllocator(LinearBufferAllocator&&) = default;
     LinearBufferAllocator& operator=(const LinearBufferAllocator&) = delete;
+    LinearBufferAllocator& operator=(LinearBufferAllocator&&) = default;
 
     static std::optional<LinearBufferAllocator> Create(Buffer* backingBuffer);
 
@@ -24,6 +25,7 @@ namespace GFX
     }
 
   private:
+    LinearBufferAllocator() {};
     size_t Allocate(size_t size, size_t alignment, const void* data);
     
     Buffer* buffer_{ nullptr };
