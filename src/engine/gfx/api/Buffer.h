@@ -83,6 +83,8 @@ namespace GFX
     // gets the OpenGL handle of this object
     [[nodiscard]] auto GetAPIHandle() const { return id_; }
 
+    [[nodiscard]] auto Size() const { return size_; }
+
   private:
     Buffer() {}
     void BindBuffer(uint32_t target);
