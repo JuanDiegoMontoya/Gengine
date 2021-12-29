@@ -15,6 +15,6 @@ namespace GFX
       buffer_->SubData(std::span(reinterpret_cast<const std::byte*>(data), size), nextAllocOffset_);
     }
 
-    nextAllocOffset_ += size;
+    return nextAllocOffset_ += size;
   }
 }
