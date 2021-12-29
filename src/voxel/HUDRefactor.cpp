@@ -34,7 +34,7 @@ void HUD::Update()
     glm::rotate(glm::mat4(1), (float)glfwGetTime(), rot) *
     glm::scale(glm::mat4(1), scl);
   {
-    auto curr = GFX::ShaderManager::Get()->GetShader("textured_array");
+    auto curr = GFX::ShaderManager::GetShader("textured_array");
     curr->Bind();
     curr->SetMat4("u_model", model);
     curr->SetMat4("u_proj", CameraSystem::GetProj());
@@ -48,7 +48,7 @@ void HUD::Update()
   }
 
   {
-    auto curr = GFX::ShaderManager::Get()->GetShader("flat_color");
+    auto curr = GFX::ShaderManager::GetShader("flat_color");
     curr->SetVec4("u_color", glm::vec4(1));
     model = glm::scale(model, { 1.1, 1.1, 1.1 });
     curr->SetMat4("u_model", model);

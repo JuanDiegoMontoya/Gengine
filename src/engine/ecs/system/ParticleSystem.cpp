@@ -130,7 +130,7 @@ void ParticleSystem::Update(Scene& scene, Timestep timestep)
     GFX::TimerQuery timerQuery;
 #endif
     GFX::DebugMarker emitterMarker("Update emitters");
-    auto emitter_shader = GFX::ShaderManager::Get()->GetShader("update_particle_emitter");
+    auto emitter_shader = GFX::ShaderManager::GetShader("update_particle_emitter");
     emitter_shader->Bind();
     for (entt::entity entity : view)
     {
@@ -197,7 +197,7 @@ void ParticleSystem::Update(Scene& scene, Timestep timestep)
     GFX::TimerQuery timerQuery;
 #endif
     GFX::DebugMarker particleMarker("Update particle dynamic state");
-    auto particle_shader = GFX::ShaderManager::Get()->GetShader("update_particle");
+    auto particle_shader = GFX::ShaderManager::GetShader("update_particle");
     particle_shader->Bind();
     particle_shader->SetFloat("u_dt", timestep.dt_effective);
 

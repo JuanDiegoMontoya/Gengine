@@ -7,7 +7,7 @@ namespace GFX::FX
 {
   void CompileFXAAShader()
   {
-    ShaderManager::Get()->AddShader("fxaa",
+    ShaderManager::AddShader("fxaa",
       {
         { "fxaa.cs.glsl", ShaderType::COMPUTE }
       });
@@ -30,7 +30,7 @@ namespace GFX::FX
     scratchSampler.SetState(samplerState);
     Extent2D targetDim = target.Extent();
 
-    auto shader = GFX::ShaderManager::Get()->GetShader("fxaa");
+    auto shader = ShaderManager::GetShader("fxaa");
     shader->Bind();
     shader->SetIVec2("u_targetDim", { targetDim.width, targetDim.height });
     shader->SetFloat("u_contrastThreshold", contrastThreshold);

@@ -23,11 +23,8 @@ namespace GFX
     std::vector<std::pair<std::string, std::string>> replace{};
   };
 
-  class ShaderManager
+  namespace ShaderManager
   {
-  public:
-    [[nodiscard]] static ShaderManager* Get();
-    
     std::optional<Shader> AddShader(hashed_string name, const std::vector<ShaderCreateInfo>& createInfos);
     
     [[nodiscard]] std::optional<Shader> GetShader(hashed_string name);
@@ -37,11 +34,5 @@ namespace GFX
     std::optional<Shader> RecompileShader(hashed_string name);
 
     std::vector<std::string> GetAllShaderNames();
-
-  private:
-    ShaderManager();
-    ~ShaderManager();
-
-    struct ShaderManagerStorage* storage;
   };
 }

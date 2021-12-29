@@ -7,7 +7,7 @@ namespace GFX::FX
 {
   void CompileFogShader()
   {
-    ShaderManager::Get()->AddShader("fog",
+    ShaderManager::AddShader("fog",
       {
         { "fog.cs.glsl", ShaderType::COMPUTE }
       });
@@ -24,7 +24,7 @@ namespace GFX::FX
     p.scratchSampler.SetState(samplerState);
     Extent2D targetDim = p.targetColor.Extent();
 
-    Shader shader = *ShaderManager::Get()->GetShader("fog");
+    Shader shader = *ShaderManager::GetShader("fog");
     shader.Bind();
     shader.SetFloat("u_a", p.a);
     shader.SetFloat("u_b", p.b);

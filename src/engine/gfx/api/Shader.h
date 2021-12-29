@@ -38,13 +38,12 @@ namespace GFX
     Shader& operator=(const Shader&) = default;
     Shader& operator=(Shader&&) = default;
 
-  private:
-    friend class ShaderManager;
     Shader(std::unordered_map<uint32_t, uint32_t>& uniforms, uint32_t id)
       : uniformIDs_(uniforms), id_(id)
     {
     }
 
+  private:
     std::unordered_map<uint32_t, uint32_t>& uniformIDs_;
     uint32_t id_{};
   };

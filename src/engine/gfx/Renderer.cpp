@@ -76,7 +76,7 @@ namespace GFX
 
   void logShaderNames(const char*)
   {
-    auto shaderNames = GFX::ShaderManager::Get()->GetAllShaderNames();
+    auto shaderNames = ShaderManager::GetAllShaderNames();
     for (const auto& name : shaderNames)
     {
       Console::Get()->Log("%s\n", name.c_str());
@@ -96,13 +96,13 @@ namespace GFX
     }
 
     auto id = hashed_string(str->c_str());
-    if (!GFX::ShaderManager::Get()->GetShader(id))
+    if (!ShaderManager::GetShader(id))
     {
       Console::Get()->Log("No shader found with name %s", str->c_str());
       return;
     }
 
-    if (!GFX::ShaderManager::Get()->RecompileShader(id))
+    if (!ShaderManager::RecompileShader(id))
     {
       Console::Get()->Log("Failed to recompile shader %s", str->c_str());
       return;
@@ -217,8 +217,8 @@ namespace GFX
       };
 
       // batched+instanced rendering stuff (ONE MATERIAL SUPPORTED ATM)
-      std::unique_ptr<GFX::DynamicBuffer<>> vertexBuffer;
-      std::unique_ptr<GFX::DynamicBuffer<>> indexBuffer;
+      std::unique_ptr<DynamicBuffer<>> vertexBuffer;
+      std::unique_ptr<DynamicBuffer<>> indexBuffer;
 
       // per-vertex layout
       uint32_t batchVAO{};
@@ -345,11 +345,11 @@ namespace GFX
         float targetLuminance = .22f;
         float adjustmentSpeed = 0.5f;
         bool gammaCorrection = true;
-        std::optional<GFX::Buffer> exposureBuffer;
-        std::optional<GFX::Buffer> histogramBuffer;
+        std::optional<Buffer> exposureBuffer;
+        std::optional<Buffer> histogramBuffer;
         const int NUM_BUCKETS = 128;
-        std::optional<GFX::TextureView> blueNoiseView;
-        std::optional<GFX::TextureSampler> blueNoiseSampler;
+        std::optional<TextureView> blueNoiseView;
+        std::optional<TextureSampler> blueNoiseSampler;
         bool tonemapDither = true;
       }tonemap;
 
@@ -375,14 +375,133 @@ namespace GFX
       }fxaa;
     }
 
-    GLFWwindow* InitContext();
-    void InitVertexBuffers();
-    void InitVertexLayouts();
-    void CompileShaders();
-    void InitTextures();
-    // resets the GL state to something predictable
-    void GL_ResetState();
-    void RenderBatchHelper(std::span<RenderView*> renderViews, MaterialID material, const std::vector<UniformData>& uniformBuffer);
+    GLFWwindow* InitContext()
+    {
+      if (!glfwInit())
+      {
+        return nullptr;
+      }
+
+      glfwSetErrorCallback([](int, const char* description)
+        {
+          spdlog::error("GLFW error: {}", description);
+        });
+
+      glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+      glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+      glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+      glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
+      glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
+
+      const GLFWvidmode* videoMode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+      // set the window dims here, although it won't necessarily be what we get
+      windowWidth = videoMode->width;
+      windowHeight = videoMode->height;
+
+      //CreateWindow(true);
+      CreateWindow(isFullscreen);
+
+      if (!window_)
+      {
+        spdlog::critical("Failed to create GLFW window");
+      }
+
+      glfwMakeContextCurrent(window_);
+      glfwSetFramebufferSizeCallback(window_, [](GLFWwindow*, int width, int height)
+        {
+          Renderer::SetFramebufferSize(static_cast<uint32_t>(width), static_cast<uint32_t>(height));
+        });
+
+      // load OpenGL function pointers
+      if (!gladLoadGL())
+      {
+        spdlog::critical("Failed to initialize GLAD");
+      }
+
+      // query all available extensions
+      openglExtensions.clear();
+      GLint extensionCount = 0;
+      glGetIntegerv(GL_NUM_EXTENSIONS, &extensionCount);
+      for (int i = 0; i < extensionCount; i++)
+      {
+        // spoopy
+        openglExtensions.push_back(reinterpret_cast<const char*>(glGetStringi(GL_EXTENSIONS, i)));
+      }
+
+      Console::Get()->Log("%zu OpenGL extensions supported", openglExtensions.size());
+      //for (const auto& extension : openglExtensions)
+      //{
+      //  Console::Get()->Log("%s", extension.c_str());
+      //}
+
+      return window_;
+    }
+
+    uint32_t GetRenderWidth()
+    {
+      return renderWidth;
+    }
+
+    uint32_t GetRenderHeight()
+    {
+      return renderHeight;
+    }
+
+    void GL_ResetState()
+    {
+      // texture unit and sampler bindings (first 8, hopefully more than we'll ever need)
+      for (int i = 0; i < 8; i++)
+      {
+        glBindSampler(i, 0);
+        glBindTextureUnit(i, 0);
+      }
+      glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+
+      // triangle winding
+      glEnable(GL_CULL_FACE);
+      glCullFace(GL_BACK);
+      glFrontFace(GL_CCW);
+
+      // depth test
+      glEnable(GL_DEPTH_TEST);
+      glDepthMask(GL_TRUE);
+      glDepthFunc(GL_GEQUAL);
+
+      // blending
+      glEnable(GL_BLEND);
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+      glBlendEquation(GL_FUNC_ADD);
+
+      // buffer bindings
+      glBindBuffer(GL_ARRAY_BUFFER, 0);
+      glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, 0);
+      glBindBuffer(GL_DISPATCH_INDIRECT_BUFFER, 0);
+      glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
+      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+      glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+      glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+      // vertex array binding
+      glBindVertexArray(0);
+
+      // shader program binding
+      glUseProgram(0);
+
+      // viewport+clipping
+      glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
+
+      // rasterizer
+      glLineWidth(1.0f);
+      glPointSize(1.0f);
+      glDisable(GL_SCISSOR_TEST);
+      glViewport(0, 0, GetRenderWidth(), GetRenderHeight());
+      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+      // framebuffer
+      glClearDepth(0.0);
+      glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+      gBuffer.fbo->Bind();
+    }
 
     DynamicBuffer<>* GetVertexBuffer()
     {
@@ -424,16 +543,6 @@ namespace GFX
       return isFullscreen;
     }
 
-    uint32_t GetRenderWidth()
-    {
-      return renderWidth;
-    }
-
-    uint32_t GetRenderHeight()
-    {
-      return renderHeight;
-    }
-
     void BeginObjects(size_t maxDraws)
     {
       cmdIndex = 0;
@@ -446,9 +555,89 @@ namespace GFX
       userCommands[index] = BatchDrawCommand{ .mesh = mesh.handle, .material = mat.handle, .modelUniform = model.matrix };
     }
 
+    void RenderBatchHelper(std::span<RenderView*> renderViews, MaterialID mat, const std::vector<UniformData>& uniforms)
+    {
+      //ASSERT(MaterialManager::Get()->materials_.contains(mat));
+      auto material = *MaterialManager::GetMaterialInfo(mat);
+      DebugMarker marker(("Batch: " + std::string(material.shaderID)).c_str());
+
+      // generate SSBO w/ uniforms
+      //Buffer uniformBuffer = Buffer(uniforms.data(), uniforms.size() * sizeof(UniformData));
+      auto uniformBuffer = Buffer::Create(std::span(uniforms));
+      uniformBuffer->Bind<Target::SHADER_STORAGE_BUFFER>(0);
+
+      // generate DIB (one indirect command per mesh)
+      std::vector<DrawElementsIndirectCommand> commands;
+      GLuint baseInstance = 0;
+      std::for_each(meshBufferInfo.begin(), meshBufferInfo.end(),
+        [&commands, &baseInstance](auto& cmd)
+        {
+          if (cmd.second.instanceCount != 0)
+          {
+            cmd.second.baseInstance = baseInstance;
+            //cmd.second.instanceCount += baseInstance;
+            commands.push_back(cmd.second);
+            baseInstance += cmd.second.instanceCount;
+          }
+        });
+      //Buffer dib(commands.data(), commands.size() * sizeof(DrawElementsIndirectCommand));
+      auto drawIndirectBuffer = Buffer::Create(std::span(commands));
+      drawIndirectBuffer->Bind<Target::DRAW_INDIRECT_BUFFER>();
+
+      // clear instance count for next GL draw command
+      for (auto& info : meshBufferInfo)
+      {
+        info.second.instanceCount = 0;
+      }
+
+      // do the actual draw
+      auto shader = ShaderManager::GetShader(material.shaderID);
+      shader->Bind();
+
+      for (auto& customUniform : material.materialUniforms)
+      {
+        if (customUniform.Setter)
+        {
+          customUniform.Setter(customUniform.id, *shader);
+        }
+      }
+
+      for (int i = 0; auto & [view, sampler] : material.viewSamplers)
+      {
+        BindTextureView(i++, view, sampler);
+      }
+
+      // TODO: perform GPU culling somewhere around here
+
+      auto framebuffer = Framebuffer::Create();
+      framebuffer->Bind();
+
+      for (auto& renderView : renderViews)
+      {
+        if (!(renderView->mask & RenderMaskBit::RenderObjects))
+          continue;
+
+        SetFramebufferDrawBuffersAuto(*framebuffer, renderView->renderInfo, 3);
+
+        ASSERT(renderView->renderInfo.depthAttachment.has_value());
+        framebuffer->SetAttachment(Attachment::DEPTH, *renderView->renderInfo.depthAttachment->textureView, 0);
+
+        shader->SetMat4("u_viewProj", renderView->camera->GetViewProj());
+
+        SetViewport(renderView->renderInfo);
+        glBindVertexArray(batchVAO);
+        glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, (void*)0, static_cast<GLsizei>(commands.size()), 0);
+      }
+
+      for (int i = 0; auto & [view, sampler] : material.viewSamplers)
+      {
+        UnbindTextureView(i++);
+      }
+    }
+
     void RenderObjects(std::span<RenderView*> renderViews)
     {
-      GFX::DebugMarker marker("Draw batched objects");
+      DebugMarker marker("Draw batched objects");
 
       userCommands.resize(cmdIndex);
       if (userCommands.empty())
@@ -498,86 +687,6 @@ namespace GFX
       userCommands.clear();
     }
 
-    void RenderBatchHelper(std::span<RenderView*> renderViews, MaterialID mat, const std::vector<UniformData>& uniforms)
-    {
-      //ASSERT(MaterialManager::Get()->materials_.contains(mat));
-      auto& [id, material] = *MaterialManager::Get()->GetMaterialInfo(mat);
-      DebugMarker marker(("Batch: " + std::string(material.shaderID)).c_str());
-
-      // generate SSBO w/ uniforms
-      //Buffer uniformBuffer = GFX::Buffer(uniforms.data(), uniforms.size() * sizeof(UniformData));
-      auto uniformBuffer = Buffer::Create(std::span(uniforms));
-      uniformBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(0);
-
-      // generate DIB (one indirect command per mesh)
-      std::vector<DrawElementsIndirectCommand> commands;
-      GLuint baseInstance = 0;
-      std::for_each(meshBufferInfo.begin(), meshBufferInfo.end(),
-        [&commands, &baseInstance](auto& cmd)
-        {
-          if (cmd.second.instanceCount != 0)
-          {
-            cmd.second.baseInstance = baseInstance;
-            //cmd.second.instanceCount += baseInstance;
-            commands.push_back(cmd.second);
-            baseInstance += cmd.second.instanceCount;
-          }
-        });
-      //GFX::Buffer dib(commands.data(), commands.size() * sizeof(DrawElementsIndirectCommand));
-      auto drawIndirectBuffer = Buffer::Create(std::span(commands));
-      drawIndirectBuffer->Bind<GFX::Target::DRAW_INDIRECT_BUFFER>();
-
-      // clear instance count for next GL draw command
-      for (auto& info : meshBufferInfo)
-      {
-        info.second.instanceCount = 0;
-      }
-
-      // do the actual draw
-      auto shader = GFX::ShaderManager::Get()->GetShader(material.shaderID);
-      shader->Bind();
-
-      for (auto& customUniform : material.materialUniforms)
-      {
-        if (customUniform.Setter)
-        {
-          customUniform.Setter(customUniform.id, *shader);
-        }
-      }
-
-      for (int i = 0; auto & [view, sampler] : material.viewSamplers)
-      {
-        BindTextureView(i++, view, sampler);
-      }
-
-      // TODO: perform GPU culling somewhere around here
-
-      auto framebuffer = Framebuffer::Create();
-      framebuffer->Bind();
-
-      for (auto& renderView : renderViews)
-      {
-        if (!(renderView->mask & RenderMaskBit::RenderObjects))
-          continue;
-
-        SetFramebufferDrawBuffersAuto(*framebuffer, renderView->renderInfo, 3);
-
-        ASSERT(renderView->renderInfo.depthAttachment.has_value());
-        framebuffer->SetAttachment(Attachment::DEPTH, *renderView->renderInfo.depthAttachment->textureView, 0);
-
-        shader->SetMat4("u_viewProj", renderView->camera->GetViewProj());
-
-        SetViewport(renderView->renderInfo);
-        glBindVertexArray(batchVAO);
-        glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, (void*)0, static_cast<GLsizei>(commands.size()), 0);
-      }
-
-      for (int i = 0; auto & [view, sampler] : material.viewSamplers)
-      {
-        UnbindTextureView(i++);
-      }
-    }
-
     void BeginEmitters(size_t maxDraws)
     {
       emitterDrawIndex = 0;
@@ -602,7 +711,7 @@ namespace GFX
       glDisable(GL_CULL_FACE);
       glBlendFunc(GL_SRC_ALPHA, GL_ONE);
       glBindVertexArray(emptyVao);
-      auto shader = GFX::ShaderManager::Get()->GetShader("particle");
+      auto shader = ShaderManager::GetShader("particle");
       shader->Bind();
 
       auto framebuffer = Framebuffer::Create();
@@ -656,7 +765,7 @@ namespace GFX
 
     void DrawFog(std::span<RenderView*> renderViews, bool earlyFogPass)
     {
-      GFX::DebugMarker fogMarker("Fog");
+      DebugMarker fogMarker("Fog");
 
       for (auto& renderView : renderViews)
       {
@@ -692,72 +801,72 @@ namespace GFX
 
     void CompileShaders()
     {
-      GFX::ShaderManager::Get()->AddShader("batched",
+      ShaderManager::AddShader("batched",
         {
-          { "TexturedMeshBatched.vs.glsl", GFX::ShaderType::VERTEX },
-          { "TexturedMesh.fs.glsl", GFX::ShaderType::FRAGMENT }
+          { "TexturedMeshBatched.vs.glsl", ShaderType::VERTEX },
+          { "TexturedMesh.fs.glsl", ShaderType::FRAGMENT }
         });
 
-      GFX::ShaderManager::Get()->AddShader("chunk_optimized",
+      ShaderManager::AddShader("chunk_optimized",
         {
-          { "chunk_optimized.vs.glsl", GFX::ShaderType::VERTEX },
-          { "chunk_optimized.fs.glsl", GFX::ShaderType::FRAGMENT }
+          { "chunk_optimized.vs.glsl", ShaderType::VERTEX },
+          { "chunk_optimized.fs.glsl", ShaderType::FRAGMENT }
         });
-      GFX::ShaderManager::Get()->AddShader("compact_batch",
-        { { "compact_batch.cs.glsl", GFX::ShaderType::COMPUTE } });
-      GFX::ShaderManager::Get()->AddShader("update_particle_emitter",
-        { { "update_particle_emitter.cs.glsl", GFX::ShaderType::COMPUTE } });
-      GFX::ShaderManager::Get()->AddShader("update_particle",
-        { { "update_particle.cs.glsl", GFX::ShaderType::COMPUTE } });
-      GFX::ShaderManager::Get()->AddShader("textured_array",
+      ShaderManager::AddShader("compact_batch",
+        { { "compact_batch.cs.glsl", ShaderType::COMPUTE } });
+      ShaderManager::AddShader("update_particle_emitter",
+        { { "update_particle_emitter.cs.glsl", ShaderType::COMPUTE } });
+      ShaderManager::AddShader("update_particle",
+        { { "update_particle.cs.glsl", ShaderType::COMPUTE } });
+      ShaderManager::AddShader("textured_array",
         {
-          { "textured_array.vs.glsl", GFX::ShaderType::VERTEX },
-          { "textured_array.fs.glsl", GFX::ShaderType::FRAGMENT }
+          { "textured_array.vs.glsl", ShaderType::VERTEX },
+          { "textured_array.fs.glsl", ShaderType::FRAGMENT }
         });
-      GFX::ShaderManager::Get()->AddShader("buffer_vis",
+      ShaderManager::AddShader("buffer_vis",
         {
-          { "buffer_vis.fs.glsl", GFX::ShaderType::FRAGMENT },
-          { "buffer_vis.vs.glsl", GFX::ShaderType::VERTEX }
+          { "buffer_vis.fs.glsl", ShaderType::FRAGMENT },
+          { "buffer_vis.vs.glsl", ShaderType::VERTEX }
         });
-      GFX::ShaderManager::Get()->AddShader("chunk_render_cull",
+      ShaderManager::AddShader("chunk_render_cull",
         {
-          { "chunk_render_cull.vs.glsl", GFX::ShaderType::VERTEX },
-          { "chunk_render_cull.fs.glsl", GFX::ShaderType::FRAGMENT }
+          { "chunk_render_cull.vs.glsl", ShaderType::VERTEX },
+          { "chunk_render_cull.fs.glsl", ShaderType::FRAGMENT }
         });
-      GFX::ShaderManager::Get()->AddShader("particle",
+      ShaderManager::AddShader("particle",
         {
-          { "particle.vs.glsl", GFX::ShaderType::VERTEX },
-          { "particle.fs.glsl", GFX::ShaderType::FRAGMENT }
+          { "particle.vs.glsl", ShaderType::VERTEX },
+          { "particle.fs.glsl", ShaderType::FRAGMENT }
         });
-      GFX::ShaderManager::Get()->AddShader("skybox",
+      ShaderManager::AddShader("skybox",
         {
-          { "skybox.vs.glsl", GFX::ShaderType::VERTEX },
-          { "skybox.fs.glsl", GFX::ShaderType::FRAGMENT }
+          { "skybox.vs.glsl", ShaderType::VERTEX },
+          { "skybox.fs.glsl", ShaderType::FRAGMENT }
         });
-      GFX::ShaderManager::Get()->AddShader("tonemap",
+      ShaderManager::AddShader("tonemap",
         {
-          { "fullscreen_tri.vs.glsl", GFX::ShaderType::VERTEX },
-          { "tonemap.fs.glsl", GFX::ShaderType::FRAGMENT }
+          { "fullscreen_tri.vs.glsl", ShaderType::VERTEX },
+          { "tonemap.fs.glsl", ShaderType::FRAGMENT }
         });
-      GFX::ShaderManager::Get()->AddShader("calc_exposure",
-        { { "calc_exposure.cs.glsl", GFX::ShaderType::COMPUTE } });
-      GFX::ShaderManager::Get()->AddShader("generate_histogram",
-        { { "generate_histogram.cs.glsl", GFX::ShaderType::COMPUTE } });
+      ShaderManager::AddShader("calc_exposure",
+        { { "calc_exposure.cs.glsl", ShaderType::COMPUTE } });
+      ShaderManager::AddShader("generate_histogram",
+        { { "generate_histogram.cs.glsl", ShaderType::COMPUTE } });
 
-      //GFX::ShaderManager::Get()->AddShader("sun",
+      //ShaderManager::AddShader("sun",
       //  {
-      //    { "flat_sun.vs.glsl", GFX::ShaderType::VERTEX },
-      //    { "flat_sun.fs.glsl", GFX::ShaderType::FRAGMENT }
+      //    { "flat_sun.vs.glsl", ShaderType::VERTEX },
+      //    { "flat_sun.fs.glsl", ShaderType::FRAGMENT }
       //  });
-      GFX::ShaderManager::Get()->AddShader("axis",
+      ShaderManager::AddShader("axis",
         {
-          { "axis.vs.glsl", GFX::ShaderType::VERTEX },
-          { "axis.fs.glsl", GFX::ShaderType::FRAGMENT }
+          { "axis.vs.glsl", ShaderType::VERTEX },
+          { "axis.fs.glsl", ShaderType::FRAGMENT }
         });
-      //GFX::ShaderManager::Get()->AddShader("flat_color",
+      //ShaderManager::AddShader("flat_color",
       //  {
-      //    { "flat_color.vs.glsl", GFX::ShaderType::VERTEX },
-      //    { "flat_color.fs.glsl", GFX::ShaderType::FRAGMENT }
+      //    { "flat_color.vs.glsl", ShaderType::VERTEX },
+      //    { "flat_color.fs.glsl", ShaderType::FRAGMENT }
       //  });
       FX::CompileFXAAShader();
       FX::CompileReflectionShaders();
@@ -767,14 +876,14 @@ namespace GFX
 
     void DrawAxisIndicator(std::span<RenderView*> renderViews)
     {
-      GFX::DebugMarker marker("Draw axis indicator");
+      DebugMarker marker("Draw axis indicator");
 
       glDepthFunc(GL_ALWAYS); // allows indicator to always be rendered
       glBlendFunc(GL_ONE, GL_ZERO);
       glLineWidth(2.f);
       glBindVertexArray(axisVao);
 
-      auto currShader = GFX::ShaderManager::Get()->GetShader("axis");
+      auto currShader = ShaderManager::GetShader("axis");
       currShader->Bind();
 
       auto framebuffer = Framebuffer::Create();
@@ -783,7 +892,7 @@ namespace GFX
 
       for (auto& renderView : renderViews)
       {
-        if (!(renderView->mask & GFX::RenderMaskBit::RenderScreenElements))
+        if (!(renderView->mask & RenderMaskBit::RenderScreenElements))
           continue;
 
         SetViewport(renderView->renderInfo);
@@ -803,14 +912,14 @@ namespace GFX
 
     void DrawSky(std::span<RenderView*> renderViews)
     {
-      GFX::DebugMarker marker("Draw skybox");
+      DebugMarker marker("Draw skybox");
 
       //glDepthMask(GL_FALSE);
       glDepthFunc(GL_EQUAL);
       glDisable(GL_CULL_FACE);
       glBindVertexArray(emptyVao);
 
-      auto shdr = GFX::ShaderManager::Get()->GetShader("skybox");
+      auto shdr = ShaderManager::GetShader("skybox");
       shdr->Bind();
       shdr->SetInt("u_skybox", 0);
       BindTextureView(0, *env.skyboxView, *env.skyboxSampler);
@@ -821,7 +930,7 @@ namespace GFX
 
       for (auto& renderView : renderViews)
       {
-        if (!(renderView->mask & GFX::RenderMaskBit::RenderSky))
+        if (!(renderView->mask & RenderMaskBit::RenderSky))
           continue;
 
         SetViewport(renderView->renderInfo);
@@ -920,14 +1029,14 @@ namespace GFX
     {
       if (fxaa.enabled)
       {
-        GFX::DebugMarker marker1("FXAA");
+        DebugMarker marker1("FXAA");
         MEASURE_GPU_TIMER_STAT(FXAA);
         FX::ApplyFXAA(*ldrColorTexView, *postAATexView, fxaa.contrastThreshold, fxaa.relativeThreshold,
           fxaa.pixelBlendStrength, fxaa.edgeBlendStrength, *fxaa.scratchSampler);
       }
       else
       {
-        GFX::DebugMarker marker1("Blit");
+        DebugMarker marker1("Blit");
         auto fbo1 = Framebuffer::Create();
         auto fbo2 = Framebuffer::Create();
         fbo1->SetAttachment(Attachment::COLOR_0, *ldrColorTexView, 0);
@@ -943,7 +1052,7 @@ namespace GFX
 
     void WriteSwapchain()
     {
-      GFX::DebugMarker marker0("Write to swapchain");
+      DebugMarker marker0("Write to swapchain");
 
       auto framebuffer = Framebuffer::Create();
       framebuffer->SetAttachment(Attachment::COLOR_0, *postAATexView, 0);
@@ -962,7 +1071,7 @@ namespace GFX
 
       if (bloom.enabled)
       {
-        GFX::DebugMarker bloomMarker("Bloom");
+        DebugMarker bloomMarker("Bloom");
         MEASURE_GPU_TIMER_STAT(Bloom_GPU);
         MEASURE_CPU_TIMER_STAT(Bloom_CPU);
         FX::ApplyBloom(*gBuffer.colorTexView, bloom.passes, bloom.strength, bloom.width,
@@ -979,7 +1088,7 @@ namespace GFX
       framebuffer->Bind();
 
       {
-        GFX::DebugMarker tonemappingMarker("Tone mapping");
+        DebugMarker tonemappingMarker("Tone mapping");
 
         const float logLowLum = glm::log(tonemap.targetLuminance / tonemap.maxExposure);
         const float logMaxLum = glm::log(tonemap.targetLuminance / tonemap.minExposure);
@@ -987,10 +1096,10 @@ namespace GFX
         const int computePixelsY = glm::ceil(GetRenderHeight() / 4.0f);
 
         {
-          //GFX::TimerQuery timerQuery;
-          GFX::DebugMarker marker("Generate luminance histogram");
+          //TimerQuery timerQuery;
+          DebugMarker marker("Generate luminance histogram");
           MEASURE_GPU_TIMER_STAT(LuminanceHistogram);
-          auto hshdr = GFX::ShaderManager::Get()->GetShader("generate_histogram");
+          auto hshdr = ShaderManager::GetShader("generate_histogram");
           hshdr->Bind();
           hshdr->SetInt("u_hdrBuffer", 1);
           hshdr->SetFloat("u_logLowLum", logLowLum);
@@ -999,7 +1108,7 @@ namespace GFX
           const int Y_SIZE = 8;
           int xgroups = (computePixelsX + X_SIZE - 1) / X_SIZE;
           int ygroups = (computePixelsY + Y_SIZE - 1) / Y_SIZE;
-          tonemap.histogramBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(0);
+          tonemap.histogramBuffer->Bind<Target::SHADER_STORAGE_BUFFER>(0);
           BindTextureView(1, *gBuffer.colorTexView, *defaultSampler);
           //BindTextureView(1, *composited[frameNumber % 2].compositedTexView, *defaultSampler);
           glDispatchCompute(xgroups, ygroups, 1);
@@ -1012,13 +1121,13 @@ namespace GFX
         //printf("Exposure: %f\n", expo);
 
         {
-          GFX::DebugMarker marker("Compute camera exposure");
+          DebugMarker marker("Compute camera exposure");
           MEASURE_GPU_TIMER_STAT(CameraExposure);
           //glGenerateTextureMipmap(color);
-          tonemap.exposureBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(0);
-          tonemap.histogramBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(1);
-          //floatBufferOut->Bind<GFX::Target::SSBO>(1);
-          auto cshdr = GFX::ShaderManager::Get()->GetShader("calc_exposure");
+          tonemap.exposureBuffer->Bind<Target::SHADER_STORAGE_BUFFER>(0);
+          tonemap.histogramBuffer->Bind<Target::SHADER_STORAGE_BUFFER>(1);
+          //floatBufferOut->Bind<Target::SSBO>(1);
+          auto cshdr = ShaderManager::GetShader("calc_exposure");
           cshdr->Bind();
           //cshdr->setFloat("u_targetLuminance", targetLuminance);
           cshdr->SetFloat("u_dt", glm::clamp(dt, 0.001f, 1.0f));
@@ -1031,10 +1140,10 @@ namespace GFX
           glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
         }
 
-        GFX::DebugMarker marker("Apply tone mapping");
+        DebugMarker marker("Apply tone mapping");
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         glViewport(0, 0, GetRenderWidth(), GetRenderHeight());
-        auto shdr = GFX::ShaderManager::Get()->GetShader("tonemap");
+        auto shdr = ShaderManager::GetShader("tonemap");
         glDepthMask(GL_FALSE);
         glDisable(GL_CULL_FACE);
         shdr->Bind();
@@ -1055,31 +1164,6 @@ namespace GFX
 
       glBindFramebuffer(GL_FRAMEBUFFER, 0);
       glViewport(0, 0, windowWidth, windowHeight);
-    }
-
-    GLFWwindow* const* Init()
-    {
-      window_ = InitContext();
-
-      InitVertexBuffers();
-      InitFramebuffers();
-      InitVertexLayouts();
-      CompileShaders();
-      InitTextures();
-
-      // enable debugging stuff
-      glEnable(GL_DEBUG_OUTPUT);
-      glDebugMessageCallback(GLerrorCB, NULL);
-      glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-      glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
-
-      GL_ResetState();
-
-      Console::Get()->RegisterCommand("showShaders", "- Lists all shader names", logShaderNames);
-      Console::Get()->RegisterCommand("recompile", "- Recompiles a named shader", recompileShader);
-      vsyncCvar.Set(0);
-
-      return &window_;
     }
 
     void InitFramebuffers()
@@ -1241,8 +1325,8 @@ namespace GFX
     void InitVertexBuffers()
     {
       // TODO: use dynamically sized buffer
-      vertexBuffer = std::make_unique<GFX::DynamicBuffer<>>(100'000'000, sizeof(Vertex));
-      indexBuffer = std::make_unique<GFX::DynamicBuffer<>>(100'000'000, sizeof(GLuint));
+      vertexBuffer = std::make_unique<DynamicBuffer<>>(100'000'000, sizeof(Vertex));
+      indexBuffer = std::make_unique<DynamicBuffer<>>(100'000'000, sizeof(GLuint));
 
       constexpr float indicatorVertices[] =
       {
@@ -1314,7 +1398,7 @@ namespace GFX
         "autumn_sky_hdr/pz.hdr",
         "autumn_sky_hdr/nz.hdr",
       };
-      env.skyboxMemory = GFX::LoadTextureCube(faces, 0, 0, true);
+      env.skyboxMemory = LoadTextureCube(faces, 0, 0, true);
       env.skyboxMemory->GenMipmaps();
       env.skyboxView = TextureView::Create(*env.skyboxMemory, "skycube view");
       SamplerState cubesamplerState{};
@@ -1324,23 +1408,23 @@ namespace GFX
       env.skyboxSampler = TextureSampler::Create(cubesamplerState, "skycube sampler");
 
       // init the reflection probe textures
-      GFX::TextureCreateInfo cubeMemInfo
+      TextureCreateInfo cubeMemInfo
       {
-        .imageType = GFX::ImageType::TEX_CUBEMAP,
+        .imageType = ImageType::TEX_CUBEMAP,
         .format = probeData.colorFormat,
         .extent = { probeData.imageSize.width, probeData.imageSize.height, 1 },
         .mipLevels = 1,
         .arrayLayers = 6
       };
       //cubeMemInfo.mipLevels = glm::floor(glm::log2(glm::max((float)cubeMemInfo.extent.width, (float)cubeMemInfo.extent.height))) + 1;
-      probeData.colorCube = GFX::Texture::Create(cubeMemInfo, "Cube Color");
+      probeData.colorCube = Texture::Create(cubeMemInfo, "Cube Color");
       probeData.colorCubeView = TextureView::Create(*probeData.colorCube, "Cube Color View");
 
       cubeMemInfo.format = probeData.depthFormat;
-      probeData.depthCube = GFX::Texture::Create(cubeMemInfo, "Cube Depth");
+      probeData.depthCube = Texture::Create(cubeMemInfo, "Cube Depth");
 
       cubeMemInfo.format = probeData.distanceFormat;
-      probeData.distanceCube = GFX::Texture::Create(cubeMemInfo, "Cube Depth Distance");
+      probeData.distanceCube = Texture::Create(cubeMemInfo, "Cube Depth Distance");
       probeData.distanceCubeView = TextureView::Create(*probeData.distanceCube, "Cube Depth Distance View");
 
       const glm::vec3 faceDirs[6] =
@@ -1352,30 +1436,30 @@ namespace GFX
         { 0, 0, 1 },
         { 0, 0, -1 }
       };
-      const GFX::Constants::CardinalNames upDirs[6] =
+      const Constants::CardinalNames upDirs[6] =
       {
-        GFX::Constants::CardinalNames::NegY,
-        GFX::Constants::CardinalNames::NegY,
-        GFX::Constants::CardinalNames::PosZ,
-        GFX::Constants::CardinalNames::NegZ,
-        GFX::Constants::CardinalNames::NegY,
-        GFX::Constants::CardinalNames::NegY,
+        Constants::CardinalNames::NegY,
+        Constants::CardinalNames::NegY,
+        Constants::CardinalNames::PosZ,
+        Constants::CardinalNames::NegZ,
+        Constants::CardinalNames::NegY,
+        Constants::CardinalNames::NegY,
       };
       for (uint32_t i = 0; i < 6; i++)
       {
-        GFX::TextureViewCreateInfo cubeViewInfo
+        TextureViewCreateInfo cubeViewInfo
         {
-          .viewType = GFX::ImageType::TEX_2D,
+          .viewType = ImageType::TEX_2D,
           .format = probeData.colorFormat,
           .minLevel = 0,
           .numLevels = 1,
           .minLayer = i,
           .numLayers = 1
         };
-        probeData.colorViews[i].emplace(*GFX::TextureView::Create(cubeViewInfo, *probeData.colorCube));
+        probeData.colorViews[i].emplace(*TextureView::Create(cubeViewInfo, *probeData.colorCube));
 
         cubeViewInfo.format = probeData.depthFormat;
-        probeData.depthViews[i].emplace(*GFX::TextureView::Create(cubeViewInfo, *probeData.depthCube));
+        probeData.depthViews[i].emplace(*TextureView::Create(cubeViewInfo, *probeData.depthCube));
 
         cubeViewInfo.format = probeData.distanceFormat;
         probeData.distanceViews[i].emplace(*TextureView::Create(cubeViewInfo, *probeData.distanceCube));
@@ -1499,124 +1583,6 @@ namespace GFX
       }
     }
 
-    void GL_ResetState()
-    {
-      // texture unit and sampler bindings (first 8, hopefully more than we'll ever need)
-      for (int i = 0; i < 8; i++)
-      {
-        glBindSampler(i, 0);
-        glBindTextureUnit(i, 0);
-      }
-      glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-
-      // triangle winding
-      glEnable(GL_CULL_FACE);
-      glCullFace(GL_BACK);
-      glFrontFace(GL_CCW);
-
-      // depth test
-      glEnable(GL_DEPTH_TEST);
-      glDepthMask(GL_TRUE);
-      glDepthFunc(GL_GEQUAL);
-
-      // blending
-      glEnable(GL_BLEND);
-      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-      glBlendEquation(GL_FUNC_ADD);
-
-      // buffer bindings
-      glBindBuffer(GL_ARRAY_BUFFER, 0);
-      glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, 0);
-      glBindBuffer(GL_DISPATCH_INDIRECT_BUFFER, 0);
-      glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
-      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-      glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-      glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
-      // vertex array binding
-      glBindVertexArray(0);
-
-      // shader program binding
-      glUseProgram(0);
-
-      // viewport+clipping
-      glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
-
-      // rasterizer
-      glLineWidth(1.0f);
-      glPointSize(1.0f);
-      glDisable(GL_SCISSOR_TEST);
-      glViewport(0, 0, GetRenderWidth(), GetRenderHeight());
-      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-      // framebuffer
-      glClearDepth(0.0);
-      glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-      gBuffer.fbo->Bind();
-    }
-
-    GLFWwindow* InitContext()
-    {
-      if (!glfwInit())
-      {
-        return nullptr;
-      }
-
-      glfwSetErrorCallback([](int, const char* description)
-        {
-          spdlog::error("GLFW error: {}", description);
-        });
-
-      glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-      glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-      glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-      glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
-      glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
-
-      const GLFWvidmode* videoMode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-      // set the window dims here, although it won't necessarily be what we get
-      windowWidth = videoMode->width;
-      windowHeight = videoMode->height;
-
-      //CreateWindow(true);
-      CreateWindow(isFullscreen);
-
-      if (!window_)
-      {
-        spdlog::critical("Failed to create GLFW window");
-      }
-
-      glfwMakeContextCurrent(window_);
-      glfwSetFramebufferSizeCallback(window_, [](GLFWwindow*, int width, int height)
-        {
-          Renderer::SetFramebufferSize(static_cast<uint32_t>(width), static_cast<uint32_t>(height));
-        });
-
-      // load OpenGL function pointers
-      if (!gladLoadGL())
-      {
-        spdlog::critical("Failed to initialize GLAD");
-      }
-
-      // query all available extensions
-      openglExtensions.clear();
-      GLint extensionCount = 0;
-      glGetIntegerv(GL_NUM_EXTENSIONS, &extensionCount);
-      for (int i = 0; i < extensionCount; i++)
-      {
-        // spoopy
-        openglExtensions.push_back(reinterpret_cast<const char*>(glGetStringi(GL_EXTENSIONS, i)));
-      }
-
-      Console::Get()->Log("%zu OpenGL extensions supported", openglExtensions.size());
-      //for (const auto& extension : openglExtensions)
-      //{
-      //  Console::Get()->Log("%s", extension.c_str());
-      //}
-
-      return window_;
-    }
-
     // call when the window needs to be recreated, like when full screen mode is toggled
     GLFWwindow* CreateWindow(bool fullscreen)
     {
@@ -1670,6 +1636,31 @@ namespace GFX
       reflect.fboSize.width = glm::max(static_cast<uint32_t>(renderWidth * scale), 1u);
       reflect.fboSize.height = glm::max(static_cast<uint32_t>(renderHeight * scale), 1u);
       InitReflectionFramebuffer();
+    }
+
+    GLFWwindow* const* Init()
+    {
+      window_ = InitContext();
+
+      InitVertexBuffers();
+      InitFramebuffers();
+      InitVertexLayouts();
+      CompileShaders();
+      InitTextures();
+
+      // enable debugging stuff
+      glEnable(GL_DEBUG_OUTPUT);
+      glDebugMessageCallback(GLerrorCB, NULL);
+      glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+      glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+
+      GL_ResetState();
+
+      Console::Get()->RegisterCommand("showShaders", "- Lists all shader names", logShaderNames);
+      Console::Get()->RegisterCommand("recompile", "- Recompiles a named shader", recompileShader);
+      vsyncCvar.Set(0);
+
+      return &window_;
     }
   }
 

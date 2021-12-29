@@ -194,7 +194,7 @@ namespace Voxels
 
   void ChunkRenderer::DrawBuffers(std::span<GFX::RenderView*> renderViews)
   {
-    auto sdr = GFX::ShaderManager::Get()->GetShader("buffer_vis");
+    auto sdr = GFX::ShaderManager::GetShader("buffer_vis");
     sdr->Bind();
     glm::mat4 model(1);
     model = glm::scale(model, { 1, 1, 1 });
@@ -266,7 +266,7 @@ namespace Voxels
     glBlendFunc(GL_ONE, GL_ZERO);
 
     // render blocks in each active chunk
-    auto currShader = GFX::ShaderManager::Get()->GetShader("chunk_optimized");
+    auto currShader = GFX::ShaderManager::GetShader("chunk_optimized");
     currShader->Bind();
 
     currShader->SetFloat("u_minBrightness", u_minBrightness);
@@ -336,7 +336,7 @@ namespace Voxels
     if (freezeCullingCVar.Get())
       return;
 
-    auto sdr = GFX::ShaderManager::Get()->GetShader("compact_batch");
+    auto sdr = GFX::ShaderManager::GetShader("compact_batch");
     sdr->Bind();
     sdr->SetFloat("u_cullMinDist", cullDistanceMinCVar.Get());
     sdr->SetFloat("u_cullMaxDist", cullDistanceMaxCVar.Get());
@@ -422,7 +422,7 @@ namespace Voxels
 
     const bool drawOcclusion = drawOcclusionVolumesCVar.Get() != 0.0;
 
-    auto sr = GFX::ShaderManager::Get()->GetShader("chunk_render_cull");
+    auto sr = GFX::ShaderManager::GetShader("chunk_render_cull");
     sr->Bind();
     sr->SetUInt("u_chunk_size", Chunk::CHUNK_SIZE);
     sr->SetBool("u_debugDraw", drawOcclusion);

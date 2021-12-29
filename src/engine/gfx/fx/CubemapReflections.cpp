@@ -8,23 +8,23 @@ namespace GFX::FX
 {
   void CompileReflectionShaders()
   {
-    ShaderManager::Get()->AddShader("specular_cube_trace",
+    ShaderManager::AddShader("specular_cube_trace",
       {
         { "reflections/specular_cube_trace.cs.glsl", ShaderType::COMPUTE }
       });
-    ShaderManager::Get()->AddShader("specular_cube_sample",
+    ShaderManager::AddShader("specular_cube_sample",
       {
         { "reflections/specular_cube_sample.cs.glsl", ShaderType::COMPUTE }
       });
-    ShaderManager::Get()->AddShader("unproject_depth",
+    ShaderManager::AddShader("unproject_depth",
       {
         { "reflections/unproject_depth.cs.glsl", ShaderType::COMPUTE }
       });
-    ShaderManager::Get()->AddShader("specular_composite",
+    ShaderManager::AddShader("specular_composite",
       {
         { "reflections/specular_composite.cs.glsl", ShaderType::COMPUTE }
       });
-    ShaderManager::Get()->AddShader("atrous_reflection",
+    ShaderManager::AddShader("atrous_reflection",
       {
         { "reflections/denoise_atrous.cs.glsl", ShaderType::COMPUTE }
       });
@@ -41,7 +41,7 @@ namespace GFX::FX
     p.common.scratchSampler.SetState(samplerState);
 
     Extent2D targetDim = p.target.Extent();
-    auto shader = ShaderManager::Get()->GetShader("specular_cube_sample");
+    auto shader = ShaderManager::GetShader("specular_cube_sample");
     shader->Bind();
 
     shader->SetMat4("u_invProj", glm::inverse(p.common.camera.proj));
@@ -81,7 +81,7 @@ namespace GFX::FX
     // read each face of the cube depth, unproject to get the distance to the camera, and write it to an RXX_FLOAT cube texture face
     {
       Extent2D targetDim = p.distanceViews[0]->Extent();
-      auto shader = ShaderManager::Get()->GetShader("unproject_depth");
+      auto shader = ShaderManager::GetShader("unproject_depth");
       shader->Bind();
 
       const int local_sizeaaa = 16;
@@ -101,7 +101,7 @@ namespace GFX::FX
     {
       Extent2D targetDim = p.target.Extent();
 
-      auto shader = ShaderManager::Get()->GetShader("specular_cube_trace");
+      auto shader = ShaderManager::GetShader("specular_cube_trace");
       shader->Bind();
       shader->SetMat4("u_invProj", glm::inverse(p.common.camera.proj));
       shader->SetMat4("u_invView", glm::inverse(p.common.camera.viewInfo.GetViewMatrix()));
@@ -142,7 +142,7 @@ namespace GFX::FX
     BindTextureView(2, p.common.gbNormal, p.common.scratchSampler);
     BindTextureView(3, p.common.gbPBR, p.common.scratchSampler);
 
-    auto shader = ShaderManager::Get()->GetShader("atrous_reflection");
+    auto shader = ShaderManager::GetShader("atrous_reflection");
     shader->Bind();
     shader->SetFloat("u_nPhi", p.atrousParams.nPhi);
     shader->SetFloat("u_pPhi", p.atrousParams.pPhi);
@@ -190,7 +190,7 @@ namespace GFX::FX
     samplerState.asBitField.minFilter = Filter::NEAREST;
     p.common.scratchSampler.SetState(samplerState);
 
-    auto shader = ShaderManager::Get()->GetShader("specular_composite");
+    auto shader = ShaderManager::GetShader("specular_composite");
     shader->Bind();
     shader->SetMat4("u_invProj", glm::inverse(p.common.camera.proj));
     shader->SetMat4("u_invView", glm::inverse(p.common.camera.viewInfo.GetViewMatrix()));

@@ -42,20 +42,6 @@ void GraphicsSystem::StartFrame(Scene& scene)
   auto renderViews = scene.GetRenderViews();
   GFX::Renderer::StartFrame();
   GFX::Renderer::ClearFramebuffers(renderViews);
-
-  ImGui::Begin("Graphics");
-  ImGui::Text("Loaded Meshes");
-  for (const auto& [id, info] : MeshManager::handleMap_)
-  {
-    ImGui::Text("%s, ID: %u", id.data(), id.value());
-  }
-  ImGui::Separator();
-  ImGui::Text("Loaded Materials");
-  for (const auto& [id, info] : GFX::MaterialManager::Get()->materials_)
-  {
-    ImGui::Text("ID: %u", id);
-  }
-  ImGui::End();
 }
 
 void GraphicsSystem::DrawOpaque(Scene& scene)

@@ -88,7 +88,7 @@ void OnStart(Scene* scene)
     .viewSamplers = {{std::move(*view), std::move(*sampler)}},
     .materialUniforms = { uniformData },
   };
-  GFX::MaterialID batchMaterial = GFX::MaterialManager::Get()->AddMaterial("batchMaterial", info);
+  GFX::MaterialID batchMaterial = GFX::MaterialManager::AddMaterial("batchMaterial", info);
 
   // add game manager entity
   {
@@ -184,7 +184,7 @@ void OnStart(Scene* scene)
       //parent.AddComponent<Components::Mesh>().meshHandle = bunny;
       //parent.AddComponent<Components::Material>(userMaterial);
       parent.AddComponent<Component::BatchedMesh>().handle = MeshManager::GetMeshBatched("big_cube");
-      parent.AddComponent<Component::Material>(GFX::MaterialManager::Get()->GetMaterial("batchMaterial"));
+      parent.AddComponent<Component::Material>(GFX::MaterialManager::GetMaterial("batchMaterial"));
 
       for (int i = 0; i < 1000; i++)
       {
@@ -244,7 +244,7 @@ void OnStart(Scene* scene)
         glm::vec3 scale{ 1, .4f, glm::clamp(1 + i * (.02f), .1f, 10.f) };
         entity.GetComponent<Component::Transform>().SetScale(scale);
         entity.AddComponent<Component::BatchedMesh>().handle = MeshManager::GetMeshBatched("big_cube");
-        entity.AddComponent<Component::Material>().handle = GFX::MaterialManager::Get()->GetMaterial("batchMaterial");
+        entity.AddComponent<Component::Material>().handle = GFX::MaterialManager::GetMaterial("batchMaterial");
         entity.AddComponent<Component::Model>();
         entity.AddComponent<Component::InterpolatedPhysics>();
         auto collider = Physics::BoxCollider(scale * .5f);

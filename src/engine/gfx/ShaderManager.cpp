@@ -371,86 +371,68 @@ namespace GFX
     //printf("Shader: %s\n", name.data());
     glObjectLabel(GL_PROGRAM, shader.id, -1, name.data());
 
-    //storage->shaders.emplace(name, std::move(shader));
-    //auto& shr = storage->shaders[name];
+    //shaders_.emplace(name, std::move(shader));
+    //auto& shr = shaders_[name];
     //return Shader(shr.uniformIDs, shr.id);
     return shader;
   }
 
 
-
-  struct ShaderManagerStorage
+  namespace ShaderManager
   {
-    std::unordered_map<uint32_t, ShaderData> shaders;
-  };
+    static std::unordered_map<uint32_t, ShaderData> shaders_;
 
-
-  ShaderManager* ShaderManager::Get()
-  {
-    static ShaderManager manager;
-    return &manager;
-  }
-
-  ShaderManager::ShaderManager()
-  {
-    storage = new ShaderManagerStorage;
-  }
-
-  ShaderManager::~ShaderManager()
-  {
-    delete storage;
-  }
-
-  std::optional<Shader> ShaderManager::AddShader(hashed_string name, const std::vector<ShaderCreateInfo>& createInfos)
-  {
-    auto data = CompileProgram(name, createInfos);
-    if (data.id != 0 && !storage->shaders.contains(name))
+    std::optional<Shader> AddShader(hashed_string name, const std::vector<ShaderCreateInfo>& createInfos)
     {
-      auto it = storage->shaders.emplace(name, std::move(data));
-      return Shader(it.first->second.uniformIDs, it.first->second.id);
-    }
-    return std::nullopt;
-  }
-
-  std::optional<Shader> ShaderManager::GetShader(hashed_string name)
-  {
-    if (auto it = storage->shaders.find(name); it != storage->shaders.end())
-      return Shader(it->second.uniformIDs, it->second.id);
-    ASSERT(false);
-    return std::nullopt;
-  }
-
-  std::optional<Shader> ShaderManager::RecompileShader(hashed_string name)
-  {
-    auto it = storage->shaders.find(name);
-    if (it == storage->shaders.end())
-    {
+      auto data = CompileProgram(name, createInfos);
+      if (data.id != 0 && !shaders_.contains(name))
+      {
+        auto it = shaders_.emplace(name, std::move(data));
+        return Shader(it.first->second.uniformIDs, it.first->second.id);
+      }
       return std::nullopt;
     }
 
-    auto data = CompileProgram(name, it->second.createInfos);
-    if (data.id == 0) // compile failed
+    std::optional<Shader> GetShader(hashed_string name)
     {
+      if (auto it = shaders_.find(name); it != shaders_.end())
+        return Shader(it->second.uniformIDs, it->second.id);
+      ASSERT(false);
       return std::nullopt;
     }
 
-    glDeleteProgram(it->second.id);
-    auto createInfos = it->second.createInfos;
-    storage->shaders.erase(it);
-
-    auto it2 = storage->shaders.emplace(name, std::move(data));
-    return Shader(it2.first->second.uniformIDs, it2.first->second.id);
-  }
-
-
-  std::vector<std::string> ShaderManager::GetAllShaderNames()
-  {
-    std::vector<std::string> names;
-    names.reserve(storage->shaders.size());
-    for (const auto& [id, data] : storage->shaders)
+    std::optional<Shader> RecompileShader(hashed_string name)
     {
-      names.push_back(data.name);
+      auto it = shaders_.find(name);
+      if (it == shaders_.end())
+      {
+        return std::nullopt;
+      }
+
+      auto data = CompileProgram(name, it->second.createInfos);
+      if (data.id == 0) // compile failed
+      {
+        return std::nullopt;
+      }
+
+      glDeleteProgram(it->second.id);
+      auto createInfos = it->second.createInfos;
+      shaders_.erase(it);
+
+      auto it2 = shaders_.emplace(name, std::move(data));
+      return Shader(it2.first->second.uniformIDs, it2.first->second.id);
     }
-    return names;
+
+
+    std::vector<std::string> GetAllShaderNames()
+    {
+      std::vector<std::string> names;
+      names.reserve(shaders_.size());
+      for (const auto& [id, data] : shaders_)
+      {
+        names.push_back(data.name);
+      }
+      return names;
+    }
   }
 }

@@ -8,13 +8,13 @@ namespace GFX::FX
 {
   void CompileBloomShaders()
   {
-    GFX::ShaderManager::Get()->AddShader("bloom/downsampleLowPass",
+    ShaderManager::AddShader("bloom/downsampleLowPass",
       { { "bloom/downsampleLowPass.cs.glsl", GFX::ShaderType::COMPUTE } });
 
-    GFX::ShaderManager::Get()->AddShader("bloom/downsample",
+    ShaderManager::AddShader("bloom/downsample",
       { { "bloom/downsample.cs.glsl", GFX::ShaderType::COMPUTE } });
 
-    GFX::ShaderManager::Get()->AddShader("bloom/upsample",
+    ShaderManager::AddShader("bloom/upsample",
       { { "bloom/upsample.cs.glsl", GFX::ShaderType::COMPUTE } });
   }
 
@@ -34,8 +34,8 @@ namespace GFX::FX
     samplerState.maxLod = 1000;
     scratchSampler.SetState(samplerState);
 
-    auto downsampleLowPass = GFX::ShaderManager::Get()->GetShader("bloom/downsampleLowPass");
-    auto downsample = GFX::ShaderManager::Get()->GetShader("bloom/downsample");
+    auto downsampleLowPass = ShaderManager::GetShader("bloom/downsampleLowPass");
+    auto downsample = ShaderManager::GetShader("bloom/downsample");
 
     const int local_size = 16;
     for (uint32_t i = 0; i < passes; i++)
@@ -80,7 +80,7 @@ namespace GFX::FX
       glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
     }
 
-    auto us = GFX::ShaderManager::Get()->GetShader("bloom/upsample");
+    auto us = ShaderManager::GetShader("bloom/upsample");
     us->Bind();
     for (int32_t i = passes - 1; i >= 0; i--)
     {

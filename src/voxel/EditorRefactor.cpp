@@ -189,7 +189,7 @@ void Editor::DrawSelection(std::span<GFX::RenderView*> renderViews)
     glm::mat4 tPos = glm::translate(glm::mat4(1), pos + .5f);
     glm::mat4 tScale = glm::scale(glm::mat4(1), scale + 1.f);
 
-    auto curr = GFX::ShaderManager::Get()->GetShader("flat_color");
+    auto curr = GFX::ShaderManager::GetShader("flat_color");
     curr->Bind();
     curr->SetMat4("u_model", tPos * tScale);
     curr->SetVec4("u_color", glm::vec4(1.f, .3f, 1.f, 1.f));
