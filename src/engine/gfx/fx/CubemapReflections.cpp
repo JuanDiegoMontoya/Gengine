@@ -157,7 +157,7 @@ namespace GFX::FX
 
     for (uint32_t i = 0; i < p.atrousParams.passes; i++)
     {
-      float offsets2[5];
+      float offsets2[5]{};
       for (int j = 0; j < 5; j++)
       {
         offsets2[j] = p.atrousParams.offsets[j] * glm::pow(2.0f, i);
@@ -188,6 +188,7 @@ namespace GFX::FX
     SamplerState samplerState{};
     samplerState.asBitField.magFilter = Filter::NEAREST;
     samplerState.asBitField.minFilter = Filter::NEAREST;
+    samplerState.asBitField.mipmapFilter = Filter::NONE;
     p.common.scratchSampler.SetState(samplerState);
 
     auto shader = ShaderManager::GetShader("specular_composite");

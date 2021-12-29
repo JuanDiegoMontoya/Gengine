@@ -37,18 +37,6 @@ layout(location = 13) uniform float skyboxFadeBegin = 0.90;
 
 layout(binding = 0) uniform restrict writeonly image2D i_target;
 
-
-
-float CalcLod(uint samples, vec3 N, vec3 H, float roughness, ivec2 textureDim)
-{
-  float dist = D_GGX(N, H, roughness);
-  return 0.5 * (log2(float(textureDim.x * textureDim.y) / samples) - log2(dist));
-}
-
-
-
-
-
 vec3 CalcMissReflection(vec3 dir, float lod)
 {
   return textureLod(s_skyboxCube, dir, lod).rgb;
@@ -114,6 +102,7 @@ float TraceCubemap(vec3 rayStart, vec3 N, vec3 V, vec3 reflectDir, out vec3 cube
   }
 
   // miss
+  cubeHit = vec3(0.0, 1.0, 0.0);
   return 0.0;
 }
 
@@ -124,41 +113,34 @@ vec3 ComputeSpecularIrradiance(vec3 rayStart, vec3 N, vec3 V, vec3 F0, float rou
 
   vec3 accumColor = vec3(0.0);
   
-  const uint samples = u_samples;
-  for (uint i = 0; i < samples; i++)
+  ivec2 texel = gid % ivec2(textureSize(s_blueNoise, 0));
+  vec2 Xi = min(texelFetch(s_blueNoise, texel, 0).xy, vec2(0.99));
+  vec3 H = ImportanceSampleGGX(Xi, N, roughness);
+  vec3 L;
+  if (roughness > 0.03)
+    L = normalize(reflect(V, H));
+  else
+    L = reflect(V, N);
+
+  float NoH = abs(dot(N, H));
+  float VoH = abs(dot(V, H));
+  vec3 F = fresnelSchlick(VoH, F0);
+
+  vec3 cubeHit = vec3(0.0);
+  float cameraBlend = smoothstep(u_cameraFadeEnd, u_cameraFadeBegin, distance(rayStart, u_viewPos));
+  float rayBlend = TraceCubemap(rayStart, N, V, L, cubeHit);
+  vec3 hitSample = vec3(0.0);
+  if (rayBlend != 0.0)
   {
-    ivec2 texel = gid % ivec2(textureSize(s_blueNoise, 0));
-    vec2 Xi = min(texelFetch(s_blueNoise, texel, 0).xy, vec2(0.99));
-    vec3 H = ImportanceSampleGGX(Xi, N, roughness);
-    vec3 L;
-    if (roughness > 0.03)
-      L = normalize(reflect(V, H));
-    else
-      L = reflect(V, N);
-    float lod = CalcLod(samples, N, H, roughness, textureSize(s_skyboxCube, 0));
-    //float lod = 0;
-
-    float NoH = abs(dot(N, H));
-    float VoH = abs(dot(V, H));
-    vec3 F = fresnelSchlick(VoH, F0);
-
-    vec3 cubeHit;
-    float cameraBlend = smoothstep(u_cameraFadeEnd, u_cameraFadeBegin, distance(rayStart, u_viewPos));
-    float rayBlend = TraceCubemap(rayStart, N, V, L, cubeHit);
-    vec3 hitSample = vec3(0.0);
-    if (rayBlend > 0.01)
-    {
-      hitSample = CalcHitReflection(cubeHit, 0);
-    }
-    vec3 missSample = CalcMissReflection(L, 0);
-    float blend = cameraBlend * rayBlend;
-    vec3 lColor = mix(missSample, hitSample, blend);
-
-    accumColor += F * lColor * VoH / (NoH * NoV);
-    //accumColor += lColor;
+    hitSample = CalcHitReflection(cubeHit, 0);
   }
+  vec3 missSample = CalcMissReflection(L, 0);
+  float blend = cameraBlend * rayBlend;
+  vec3 lColor = mix(missSample, hitSample, blend);
 
-  return accumColor / float(samples);
+  accumColor += F * lColor * VoH / (NoH * NoV);
+
+  return accumColor;
 }
 
 void main()
@@ -187,12 +169,9 @@ void main()
   vec3 diffuse = textureLod(s_gBufferDiffuse, uv, 0).rgb;
 
   vec3 N = textureLod(s_gBufferNormal, uv, 0).xyz;
-  //vec3 vpos = gBufferWorldPos - u_viewPos;
-  //vec3 N = normalize(cross(dFdxFine(vpos), dFdyFine(vpos)));
   vec3 V = normalize(gBufferWorldPos - u_viewPos);
 
   vec3 F0 = mix(vec3(0.04), diffuse, metalness);
 
   imageStore(i_target, gid, ComputeSpecularIrradiance(gBufferWorldPos, N, V, F0, min(roughness, 0.10)).rgbb);
-  //o_specularIrradiance.rgb = o_specularIrradiance.rgb * .00001 + (N * .5 + .5);
 }
