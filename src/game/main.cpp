@@ -16,6 +16,7 @@
 #include <engine/gfx/TextureLoader.h>
 
 #include <utility/MathExtensions.h>
+#include <utility/Timer.h>
 #include <glm/gtc/type_ptr.hpp>
 
 // eh

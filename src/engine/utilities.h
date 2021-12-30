@@ -1,7 +1,10 @@
 #pragma once
 // TODO: refactor
 #include <ostream>
-#include <glm/glm.hpp>
+#include <glm/vec2.hpp>
+#include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
+#include <glm/mat4x4.hpp>
 #include <utility/Flags.h>
 #include <utility/HashedString.h>
 

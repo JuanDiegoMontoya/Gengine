@@ -1,12 +1,7 @@
 #pragma once
-#include <map>
 #include <span>
-
-#include "api/DynamicBuffer.h"
-#include "api/Indirect.h"
-#include "RenderView.h"
-#include "Camera.h"
 #include "Mesh.h"
+#include "api/BasicTypes.h"
 
 namespace Component
 {
@@ -21,6 +16,11 @@ struct GLFWwindow;
 
 namespace GFX
 {
+  struct RenderView;
+  struct RenderInfo;
+  struct RenderMask;
+  class Framebuffer;
+
   namespace Renderer
   {
     GLFWwindow* const* Init();
@@ -52,8 +52,6 @@ namespace GFX
     [[nodiscard]] RenderView* GetMainRenderView();
     [[nodiscard]] RenderView* GetProbeRenderView(size_t index);
     [[nodiscard]] Extent2D GetWindowDimensions();
-
-    [[nodiscard]] std::map<uint32_t, DrawElementsIndirectCommand>* GetMeshBufferInfos();
 
     [[nodiscard]] float GetWindowAspectRatio();
 

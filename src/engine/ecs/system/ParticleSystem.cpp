@@ -1,5 +1,8 @@
 #include "../../PCH.h"
 
+#include <glad/glad.h>
+#include <utility/Timer.h>
+
 #include <execution>
 #include <algorithm>
 #include <bit>
@@ -21,6 +24,7 @@
 #include <engine/gfx/api/Indirect.h>
 #include <engine/gfx/api/Fence.h>
 #include <engine/gfx/Camera.h>
+#include <engine/gfx/RenderView.h>
 
 #define LOG_EMITTER_UPDATE_TIME 0
 #define LOG_PARTICLE_UPDATE_TIME 0

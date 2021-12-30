@@ -6,6 +6,7 @@
 #include "ecs/component/Core.h"
 #include "ecs/component/Transform.h"
 #include <engine/gfx/Renderer.h>
+#include <engine/gfx/RenderView.h>
 
 // https://www.codeproject.com/Tips/5255442/Cplusplus14-20-Heterogeneous-Lookup-Benchmark
 struct MyEqual : public std::equal_to<>

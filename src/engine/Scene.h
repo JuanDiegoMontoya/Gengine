@@ -1,12 +1,16 @@
 #pragma once
 #include <string_view>
 #include <entt/fwd.hpp>
-#include <engine/gfx/RenderView.h>
 #include <utility/HashedString.h>
 #include <vector>
 
 class Entity;
 class Engine;
+
+namespace GFX
+{
+  struct RenderView;
+}
 
 class Scene
 {

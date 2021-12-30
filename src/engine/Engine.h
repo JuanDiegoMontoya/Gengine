@@ -2,7 +2,6 @@
 #include "Scene.h"
 #include "Timestep.h"
 #include <memory>
-#include <engine/gfx/RenderView.h>
 
 class GraphicsSystem;
 class DebugSystem;

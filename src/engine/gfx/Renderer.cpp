@@ -23,6 +23,8 @@
 #include <iostream>
 #include <vector>
 #include <array>
+#include <map>
+
 #include "../CVar.h"
 #include "../Console.h"
 #include "../Parser.h"
@@ -31,6 +33,9 @@
 #include "api/Texture.h"
 #include "api/Framebuffer.h"
 #include "api/LinearBufferAllocator.h"
+#include "api/Indirect.h"
+
+#include "RenderView.h"
 
 #include "fx/FXAA.h"
 #include "fx/Bloom.h"
