@@ -2,7 +2,7 @@
 #include <glad/glad.h>
 #include <voxel/HUDRefactor.h>
 #include <engine/Input.h>
-#include <engine/gfx/ShaderManager.h>
+#include <engine/gfx/resource/ShaderManager.h>
 #include <engine/gfx/Renderer.h>
 #include <imgui/imgui.h>
 

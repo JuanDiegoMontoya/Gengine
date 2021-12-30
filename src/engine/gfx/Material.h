@@ -1,11 +1,9 @@
 #pragma once
-#include <vector>
-#include <unordered_map>
-#include <functional>
-#include <optional>
 #include <utility/HashedString.h>
-#include "api/Texture.h"
 #include "api/Shader.h"
+#include "api/Texture.h"
+#include <vector>
+#include <functional>
 
 namespace GFX
 {
@@ -24,12 +22,5 @@ namespace GFX
     hashed_string shaderID;
     std::vector<std::pair<GFX::TextureView, GFX::TextureSampler>> viewSamplers;
     std::vector<PerMaterialUniformData> materialUniforms;
-  };
-
-  namespace MaterialManager
-  {
-    MaterialID AddMaterial(hashed_string name, const MaterialCreateInfo& materialInfo);
-    [[nodiscard]] MaterialID GetMaterial(hashed_string name);
-    std::optional<MaterialCreateInfo> GetMaterialInfo(MaterialID mat);
   };
 }

@@ -1,7 +1,7 @@
 #include "../../PCH.h"
 #include "Fog.h"
 #include <glad/glad.h>
-#include "../ShaderManager.h"
+#include <engine/gfx/resource/ShaderManager.h>
 
 namespace GFX::FX
 {

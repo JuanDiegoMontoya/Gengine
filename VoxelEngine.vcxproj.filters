@@ -14,14 +14,11 @@
     <ClInclude Include="src\engine\ecs\system\PhysicsSystem.h" />
     <ClInclude Include="src\engine\ecs\system\ScriptSystem.h" />
     <ClInclude Include="src\engine\ecs\Entity.h" />
-    <ClInclude Include="src\engine\gfx\AssimpUtils.h" />
     <ClInclude Include="src\engine\gfx\Frustum.h" />
-    <ClInclude Include="src\engine\gfx\Material.h" />
+    <ClInclude Include="src\engine\gfx\resource\MaterialManager.h" />
     <ClInclude Include="src\engine\gfx\Mesh.h" />
     <ClInclude Include="src\engine\gfx\Renderer.h" />
-    <ClInclude Include="src\engine\gfx\ShaderManager.h" />
     <ClInclude Include="src\engine\gfx\TextureLoader.h" />
-    <ClInclude Include="src\engine\gfx\TextureManager.h" />
     <ClInclude Include="src\engine\Application.h" />
     <ClInclude Include="src\engine\Console.h" />
     <ClInclude Include="src\engine\CVar.h" />
@@ -158,6 +155,10 @@
     <ClInclude Include="src\engine\gfx\fx\CubemapReflections.h" />
     <ClInclude Include="src\engine\gfx\fx\Fog.h" />
     <ClInclude Include="src\engine\gfx\api\LinearBufferAllocator.h" />
+    <ClInclude Include="src\engine\gfx\resource\MeshManager.h" />
+    <ClInclude Include="src\engine\gfx\resource\ShaderManager.h" />
+    <ClInclude Include="src\engine\gfx\resource\TextureManager.h" />
+    <ClInclude Include="src\engine\gfx\Material.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\engine\ecs\system\DebugSystem.cpp" />
@@ -168,12 +169,10 @@
     <ClCompile Include="src\engine\ecs\system\ScriptSystem.cpp" />
     <ClCompile Include="src\engine\ecs\Entity.cpp" />
     <ClCompile Include="src\engine\gfx\Frustum.cpp" />
-    <ClCompile Include="src\engine\gfx\Material.cpp" />
+    <ClCompile Include="src\engine\gfx\resource\MaterialManager.cpp" />
     <ClCompile Include="src\engine\gfx\Mesh.cpp" />
     <ClCompile Include="src\engine\gfx\Renderer.cpp" />
-    <ClCompile Include="src\engine\gfx\ShaderManager.cpp" />
     <ClCompile Include="src\engine\gfx\TextureLoader.cpp" />
-    <ClCompile Include="src\engine\gfx\TextureManager.cpp" />
     <ClCompile Include="src\engine\Application.cpp" />
     <ClCompile Include="src\engine\Console.cpp" />
     <ClCompile Include="src\engine\CVar.cpp" />
@@ -230,6 +229,10 @@
     <ClCompile Include="src\engine\gfx\fx\CubemapReflections.cpp" />
     <ClCompile Include="src\engine\gfx\fx\Fog.cpp" />
     <ClCompile Include="src\engine\gfx\api\LinearBufferAllocator.cpp" />
+    <ClCompile Include="src\engine\gfx\resource\MeshManager.cpp" />
+    <ClCompile Include="src\engine\gfx\resource\ShaderManager.cpp" />
+    <ClCompile Include="src\engine\gfx\resource\TextureManager.cpp" />
+    <ClCompile Include="src\engine\gfx\Material.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="src\utility\Palette.inl" />

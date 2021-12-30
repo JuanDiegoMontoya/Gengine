@@ -10,6 +10,7 @@
 #include <memory>
 #include <optional>
 #include <span>
+#include <execution>
 
 #include <cstdlib>
 #include <cstdio>
@@ -25,6 +26,8 @@
 #include <glm/exponential.hpp>
 #include <glm/common.hpp>
 #include <glm/geometric.hpp>
+#include <glm/gtx/norm.hpp>
+#include <glm/gtx/quaternion.hpp>
 
 #include <utility/HashedString.h>
 #include "GAssert.h"

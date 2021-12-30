@@ -1,6 +1,6 @@
 #include "../../PCH.h"
 #include "CubemapReflections.h"
-#include "../ShaderManager.h"
+#include <engine/gfx/resource/ShaderManager.h>
 #include "../../GAssert.h"
 #include <glad/glad.h>
 

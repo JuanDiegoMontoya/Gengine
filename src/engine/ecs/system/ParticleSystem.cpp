@@ -6,7 +6,8 @@
 #include <memory>
 #include <unordered_map>
 
-#include <engine/gfx/ShaderManager.h>
+#include <engine/gfx/resource/ShaderManager.h>
+#include <engine/gfx/resource/TextureManager.h>
 
 #include "ParticleSystem.h"
 #include "../../Scene.h"
@@ -17,7 +18,6 @@
 #include "../component/Transform.h"
 #include <engine/gfx/api/Buffer.h>
 #include <engine/gfx/api/DebugMarker.h>
-#include <engine/gfx/TextureManager.h>
 #include <engine/gfx/api/Indirect.h>
 #include <engine/gfx/api/Fence.h>
 #include <engine/gfx/Camera.h>
@@ -309,7 +309,7 @@ uint64_t ParticleManager::MakeParticleEmitter(uint32_t maxp, const GFX::TextureV
 
 uint64_t ParticleManager::MakeParticleEmitter(uint32_t maxp, hashed_string textureName)
 {
-  GFX::Texture* texture = GFX::TextureManager::Get()->GetTexture(textureName);
+  GFX::Texture* texture = GFX::TextureManager::GetTexture(textureName);
   if (!texture)
   {
     return 0;

@@ -4,7 +4,7 @@
 #include <engine/Input.h>
 #include <engine/gfx/Camera.h>
 #include <engine/gfx/api/Framebuffer.h>
-#include <engine/gfx/ShaderManager.h>
+#include <engine/gfx/resource/ShaderManager.h>
 #include <engine/gfx/Renderer.h>
 #include <engine/Scene.h>
 #include <game/PlayerActions.h>

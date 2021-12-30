@@ -1,13 +1,14 @@
 #include "gPCH.h"
 #include <game/PlayerActions.h>
 #include <imgui/imgui.h>
-#include <engine/gfx/Mesh.h>
+#include <engine/gfx/resource/MeshManager.h>
+#include <engine/gfx/resource/MaterialManager.h>
 #include <engine/Input.h>
 #include <game/FlyingPlayerController.h>
 #include <game/KinematicPlayerController.h>
 #include <engine/Engine.h>
 #include <engine/ecs/system/ParticleSystem.h>
-#include <engine/gfx/TextureManager.h>
+#include <engine/gfx/resource/TextureManager.h>
 #include <engine/gfx/RenderView.h>
 #include <engine/gfx/Camera.h>
 

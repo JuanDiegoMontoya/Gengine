@@ -1,5 +1,4 @@
 #pragma once
-#include <string_view>
 #include <vector>
 
 namespace GFX
@@ -18,13 +17,5 @@ namespace GFX
 	{
 		std::vector<Vertex> vertices;
 		std::vector<Index> indices;
-	};
-
-	namespace MeshManager
-	{
-		MeshID CreateMeshBatched(std::string_view filename, hashed_string name);
-		MeshID GetMeshBatched(hashed_string name);
-
-		// TODO: function(s) to load skeletal meshes
 	};
 }

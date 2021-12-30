@@ -4,15 +4,15 @@
 #include <engine/Scene.h>
 #include <engine/ecs/Entity.h>
 #include <engine/gfx/Renderer.h>
-#include <engine/gfx/Mesh.h>
-#include <engine/gfx/Material.h>
+#include <engine/gfx/resource/MeshManager.h>
+#include <engine/gfx/resource/MaterialManager.h>
 #include <engine/Input.h>
 #include <voxel/VoxelManager.h>
 #include <voxel/ChunkSerialize.h>
 #include <voxel/ChunkRenderer.h>
 #include "WorldGen.h"
 #include <engine/gfx/api/Texture.h>
-#include <engine/gfx/TextureManager.h>
+#include <engine/gfx/resource/TextureManager.h>
 #include <engine/gfx/TextureLoader.h>
 
 #include <utility/MathExtensions.h>
@@ -76,8 +76,8 @@ void OnStart(Scene* scene)
 
   auto mySetter = [](hashed_string id, GFX::Shader& shader) { shader.SetFloat(id, (float)ProgramTimer::TimeSeconds()); };
 
-  GFX::TextureManager::Get()->AddTexture("error", *GFX::LoadTexture2D("error/diffuse.png"));
-  auto view = GFX::TextureView::Create(*GFX::TextureManager::Get()->GetTexture("error"), "batched material view");
+  GFX::TextureManager::AddTexture("error", *GFX::LoadTexture2D("error/diffuse.png"));
+  auto view = GFX::TextureView::Create(*GFX::TextureManager::GetTexture("error"), "batched material view");
   auto sampler = GFX::TextureSampler::Create(GFX::SamplerState{}, "batched material sampler");
   GFX::PerMaterialUniformData uniformData;
   uniformData.id = "u_time";
@@ -96,8 +96,8 @@ void OnStart(Scene* scene)
     gameManager.AddComponent<Component::NativeScriptComponent>().Bind<GameManager>();
   }
 
-  GFX::TextureManager::Get()->AddTexture("smoke", *GFX::LoadTexture2D("smoke.png"));
-  GFX::TextureManager::Get()->AddTexture("stone", *GFX::LoadTexture2D("Voxel/stone/diffuse.png"));
+  GFX::TextureManager::AddTexture("smoke", *GFX::LoadTexture2D("smoke.png"));
+  GFX::TextureManager::AddTexture("stone", *GFX::LoadTexture2D("Voxel/stone/diffuse.png"));
 
   using RMB = GFX::RenderMaskBit;
   GFX::RenderMask mask = 

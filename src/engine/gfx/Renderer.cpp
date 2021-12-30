@@ -4,7 +4,8 @@
 #include <glm/gtx/norm.hpp>
 #include "Renderer.h"
 
-#include "ShaderManager.h"
+#include "resource/ShaderManager.h"
+#include "resource/MaterialManager.h"
 #include "Mesh.h"
 #include "api/DebugMarker.h"
 
@@ -14,7 +15,7 @@
 #include <engine/ecs/component/Transform.h>
 #include <engine/ecs/component/Rendering.h>
 #include <engine/ecs/component/ParticleEmitter.h>
-#include "TextureManager.h"
+#include "resource/TextureManager.h"
 #include "TextureLoader.h"
 #include "api/Fence.h"
 
@@ -27,7 +28,6 @@
 #include "../Parser.h"
 #include <engine/core/StatMacros.h>
 #include "../../utility/MathExtensions.h"
-#include "Material.h"
 #include "api/Texture.h"
 #include "api/Framebuffer.h"
 #include "api/LinearBufferAllocator.h"
@@ -1376,15 +1376,15 @@ namespace GFX
     void InitTextures()
     {
       // these are some commonly used blue noise textures
-      TextureManager::Get()->AddTexture("blueNoiseRGB",
+      TextureManager::AddTexture("blueNoiseRGB",
         *LoadTexture2D("BlueNoise/16_16/LDR_RGB1_0.png", Format::R8G8B8A8_UNORM));
-      tonemap.blueNoiseView = TextureView::Create(*TextureManager::Get()->GetTexture("blueNoiseRGB"), "BlueNoiseRGBView");
-      TextureManager::Get()->AddTexture("blueNoiseR",
+      tonemap.blueNoiseView = TextureView::Create(*TextureManager::GetTexture("blueNoiseRGB"), "BlueNoiseRGBView");
+      TextureManager::AddTexture("blueNoiseR",
         *LoadTexture2D("BlueNoise/32_32/HDR_L_0.png", Format::R16_UNORM));
-      TextureManager::Get()->AddTexture("blueNoiseBig",
+      TextureManager::AddTexture("blueNoiseBig",
         *LoadTexture2D("BlueNoise/1024_1024/LDR_RGBA_0.png", Format::R16G16B16A16_UNORM));
-      blueNoiseRView = TextureView::Create(*TextureManager::Get()->GetTexture("blueNoiseR"));
-      blueNoiseBigView = TextureView::Create(*TextureManager::Get()->GetTexture("blueNoiseBig"));
+      blueNoiseRView = TextureView::Create(*TextureManager::GetTexture("blueNoiseR"));
+      blueNoiseBigView = TextureView::Create(*TextureManager::GetTexture("blueNoiseBig"));
       SamplerState samplerState{};
       samplerState.asBitField.addressModeU = AddressMode::REPEAT;
       samplerState.asBitField.addressModeV = AddressMode::REPEAT;

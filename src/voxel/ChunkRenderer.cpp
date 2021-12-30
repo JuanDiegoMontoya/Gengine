@@ -3,7 +3,8 @@
 #include "ChunkRenderer.h"
 
 #include <engine/gfx/Frustum.h>
-#include <engine/gfx/ShaderManager.h>
+#include <engine/gfx/resource/ShaderManager.h>
+#include <engine/gfx/resource/TextureManager.h>
 #include <engine/gfx/TextureLoader.h>
 #include <engine/gfx/api/DebugMarker.h>
 #include <engine/gfx/api/Indirect.h>
@@ -12,7 +13,6 @@
 #include <engine/gfx/Camera.h>
 #include <engine/gfx/api/Framebuffer.h>
 #include <engine/gfx/RenderView.h>
-#include <engine/gfx/TextureManager.h>
 #include <engine/gfx/Renderer.h>
 
 #include <engine/CVar.h>

@@ -1,7 +1,7 @@
 #include "../../PCH.h"
 #include "Bloom.h"
 #include <glad/glad.h>
-#include "../ShaderManager.h"
+#include <engine/gfx/resource/ShaderManager.h>
 #include "../../GAssert.h"
 
 namespace GFX::FX

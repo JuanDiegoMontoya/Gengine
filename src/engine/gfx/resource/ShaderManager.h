@@ -1,7 +1,7 @@
 #pragma once
 #include <utility/HashedString.h>
 #include <optional>
-#include "api/Shader.h"
+#include "../api/Shader.h"
 
 namespace GFX
 {

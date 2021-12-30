@@ -60,19 +60,20 @@
     <ClInclude Include="src\engine\gfx\fx\CubemapReflections.h" />
     <ClInclude Include="src\engine\gfx\fx\Fog.h" />
     <ClInclude Include="src\engine\gfx\fx\FXAA.h" />
+    <ClInclude Include="src\engine\gfx\Material.h" />
     <ClInclude Include="src\engine\gfx\RenderInfo.h" />
     <ClInclude Include="src\engine\gfx\RenderView.h" />
+    <ClInclude Include="src\engine\gfx\resource\MeshManager.h" />
+    <ClInclude Include="src\engine\gfx\resource\ShaderManager.h" />
+    <ClInclude Include="src\engine\gfx\resource\TextureManager.h" />
     <ClInclude Include="src\engine\Timestep.h" />
     <ClInclude Include="src\utility\Flags.h" />
     <ClInclude Include="src\engine\GAssert.h" />
-    <ClInclude Include="src\engine\gfx\AssimpUtils.h" />
     <ClInclude Include="src\engine\gfx\Frustum.h" />
-    <ClInclude Include="src\engine\gfx\Material.h" />
+    <ClInclude Include="src\engine\gfx\resource\MaterialManager.h" />
     <ClInclude Include="src\engine\gfx\Mesh.h" />
     <ClInclude Include="src\engine\gfx\Renderer.h" />
-    <ClInclude Include="src\engine\gfx\ShaderManager.h" />
     <ClInclude Include="src\engine\gfx\TextureLoader.h" />
-    <ClInclude Include="src\engine\gfx\TextureManager.h" />
     <ClInclude Include="src\engine\Input.h" />
     <ClInclude Include="src\engine\Parser.h" />
     <ClInclude Include="src\engine\PCH.h" />
@@ -336,6 +337,12 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">../PCH.h</PrecompiledHeaderFile>
     </ClCompile>
+    <ClCompile Include="src\engine\gfx\resource\MaterialManager.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../../PCH.h</PrecompiledHeaderFile>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">../../PCH.h</PrecompiledHeaderFile>
+    </ClCompile>
     <ClCompile Include="src\engine\gfx\Mesh.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../PCH.h</PrecompiledHeaderFile>
@@ -357,20 +364,28 @@
     <ClCompile Include="src\engine\gfx\RenderView.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../PCH.h</PrecompiledHeaderFile>
-    </ClCompile>
-    <ClCompile Include="src\engine\gfx\ShaderManager.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../PCH.h</PrecompiledHeaderFile>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">../PCH.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <ClCompile Include="src\engine\gfx\resource\MeshManager.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../../PCH.h</PrecompiledHeaderFile>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">../../PCH.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <ClCompile Include="src\engine\gfx\resource\ShaderManager.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../../PCH.h</PrecompiledHeaderFile>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">../../PCH.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <ClCompile Include="src\engine\gfx\resource\TextureManager.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../../PCH.h</PrecompiledHeaderFile>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">../../PCH.h</PrecompiledHeaderFile>
     </ClCompile>
     <ClCompile Include="src\engine\gfx\TextureLoader.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../PCH.h</PrecompiledHeaderFile>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">../PCH.h</PrecompiledHeaderFile>
-    </ClCompile>
-    <ClCompile Include="src\engine\gfx\TextureManager.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../PCH.h</PrecompiledHeaderFile>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
@@ -412,6 +427,8 @@
     <ClCompile Include="src\game\KinematicPlayerController.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">gPCH.h</PrecompiledHeaderFile>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">gPCH.h</PrecompiledHeaderFile>
     </ClCompile>
     <ClCompile Include="src\game\main.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
