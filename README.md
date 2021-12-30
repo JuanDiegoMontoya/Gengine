@@ -1,5 +1,5 @@
 # Gengine (Game Engine)
-A code-oriented game engine designed to be efficient, extensible, and simple to use (not necessarily in that order). It is being developed with the goal of making a specific game, so some features may be missing or lacking.
+A code-oriented game engine designed to be efficient, extensible, and simple to use (not necessarily in that order). It is being developed mostly for fun, and maybe to eventually become a game. That means features will be lacking.
 
 ## Features
 - Voxel engine (see [the Voxel Engine repo](https://github.com/JuanDiegoMontoya/3D_Voxel_Engine) for more detail)
@@ -7,16 +7,19 @@ A code-oriented game engine designed to be efficient, extensible, and simple to 
 - ECS using EnTT
 - Entity scripting
 - Entity transformation hierarchy
-- Model loading
+- Model and texture loading
 - Dynamic physics and collision API leveraging PhysX
+- Quake-style console, with support for variables and commands
 
 ## Graphics
 - OpenGL 4.6-based renderer using modern overhead-reducing techniques
-- Arbitrarily many animated and GPU-accelerated particles
-- Flood fill voxel lighting with four color channels (red, green, blue, sunlight)
+- GPU-driven particle system
+- 4-channel flood fill voxel lighting
 - HDR lighting, tonemapping, and automatic exposure adjustment
 - FXAA
-- Analytical heterogenous global fog
+- Analytic fog
+- Bloom inspired by CoD: AW
+- Parallax-correct reflections
 
 ## To Do
 - Extend physics API with collision callbacks, filtering, etc.
