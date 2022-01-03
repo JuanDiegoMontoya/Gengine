@@ -1,6 +1,6 @@
 #include "../PCH.h"
 #include "Camera.h"
-#include <glm/gtc/matrix_transform.hpp>
+#include <utility/MathExtensions.h>
 
 namespace GFX
 {
@@ -26,5 +26,10 @@ namespace GFX
     yaw = glm::acos(dir.x / glm::cos(pitch));
     if (dir.x >= 0 && dir.z < 0)
       yaw *= -1;
+  }
+
+  glm::mat4 ProjectionInfo::GetProjMatrix() const
+  {
+    return MakeInfReversedZProjRH(info.fovyRadians, info.aspectRatio, info.nearPlane);
   }
 }

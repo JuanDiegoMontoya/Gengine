@@ -44,7 +44,7 @@ namespace GFX::FX
     auto shader = ShaderManager::GetShader("specular_cube_sample");
     shader->Bind();
 
-    shader->SetMat4("u_invProj", glm::inverse(p.common.camera.proj));
+    shader->SetMat4("u_invProj", glm::inverse(p.common.camera.projInfo.GetProjMatrix()));
     shader->SetMat4("u_invView", glm::inverse(p.common.camera.viewInfo.GetViewMatrix()));
     shader->SetVec3("u_viewPos", p.common.camera.viewInfo.position);
     shader->SetIVec2("u_targetDim", { targetDim.width, targetDim.height });
@@ -91,7 +91,7 @@ namespace GFX::FX
       {
         BindTextureView(0, *p.depthViews[i], p.common.scratchSampler2);
         BindImage(0, *p.distanceViews[i], 0);
-        shader->SetMat4("u_invProj", glm::inverse(p.cameras[i].proj));
+        shader->SetMat4("u_invProj", glm::inverse(p.cameras[i].projInfo.GetProjMatrix()));
         shader->SetIVec2("u_targetDim", { targetDim.width, targetDim.height });
         glDispatchCompute(numGroupsXa, numGroupsYa, 1);
       }
@@ -103,7 +103,7 @@ namespace GFX::FX
 
       auto shader = ShaderManager::GetShader("specular_cube_trace");
       shader->Bind();
-      shader->SetMat4("u_invProj", glm::inverse(p.common.camera.proj));
+      shader->SetMat4("u_invProj", glm::inverse(p.common.camera.projInfo.GetProjMatrix()));
       shader->SetMat4("u_invView", glm::inverse(p.common.camera.viewInfo.GetViewMatrix()));
       shader->SetVec3("u_viewPos", p.common.camera.viewInfo.position);
       shader->SetIVec2("u_targetDim", { targetDim.width, targetDim.height });
@@ -193,7 +193,7 @@ namespace GFX::FX
 
     auto shader = ShaderManager::GetShader("specular_composite");
     shader->Bind();
-    shader->SetMat4("u_invProj", glm::inverse(p.common.camera.proj));
+    shader->SetMat4("u_invProj", glm::inverse(p.common.camera.projInfo.GetProjMatrix()));
     shader->SetMat4("u_invView", glm::inverse(p.common.camera.viewInfo.GetViewMatrix()));
     shader->SetVec3("u_viewPos", p.common.camera.viewInfo.position);
     shader->SetIVec2("u_sourceDim", { sourceDim.width, sourceDim.height });

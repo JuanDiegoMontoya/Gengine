@@ -372,7 +372,7 @@ namespace Voxels
 
       // set uniforms for chunk rendering
       sdr->SetVec3("u_viewpos", renderView->camera->viewInfo.position);
-      GFX::Frustum fr(renderView->camera->proj, renderView->camera->viewInfo.GetViewMatrix());
+      GFX::Frustum fr(renderView->camera->projInfo.GetProjMatrix(), renderView->camera->viewInfo.GetViewMatrix());
       for (int i = 0; i < 5; i++) // ignore near plane
       {
         std::string uname = "u_viewfrustum.data_[" + std::to_string(i) + "][0]";

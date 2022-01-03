@@ -159,6 +159,7 @@
     <ClInclude Include="src\engine\gfx\resource\ShaderManager.h" />
     <ClInclude Include="src\engine\gfx\resource\TextureManager.h" />
     <ClInclude Include="src\engine\gfx\Material.h" />
+    <ClInclude Include="src\engine\gfx\fx\Volumetric.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\engine\ecs\system\DebugSystem.cpp" />
@@ -233,6 +234,7 @@
     <ClCompile Include="src\engine\gfx\resource\ShaderManager.cpp" />
     <ClCompile Include="src\engine\gfx\resource\TextureManager.cpp" />
     <ClCompile Include="src\engine\gfx\Material.cpp" />
+    <ClCompile Include="src\engine\gfx\fx\Volumetric.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="src\utility\Palette.inl" />

@@ -27,6 +27,7 @@ namespace GFX
     void SetIntArray(hashed_string uniform, std::span<const int> value);
     void SetVec2(hashed_string uniform, const glm::vec2& value);
     void SetIVec2(hashed_string uniform, const glm::ivec2& value);
+    void SetIVec3(hashed_string uniform, const glm::ivec3& value);
     void SetVec3(hashed_string uniform, const glm::vec3& value);
     void SetVec4(hashed_string uniform, const glm::vec4& value);
     void SetMat3(hashed_string uniform, const glm::mat3& mat);

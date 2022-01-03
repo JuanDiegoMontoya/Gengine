@@ -110,7 +110,14 @@ void OnStart(Scene* scene)
     RMB::RenderVoxels;
 
   auto* mainRenderView = GFX::Renderer::GetMainRenderView();
-  mainRenderView->camera->proj = MakeInfReversedZProjRH(glm::radians(70.0f), GFX::Renderer::GetWindowAspectRatio(), 0.1f);
+  //mainRenderView->camera->proj = MakeInfReversedZProjRH(glm::radians(70.0f), GFX::Renderer::GetWindowAspectRatio(), 0.1f);
+  GFX::PerspectiveProjectionInfo projInfo
+  {
+    .fovyRadians = glm::radians(70.0f),
+    .aspectRatio = GFX::Renderer::GetWindowAspectRatio(),
+    .nearPlane = 0.1f
+  };
+  mainRenderView->camera->projInfo.info = projInfo;
   mainRenderView->camera->viewInfo.position = { 0, 2, 0 };
   mainRenderView->mask = mask;
   mainRenderView->renderInfo.offset = { 0, 0 };

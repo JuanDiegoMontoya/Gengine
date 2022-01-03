@@ -41,4 +41,15 @@ vec3 UnprojectUV(float depth, vec2 uv, mat4 invXProj)
   return worldSpacePosition.xyz;
 }
 
+float LinearizeDepthZO(float d, float zn, float zf)
+{
+  return zn / (zf + d * (zn - zf));
+}
+
+// the inverse of LinearizeDepthZO
+float InvertDepthZO(float l, float zn, float zf)
+{
+  return (zn - zf * l) / (l * (zn - zf));
+}
+
 #endif

@@ -60,6 +60,7 @@
     <ClInclude Include="src\engine\gfx\fx\CubemapReflections.h" />
     <ClInclude Include="src\engine\gfx\fx\Fog.h" />
     <ClInclude Include="src\engine\gfx\fx\FXAA.h" />
+    <ClInclude Include="src\engine\gfx\fx\Volumetric.h" />
     <ClInclude Include="src\engine\gfx\Material.h" />
     <ClInclude Include="src\engine\gfx\RenderInfo.h" />
     <ClInclude Include="src\engine\gfx\RenderView.h" />
@@ -326,6 +327,12 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">../../PCH.h</PrecompiledHeaderFile>
     </ClCompile>
     <ClCompile Include="src\engine\gfx\fx\FXAA.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../../PCH.h</PrecompiledHeaderFile>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">../../PCH.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <ClCompile Include="src\engine\gfx\fx\Volumetric.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../../PCH.h</PrecompiledHeaderFile>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>

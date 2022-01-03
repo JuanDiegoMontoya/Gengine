@@ -42,11 +42,31 @@ namespace GFX
     void SetForwardDir(glm::vec3 dir);
   };
 
+  struct PerspectiveProjectionInfo
+  {
+    float fovyRadians{ 3.1415f };
+    float aspectRatio{ 1 };
+    float nearPlane{ 1 };
+  };
+
+  struct OrthographicProjectionInfo
+  {
+    // TODO
+  };
+
+  struct ProjectionInfo
+  {
+    PerspectiveProjectionInfo info;
+    glm::mat4 GetProjMatrix() const;
+  };
+
   struct Camera
   {
     View viewInfo{};
-    glm::mat4 proj{};
+    ProjectionInfo projInfo{};
 
-    glm::mat4 GetViewProj() const { return proj * viewInfo.GetViewMatrix(); }
+    //glm::mat4 GetProj() const { return projInfo.GetProjMatrix(); }
+    //glm::mat4 GetView() const { return viewInfo.GetViewMatrix(); }
+    glm::mat4 GetViewProj() const { return projInfo.GetProjMatrix() * viewInfo.GetViewMatrix(); }
   };
 }

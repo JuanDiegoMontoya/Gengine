@@ -41,6 +41,7 @@
 #include "fx/Bloom.h"
 #include "fx/CubemapReflections.h"
 #include "fx/Fog.h"
+#include "fx/Volumetric.h"
 
 #include <imgui/imgui.h>
 
@@ -55,6 +56,9 @@ DECLARE_FLOAT_STAT(ReflectionsDenoise, GPU)
 DECLARE_FLOAT_STAT(ReflectionsComposite, GPU)
 DECLARE_FLOAT_STAT(Bloom_GPU, GPU)
 DECLARE_FLOAT_STAT(Bloom_CPU, CPU)
+DECLARE_FLOAT_STAT(VolumeGenerate, GPU)
+DECLARE_FLOAT_STAT(VolumeMarch, GPU)
+DECLARE_FLOAT_STAT(VolumeApply, GPU)
 
 namespace GFX
 {
@@ -262,6 +266,14 @@ namespace GFX
       uint32_t renderHeight{ 1 };
       float renderScale{ 1.0f }; // 1.0 means render resolution will match window
 
+      std::optional<TextureView> blueNoiseRView;
+      std::optional<TextureView> blueNoiseBigView;
+
+      std::optional<Texture> volume;
+      std::optional<Texture> volume2;
+      std::optional<TextureView> volumeView;
+      std::optional<TextureView> volumeView2;
+
       struct GBuffer
       {
         std::optional<Framebuffer> fbo;
@@ -276,10 +288,6 @@ namespace GFX
         std::optional<TextureView> depthTexView;
         std::optional<TextureView> PBRTexView;
       }gBuffer;
-
-      std::optional<TextureView> blueNoiseRView;
-
-      std::optional<TextureView> blueNoiseBigView;
 
       struct Reflections_t
       {
@@ -878,6 +886,7 @@ namespace GFX
       FX::CompileReflectionShaders();
       FX::CompileBloomShaders();
       FX::CompileFogShader();
+      FX::Volumetric::CompileShaders();
     }
 
     void DrawAxisIndicator(std::span<RenderView*> renderViews)
@@ -908,7 +917,7 @@ namespace GFX
         const Camera& c = *renderView->camera;
         currShader->SetMat4("u_model", glm::translate(glm::mat4(1), c.viewInfo.position + c.viewInfo.GetForwardDir() * 10.f)); // add scaling factor (larger # = smaller visual)
         currShader->SetMat4("u_view", c.viewInfo.GetViewMatrix());
-        currShader->SetMat4("u_proj", c.proj);
+        currShader->SetMat4("u_proj", c.projInfo.GetProjMatrix());
         glDrawArrays(GL_LINES, 0, 6);
       }
 
@@ -946,7 +955,7 @@ namespace GFX
         framebuffer->SetAttachment(Attachment::DEPTH, *renderView->renderInfo.depthAttachment->textureView, 0);
 
         const auto& c = *renderView->camera;
-        shdr->SetMat4("u_proj", c.proj);
+        shdr->SetMat4("u_proj", c.projInfo.GetProjMatrix());
         shdr->SetMat4("u_modview", glm::translate(c.viewInfo.GetViewMatrix(), c.viewInfo.position));
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 14);
         glTextureBarrier();
@@ -1378,6 +1387,7 @@ namespace GFX
       glVertexArrayVertexBuffer(axisVao, 0, axisVbo->GetAPIHandle(), 0, 6 * sizeof(float));
     }
 
+    // init textures whose size is independent of the screen's
     void InitTextures()
     {
       // these are some commonly used blue noise textures
@@ -1471,7 +1481,13 @@ namespace GFX
         cubeViewInfo.format = probeData.distanceFormat;
         probeData.distanceViews[i].emplace(*TextureView::Create(cubeViewInfo, *probeData.distanceCube));
 
-        probeData.cameras[i].proj = MakeInfReversedZProjRH(glm::radians(90.0f), 1.0f, 0.1f);
+        GFX::PerspectiveProjectionInfo projInfo
+        {
+          .fovyRadians = glm::radians(90.0f),
+          .aspectRatio = 1.0f,
+          .nearPlane = 0.1f
+        };
+        probeData.cameras[i].projInfo.info = projInfo;
         probeData.cameras[i].viewInfo.SetForwardDir(faceDirs[i]);
         probeData.cameras[i].viewInfo.upDir = upDirs[i];
         RenderAttachment colorAttachment
@@ -1499,6 +1515,20 @@ namespace GFX
         };
         //scene->RegisterRenderView("ProbeFace" + std::to_string(i), testView);
       }
+
+      TextureCreateInfo volumeInfo
+      {
+        .imageType = ImageType::TEX_3D,
+        .format = Format::R16G16B16A16_FLOAT,
+        .extent = { 160, 90, 128 },
+        .mipLevels = 1,
+        .arrayLayers = 1,
+        .sampleCount = SampleCount::ONE
+      };
+      volume = Texture::Create(volumeInfo, "volume");
+      volume2 = Texture::Create(volumeInfo, "volume2");
+      volumeView = TextureView::Create(*volume, "volume view");
+      volumeView2 = TextureView::Create(*volume2, "volume2 view");
     }
 
     void DrawReflections()
@@ -1587,6 +1617,52 @@ namespace GFX
           .target = *gBuffer.colorTexView
         };
         FX::CompositeReflections(compositeParams);
+      }
+
+      // TODO: move this volume stuff
+      {
+        {
+          MEASURE_GPU_TIMER_STAT(VolumeGenerate);
+          FX::Volumetric::AccumulateParameters aParams
+          {
+            .densityVolume = *volumeView,
+            .camera = gBuffer.camera,
+            .nearPlane = 1.0f,
+            .farPlane = 100.0f
+          };
+          FX::Volumetric::Accumulate(aParams);
+        }
+
+        {
+          MEASURE_GPU_TIMER_STAT(VolumeMarch);
+          FX::Volumetric::MarchParameters mParams
+          {
+            .sourceVolume = *volumeView,
+            .targetVolume = *volumeView2,
+            .scratchSampler = *reflect.scratchSampler,
+            .camera = gBuffer.camera,
+            .nearPlane = 1.0f,
+            .farPlane = 100.0f
+          };
+          FX::Volumetric::March(mParams);
+        }
+
+        {
+          MEASURE_GPU_TIMER_STAT(VolumeApply);
+          FX::Volumetric::ApplyParameters apParams
+          {
+            .colorTexture = *gBuffer.colorTexView,
+            .depthTexture = *gBuffer.depthTexView,
+            .targetTexture = *gBuffer.colorTexView,
+            .sourceVolume = *volumeView2,
+            .blueNoiseTexture = *blueNoiseBigView,
+            .scratchSampler = *reflect.scratchSampler,
+            .camera = gBuffer.camera,
+            .nearPlane = 1.0f,
+            .farPlane = 100.0f
+          };
+          FX::Volumetric::ApplyDeferred(apParams);
+        }
       }
     }
 

@@ -203,7 +203,7 @@ void Editor::DrawSelection(std::span<GFX::RenderView*> renderViews)
       //renderView.renderTarget->Bind();
 
       curr->SetMat4("u_view", renderView->camera->viewInfo.GetViewMatrix());
-      curr->SetMat4("u_proj", renderView->camera->proj);
+      curr->SetMat4("u_proj", renderView->camera->projInfo.GetProjMatrix());
       //Renderer::DrawCube(); // TODO
     }
 

@@ -65,6 +65,11 @@ namespace GFX
     ASSERT(uniformIDs_.contains(uniform));
     glProgramUniform2iv(id_, uniformIDs_[uniform], 1, glm::value_ptr(value));
   }
+  void Shader::SetIVec3(hashed_string uniform, const glm::ivec3& value)
+  {
+    ASSERT(uniformIDs_.contains(uniform));
+    glProgramUniform3iv(id_, uniformIDs_[uniform], 1, glm::value_ptr(value));
+  }
   void Shader::SetVec3(hashed_string uniform, const glm::vec3& value)
   {
     ASSERT(uniformIDs_.contains(uniform));
