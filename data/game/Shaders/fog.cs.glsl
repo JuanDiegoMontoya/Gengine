@@ -27,7 +27,7 @@ void main()
     return;
   vec2 uv = (vec2(gid) + 0.5) / u_targetDim;
 
-  const vec3 hdrColor = texelFetch(s_color, gid, 0).xyz;
+  const vec3 hdrColor = texelFetch(s_color, gid, 0).rgb;
   const float depth = texelFetch(s_depth, gid, 0).r;
   vec3 rayEnd = UnprojectUV(max(depth, .00001), uv, u_invViewProj);
   vec3 rayStart = UnprojectUV(1.0, uv, u_invViewProj);
@@ -42,7 +42,7 @@ void main()
 
   // xz-plane intercept
   float t_y = -1e7;
-  if (abs(rayDir.y) > .000001)
+  if (abs(rayDir.y) > .00001)
     t_y = -rayStart.y / rayDir.y;
 
   vec3 rayStartA = rayStart;
@@ -118,16 +118,6 @@ void main()
   if (rayStartB != vec3(0) && rayEndB != vec3(0))
   {
     float magB = length(rayEndB - rayStartB);
-    float y0 = rayStartB.y;
-    float y1 = rayEndB.y;
-    float x0 = rayStartB.x;
-    float x1 = rayEndB.x;
-    float z0 = rayStartB.z;
-    float z1 = rayEndB.z;
-    float a2 = 0.03;
-    float b2 = 0.03;
-    float c2 = 1.0;
-    float d2 = 1.1;
     // f(x, y, z) = 1
     accum += max(magB * u_fog2Density, 0.0);
   }
@@ -136,7 +126,7 @@ void main()
   float beer = exp(-u_beer * accum);
   float powder = 1.0 - exp(-u_powder * accum * 2.0);
   
-  float scatter = (1.0 - beer) * powder;
-  scatter = clamp(scatter, 0.0, 1.0);
-  imageStore(i_target, gid, vec4(mix(hdrColor, u_envColor, scatter), 1.0));
+  vec3 inScattering = u_envColor * beer * powder;
+  vec3 finalColor = hdrColor * beer + inScattering;
+  imageStore(i_target, gid, vec4(finalColor, 1.0));
 }

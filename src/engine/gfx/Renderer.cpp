@@ -1621,14 +1621,18 @@ namespace GFX
 
       // TODO: move this volume stuff
       {
+        float nearPlane = 1.0f;
+        static float farPlane = 100.0f;
+        ImGui::SliderFloat("farplane", &farPlane, 10.0f, 1000.0f);
+
         {
           MEASURE_GPU_TIMER_STAT(VolumeGenerate);
           FX::Volumetric::AccumulateParameters aParams
           {
             .densityVolume = *volumeView,
             .camera = gBuffer.camera,
-            .nearPlane = 1.0f,
-            .farPlane = 100.0f
+            .nearPlane = nearPlane,
+            .farPlane = farPlane
           };
           FX::Volumetric::Accumulate(aParams);
         }
@@ -1641,8 +1645,8 @@ namespace GFX
             .targetVolume = *volumeView2,
             .scratchSampler = *reflect.scratchSampler,
             .camera = gBuffer.camera,
-            .nearPlane = 1.0f,
-            .farPlane = 100.0f
+            .nearPlane = nearPlane,
+            .farPlane = farPlane
           };
           FX::Volumetric::March(mParams);
         }
@@ -1658,8 +1662,8 @@ namespace GFX
             .blueNoiseTexture = *blueNoiseBigView,
             .scratchSampler = *reflect.scratchSampler,
             .camera = gBuffer.camera,
-            .nearPlane = 1.0f,
-            .farPlane = 100.0f
+            .nearPlane = nearPlane,
+            .farPlane = farPlane
           };
           FX::Volumetric::ApplyDeferred(apParams);
         }

@@ -3,6 +3,7 @@
 #include <glad/glad.h>
 #include <engine/gfx/resource/ShaderManager.h>
 #include <glm/gtc/matrix_transform.hpp>
+#include <utility/Timer.h>
 
 namespace GFX::FX::Volumetric
 {
@@ -51,6 +52,9 @@ namespace GFX::FX::Volumetric
     shader->Bind();
     shader->SetIVec3("u_targetDim", { targetDim.width, targetDim.height, targetDim.depth });
     shader->SetMat4("u_invViewProj", glm::inverse(proj * params.camera.viewInfo.GetViewMatrix()));
+    shader->SetFloat("u_time", ProgramTimer::TimeSeconds());
+    shader->SetFloat("u_volNearPlane", params.nearPlane);
+    shader->SetFloat("u_volFarPlane", params.farPlane);
     BindImage(0, params.densityVolume, 0);
 
     const int local_size = 8;
@@ -72,6 +76,8 @@ namespace GFX::FX::Volumetric
     shader->SetIVec3("u_targetDim", { targetDim.width, targetDim.height, targetDim.depth });
     shader->SetVec3("u_viewPos", params.camera.viewInfo.position);
     shader->SetMat4("u_invViewProj", glm::inverse(proj * params.camera.viewInfo.GetViewMatrix()));
+    shader->SetFloat("u_volNearPlane", params.nearPlane);
+    shader->SetFloat("u_volFarPlane", params.farPlane);
     BindTextureView(0, params.sourceVolume, params.scratchSampler);
     BindImage(0, params.targetVolume, 0);
 
@@ -99,6 +105,8 @@ namespace GFX::FX::Volumetric
     shader->SetIVec2("u_targetDim", { targetDim.width, targetDim.height });
     shader->SetMat4("u_viewProjVolume", proj * params.camera.viewInfo.GetViewMatrix());
     shader->SetMat4("u_invViewProjScene", glm::inverse(params.camera.GetViewProj()));
+    shader->SetFloat("u_volNearPlane", params.nearPlane);
+    shader->SetFloat("u_volFarPlane", params.farPlane);
     BindTextureView(0, params.colorTexture, params.scratchSampler);
     BindTextureView(1, params.depthTexture, params.scratchSampler);
     BindTextureView(2, params.sourceVolume, params.scratchSampler);
