@@ -23,13 +23,13 @@ void main()
   vec3 t = vec3(.2, 0.1, .3) * u_time;
   
   // fog
-  float d = max((snoise(vec4(p * 0.02 + t, t*1.2)) + 1.0) * .2, 0.0);
+  float d = max((snoise(vec4(p * 0.1 + t, t * 1.2)) + 1.0) * .05, 0.0);
   
   // clouds
   //float d = max((snoise(vec4(p * 0.001 + t * .1, t * 0.05)) + 0.1) * .05, 0.0);
   //d += max((snoise(vec4(p * 0.01 + t * .2, t * 0.05)) + 0.1) * .01, 0.0);
   
-  vec3 c = vec3(1.1); // ambient lighting
+  vec3 c = vec3(15.0); // ambient lighting
 
   // cube
   if (all(greaterThan(p, vec3(50, 30, 50))) && all(lessThan(p, vec3(100, 100, 100))))
@@ -39,11 +39,11 @@ void main()
   }
   
   // ground fog
-  //d *= 1.0 - smoothstep(20, 50, p.y);
+  d *= (1.0 - smoothstep(30, 70, p.y)) * (smoothstep(10, 30, p.y));
 
   // clouds
-  d *= (1.0 - smoothstep(10, 30, abs(p.y - 200.)));
-  
+  //d *= (1.0 - smoothstep(10, 30, abs(p.y - 200.)));
+
   imageStore(i_target, gid, vec4(c, d));
 }
 

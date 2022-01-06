@@ -9,6 +9,25 @@ layout(location = 2) uniform mat4 u_invViewProj;
 layout(location = 3) uniform float u_volNearPlane;
 layout(location = 4) uniform float u_volFarPlane;
 
+#define PI 3.1415926
+
+// henyey-greenstein phase function for isotropic in-scattering
+float phaseHG(float g, float cosTheta)
+{
+  return (1.0 - g * g) / (4.0 * PI * pow(1.0 + g * g - 2.0 * g * cosTheta, 1.5));
+}
+
+float phaseSchlick(float k, float cosTheta)
+{
+  float denom = 1.0 - k * cosTheta;
+  return (1.0 - k * k) / (4.0 * PI * denom * denom);
+}
+
+float gToK(float g)
+{
+  return 1.55 * g - 0.55 * g * g * g;
+}
+
 float beer(float d)
 {
   return exp(-d);
@@ -40,12 +59,16 @@ void main()
     float d = distance(pPrev, pCur);
     pPrev = pCur;
 
+    vec3 viewDir = normalize(pCur - u_viewPos);
+    vec3 sunDir = normalize(vec3(.2, -.25, -.15));
+    float g = 0.4;
+    float k = gToK(g);
+
     vec4 s = textureLod(s_source, uvw, 0);
-    vec3 inScatteringPoint = s.rgb * s.a;
     densityAccum += s.a * d;
     float b = beer(densityAccum);
     float p = powder(densityAccum);
-    inScatteringAccum += s.rgb * d * b * p * s.a;
+    inScatteringAccum += s.rgb * d * b * p * s.a * phaseSchlick(k, dot(-viewDir, sunDir));
     float transmittance = b;
     imageStore(i_target, ivec3(gid, i), vec4(inScatteringAccum, transmittance));
   }

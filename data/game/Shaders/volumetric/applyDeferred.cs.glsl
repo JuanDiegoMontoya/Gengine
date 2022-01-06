@@ -35,7 +35,6 @@ void main()
   volumeUV.xy = (volumeUV.xy * 0.5) + 0.5;
   vec3 offset = texelFetch(s_blueNoise, gid % textureSize(s_blueNoise, 0).xy, 0).xyz * 2. - 1.;
   volumeUV += offset / vec3(textureSize(s_volume, 0).xyz);
-  //volumeUV = clamp(volumeUV, 0, 1);
   if (volumeClip.z / volumeClip.w > 1.0)
   {
     volumeUV.z = 1.0;
