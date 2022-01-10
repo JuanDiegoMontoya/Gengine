@@ -47,7 +47,6 @@ void main()
   vec2 uv = (vec2(gid) + 0.5) / u_targetDim.xy;
   vec3 texel = 1.0 / u_targetDim;
 
-  // RGB in-scattering + depth
   vec3 inScatteringAccum = vec3(0.0);
   float densityAccum = 0.0;
   vec3 pPrev = u_viewPos;
@@ -60,7 +59,7 @@ void main()
     pPrev = pCur;
 
     vec3 viewDir = normalize(pCur - u_viewPos);
-    vec3 sunDir = normalize(vec3(.2, -.25, -.15));
+    vec3 sunDir = normalize(vec3(.2, -.25, -.15)); // hardcoded until procedural sky
     float g = 0.4;
     float k = gToK(g);
 

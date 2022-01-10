@@ -46,15 +46,15 @@ namespace GFX::FX::Volumetric
   {
     ASSERT(params.densityVolume.CreateInfo().viewType == ImageType::TEX_3D);
     Extent3D targetDim = params.densityVolume.Extent();
-    glm::mat4 proj = MakeVolumeProjection(params.camera.projInfo.info, params.nearPlane, params.farPlane);
+    glm::mat4 proj = MakeVolumeProjection(params.common.camera.projInfo.info, params.common.nearPlane, params.common.farPlane);
 
     auto shader = ShaderManager::GetShader("volume_accumulate");
     shader->Bind();
     shader->SetIVec3("u_targetDim", { targetDim.width, targetDim.height, targetDim.depth });
-    shader->SetMat4("u_invViewProj", glm::inverse(proj * params.camera.viewInfo.GetViewMatrix()));
+    shader->SetMat4("u_invViewProj", glm::inverse(proj * params.common.camera.viewInfo.GetViewMatrix()));
     shader->SetFloat("u_time", ProgramTimer::TimeSeconds());
-    shader->SetFloat("u_volNearPlane", params.nearPlane);
-    shader->SetFloat("u_volFarPlane", params.farPlane);
+    shader->SetFloat("u_volNearPlane", params.common.nearPlane);
+    shader->SetFloat("u_volFarPlane", params.common.farPlane);
     BindImage(0, params.densityVolume, 0);
 
     const int local_size = 8;
@@ -69,15 +69,15 @@ namespace GFX::FX::Volumetric
     ASSERT(params.sourceVolume.CreateInfo().viewType == ImageType::TEX_3D);
     Extent3D targetDim = params.targetVolume.Extent();
     Extent3D sourceDim = params.sourceVolume.Extent();
-    glm::mat4 proj = MakeVolumeProjection(params.camera.projInfo.info, params.nearPlane, params.farPlane);
+    glm::mat4 proj = MakeVolumeProjection(params.common.camera.projInfo.info, params.common.nearPlane, params.common.farPlane);
 
     auto shader = ShaderManager::GetShader("volume_march");
     shader->Bind();
     shader->SetIVec3("u_targetDim", { targetDim.width, targetDim.height, targetDim.depth });
-    shader->SetVec3("u_viewPos", params.camera.viewInfo.position);
-    shader->SetMat4("u_invViewProj", glm::inverse(proj * params.camera.viewInfo.GetViewMatrix()));
-    shader->SetFloat("u_volNearPlane", params.nearPlane);
-    shader->SetFloat("u_volFarPlane", params.farPlane);
+    shader->SetVec3("u_viewPos", params.common.camera.viewInfo.position);
+    shader->SetMat4("u_invViewProj", glm::inverse(proj * params.common.camera.viewInfo.GetViewMatrix()));
+    shader->SetFloat("u_volNearPlane", params.common.nearPlane);
+    shader->SetFloat("u_volFarPlane", params.common.farPlane);
     BindTextureView(0, params.sourceVolume, params.scratchSampler);
     BindImage(0, params.targetVolume, 0);
 
@@ -92,7 +92,7 @@ namespace GFX::FX::Volumetric
     ASSERT(params.sourceVolume.CreateInfo().viewType == ImageType::TEX_3D);
     ASSERT(params.targetTexture.Extent() == params.colorTexture.Extent() && params.targetTexture.Extent() == params.depthTexture.Extent());
     Extent3D targetDim = params.targetTexture.Extent();
-    glm::mat4 proj = MakeVolumeProjection(params.camera.projInfo.info, params.nearPlane, params.farPlane);
+    glm::mat4 proj = MakeVolumeProjection(params.common.camera.projInfo.info, params.common.nearPlane, params.common.farPlane);
 
     SamplerState samplerState{};
     samplerState.asBitField.magFilter = Filter::LINEAR;
@@ -103,10 +103,10 @@ namespace GFX::FX::Volumetric
     auto shader = ShaderManager::GetShader("volume_apply_deferred");
     shader->Bind();
     shader->SetIVec2("u_targetDim", { targetDim.width, targetDim.height });
-    shader->SetMat4("u_viewProjVolume", proj * params.camera.viewInfo.GetViewMatrix());
-    shader->SetMat4("u_invViewProjScene", glm::inverse(params.camera.GetViewProj()));
-    shader->SetFloat("u_volNearPlane", params.nearPlane);
-    shader->SetFloat("u_volFarPlane", params.farPlane);
+    shader->SetMat4("u_viewProjVolume", proj * params.common.camera.viewInfo.GetViewMatrix());
+    shader->SetMat4("u_invViewProjScene", glm::inverse(params.common.camera.GetViewProj()));
+    shader->SetFloat("u_volNearPlane", params.common.nearPlane);
+    shader->SetFloat("u_volFarPlane", params.common.farPlane);
     BindTextureView(0, params.colorTexture, params.scratchSampler);
     BindTextureView(1, params.depthTexture, params.scratchSampler);
     BindTextureView(2, params.sourceVolume, params.scratchSampler);

@@ -4,36 +4,37 @@
 
 namespace GFX::FX::Volumetric
 {
-  struct AccumulateParameters
+  struct CommonParameters
   {
-    //const TextureView& sourceVolume;
-    const TextureView& densityVolume;
     const Camera& camera;
     float nearPlane{};
     float farPlane{};
+  };
+
+  struct AccumulateParameters
+  {
+    CommonParameters common;
+    //const TextureView& sourceVolume;
+    const TextureView& densityVolume;
   };
 
   struct MarchParameters
   {
+    CommonParameters common;
     const TextureView& sourceVolume;
     const TextureView& targetVolume;
     TextureSampler& scratchSampler;
-    const Camera& camera;
-    float nearPlane{};
-    float farPlane{};
   };
 
   struct ApplyParameters
   {
+    CommonParameters common;
     const TextureView& colorTexture;
     const TextureView& depthTexture;
     const TextureView& targetTexture;
     const TextureView& sourceVolume;
     const TextureView& blueNoiseTexture;
     TextureSampler& scratchSampler;
-    const Camera& camera;
-    float nearPlane{};
-    float farPlane{};
   };
 
   void CompileShaders();

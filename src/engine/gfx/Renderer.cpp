@@ -1625,14 +1625,19 @@ namespace GFX
         static float farPlane = 100.0f;
         ImGui::SliderFloat("farplane", &farPlane, 10.0f, 1000.0f);
 
+        FX::Volumetric::CommonParameters cParams
+        {
+          .camera = gBuffer.camera,
+          .nearPlane = nearPlane,
+          .farPlane = farPlane
+        };
+
         {
           MEASURE_GPU_TIMER_STAT(VolumeGenerate);
           FX::Volumetric::AccumulateParameters aParams
           {
+            .common = cParams,
             .densityVolume = *volumeView,
-            .camera = gBuffer.camera,
-            .nearPlane = nearPlane,
-            .farPlane = farPlane
           };
           FX::Volumetric::Accumulate(aParams);
         }
@@ -1641,12 +1646,10 @@ namespace GFX
           MEASURE_GPU_TIMER_STAT(VolumeMarch);
           FX::Volumetric::MarchParameters mParams
           {
+            .common = cParams,
             .sourceVolume = *volumeView,
             .targetVolume = *volumeView2,
             .scratchSampler = *reflect.scratchSampler,
-            .camera = gBuffer.camera,
-            .nearPlane = nearPlane,
-            .farPlane = farPlane
           };
           FX::Volumetric::March(mParams);
         }
@@ -1655,15 +1658,13 @@ namespace GFX
           MEASURE_GPU_TIMER_STAT(VolumeApply);
           FX::Volumetric::ApplyParameters apParams
           {
+            .common = cParams,
             .colorTexture = *gBuffer.colorTexView,
             .depthTexture = *gBuffer.depthTexView,
             .targetTexture = *gBuffer.colorTexView,
             .sourceVolume = *volumeView2,
             .blueNoiseTexture = *blueNoiseBigView,
             .scratchSampler = *reflect.scratchSampler,
-            .camera = gBuffer.camera,
-            .nearPlane = nearPlane,
-            .farPlane = farPlane
           };
           FX::Volumetric::ApplyDeferred(apParams);
         }
