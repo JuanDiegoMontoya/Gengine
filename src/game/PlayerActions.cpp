@@ -72,10 +72,10 @@ void PlayerActions::OnUpdate(Timestep timestep)
 
     {
       Component::ParticleEmitter emitter{};
-      emitter.handle = ParticleManager::Get().MakeParticleEmitter(15, "smoke");
+      emitter.handle = ParticleManager::Get().MakeParticleEmitter(1500, "smoke");
       emitter.data.minLife = 1.0f;
       emitter.data.maxLife = 2.0f;
-      emitter.data.interval = .1;
+      emitter.data.interval = .001;
       emitter.data.minParticleOffset = { -.5, -.5, -.5 };
       emitter.data.maxParticleOffset = { .5, .5, .5 };
       emitter.data.minParticleAccel = { -.5, 1, -.5 };

@@ -127,10 +127,9 @@ void Input::mouse_pos_cb([[maybe_unused]] GLFWwindow* window, double xpos, doubl
   screenPos.x = static_cast<float>(xpos);
   screenPos.y = static_cast<float>(ypos);
 
-  screenOffset.x = static_cast<float>(xpos) - prevScreenPos.x;
-  screenOffset.y = prevScreenPos.y - static_cast<float>(ypos);
+  screenOffset.x += sensitivity * (static_cast<float>(xpos) - prevScreenPos.x);
+  screenOffset.y += sensitivity * (prevScreenPos.y - static_cast<float>(ypos));
   prevScreenPos = glm::vec2(xpos, ypos);
-  screenOffset *= sensitivity;
 
 #if DEBUG_INPUT
   std::cout << "Mouse pos: " << "(" << xpos << ", " << ypos << ")" << std::endl;

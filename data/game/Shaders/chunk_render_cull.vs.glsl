@@ -10,7 +10,7 @@ layout(std430, binding = 0) restrict readonly buffer vertexBufferData
   int vbo[];
 };
 
-layout(std430, binding = 1) restrict readonly buffer cmds
+layout(std430, binding = 1) buffer cmds
 {
   DrawArraysCommand drawCommands[];
 };

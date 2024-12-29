@@ -42,7 +42,6 @@ void main()
   vec2 aPos = vTexCoord - 0.5;
 
   int index = int(drawIndices[gl_InstanceID]);
-  //int index = gl_InstanceID;
 
   ParticleSharedData psd = particlesShared[index];
   ParticleRenderData prd = particlesRender[index];

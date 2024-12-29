@@ -2,15 +2,18 @@
 #include <memory>
 #include <voxel/Chunk.h>
 #include <voxel/ChunkHelpers.h>
+#include <voxel/EditorRefactor.h>
+#include <voxel/ChunkManager.h>
+#include <voxel/ChunkRenderer.h>
 
-class Editor;
+//class Editor;
 class Scene;
 class WorldGen;
 
 namespace Voxels
 {
-  class ChunkManager;
-  class ChunkRenderer;
+  //class ChunkManager;
+  //class ChunkRenderer;
 
   class VoxelManager
   {

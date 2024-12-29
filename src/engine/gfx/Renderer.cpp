@@ -715,6 +715,9 @@ namespace GFX
 
     void RenderEmitters(std::span<RenderView*> renderViews)
     {
+#if LOG_PARTICLE_RENDER_TIME
+      GFX::TimerQuery timerQuery;
+#endif
       emitterDrawCommands.resize(emitterDrawIndex);
       if (emitterDrawCommands.empty())
       {
@@ -775,6 +778,9 @@ namespace GFX
           glDrawArraysIndirect(GL_TRIANGLE_FAN, 0);
         }
       }
+#if LOG_PARTICLE_RENDER_TIME
+      printf("Emitter update time: %f ms\n", (double)timerQuery.Elapsed_ns() / 1000000.0);
+#endif
     }
 
     void DrawFog(std::span<RenderView*> renderViews, bool earlyFogPass)

@@ -263,7 +263,7 @@ void Physics::PhysicsManager::Simulate(Timestep timestep)
     return;
 
   gScene->lockRead();
-  const int numstatic = gScene->getNbActors(PxActorTypeFlag::eRIGID_STATIC);
+  //const int numstatic = gScene->getNbActors(PxActorTypeFlag::eRIGID_STATIC);
   //gScene->
   //printf("Static: %d\n", numstatic);
 

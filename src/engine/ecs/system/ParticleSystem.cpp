@@ -218,7 +218,10 @@ void ParticleSystem::Update(Scene& scene, Timestep timestep)
       ASSERT(emitterData);
 
       uint32_t zero{ 0 };
-      glClearNamedBufferSubData(emitterData->indirectDrawBuffer->GetAPIHandle(), GL_R32UI, offsetof(DrawArraysIndirectCommand, instanceCount),
+      glClearNamedBufferSubData(
+        emitterData->indirectDrawBuffer->GetAPIHandle(),
+        GL_R32UI,
+        offsetof(DrawArraysIndirectCommand, instanceCount),
         sizeof(GLuint), GL_RED, GL_UNSIGNED_INT, &zero);
 
       emitterData->particleSharedDataBuffer->Bind<GFX::Target::SHADER_STORAGE_BUFFER>(0);

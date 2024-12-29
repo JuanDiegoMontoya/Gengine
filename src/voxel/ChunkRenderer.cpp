@@ -31,6 +31,7 @@ AutoCVar<cvar_float> freezeCullingCVar("v.freezeCulling", "- If enabled, freezes
 AutoCVar<cvar_float> drawOcclusionVolumesCVar("v.drawOcclusionVolumes", "- If enabled, draws occlusion volumes", 0, 0, 1, CVarFlag::CHEAT);
 AutoCVar<cvar_float> anisotropyCVar("v.anisotropy", "- Level of anisotropic filtering to apply to voxels", 16, 1, 16);
 AutoCVar<cvar_float> lowQualityCullDistance("v.lowQualityCullDistance", "- Maximum distance at which chunks for low quality cameras should render", 100);
+AutoCVar<cvar_float> sampleWithAA("v.sampleWithAA", "- Use AA'd texture filtering", 0, 0, 1);
 
 DECLARE_FLOAT_STAT(DrawVoxelsAll, GPU)
 
@@ -269,10 +270,19 @@ namespace Voxels
     auto currShader = GFX::ShaderManager::GetShader("chunk_optimized");
     currShader->Bind();
 
+    currShader->SetBool("u_sampleWithAA", sampleWithAA.Get() != 0);
     currShader->SetFloat("u_minBrightness", u_minBrightness);
     currShader->SetVec3("u_envColor", u_envColor);
     GFX::SamplerState state = data->anisotropicNearestSampler->GetState();
     state.asBitField.anisotropy = getAnisotropy(anisotropyCVar.Get());
+    if (sampleWithAA.Get() != 0)
+    {
+      state.asBitField.magFilter = GFX::Filter::LINEAR;
+    }
+    else
+    {
+      state.asBitField.magFilter = GFX::Filter::NEAREST;
+    }
     data->anisotropicNearestSampler->SetState(state);
 
     auto framebuffer = GFX::Framebuffer::Create();

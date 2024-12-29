@@ -4,6 +4,7 @@ layout(location = 1) uniform vec3 u_viewPos;
 layout(location = 2) uniform vec3 u_envColor = vec3(1.0);
 layout(location = 3) uniform float u_minBrightness = 0.01;
 layout(location = 4) uniform float u_ambientOcclusionStrength = 0.5;
+layout(location = 5) uniform bool u_sampleWithAA = false;
 layout(binding = 0) uniform sampler2DArray u_diffuseTextures;
 layout(binding = 1) uniform sampler2DArray u_normalTextures;
 layout(binding = 2) uniform sampler2DArray u_PBRTextures;
@@ -43,6 +44,17 @@ bool clipTransparency(float alpha)
   return alpha < limit;
 }
 
+// Ripped from https://www.shadertoy.com/view/csX3RH
+vec4 texture2DAA(sampler2DArray tex, vec2 uv, float z)
+{
+  vec2 texsize = vec2(textureSize(tex, 0));
+  vec2 uv_texspace = uv * texsize;
+  vec2 seam = floor(uv_texspace + .5);
+  uv_texspace = (uv_texspace - seam) / fwidth(uv_texspace) + seam;
+  uv_texspace = clamp(uv_texspace, seam - .5, seam + .5);
+  return texture(tex, vec3(uv_texspace / texsize, z));
+}
+
 vec3 GetNormal()
 {
   //return normalize(cross(dFdx(fs_in.posViewSpace), dFdy(fs_in.posViewSpace)));
@@ -71,7 +83,15 @@ float CalculateAO()
 
 void main()
 {
-  vec4 texColor = texture(u_diffuseTextures, fs_in.texCoord).rgba;
+  vec4 texColor;
+  if (u_sampleWithAA)
+  {
+   texColor = texture2DAA(u_diffuseTextures, fs_in.texCoord.xy, fs_in.texCoord.z).rgba;
+  }
+  else
+  {
+    texColor = texture(u_diffuseTextures, fs_in.texCoord).rgba;
+  }
   vec3 normal = GetNormal();
 
   // dithering

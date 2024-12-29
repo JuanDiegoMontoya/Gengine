@@ -5,7 +5,7 @@
 
 layout (early_fragment_tests) in;
 
-layout(std430, binding = 1) writeonly buffer cmds
+layout(std430, binding = 1) buffer cmds
 {
   DrawArraysCommand drawCommands[];
 };
